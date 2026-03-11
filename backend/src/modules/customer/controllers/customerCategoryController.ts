@@ -1,7 +1,6 @@
 import { Request, Response } from "express";
 import Category from "../../../models/Category";
 import SubCategory from "../../../models/SubCategory";
-import Product from "../../../models/Product";
 import mongoose from "mongoose";
 import { cache } from "../../../utils/cache";
 
@@ -53,38 +52,13 @@ export const getCategoriesWithSubs = async (_req: Request, res: Response) => {
       });
     }
 
+    // Fetch all active categories
     const categories = await Category.find({ status: "Active" })
       .sort({ order: 1 })
       .lean();
 
-    // Build product count maps to filter categories/subcategories that actually have products
-    const activeProductMatch = { status: "Active", publish: true };
-
-    const [categoryCounts, subcategoryCounts] = await Promise.all([
-      Product.aggregate([
-        { $match: activeProductMatch },
-        { $group: { _id: "$category", count: { $sum: 1 } } },
-      ]),
-      Product.aggregate([
-        { $match: activeProductMatch },
-        { $group: { _id: "$subcategory", count: { $sum: 1 } } },
-      ]),
-    ]);
-
-    const categoryCountMap = new Map<string, number>();
-    categoryCounts.forEach((item) => {
-      if (item._id) {
-        categoryCountMap.set(item._id.toString(), item.count);
-      }
-    });
-
-    const subcategoryCountMap = new Map<string, number>();
-    subcategoryCounts.forEach((item) => {
-      if (item._id) {
-        subcategoryCountMap.set(item._id.toString(), item.count);
-      }
-    });
-
+    // Attach subcategories if present, but DO NOT filter by product counts.
+    // This ensures newly created categories (even without products yet) are visible to customers.
     categoriesWithSubs = await Promise.all(
       categories.map(async (category) => {
         const subcategories = await SubCategory.find({
@@ -93,32 +67,12 @@ export const getCategoriesWithSubs = async (_req: Request, res: Response) => {
           .sort({ order: 1 })
           .select("name image order");
 
-        // Keep only subcategories that have at least one product
-        const filteredSubs = subcategories.filter((sub) =>
-          subcategoryCountMap.has(sub._id.toString())
-        );
-
-        const directCategoryCount =
-          categoryCountMap.get(category._id.toString()) || 0;
-        const subsProductCount = filteredSubs.reduce(
-          (total, sub) =>
-            total + (subcategoryCountMap.get(sub._id.toString()) || 0),
-          0
-        );
-        const totalProducts = directCategoryCount + subsProductCount;
-
-        // Exclude category if no products in category or its subcategories
-        if (totalProducts === 0) {
-          return null;
-        }
-
         return {
           ...category,
-          subcategories: filteredSubs,
-          totalProducts,
+          subcategories,
         };
-      })
-    ).then((list) => list.filter(Boolean));
+      }),
+    );
 
     // Cache for 10 minutes
     cache.set(cacheKey, categoriesWithSubs, 10 * 60 * 1000);

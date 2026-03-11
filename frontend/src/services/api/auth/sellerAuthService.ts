@@ -29,10 +29,14 @@ export interface RegisterData {
   mobile: string;
   email: string;
   storeName: string;
-  category?: string; // primary category (optional if categories array provided)
-  categories: string[]; // multiple categories
+  category?: string; // primary category
+  categories?: string[]; // multiple categories (optional during signup)
   address: string;
   city: string;
+  panCard: string;
+  taxName: string;
+  taxNumber: string;
+  ifsc: string;
   serviceableArea?: string;
   searchLocation?: string;
   latitude?: string;

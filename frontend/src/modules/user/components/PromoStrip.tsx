@@ -506,13 +506,9 @@ export default function PromoStrip({ activeTab = "all" }: PromoStripProps) {
     );
   }
 
-  // Show "No active promotions" only if there are no cards AND no products
+  // If there is no promo data, don't render anything
   if (!hasData || (categoryCards.length === 0 && featuredProducts.length === 0)) {
-    return (
-      <div className="text-center py-6 text-neutral-400 text-sm">
-        No active promotions
-      </div>
-    );
+    return null;
   }
 
   // If no featured products but we have category cards, use a fallback product

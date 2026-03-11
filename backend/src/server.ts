@@ -15,6 +15,7 @@ import { notFound } from "./middleware/notFound";
 import { ensureDefaultAdmin } from "./utils/ensureDefaultAdmin";
 import { seedHeaderCategories } from "./utils/seedHeaderCategories";
 import { initializeSocket } from "./socket/socketService";
+import mongoose from "mongoose";
 
 const app: Application = express();
 const httpServer = createServer(app);
@@ -99,7 +100,7 @@ app.set("io", io);
 // Routes
 app.get("/", (_req: Request, res: Response) => {
   res.json({
-    message: "Kosil API Server is running!",
+    message: "Healthy Delight API Server is running!",
     version: "1.0.0",
     socketIO: "Listening for WebSocket connections",
   });
@@ -122,12 +123,22 @@ const PORT = process.env.PORT || 5000;
 
 async function startServer() {
   // Connect DB then ensure default admin exists
-  await connectDB();
-  await ensureDefaultAdmin();
-  await seedHeaderCategories();
+  // If DB is unavailable (e.g., no internet / Atlas blocked), start in degraded mode.
+  try {
+    await connectDB();
+    await ensureDefaultAdmin();
+    await seedHeaderCategories();
+  } catch (err) {
+    console.warn(
+      "\n\x1b[33m!\x1b[0m Starting server without DB connection (degraded mode)."
+    );
+    console.warn(
+      `   \x1b[36mMongo readyState:\x1b[0m ${mongoose.connection.readyState}\n`
+    );
+  }
 
   httpServer.listen(PORT, () => {
-    console.log("\n\x1b[32m✓\x1b[0m \x1b[1mKosil Server Started\x1b[0m");
+    console.log("\n\x1b[32m✓\x1b[0m \x1b[1mHealthy Delight Server Started\x1b[0m");
     console.log(`   \x1b[36mPort:\x1b[0m http://localhost:${PORT}`);
     console.log(
       `   \x1b[36mEnvironment:\x1b[0m ${process.env.NODE_ENV || "development"}`

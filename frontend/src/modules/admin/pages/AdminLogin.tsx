@@ -59,7 +59,7 @@ export default function AdminLogin() {
   };
 
   const handleKosilLogin = () => {
-    // Handle Kosil login logic here
+    // Handle legacy Kosil login logic here
     navigate("/admin");
   };
 
@@ -102,7 +102,7 @@ export default function AdminLogin() {
           <div className="mb-0 -mt-4">
             <img
               src="/assets/kosil1.png"
-              alt="Kosil"
+              alt="Healthy Delight"
               className="h-44 w-full max-w-xs mx-auto object-fill object-bottom"
             />
           </div>
@@ -203,7 +203,7 @@ export default function AdminLogin() {
 
       {/* Footer Text */}
       <p className="mt-6 text-xs text-neutral-500 text-center max-w-md">
-        By continuing, you agree to Kosil's Terms of Service and Privacy Policy
+        By continuing, you agree to Healthy Delight's Terms of Service and Privacy Policy
       </p>
     </div>
   );

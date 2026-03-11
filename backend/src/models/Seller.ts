@@ -11,7 +11,7 @@ export interface ISeller extends Document {
   // Store Info
   storeName: string;
   panCard?: string;
-  category: string;
+  category?: string;
   taxName?: string;
   address: string;
   taxNumber?: string;
@@ -127,7 +127,6 @@ const SellerSchema = new Schema<ISeller>(
     },
     category: {
       type: String,
-      required: [true, 'Category is required'],
       trim: true,
     },
     taxName: {

@@ -106,13 +106,13 @@ export default function SellerHeader({
               </svg>
             )}
           </button>
-          {/* Kosil Logo */}
+          {/* Healthy Delight Logo */}
           <button
             onClick={handleLogoClick}
             className="hover:opacity-80 transition-opacity">
             <img
               src={kosilLogo}
-              alt="Kosil"
+              alt="Healthy Delight"
               className="h-10 sm:h-12 w-auto object-contain cursor-pointer"
               style={{ maxWidth: "200px" }}
             />

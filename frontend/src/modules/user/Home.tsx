@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import HomeHero from "./components/HomeHero";
 import HomeBannerCarousel from "./components/HomeBannerCarousel";
 import PromoStrip from "./components/PromoStrip";
-import LowestPricesEver from "./components/LowestPricesEver";
 import CategoryTileSection from "./components/CategoryTileSection";
 import FeaturedThisWeek from "./components/FeaturedThisWeek";
 import ProductCard from "./components/ProductCard";
@@ -133,6 +132,10 @@ export default function Home() {
     [activeTab, products],
   );
 
+  const handleGoToCategories = () => {
+    navigate("/categories");
+  };
+
   if (loading && !products.length) {
     return <PageLoader />; // Let the global IconLoader handle the initial loading state
   }
@@ -172,9 +175,6 @@ export default function Home() {
       {/* Hero Header with Gradient and Tabs */}
       <HomeHero activeTab={activeTab} onTabChange={setActiveTab} />
 
-      {/* Promo Strip */}
-      <PromoStrip activeTab={activeTab} />
-
       {/* Dynamic Banners Carousel */}
       {activeTab === "all" &&
         homeData.promoBanners &&
@@ -182,11 +182,52 @@ export default function Home() {
           <HomeBannerCarousel banners={homeData.promoBanners} />
         )}
 
-      {/* LOWEST PRICES EVER Section */}
-      <LowestPricesEver
-        activeTab={activeTab}
-        products={homeData.lowestPrices}
-      />
+      {/* Quick Categories strip */}
+      {homeData.categories && homeData.categories.length > 0 && (
+        <div className="bg-neutral-50 px-4 pt-3 pb-3 md:px-6 md:pt-4 md:pb-4">
+          <div className="flex items-center justify-between mb-2 md:mb-3">
+            <h2 className="text-base md:text-lg font-semibold text-neutral-900">
+              Categories
+            </h2>
+            <button
+              type="button"
+              onClick={handleGoToCategories}
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[11px] md:text-xs font-semibold bg-emerald-600 text-white shadow-sm hover:bg-emerald-700 active:scale-95 transition-colors transition-transform">
+              See all
+              <span className="text-[13px]" aria-hidden="true">
+                →
+              </span>
+            </button>
+          </div>
+          <div className="grid grid-cols-4 md:grid-cols-6 gap-2 pb-1">
+            {homeData.categories.slice(0, 8).map((cat: any) => (
+              <button
+                key={cat._id || cat.id}
+                type="button"
+                onClick={() => navigate(`/category/${cat._id || cat.id}`)}
+                className="bg-white rounded-2xl px-2.5 py-2 flex flex-col items-center shadow-sm border border-neutral-200 active:scale-95 transition-transform">
+                <div className="w-10 h-10 md:w-11 md:h-11 rounded-2xl bg-emerald-50 flex items-center justify-center overflow-hidden mb-1">
+                  {cat.image ? (
+                    <img
+                      src={cat.image}
+                      alt={cat.name}
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <span className="text-xl" aria-hidden="true">
+                      🥛
+                    </span>
+                  )}
+                </div>
+                <span className="text-[10px] md:text-[11px] font-medium text-neutral-900 text-center leading-tight line-clamp-2">
+                  {cat.name}
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Main content */}
       <div
@@ -228,30 +269,7 @@ export default function Home() {
         {(activeTab === "all" || (homeData.homeSections && homeData.homeSections.length > 0)) && (
           <>
             {/* Sections only for 'All' tab */}
-            {activeTab === "all" && (
-              <>
-                <div className="mt-2 md:mt-4">
-                  <CategoryTileSection
-                    title="Bestsellers"
-                    tiles={
-                      homeData.bestsellers && homeData.bestsellers.length > 0
-                        ? homeData.bestsellers.slice(0, 6).map((card: any) => ({
-                          id: card.id,
-                          categoryId: card.categoryId,
-                          name: card.name || "Category",
-                          productImages: card.productImages || [],
-                          productCount: card.productCount || 0,
-                        }))
-                        : []
-                    }
-                    columns={3}
-                    showProductCount={true}
-                  />
-                </div>
-
-                <FeaturedThisWeek />
-              </>
-            )}
+            {activeTab === "all" && null}
 
             {/* Dynamic Home Sections - Render sections created by admin (all tabs) */}
             {homeData.homeSections && homeData.homeSections.length > 0 && (

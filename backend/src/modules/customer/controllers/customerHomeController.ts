@@ -211,6 +211,25 @@ export const getHomeContent = async (req: Request, res: Response) => {
   const { headerCategorySlug, latitude, longitude } = req.query; // Get header category slug and location from query params
 
   try {
+    // If DB is not connected (e.g. Atlas blocked / offline), return a safe empty payload
+    // so the frontend can load without showing a full-screen network error.
+    if (mongoose.connection.readyState !== 1) {
+      return res.json({
+        success: true,
+        data: {
+          bestsellers: [],
+          lowestPrices: [],
+          categories: [],
+          shops: [],
+          promoBanners: [],
+          trending: [],
+          cookingIdeas: [],
+          promoCards: [],
+          promoStrip: null,
+        },
+      });
+    }
+
     // Find sellers within user's location range
     const userLat = latitude ? parseFloat(latitude as string) : null;
     const userLng = longitude ? parseFloat(longitude as string) : null;
@@ -627,7 +646,7 @@ export const getHomeContent = async (req: Request, res: Response) => {
       .sort({ order: 1 })
       .lean();
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       data: {
         bestsellers,
@@ -660,7 +679,7 @@ export const getHomeContent = async (req: Request, res: Response) => {
       },
     });
   } catch (error: any) {
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: "Error fetching home content",
       error: error.message,

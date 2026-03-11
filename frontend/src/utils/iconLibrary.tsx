@@ -10,6 +10,80 @@ export interface IconDef {
 export const ICON_LIBRARY: IconDef[] = [
     // --- GROCERY & FOOD ---
     {
+        name: 'milk-bottle',
+        label: 'Milk Bottle',
+        tags: ['milk', 'dairy', 'bottle', 'fresh', 'cow', 'buffalo'],
+        svg: (
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M9 3h6v3l-1.5 2v11a1.5 1.5 0 0 1-1.5 1.5h-1a1.5 1.5 0 0 1-1.5-1.5V8L9 6V3z" />
+                <path d="M9 6h6" />
+                <path d="M9.5 12h5" />
+            </svg>
+        )
+    },
+    {
+        name: 'cheese',
+        label: 'Cheese',
+        tags: ['cheese', 'slice', 'block', 'dairy', 'paneer'],
+        svg: (
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M3 10l9-6 9 6v10H3V10z" />
+                <path d="M12 4v16" />
+                <circle cx="8" cy="13" r="1" />
+                <circle cx="16" cy="15" r="1" />
+                <circle cx="16" cy="11" r="0.9" />
+            </svg>
+        )
+    },
+    {
+        name: 'yogurt-cup',
+        label: 'Curd & Yogurt',
+        tags: ['curd', 'yogurt', 'dahi', 'cup', 'bowl', 'dairy'],
+        svg: (
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M4 7h16l-1.5 10.5A2 2 0 0 1 16.5 19h-9a2 2 0 0 1-1.99-1.7L4 7z" />
+                <path d="M4 7c1.5-1 3.5-1.5 6-1.5S14.5 6 16 7" />
+                <path d="M8 12c.6.4 1.4.7 2.5.7S13 12.4 13.5 12" />
+            </svg>
+        )
+    },
+    {
+        name: 'butter',
+        label: 'Butter',
+        tags: ['butter', 'block', 'slab', 'dairy', 'toast'],
+        svg: (
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="9" width="18" height="8" rx="1.5" />
+                <rect x="6" y="6" width="9" height="5" rx="1" />
+                <path d="M3 17v2h18v-2" />
+            </svg>
+        )
+    },
+    {
+        name: 'ghee-jar',
+        label: 'Ghee',
+        tags: ['ghee', 'jar', 'clarified', 'butter', 'dairy'],
+        svg: (
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="6" y="7" width="12" height="13" rx="2" />
+                <path d="M7 7h10V5a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v2z" />
+                <path d="M10 13c.5.5 1 .8 2 .8s1.5-.3 2-.8" />
+            </svg>
+        )
+    },
+    {
+        name: 'lassi-glass',
+        label: 'Lassi & Beverages',
+        tags: ['lassi', 'chaas', 'buttermilk', 'drink', 'glass', 'dairy'],
+        svg: (
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M7 4h10l-1.2 13.2A2 2 0 0 1 13.8 19H10.2A2 2 0 0 1 8.2 17.2L7 4z" />
+                <path d="M7 4c1 .8 2.7 1.2 5 1.2S16 4.8 17 4" />
+                <path d="M11 9c.3.3.7.5 1.2.5s.9-.2 1.2-.5" />
+            </svg>
+        )
+    },
+    {
         name: 'grocery-basket',
         label: 'Grocery Basket',
         tags: ['grocery', 'food', 'basket', 'buy', 'shop', 'market', 'vegetable'],

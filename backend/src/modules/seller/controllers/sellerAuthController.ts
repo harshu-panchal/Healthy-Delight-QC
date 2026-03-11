@@ -108,7 +108,10 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
     mobile,
     email,
     storeName,
-    category,
+    panCard,
+    taxName,
+    taxNumber,
+    ifsc,
     address,
     city,
     serviceableArea,
@@ -120,11 +123,15 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
     !mobile ||
     !email ||
     !storeName ||
-    !category
+    !panCard ||
+    !taxName ||
+    !taxNumber ||
+    !ifsc
   ) {
     return res.status(400).json({
       success: false,
-      message: "Required fields (Name, Mobile, Email, Store Name, Category) must be provided",
+      message:
+        "Required fields (Name, Mobile, Email, Store Name, PAN Card, Tax Name, Tax Number, IFSC) must be provided",
     });
   }
 
@@ -194,7 +201,10 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
     email,
     // password field removed - sellers don't need password during signup
     storeName,
-    category,
+    panCard,
+    taxName,
+    taxNumber,
+    ifsc,
     address,
     city,
     ...(serviceableArea && { serviceableArea }),

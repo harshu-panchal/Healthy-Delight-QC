@@ -21,7 +21,9 @@ const connectDB = async (): Promise<void> => {
     } else {
       console.error(`   \x1b[31m${String(error)}\x1b[0m\n`);
     }
-    process.exit(1);
+    // Don't exit the process here; allow the server to start in "degraded mode"
+    // so the frontend can still load and show a helpful message/fallback data.
+    throw error;
   }
 };
 

@@ -8,13 +8,8 @@ interface Tab {
 
 const tabs: Tab[] = [
   { id: 'all', label: 'All', icon: '🏠' },
-  { id: 'wedding', label: 'Wedding', icon: '💍' },
-  { id: 'winter', label: 'Winter', icon: '❄️' },
-  { id: 'electronics', label: 'Electronics', icon: '📱' },
-  { id: 'beauty', label: 'Beauty', icon: '💄' },
-  { id: 'grocery', label: 'Grocery', icon: '🛒' },
-  { id: 'fashion', label: 'Fashion', icon: '👕' },
-  { id: 'sports', label: 'Sports', icon: '⚽' },
+  // Primary dairy header category
+  { id: 'grocery', label: 'Dairy', icon: '🥛' },
 ];
 
 interface HorizontalTabsProps {

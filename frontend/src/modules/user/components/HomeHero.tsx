@@ -21,6 +21,7 @@ interface Tab {
   id: string;
   label: string;
   icon: React.ReactNode;
+  themeKey?: string;
 }
 
 const ALL_TAB: Tab = {
@@ -49,6 +50,7 @@ const ALL_TAB: Tab = {
       />
     </svg>
   ),
+  themeKey: "all",
 };
 
 export default function HomeHero({
@@ -56,25 +58,6 @@ export default function HomeHero({
   onTabChange,
 }: HomeHeroProps) {
   const [tabs, setTabs] = useState<Tab[]>([ALL_TAB]);
-
-  useEffect(() => {
-    const fetchHeaderCategories = async () => {
-      try {
-        const cats = await getHeaderCategoriesPublic();
-        if (cats && cats.length > 0) {
-          const mapped = cats.map((c) => ({
-            id: c.slug,
-            label: c.name,
-            icon: getIconByName(c.iconName),
-          }));
-          setTabs([ALL_TAB, ...mapped]);
-        }
-      } catch (error) {
-        console.error("Failed to fetch header categories", error);
-      }
-    };
-    fetchHeaderCategories();
-  }, []);
   const navigate = useNavigate();
   const { location: userLocation } = useLocation();
   const heroRef = useRef<HTMLDivElement>(null);
@@ -107,6 +90,30 @@ export default function HomeHero({
 
   const [categories, setCategories] = useState<Category[]>([]);
 
+  // Load dynamic header categories for tabs
+  useEffect(() => {
+    const fetchHeaderCategories = async () => {
+      try {
+        const cats = await getHeaderCategoriesPublic(true);
+        if (cats && cats.length > 0) {
+          const mapped: Tab[] = cats
+            .filter((c) => c.status === "Published" && c.slug !== "all")
+            .sort((a, b) => (a.order || 0) - (b.order || 0))
+            .map((c) => ({
+              id: c.slug,
+              label: c.name,
+              icon: getIconByName(c.iconName),
+              themeKey: (c as any).themeKey || c.slug || "all",
+            }));
+          setTabs([ALL_TAB, ...mapped]);
+        }
+      } catch (error) {
+        console.error("Failed to fetch header categories", error);
+      }
+    };
+    fetchHeaderCategories();
+  }, []);
+
   // Fetch categories for search suggestions
   useEffect(() => {
     const fetchCategories = async () => {
@@ -134,67 +141,18 @@ export default function HomeHero({
       return categories.slice(0, 8).map((c) => c.name.toLowerCase());
     }
 
-    switch (activeTab) {
-      case "wedding":
-        return [
-          "gift packs",
-          "dry fruits",
-          "sweets",
-          "decorative items",
-          "wedding cards",
-          "return gifts",
-        ];
-      case "winter":
-        return [
-          "woolen clothes",
-          "caps",
-          "gloves",
-          "blankets",
-          "heater",
-          "winter wear",
-        ];
-      case "electronics":
-        return [
-          "chargers",
-          "cables",
-          "power banks",
-          "earphones",
-          "phone cases",
-          "screen guards",
-        ];
-      case "beauty":
-        return [
-          "lipstick",
-          "makeup",
-          "skincare",
-          "kajal",
-          "face wash",
-          "moisturizer",
-        ];
-      case "grocery":
-        return ["atta", "milk", "dal", "rice", "oil", "vegetables"];
-      case "fashion":
-        return [
-          "clothing",
-          "shoes",
-          "accessories",
-          "watches",
-          "bags",
-          "jewelry",
-        ];
-      case "sports":
-        return [
-          "cricket bat",
-          "football",
-          "badminton",
-          "fitness equipment",
-          "sports shoes",
-          "gym wear",
-        ];
-      default: // 'all'
-        return ["atta", "milk", "dal", "coke", "bread", "eggs", "rice", "oil"];
-    }
-  }, [activeTab]);
+    // Generic dairy / grocery oriented suggestions for any header category
+    return [
+      "milk",
+      "curd",
+      "paneer",
+      "cheese",
+      "butter",
+      "ghee",
+      "lassi",
+      "ice cream",
+    ];
+  }, [activeTab, categories.length]);
 
   useLayoutEffect(() => {
     const hero = heroRef.current;
@@ -334,12 +292,16 @@ export default function HomeHero({
     };
   }, [activeTab]);
 
-  const handleTabClick = (tabId: string) => {
+  const handleTabClick = (e: React.MouseEvent, tabId: string) => {
+    e.stopPropagation();
+    e.preventDefault();
     onTabChange?.(tabId);
-    // Don't scroll - keep page at current position
   };
 
-  const theme = getTheme(activeTab || "all");
+  const currentTab =
+    tabs.find((t) => t.id === activeTab) || ALL_TAB;
+  const themeId = currentTab.themeKey || currentTab.id || "all";
+  const theme = getTheme(themeId);
   const heroGradient = `linear-gradient(to bottom right, ${theme.primary[0]}, ${theme.primary[1]}, ${theme.primary[2]})`;
 
   // Helper to convert RGB to RGBA
@@ -365,7 +327,7 @@ export default function HomeHero({
             <div className="flex-1 pr-2">
               {/* Service name - small, dark */}
               <div className="text-neutral-800 font-medium text-[10px] md:text-xs mb-0 leading-tight">
-                Kosil E-Commerce
+                Healthy Delight E-Commerce
               </div>
               {/* Delivery time - large, bold, dark grey/black */}
               <div className="text-neutral-900 font-extrabold text-2xl md:text-xl mb-0 md:mb-0.5 leading-tight">
@@ -521,11 +483,11 @@ export default function HomeHero({
 
         {/* Category Tabs */}
         <div
-          className="border-b border-neutral-400/40 w-full"
+          className="border-b border-neutral-400/40 w-full relative z-10"
           style={{ paddingBottom: 0 }}>
           <div
             ref={tabsContainerRef}
-            className="relative flex gap-2 md:gap-3 overflow-x-auto scrollbar-hide -mx-4 md:mx-0 px-4 md:px-6 lg:px-8 md:justify-center scroll-smooth"
+            className="relative flex gap-2 md:gap-3 overflow-x-auto scrollbar-hide -mx-2 md:mx-0 px-4 md:px-6 lg:px-8 md:justify-center scroll-smooth"
             style={{ paddingBottom: "12px" }}
             data-padding-bottom="md:8px">
             {/* Sliding Indicator */}
@@ -542,13 +504,14 @@ export default function HomeHero({
               />
             )}
 
-            {tabs.map((tab) => {
+            {tabs.map((tab, index) => {
               const isActive = activeTab === tab.id;
               const tabColor = isActive
                 ? "text-neutral-900"
                 : scrollProgress > 0.5
                   ? "text-neutral-600"
                   : "text-neutral-800";
+              const isFirstTab = index === 0;
 
               return (
                 <button
@@ -560,10 +523,11 @@ export default function HomeHero({
                       tabRefs.current.delete(tab.id);
                     }
                   }}
-                  onClick={() => handleTabClick(tab.id)}
-                  className={`flex-shrink-0 flex flex-col md:flex-row items-center justify-center min-w-[50px] md:min-w-fit md:px-3 py-1 md:py-1.5 relative ${tabColor} z-10`}
+                  onClick={(e) => handleTabClick(e, tab.id)}
+                  className={`flex-shrink-0 flex flex-col md:flex-row items-center justify-center min-w-[50px] md:min-w-fit md:px-3 py-2 md:py-1.5 relative ${tabColor} z-10 cursor-pointer select-none ${isFirstTab ? "pl-5 pr-2 md:pl-3" : "px-2 md:px-3"}`}
                   style={{
                     transition: "color 0.3s ease-out",
+                    touchAction: "manipulation",
                   }}
                   type="button">
                   <div

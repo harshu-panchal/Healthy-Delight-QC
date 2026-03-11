@@ -10,10 +10,11 @@ export interface Theme {
 
 export const themes: Record<string, Theme> = {
   all: {
-    primary: ['rgb(34, 197, 94)', 'rgb(74, 222, 128)', 'rgb(134, 239, 172)', 'rgb(187, 247, 208)'],
-    secondary: ['rgb(187, 247, 208)', 'rgb(134, 239, 172)', 'rgb(74, 222, 128)'],
-    textColor: '#1a1a1a',
-    accentColor: '#000',
+    // Signature dairy theme: fresh sky + creamy milk
+    primary: ['#e0f2fe', '#dbeafe', '#fef3c7', '#fffbeb'], // top → bottom gradient
+    secondary: ['#fffbeb', '#fef3c7', '#dbeafe'],
+    textColor: '#0f172a',
+    accentColor: '#1d4ed8',
     bannerText: 'HOUSEFULL',
     saleText: 'SALE',
     headerTextColor: '#ffffff',
@@ -55,11 +56,12 @@ export const themes: Record<string, Theme> = {
     headerTextColor: '#831843',
   },
   grocery: {
-    primary: ['rgb(187, 247, 208)', 'rgb(209, 250, 229)', 'rgb(220, 252, 231)', 'rgb(236, 253, 245)'],
-    secondary: ['rgb(236, 253, 245)', 'rgb(220, 252, 231)', 'rgb(209, 250, 229)'],
+    // Dairy-focused grocery: soft mint + cream
+    primary: ['#dcfce7', '#bbf7d0', '#fef3c7', '#fffbeb'],
+    secondary: ['#fffbeb', '#fef3c7', '#bbf7d0'],
     textColor: '#14532d',
-    accentColor: '#166534',
-    bannerText: 'GROCERY',
+    accentColor: '#16a34a',
+    bannerText: 'DAIRY',
     saleText: 'SALE',
     headerTextColor: '#14532d',
   },
