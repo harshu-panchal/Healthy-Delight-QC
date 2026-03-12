@@ -211,7 +211,7 @@ export default function SellerSignUp() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-teal-50 to-green-50 flex flex-col items-center justify-center px-4 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-[#fdfcfb] via-[#e2d1f9] to-[#fef6e4] flex flex-col items-center justify-center px-4 py-8">
       {/* Back Button */}
       <button
         onClick={() => navigate(-1)}
@@ -237,9 +237,10 @@ export default function SellerSignUp() {
       <div className="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden">
         {/* Header Section */}
         <div
-          className="px-6 py-4 text-center border-b border-green-700"
+          className="px-6 py-4 text-center border-b"
           style={{
-            backgroundColor: "rgb(21 178 74 / var(--tw-bg-opacity, 1))",
+            backgroundColor: "#ffffff", // clean card top
+            borderColor: "#e5d4ff",    // soft lavender border
           }}>
           <div className="mb-0 -mt-4">
             <img
@@ -248,10 +249,10 @@ export default function SellerSignUp() {
               className="h-44 w-full max-w-xs mx-auto object-fill object-bottom"
             />
           </div>
-          <h1 className="text-2xl font-bold text-white mb-1 -mt-12">
+          <h1 className="text-2xl font-bold text-[#4b3f72] mb-1 -mt-12">
             Seller Sign Up
           </h1>
-          <p className="text-green-50 text-sm -mt-2">
+          <p className="text-[#7a5ea5] text-sm -mt-2">
             Create your seller account
           </p>
         </div>
