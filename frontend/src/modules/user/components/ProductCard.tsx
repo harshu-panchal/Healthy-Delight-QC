@@ -9,7 +9,6 @@ import { useToast } from '../../../context/ToastContext'; // Import useToast
 import { addToWishlist, removeFromWishlist, getWishlist } from '../../../services/api/customerWishlistService';
 import Button from '../../../components/ui/button';
 import Badge from '../../../components/ui/badge';
-import StarRating from '../../../components/ui/StarRating';
 import { calculateProductPrice } from '../../../utils/priceUtils';
 
 interface ProductCardProps {
@@ -19,7 +18,6 @@ interface ProductCardProps {
   showPackBadge?: boolean;
   showStockInfo?: boolean;
   showHeartIcon?: boolean;
-  showRating?: boolean;
   showVegetarianIcon?: boolean;
   showOptionsText?: boolean;
   optionsCount?: number;
@@ -34,7 +32,6 @@ export default function ProductCard({
   showPackBadge = false,
   showStockInfo = false,
   showHeartIcon = false,
-  showRating = false,
   showVegetarianIcon = false,
   showOptionsText = false,
   optionsCount = 2,
@@ -99,8 +96,8 @@ export default function ProductCard({
         showToast('Removed from wishlist');
       } else {
         if (!location?.latitude || !location?.longitude) {
-           showToast('Location is required to add items to wishlist', 'error');
-           return;
+          showToast('Location is required to add items to wishlist', 'error');
+          return;
         }
         // Optimistic update
         setIsWishlisted(true);
@@ -316,11 +313,10 @@ export default function ProductCard({
                       e.stopPropagation();
                       handleAdd(e);
                     }}
-                    className={`w-full border rounded-full font-semibold text-xs h-7 px-3 flex items-center justify-center uppercase tracking-wide ${
-                      product.isAvailable === false
+                    className={`w-full border rounded-full font-semibold text-xs h-7 px-3 flex items-center justify-center uppercase tracking-wide ${product.isAvailable === false
                       ? 'border-neutral-300 text-neutral-400 bg-neutral-50 cursor-not-allowed'
                       : 'border-green-600 text-green-600 bg-transparent hover:bg-green-50'
-                    }`}
+                      }`}
                   >
                     {product.isAvailable === false ? 'Out of Range' : 'ADD'}
                   </Button>
@@ -351,9 +347,8 @@ export default function ProductCard({
                     e.stopPropagation();
                     handleIncrease(e);
                   }}
-                  className={`w-5 h-5 p-0 bg-transparent text-green-600 shadow-none ${
-                    product.isAvailable === false ? 'text-neutral-300 cursor-not-allowed' : 'hover:bg-green-50'
-                  }`}
+                  className={`w-5 h-5 p-0 bg-transparent text-green-600 shadow-none ${product.isAvailable === false ? 'text-neutral-300 cursor-not-allowed' : 'hover:bg-green-50'
+                    }`}
                   aria-label="Increase quantity"
                 >
                   +
@@ -379,15 +374,6 @@ export default function ProductCard({
                 {product.name || product.productName || ''}
               </h3>
 
-              {/* 2.5. Rating */}
-              <div className="mb-0.5">
-                <StarRating
-                  rating={(product.rating || (product as any).rating) || 0}
-                  reviewCount={(product.reviews || (product as any).reviewsCount) || 0}
-                  size="sm"
-                  showCount={true}
-                />
-              </div>
 
               {/* 3. Time */}
               <p className="text-[9px] text-neutral-600 mb-0.5 flex items-center gap-0.5 leading-tight">
@@ -424,7 +410,7 @@ export default function ProductCard({
             <>
               {!showPackBadge && (
                 <p className={`${compact ? 'text-[10px] md:text-xs' : 'text-xs md:text-sm'} text-neutral-500 mb-1`}>
-                    {product.variations?.[0]?.value || product.pack}
+                  {product.variations?.[0]?.value || product.pack}
                 </p>
               )}
 
@@ -432,15 +418,6 @@ export default function ProductCard({
                 {product.name || product.productName || ''}
               </h3>
 
-              {/* Always show rating */}
-              <div className={`${compact ? 'mb-1' : 'mb-2'}`}>
-                <StarRating
-                  rating={(product.rating || (product as any).rating) || 0}
-                  reviewCount={(product.reviews || (product as any).reviewsCount) || 0}
-                  size={compact ? 'sm' : 'md'}
-                  showCount={true}
-                />
-              </div>
 
               {showStockInfo && (
                 <p className="text-xs text-green-600 mb-2 font-medium">
@@ -485,11 +462,10 @@ export default function ProductCard({
                   size="sm"
                   disabled={product.isAvailable === false}
                   onClick={handleAdd}
-                  className={`w-full border h-8 text-xs font-semibold uppercase tracking-wide ${
-                    product.isAvailable === false
+                  className={`w-full border h-8 text-xs font-semibold uppercase tracking-wide ${product.isAvailable === false
                     ? 'border-neutral-300 text-neutral-400 bg-neutral-50 cursor-not-allowed'
                     : 'border-green-600 text-green-600 hover:bg-green-50'
-                  }`}
+                    }`}
                 >
                   {product.isAvailable === false ? 'Out of Range' : 'Add'}
                 </Button>
@@ -515,9 +491,8 @@ export default function ProductCard({
                   size="icon"
                   disabled={product.isAvailable === false}
                   onClick={handleIncrease}
-                  className={`w-6 h-6 p-0 bg-transparent text-green-600 shadow-none ${
-                    product.isAvailable === false ? 'text-neutral-300 cursor-not-allowed' : 'hover:bg-green-50'
-                  }`}
+                  className={`w-6 h-6 p-0 bg-transparent text-green-600 shadow-none ${product.isAvailable === false ? 'text-neutral-300 cursor-not-allowed' : 'hover:bg-green-50'
+                    }`}
                   aria-label="Increase quantity"
                 >
                   +

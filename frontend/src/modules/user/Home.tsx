@@ -299,22 +299,23 @@ export default function Home() {
                     return (
                       <div key={section.id} className="mt-6 mb-6 md:mt-8 md:mb-8">
                         {section.title && (
-                          <h2 className="text-lg md:text-2xl font-semibold text-neutral-900 mb-3 md:mb-6 px-4 md:px-6 lg:px-8 tracking-tight capitalize">
+                          <h2 className="text-lg md:text-2xl font-semibold text-neutral-900 mb-3 md:mb-6 px-4 md:px-6 lg:px-8 tracking-tight">
                             {section.title}
                           </h2>
                         )}
-                        <div className="px-4 md:px-6 lg:px-8">
-                          <div className={`grid ${gridClass} ${gapClass}`}>
+                        <div className="">
+                          <div className={`flex overflow-x-auto pb-4 gap-2.5 snap-x snap-mandatory scrollbar-hide px-4 md:px-6 lg:px-8 md:grid md:pb-0 md:overflow-visible ${gridClass} ${gapClass}`}>
                             {section.data.map((product: any) => (
-                              <ProductCard
-                                key={product.id || product._id}
-                                product={product}
-                                categoryStyle={true}
-                                showBadge={true}
-                                showPackBadge={false}
-                                showStockInfo={false}
-                                compact={isCompact}
-                              />
+                              <div key={product.id || product._id} className="flex-shrink-0 w-[42%] sm:w-[32%] md:w-auto snap-start">
+                                <ProductCard
+                                  product={product}
+                                  categoryStyle={true}
+                                  showBadge={true}
+                                  showPackBadge={false}
+                                  showStockInfo={false}
+                                  compact={isCompact}
+                                />
+                              </div>
                             ))}
                           </div>
                         </div>
@@ -338,11 +339,20 @@ export default function Home() {
             {/* Shop by Store Section - only on 'all' tab */}
             {activeTab === "all" && (
               <div className="mb-6 mt-6 md:mb-8 md:mt-8">
-                <h2 className="text-lg md:text-2xl font-semibold text-neutral-900 mb-3 md:mb-6 px-4 md:px-6 lg:px-8 tracking-tight">
-                  Shop by Store
-                </h2>
-                <div className="px-4 md:px-6 lg:px-8">
-                  <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2 md:gap-4">
+                <div className="flex items-center justify-between mb-4 md:mb-6 px-4 md:px-6 lg:px-8">
+                  <h2 className="text-lg md:text-2xl font-semibold text-neutral-900 tracking-tight">
+                    Shop by Store
+                  </h2>
+                  <button
+                    onClick={() => navigate('/stores')}
+                    className="text-xs md:text-sm font-semibold text-emerald-600 hover:text-emerald-700 transition-colors"
+                  >
+                    See all stores
+                  </button>
+                </div>
+                <div className="">
+                  {/* Container for horizontal scroll on mobile, grid on desktop */}
+                  <div className="flex overflow-x-auto pb-4 gap-3 snap-x snap-mandatory scrollbar-hide px-4 md:px-6 lg:px-8 md:grid md:grid-cols-4 lg:grid-cols-6 md:gap-6 md:pb-0 md:overflow-visible">
                     {(homeData.shops || []).map((tile: any) => {
                       const hasImages =
                         tile.image ||
@@ -350,36 +360,47 @@ export default function Home() {
                           tile.productImages.filter(Boolean).length > 0);
 
                       return (
-                        <div key={tile.id} className="flex flex-col">
-                          <div
-                            onClick={() => {
-                              const storeSlug =
-                                tile.slug || tile.id.replace("-store", "");
-                              navigate(`/store/${storeSlug}`);
-                            }}
-                            className="block bg-white rounded-xl shadow-sm border border-neutral-200 hover:shadow-md transition-shadow cursor-pointer overflow-hidden">
-                            {hasImages ? (
-                              <img
-                                src={
-                                  tile.image ||
-                                  (tile.productImages ? tile.productImages[0] : "")
-                                }
-                                alt={tile.name}
-                                className="w-full h-16 object-cover"
-                              />
-                            ) : (
-                              <div
-                                className={`w-full h-16 flex items-center justify-center text-3xl text-neutral-300 ${tile.bgColor || "bg-neutral-50"
-                                  }`}>
-                                {tile.name.charAt(0)}
-                              </div>
-                            )}
-                          </div>
+                        <div
+                          key={tile.id}
+                          className="group flex flex-col cursor-pointer transition-transform active:scale-95 flex-shrink-0 w-[42%] sm:w-[35%] md:w-auto snap-start"
+                          onClick={() => {
+                            const storeSlug =
+                              tile.slug || tile.id.replace("-store", "");
+                            navigate(`/store/${storeSlug}`);
+                          }}
+                        >
+                          {/* Arched Card Body */}
+                          <div className="relative aspect-[4/5] bg-gradient-to-b from-sky-100 to-sky-50 rounded-t-full overflow-hidden border-x border-t border-white shadow-sm group-hover:shadow-md transition-shadow">
+                            {/* Scenic Background Pattern */}
+                            <div className="absolute inset-x-0 top-1/2 bottom-0 bg-[#e6d5b8] opacity-60"></div>
+                            <div className="absolute bottom-4 left-0 right-0 h-4 bg-amber-200/40 blur-sm"></div>
 
-                          <div className="mt-1.5 text-center">
-                            <span className="text-xs font-semibold text-neutral-900 line-clamp-2 leading-tight">
-                              {tile.name}
-                            </span>
+                            {/* Store Image / Logos */}
+                            <div className="absolute inset-0 p-2 flex flex-col items-center justify-center">
+                              {hasImages ? (
+                                <img
+                                  src={
+                                    tile.image ||
+                                    (tile.productImages ? tile.productImages[0] : "")
+                                  }
+                                  alt={tile.name}
+                                  className="w-[85%] h-[85%] object-contain drop-shadow-lg transform group-hover:scale-110 transition-transform duration-300"
+                                />
+                              ) : (
+                                <div className="text-4xl text-sky-300 font-bold opacity-50">
+                                  {tile.name.charAt(0)}
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Bottom Label - Gradient pill shape */}
+                            <div className="absolute bottom-0 left-0 right-0 p-1">
+                              <div className="bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 py-2 md:py-2.5 px-2 rounded-xl shadow-lg border border-amber-200/50">
+                                <span className="block text-[9px] md:text-xs font-black text-amber-900 text-center uppercase tracking-wider line-clamp-1 leading-none">
+                                  {tile.name}
+                                </span>
+                              </div>
+                            </div>
                           </div>
                         </div>
                       );
@@ -391,6 +412,6 @@ export default function Home() {
           </>
         )}
       </div>
-    </div >
+    </div>
   );
 }

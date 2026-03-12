@@ -89,8 +89,8 @@ export default function CategoryTileSection({
       <h2 className="text-lg md:text-2xl font-semibold text-neutral-900 mb-3 md:mb-6 px-4 md:px-6 lg:px-8 tracking-tight">
         {title}
       </h2>
-      <div className="px-4 md:px-6 lg:px-8 overflow-visible">
-        <div className={`grid ${gridCols} ${gapClass} overflow-visible auto-rows-fr`}>
+      <div className="px-4 md:px-6 lg:px-8">
+        <div className={`flex overflow-x-auto pb-4 gap-3 snap-x snap-mandatory scrollbar-hide -mx-4 px-4 md:grid md:mx-0 md:px-0 md:pb-0 md:overflow-visible ${gridCols} ${gapClass} auto-rows-fr`}>
           {tiles.map((tile) => {
             const images =
               tile.productImages || (tile.image ? [tile.image] : []);
@@ -104,7 +104,7 @@ export default function CategoryTileSection({
                 transition={{ duration: 0.2 }}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className="flex flex-col">
+                className="flex flex-col flex-shrink-0 w-[42%] sm:w-[30%] md:w-auto snap-start">
                 <Link
                   to={
                     tile.subcategoryId || tile.type === "subcategory"

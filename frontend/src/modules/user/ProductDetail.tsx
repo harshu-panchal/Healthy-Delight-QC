@@ -14,7 +14,6 @@ import Button from "../../components/ui/button";
 import Badge from "../../components/ui/badge";
 import { getProductById } from "../../services/api/customerProductService";
 import WishlistButton from "../../components/WishlistButton";
-import StarRating from "../../components/ui/StarRating";
 import { calculateProductPrice } from "../../utils/priceUtils";
 
 export default function ProductDetail() {
@@ -37,8 +36,6 @@ export default function ProductDetail() {
   const [isAvailableAtLocation, setIsAvailableAtLocation] =
     useState<boolean>(true);
 
-  const [reviews, setReviews] = useState<any[]>([]);
-  const [reviewsLoading, setReviewsLoading] = useState(false);
   const [selectedVariantIndex, setSelectedVariantIndex] = useState<number>(0);
   const [selectedImageIndex, setSelectedImageIndex] = useState<number>(0);
   const [touchStart, setTouchStart] = useState<number | null>(null);
@@ -96,8 +93,6 @@ export default function ProductDetail() {
           setSelectedImageIndex(0);
           setSimilarProducts(response.data.similarProducts || []);
 
-          // Fetch reviews
-          fetchReviews(id);
         } else {
           setProduct(null);
           setError(response.message || "Product not found");
@@ -114,22 +109,6 @@ export default function ProductDetail() {
       }
     };
 
-    const fetchReviews = async (productId: string) => {
-      setReviewsLoading(true);
-      try {
-        const { getProductReviews } = await import(
-          "../../services/api/customerReviewService"
-        );
-        const res = await getProductReviews(productId);
-        if (res.success) {
-          setReviews(res.data);
-        }
-      } catch (err) {
-        console.error("Failed to fetch reviews", err);
-      } finally {
-        setReviewsLoading(false);
-      }
-    };
 
     fetchProduct();
   }, [id, location?.latitude, location?.longitude]);
@@ -508,8 +487,8 @@ export default function ProductDetail() {
                         setTimeout(() => setIsTransitioning(false), 300);
                       }}
                       className={`w-2 h-2 rounded-full transition-all ${index === selectedImageIndex
-                          ? "bg-white w-6"
-                          : "bg-white/50 hover:bg-white/75"
+                        ? "bg-white w-6"
+                        : "bg-white/50 hover:bg-white/75"
                         }`}
                       aria-label={`Go to image ${index + 1}`}
                     />
@@ -553,8 +532,8 @@ export default function ProductDetail() {
                       setTimeout(() => setIsTransitioning(false), 300);
                     }}
                     className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-all ${index === selectedImageIndex
-                        ? "border-green-600 ring-2 ring-green-200"
-                        : "border-neutral-200 hover:border-neutral-300"
+                      ? "border-green-600 ring-2 ring-green-200"
+                      : "border-neutral-200 hover:border-neutral-300"
                       }`}>
                     <img
                       src={image}
@@ -626,10 +605,10 @@ export default function ProductDetail() {
                       onClick={() => setSelectedVariantIndex(index)}
                       disabled={isOutOfStock}
                       className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all border-2 ${isSelected
-                          ? "border-green-600 bg-green-50 text-green-700"
-                          : isOutOfStock
-                            ? "border-neutral-200 bg-neutral-100 text-neutral-400 cursor-not-allowed"
-                            : "border-neutral-300 bg-white text-neutral-700 hover:border-green-500 hover:bg-green-50"
+                        ? "border-green-600 bg-green-50 text-green-700"
+                        : isOutOfStock
+                          ? "border-neutral-200 bg-neutral-100 text-neutral-400 cursor-not-allowed"
+                          : "border-neutral-300 bg-white text-neutral-700 hover:border-green-500 hover:bg-green-50"
                         }`}>
                       {variantTitle}
                       {isOutOfStock && (
@@ -995,78 +974,6 @@ export default function ProductDetail() {
           </div>
         )}
 
-        {/* Reviews Section */}
-        <div className="bg-white px-4 md:px-6 lg:px-8 py-6 border-t border-neutral-100">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-bold text-neutral-900">
-              Ratings & Reviews
-            </h3>
-            {reviews.length > 0 && (
-              <div className="flex items-center gap-1">
-                <span className="text-sm font-bold text-neutral-900">
-                  {product.rating || "4.5"}
-                </span>
-                <div className="flex text-yellow-500">
-                  <svg
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="currentColor">
-                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                  </svg>
-                </div>
-                <span className="text-xs text-neutral-500">
-                  ({reviews.length} reviews)
-                </span>
-              </div>
-            )}
-          </div>
-
-          {reviewsLoading ? (
-            <div className="flex justify-center py-4">
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-600"></div>
-            </div>
-          ) : reviews.length > 0 ? (
-            <div className="space-y-4">
-              {reviews.map((review) => (
-                <div
-                  key={review._id}
-                  className="border-b border-neutral-50 pb-4 last:border-0">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-base font-semibold text-neutral-900">
-                      {review.customer?.name || "Customer"}
-                    </span>
-                    <div className="flex items-center gap-1 bg-green-100 px-1.5 py-0.5 rounded">
-                      <span className="text-xs font-bold text-green-700">
-                        {review.rating}
-                      </span>
-                      <svg
-                        width="10"
-                        height="10"
-                        viewBox="0 0 24 24"
-                        fill="currentColor"
-                        className="text-green-700">
-                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                      </svg>
-                    </div>
-                  </div>
-                  <p className="text-sm text-neutral-600 leading-relaxed mb-1">
-                    {review.comment}
-                  </p>
-                  <span className="text-xs text-neutral-400">
-                    {new Date(review.createdAt).toLocaleDateString()}
-                  </span>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-4">
-              <p className="text-sm text-neutral-500">
-                No reviews yet. Be the first to review!
-              </p>
-            </div>
-          )}
-        </div>
 
         {/* Top products in this category */}
         {similarProducts.length > 0 && (
@@ -1137,149 +1044,140 @@ export default function ProductDetail() {
                           {similarProduct.name || similarProduct.productName}
                         </h4>
 
-                        {/* Rating and Delivery time */}
-                        <div className="flex flex-col gap-1 mb-2">
-                          <StarRating
-                            rating={similarProduct.rating || 0}
-                            reviewCount={similarProduct.reviews || 0}
-                            size="sm"
-                            showCount={true}
-                          />
-                          <p className="text-[10px] text-neutral-600 flex items-center gap-1">
-                            <svg
-                              width="10"
-                              height="10"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              xmlns="http://www.w3.org/2000/svg">
-                              <circle
-                                cx="12"
-                                cy="12"
-                                r="10"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                              />
-                              <path
-                                d="M12 6v6l4 2"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                              />
-                            </svg>
-                            <span>
-                              {similarProduct.deliveryTime || 15} MINS
-                            </span>
-                          </p>
-                        </div>
+                        <p className="text-[10px] text-neutral-600 flex items-center gap-1">
+                          <svg
+                            width="10"
+                            height="10"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg">
+                            <circle
+                              cx="12"
+                              cy="12"
+                              r="10"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                            />
+                            <path
+                              d="M12 6v6l4 2"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                            />
+                          </svg>
+                          <span>
+                            {similarProduct.deliveryTime || 15} MINS
+                          </span>
+                        </p>
+                      </div>
 
-                        {/* Price display for similar products */}
-                        <div className="mb-2">
-                          {(() => {
-                            const {
-                              displayPrice,
-                              mrp,
-                              discount: sDiscount,
-                              hasDiscount: sHasDiscount,
-                            } = calculateProductPrice(similarProduct);
-                            return (
-                              <div className="flex flex-col">
+                      {/* Price display for similar products */}
+                      <div className="mb-2">
+                        {(() => {
+                          const {
+                            displayPrice,
+                            mrp,
+                            discount: sDiscount,
+                            hasDiscount: sHasDiscount,
+                          } = calculateProductPrice(similarProduct);
+                          return (
+                            <div className="flex flex-col">
+                              {sHasDiscount && (
+                                <Badge className="!bg-blue-500 !text-white !border-blue-500 text-[10px] px-1.5 py-0.5 rounded-full font-semibold mb-1 w-fit">
+                                  {sDiscount}% OFF
+                                </Badge>
+                              )}
+                              <div className="flex items-center gap-1.5">
+                                <span className="text-sm font-bold text-neutral-900">
+                                  ₹{displayPrice.toLocaleString("en-IN")}
+                                </span>
                                 {sHasDiscount && (
-                                  <Badge className="!bg-blue-500 !text-white !border-blue-500 text-[10px] px-1.5 py-0.5 rounded-full font-semibold mb-1 w-fit">
-                                    {sDiscount}% OFF
-                                  </Badge>
-                                )}
-                                <div className="flex items-center gap-1.5">
-                                  <span className="text-sm font-bold text-neutral-900">
-                                    ₹{displayPrice.toLocaleString("en-IN")}
+                                  <span className="text-[10px] text-neutral-500 line-through">
+                                    ₹{mrp.toLocaleString("en-IN")}
                                   </span>
-                                  {sHasDiscount && (
-                                    <span className="text-[10px] text-neutral-500 line-through">
-                                      ₹{mrp.toLocaleString("en-IN")}
-                                    </span>
-                                  )}
-                                </div>
+                                )}
                               </div>
-                            );
-                          })()}
-                        </div>
+                            </div>
+                          );
+                        })()}
+                      </div>
 
-                        {/* ADD button or Quantity stepper */}
-                        <AnimatePresence mode="wait">
-                          {similarInCartQty === 0 ? (
-                            <motion.div
-                              key="add-button"
-                              initial={{ opacity: 0, scale: 0.8 }}
-                              animate={{ opacity: 1, scale: 1 }}
-                              exit={{ opacity: 0, scale: 0.8 }}
-                              transition={{ duration: 0.2 }}
-                              className="flex justify-center w-full">
+                      {/* ADD button or Quantity stepper */}
+                      <AnimatePresence mode="wait">
+                        {similarInCartQty === 0 ? (
+                          <motion.div
+                            key="add-button"
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.8 }}
+                            transition={{ duration: 0.2 }}
+                            className="flex justify-center w-full">
+                            <Button
+                              variant="outline"
+                              size="default"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                addToCart(similarProduct);
+                              }}
+                              className="w-full border-2 border-green-600 text-green-600 bg-transparent hover:bg-green-50 rounded-full font-semibold text-sm h-9">
+                              ADD
+                            </Button>
+                          </motion.div>
+                        ) : (
+                          <motion.div
+                            key="stepper"
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.8 }}
+                            transition={{ duration: 0.2 }}
+                            className="flex items-center justify-center gap-2 bg-white border-2 border-green-600 rounded-full px-2 py-1.5 w-full">
+                            <motion.div whileTap={{ scale: 0.9 }}>
                               <Button
-                                variant="outline"
-                                size="default"
+                                variant="default"
+                                size="icon"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  addToCart(similarProduct);
+                                  updateQuantity(
+                                    similarProduct.id,
+                                    similarInCartQty - 1
+                                  );
                                 }}
-                                className="w-full border-2 border-green-600 text-green-600 bg-transparent hover:bg-green-50 rounded-full font-semibold text-sm h-9">
-                                ADD
+                                className="w-7 h-7 p-0"
+                                aria-label="Decrease quantity">
+                                −
                               </Button>
                             </motion.div>
-                          ) : (
-                            <motion.div
-                              key="stepper"
-                              initial={{ opacity: 0, scale: 0.8 }}
-                              animate={{ opacity: 1, scale: 1 }}
-                              exit={{ opacity: 0, scale: 0.8 }}
-                              transition={{ duration: 0.2 }}
-                              className="flex items-center justify-center gap-2 bg-white border-2 border-green-600 rounded-full px-2 py-1.5 w-full">
-                              <motion.div whileTap={{ scale: 0.9 }}>
-                                <Button
-                                  variant="default"
-                                  size="icon"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    updateQuantity(
-                                      similarProduct.id,
-                                      similarInCartQty - 1
-                                    );
-                                  }}
-                                  className="w-7 h-7 p-0"
-                                  aria-label="Decrease quantity">
-                                  −
-                                </Button>
-                              </motion.div>
-                              <motion.span
-                                key={similarInCartQty}
-                                initial={{ scale: 1.2, y: -4 }}
-                                animate={{ scale: 1, y: 0 }}
-                                transition={{
-                                  type: "spring",
-                                  stiffness: 500,
-                                  damping: 15,
+                            <motion.span
+                              key={similarInCartQty}
+                              initial={{ scale: 1.2, y: -4 }}
+                              animate={{ scale: 1, y: 0 }}
+                              transition={{
+                                type: "spring",
+                                stiffness: 500,
+                                damping: 15,
+                              }}
+                              className="text-sm font-bold text-green-600 min-w-[1.5rem] text-center">
+                              {similarInCartQty}
+                            </motion.span>
+                            <motion.div whileTap={{ scale: 0.9 }}>
+                              <Button
+                                variant="default"
+                                size="icon"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  updateQuantity(
+                                    similarProduct.id,
+                                    similarInCartQty + 1
+                                  );
                                 }}
-                                className="text-sm font-bold text-green-600 min-w-[1.5rem] text-center">
-                                {similarInCartQty}
-                              </motion.span>
-                              <motion.div whileTap={{ scale: 0.9 }}>
-                                <Button
-                                  variant="default"
-                                  size="icon"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    updateQuantity(
-                                      similarProduct.id,
-                                      similarInCartQty + 1
-                                    );
-                                  }}
-                                  className="w-7 h-7 p-0"
-                                  aria-label="Increase quantity">
-                                  +
-                                </Button>
-                              </motion.div>
+                                className="w-7 h-7 p-0"
+                                aria-label="Increase quantity">
+                                +
+                              </Button>
                             </motion.div>
-                          )}
-                        </AnimatePresence>
-                      </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </div>
                   );
                 })}
@@ -1345,9 +1243,9 @@ export default function ProductDetail() {
                       (!isVariantAvailable && variantStock !== 0)
                     }
                     className={`px-6 py-2 text-sm font-semibold h-[36px] ${!isAvailableAtLocation ||
-                        (!isVariantAvailable && variantStock !== 0)
-                        ? "opacity-50 cursor-not-allowed"
-                        : ""
+                      (!isVariantAvailable && variantStock !== 0)
+                      ? "opacity-50 cursor-not-allowed"
+                      : ""
                       }`}
                     title={
                       !isAvailableAtLocation
@@ -1417,6 +1315,6 @@ export default function ProductDetail() {
           </div>
         </div>
       </div>
-    </div>
+    </div >
   );
 }
