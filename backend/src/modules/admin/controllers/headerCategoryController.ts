@@ -70,7 +70,7 @@ const FALLBACK_HEADER_CATEGORIES = [
 // @access  Private/Admin
 export const getAdminHeaderCategories = async (
   _req: Request,
-  res: Response
+  res: Response,
 ) => {
   try {
     const categories = await HeaderCategory.find().sort({

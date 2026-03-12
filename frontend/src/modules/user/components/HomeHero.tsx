@@ -298,8 +298,7 @@ export default function HomeHero({
     onTabChange?.(tabId);
   };
 
-  const currentTab =
-    tabs.find((t) => t.id === activeTab) || ALL_TAB;
+  const currentTab = tabs.find((t) => t.id === activeTab) || ALL_TAB;
   const themeId = currentTab.themeKey || currentTab.id || "all";
   const theme = getTheme(themeId);
   const heroGradient = `linear-gradient(to bottom right, ${theme.primary[0]}, ${theme.primary[1]}, ${theme.primary[2]})`;

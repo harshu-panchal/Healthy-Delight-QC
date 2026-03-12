@@ -299,11 +299,48 @@ export default function ProductCard({
           )}
         </div>
 
-        {categoryStyle && (
-          <div className="px-2.5 pt-1.5 pb-0">
-            {inCartQty === 0 ? (
-              <div className="flex flex-col items-center w-full">
-                <div className="flex justify-center w-full">
+        <div className={`${compact ? 'p-3 md:p-4' : categoryStyle ? 'px-2.5 md:px-3 pt-2 md:pt-3 pb-2.5 md:pb-3.5' : 'p-4 md:p-5'} flex-1 flex flex-col ${categoryStyle ? 'items-center text-center' : ''}`}>
+          {categoryStyle ? (
+            // Category Style Layout: Name, Quantity, Price, Time, Button
+            <>
+              {/* 1. Name */}
+              <h3 className="text-[11px] font-bold text-neutral-900 mb-0.5 line-clamp-2 leading-tight min-h-[1.75rem] max-h-[1.75rem] overflow-hidden px-1">
+                {product.name || product.productName || ''}
+              </h3>
+
+              {/* 2. Quantity */}
+              {!showPackBadge && (product.pack || product.variations?.[0]?.value) && (
+                <p className="text-[10px] text-neutral-500 mb-1 leading-tight">
+                  {product.variations?.[0]?.value || product.pack}
+                </p>
+              )}
+
+              {/* 3. Price with discount */}
+              <div className="mb-1">
+                <div className="flex flex-col items-center">
+                  <span className="text-xs font-bold text-neutral-900 leading-tight">
+                    ₹{displayPrice.toLocaleString('en-IN')}
+                  </span>
+                  {mrp && mrp > displayPrice && (
+                    <span className="text-[9px] text-neutral-400 line-through leading-tight">
+                      ₹{mrp.toLocaleString('en-IN')}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* 4. Time */}
+              <p className="text-[9px] text-neutral-500 mb-2.5 flex items-center justify-center gap-0.5 leading-tight">
+                <svg width="8" height="8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0">
+                  <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" />
+                  <path d="M12 6v6l4 2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                </svg>
+                <span>14 MINS</span>
+              </p>
+
+              {/* 5. ADD button or Quantity stepper */}
+              <div className="w-full mt-auto">
+                {inCartQty === 0 ? (
                   <Button
                     ref={addButtonRef}
                     variant="outline"
@@ -313,96 +350,46 @@ export default function ProductCard({
                       e.stopPropagation();
                       handleAdd(e);
                     }}
-                    className={`w-full border rounded-full font-semibold text-xs h-7 px-3 flex items-center justify-center uppercase tracking-wide ${product.isAvailable === false
-                      ? 'border-neutral-300 text-neutral-400 bg-neutral-50 cursor-not-allowed'
-                      : 'border-green-600 text-green-600 bg-transparent hover:bg-green-50'
+                    className={`w-full border rounded-full font-bold text-[10px] h-7 px-2 flex items-center justify-center uppercase tracking-wider ${product.isAvailable === false
+                        ? 'border-neutral-300 text-neutral-400 bg-neutral-50 cursor-not-allowed'
+                        : 'border-green-600 text-green-600 bg-transparent hover:bg-green-50 shadow-sm'
                       }`}
                   >
-                    {product.isAvailable === false ? 'Out of Range' : 'ADD'}
+                    {product.isAvailable === false ? 'Range' : 'ADD'}
                   </Button>
-                </div>
-              </div>
-            ) : (
-              <div className="flex items-center justify-center gap-1.5 bg-white border border-green-600 rounded-full px-1.5 py-0.5 h-7 w-full">
-                <Button
-                  variant="default"
-                  size="icon"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDecrease(e);
-                  }}
-                  className="w-5 h-5 p-0 bg-transparent text-green-600 hover:bg-green-50 shadow-none"
-                  aria-label="Decrease quantity"
-                >
-                  −
-                </Button>
-                <span className="text-xs font-bold text-green-600 min-w-[1rem] text-center">
-                  {inCartQty}
-                </span>
-                <Button
-                  variant="default"
-                  size="icon"
-                  disabled={product.isAvailable === false}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleIncrease(e);
-                  }}
-                  className={`w-5 h-5 p-0 bg-transparent text-green-600 shadow-none ${product.isAvailable === false ? 'text-neutral-300 cursor-not-allowed' : 'hover:bg-green-50'
-                    }`}
-                  aria-label="Increase quantity"
-                >
-                  +
-                </Button>
-              </div>
-            )}
-          </div>
-        )}
-
-        <div className={`${compact ? 'p-3 md:p-4' : categoryStyle ? 'px-2.5 md:px-3 pt-1.5 md:pt-2 pb-2 md:pb-3' : 'p-4 md:p-5'} flex-1 flex flex-col`}>
-          {categoryStyle ? (
-            // Category Style Layout: Quantity, Name, Time, % off, Price
-            <>
-              {/* 1. Quantity */}
-              {!showPackBadge && (product.pack || product.variations?.[0]?.value) && (
-                <p className="text-[9px] text-neutral-600 mb-0.5 leading-tight">
-                  {product.variations?.[0]?.value || product.pack}
-                </p>
-              )}
-
-              {/* 2. Name */}
-              <h3 className="text-[10px] font-bold text-neutral-900 mb-0.5 line-clamp-2 leading-tight min-h-[1.75rem] max-h-[1.75rem] overflow-hidden">
-                {product.name || product.productName || ''}
-              </h3>
-
-
-              {/* 3. Time */}
-              <p className="text-[9px] text-neutral-600 mb-0.5 flex items-center gap-0.5 leading-tight">
-                <svg width="8" height="8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0">
-                  <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" />
-                  <path d="M12 6v6l4 2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                </svg>
-                <span>14 MINS</span>
-              </p>
-
-              {/* 4. % OFF */}
-              {discount > 0 && (
-                <p className="text-[9px] font-semibold text-green-600 mb-0.5 leading-tight">
-                  {discount}% OFF
-                </p>
-              )}
-
-              {/* 5. Price with discount */}
-              <div className="mt-auto">
-                <div className="flex items-baseline gap-1 flex-wrap">
-                  <span className="text-[11px] font-bold text-neutral-900 leading-tight">
-                    ₹{displayPrice.toLocaleString('en-IN')}
-                  </span>
-                  {mrp && mrp > displayPrice && (
-                    <span className="text-[8px] text-neutral-500 line-through leading-tight">
-                      ₹{mrp.toLocaleString('en-IN')}
+                ) : (
+                  <div className="flex items-center justify-center gap-2 bg-white border border-green-600 rounded-full px-1.5 py-0.5 h-7 w-full shadow-sm">
+                    <Button
+                      variant="default"
+                      size="icon"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDecrease(e);
+                      }}
+                      className="w-5 h-5 p-0 bg-transparent text-green-600 hover:bg-green-50 shadow-none border-none"
+                      aria-label="Decrease quantity"
+                    >
+                      −
+                    </Button>
+                    <span className="text-xs font-bold text-green-600 min-w-[1rem] text-center">
+                      {inCartQty}
                     </span>
-                  )}
-                </div>
+                    <Button
+                      variant="default"
+                      size="icon"
+                      disabled={product.isAvailable === false}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleIncrease(e);
+                      }}
+                      className={`w-5 h-5 p-0 bg-transparent text-green-600 shadow-none border-none ${product.isAvailable === false ? 'text-neutral-300 cursor-not-allowed' : 'hover:bg-green-50'
+                        }`}
+                      aria-label="Increase quantity"
+                    >
+                      +
+                    </Button>
+                  </div>
+                )}
               </div>
             </>
           ) : (
@@ -417,7 +404,6 @@ export default function ProductCard({
               <h3 className={`${compact ? 'text-xs md:text-sm' : 'text-sm md:text-base'} font-semibold text-neutral-900 ${compact ? 'mb-1' : 'mb-2'} line-clamp-2 ${compact ? 'min-h-[2rem]' : 'min-h-[2.5rem]'}`}>
                 {product.name || product.productName || ''}
               </h3>
-
 
               {showStockInfo && (
                 <p className="text-xs text-green-600 mb-2 font-medium">
