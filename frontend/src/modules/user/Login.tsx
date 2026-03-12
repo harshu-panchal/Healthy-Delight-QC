@@ -33,7 +33,7 @@ export default function Login() {
     } catch (err: any) {
       setError(
         err.response?.data?.message ||
-          "Failed to initiate call. Please try again."
+        "Failed to initiate call. Please try again."
       );
     } finally {
       setLoading(false);
@@ -95,28 +95,26 @@ export default function Login() {
       {/* Login Card */}
       <div className="w-full max-w-sm sm:max-w-md bg-white rounded-3xl shadow-xl overflow-hidden border border-amber-100">
         {/* Header with logo + animation */}
-        <div className="px-5 py-4 sm:px-6 sm:py-5 border-b bg-gradient-to-r from-amber-50 via-white to-amber-100 border-amber-200">
-          <div className="flex items-center gap-3 sm:gap-4">
-            <div className="flex-1 flex flex-col items-start">
-              <img
-                src="/assets/kosil1.png"
-                alt="Healthy Delight"
-                className="h-14 sm:h-16 w-auto object-contain mb-1"
-              />
-              <h1 className="text-lg sm:text-xl font-bold text-amber-900">
-                Welcome back
-              </h1>
-              <p className="text-[11px] sm:text-xs text-amber-800">
-                Fresh dairy & groceries delivered in minutes.
-              </p>
-            </div>
-            <div className="w-24 h-24 sm:w-28 sm:h-28 shrink-0 hidden sm:block">
-              <Lottie
-                animationData={cowAnimation}
-                loop
-                className="w-full h-full"
-              />
-            </div>
+        <div className="px-5 py-3 sm:px-6 sm:py-4 border-b bg-gradient-to-b from-amber-50 to-white border-amber-200 text-center flex flex-col items-center">
+          <img
+            src="/assets/kosil1.png"
+            alt="Healthy Delight"
+            className="h-20 sm:h-24 w-auto object-contain mb-2"
+          />
+          <div className="w-56 h-56 sm:w-72 sm:h-72 -my-8 sm:-my-12">
+            <Lottie
+              animationData={cowAnimation}
+              loop
+              className="w-full h-full"
+            />
+          </div>
+          <div className="flex flex-col items-center">
+            <h1 className="text-xl sm:text-2xl font-bold text-amber-900">
+              Welcome back
+            </h1>
+            <p className="text-xs sm:text-sm text-amber-800 opacity-90">
+              Fresh dairy & groceries delivered in minutes.
+            </p>
           </div>
         </div>
 
@@ -160,11 +158,10 @@ export default function Login() {
                 <button
                   onClick={handleContinue}
                   disabled={mobileNumber.length !== 10 || loading}
-                  className={`w-full py-2.5 sm:py-3 rounded-xl font-semibold text-sm transition-colors border px-3 ${
-                    mobileNumber.length === 10 && !loading
-                      ? "bg-amber-500 text-white border-amber-500 hover:bg-amber-600 shadow-md"
-                      : "bg-neutral-300 text-neutral-500 cursor-not-allowed border-neutral-300"
-                  }`}
+                  className={`w-full py-2.5 sm:py-3 rounded-xl font-semibold text-sm transition-colors border px-3 ${mobileNumber.length === 10 && !loading
+                    ? "bg-amber-500 text-white border-amber-500 hover:bg-amber-600 shadow-md"
+                    : "bg-neutral-300 text-neutral-500 cursor-not-allowed border-neutral-300"
+                    }`}
                 >
                   {loading ? "Calling..." : "Continue"}
                 </button>
@@ -210,6 +207,19 @@ export default function Login() {
               </div>
             </>
           )}
+
+          {/* Signup Link */}
+          <div className="text-center pt-2 mb-2">
+            <p className="text-xs sm:text-sm text-neutral-600">
+              Don't have an account?{" "}
+              <button
+                onClick={() => navigate("/signup")}
+                className="text-amber-600 hover:text-amber-700 font-semibold"
+              >
+                Sign Up
+              </button>
+            </p>
+          </div>
 
           {/* Privacy Text */}
           <p className="text-[9px] sm:text-[10px] text-neutral-500 text-center max-w-sm leading-tight px-4 relative z-10 pb-1">

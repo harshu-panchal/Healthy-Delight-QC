@@ -166,7 +166,17 @@ export default function CategoryPage() {
 
   // Extract filter options from products
   const getFilterOptions = () => {
-    const categoryProducts = products.filter((p) => p.categoryId === id);
+    // Current category ID from resolved category or from URL params
+    const currentId = category?._id || id;
+
+    // Filter products that belong to this category or subcategory
+    const categoryProducts = products.filter((p) => {
+      // Check for direct categoryId match, or match on populated category object
+      // Using String() to ensure safe comparison between potential ObjectId and String
+      const productCatId = String(p.categoryId || (p.category && (p.category._id || p.category.id)) || "");
+      return productCatId === String(currentId);
+    });
+
     const filterMap = new Map<string, number>();
 
     categoryProducts.forEach((product) => {
@@ -286,9 +296,8 @@ export default function CategoryPage() {
                   console.log("Clicked subcategory:", subcat.id || subcat._id);
                   setSelectedSubcategory(subcat.id || subcat._id);
                 }}
-                className={`w-full flex flex-col items-center justify-center py-2 relative transition-all duration-200 group ${
-                  isSelected ? "bg-green-50" : "hover:bg-neutral-50"
-                }`}
+                className={`w-full flex flex-col items-center justify-center py-2 relative transition-all duration-200 group ${isSelected ? "bg-green-50" : "hover:bg-neutral-50"
+                  }`}
                 style={{
                   minHeight: "80px",
                 }}>
@@ -299,11 +308,10 @@ export default function CategoryPage() {
 
                 {/* Image Container */}
                 <div
-                  className={`w-14 h-14 rounded-2xl flex items-center justify-center text-xl mb-1.5 flex-shrink-0 overflow-hidden transition-all duration-200 shadow-sm ${
-                    isSelected
-                      ? "ring-2 ring-green-600 ring-offset-2 bg-white"
-                      : "bg-neutral-50 border border-neutral-100 group-hover:shadow-md"
-                  }`}>
+                  className={`w-14 h-14 rounded-2xl flex items-center justify-center text-xl mb-1.5 flex-shrink-0 overflow-hidden transition-all duration-200 shadow-sm ${isSelected
+                    ? "ring-2 ring-green-600 ring-offset-2 bg-white"
+                    : "bg-neutral-50 border border-neutral-100 group-hover:shadow-md"
+                    }`}>
                   {subcat.image ? (
                     <img
                       src={subcat.image}
@@ -326,11 +334,10 @@ export default function CategoryPage() {
 
                 {/* Text Label */}
                 <span
-                  className={`text-[10px] text-center leading-tight px-1 transition-colors ${
-                    isSelected
-                      ? "font-bold text-green-700"
-                      : "text-neutral-500 group-hover:text-neutral-900"
-                  }`}
+                  className={`text-[10px] text-center leading-tight px-1 transition-colors ${isSelected
+                    ? "font-bold text-green-700"
+                    : "text-neutral-500 group-hover:text-neutral-900"
+                    }`}
                   style={{
                     wordBreak: "break-word",
                     maxWidth: "100%",
@@ -439,11 +446,10 @@ export default function CategoryPage() {
                   <button
                     key={subId}
                     onClick={() => setSelectedSubcategory(subId)}
-                    className={`flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-md transition-colors flex-shrink-0 whitespace-nowrap ${
-                      isSelected
-                        ? "bg-white border border-neutral-300 text-neutral-900"
-                        : "bg-white border border-neutral-300 text-neutral-700 hover:bg-neutral-50"
-                    }`}>
+                    className={`flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-md transition-colors flex-shrink-0 whitespace-nowrap ${isSelected
+                      ? "bg-white border border-neutral-300 text-neutral-900"
+                      : "bg-white border border-neutral-300 text-neutral-700 hover:bg-neutral-50"
+                      }`}>
                     <span className="text-sm flex-shrink-0">
                       {subcat.image ? (
                         <img
@@ -558,20 +564,18 @@ export default function CategoryPage() {
                   <div className="w-24 border-r border-neutral-200 flex-shrink-0 bg-neutral-50">
                     <button
                       onClick={() => setSelectedFilterCategory("Type")}
-                      className={`w-full px-3 py-3 text-left text-sm font-medium transition-colors ${
-                        selectedFilterCategory === "Type"
-                          ? "bg-green-50 text-green-700"
-                          : "text-neutral-600 hover:bg-neutral-100"
-                      }`}>
+                      className={`w-full px-3 py-3 text-left text-sm font-medium transition-colors ${selectedFilterCategory === "Type"
+                        ? "bg-green-50 text-green-700"
+                        : "text-neutral-600 hover:bg-neutral-100"
+                        }`}>
                       Type
                     </button>
                     <button
                       onClick={() => setSelectedFilterCategory("Properties")}
-                      className={`w-full px-3 py-3 text-left text-sm font-medium transition-colors ${
-                        selectedFilterCategory === "Properties"
-                          ? "bg-green-50 text-green-700"
-                          : "text-neutral-600 hover:bg-neutral-100"
-                      }`}>
+                      className={`w-full px-3 py-3 text-left text-sm font-medium transition-colors ${selectedFilterCategory === "Properties"
+                        ? "bg-green-50 text-green-700"
+                        : "text-neutral-600 hover:bg-neutral-100"
+                        }`}>
                       Properties
                     </button>
                   </div>
@@ -631,11 +635,10 @@ export default function CategoryPage() {
                   </button>
                   <button
                     onClick={handleApplyFilters}
-                    className={`flex-1 px-4 py-2.5 rounded-lg font-medium text-sm transition-colors ${
-                      selectedFilters.length > 0
-                        ? "bg-green-600 text-white hover:bg-green-700"
-                        : "bg-neutral-300 text-neutral-500 cursor-not-allowed"
-                    }`}
+                    className={`flex-1 px-4 py-2.5 rounded-lg font-medium text-sm transition-colors ${selectedFilters.length > 0
+                      ? "bg-green-600 text-white hover:bg-green-700"
+                      : "bg-neutral-300 text-neutral-500 cursor-not-allowed"
+                      }`}
                     disabled={selectedFilters.length === 0}>
                     Apply
                   </button>

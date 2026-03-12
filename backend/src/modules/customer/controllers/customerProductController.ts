@@ -37,41 +37,15 @@ export const getProducts = async (req: Request, res: Response) => {
     const userLat = latitude ? parseFloat(latitude as string) : null;
     const userLng = longitude ? parseFloat(longitude as string) : null;
 
+    let nearbySellerIds: mongoose.Types.ObjectId[] = [];
     if (userLat && userLng && !isNaN(userLat) && !isNaN(userLng)) {
       // Find sellers within user's location range
-      const nearbySellerIds = await findSellersWithinRange(userLat, userLng);
+      nearbySellerIds = await findSellersWithinRange(userLat, userLng);
 
-      if (nearbySellerIds.length === 0) {
-        // No sellers within range, return empty result
-        return res.status(200).json({
-          success: true,
-          data: [],
-          pagination: {
-            page: Number(page),
-            limit: Number(limit),
-            total: 0,
-            pages: 0,
-          },
-          message:
-            "No sellers available in your area. Please update your location.",
-        });
-      }
-
-      // Filter products by sellers within range
-      query.seller = { $in: nearbySellerIds };
-    } else {
-      // If no location provided, return empty result (strictly enforce location)
-      return res.status(200).json({
-        success: true,
-        data: [],
-        pagination: {
-          page: Number(page),
-          limit: Number(limit),
-          total: 0,
-          pages: 0,
-        },
-        message: "Please provide your location to see products available in your area.",
-      });
+      // Note: We used to strictly filter by location here.
+      // Now we fetch all products for the category to show them, but we'll mark
+      // availability per product below. This matches the Home Page behavior.
+      // query.seller = { $in: nearbySellerIds };
     }
 
     // Helper to resolve category/subcategory ID from slug or ID
@@ -118,15 +92,15 @@ export const getProducts = async (req: Request, res: Response) => {
 
       // Special handling for Category and "and" -> "&"
       if (modelName === "Category" && value.includes("and")) {
-         const withAmpersand = value.replace(/-and-/g, " & ").replace(/-/g, " ");
-         item = await model
-           .findOne({
-             ...baseQuery,
-             name: { $regex: new RegExp(`^${withAmpersand}$`, "i") },
-           })
-           .select("_id")
-           .lean();
-         if (item) return item._id;
+        const withAmpersand = value.replace(/-and-/g, " & ").replace(/-/g, " ");
+        item = await model
+          .findOne({
+            ...baseQuery,
+            name: { $regex: new RegExp(`^${withAmpersand}$`, "i") },
+          })
+          .select("_id")
+          .lean();
+        if (item) return item._id;
       }
 
       return null;
@@ -199,9 +173,27 @@ export const getProducts = async (req: Request, res: Response) => {
 
     const total = await Product.countDocuments(query);
 
+    // Map products to include isAvailable flag based on nearbySellerIds
+    const productsWithAvailability = products.map((p: any) => {
+      // Safely get seller ID - handle both populated and unpopulated cases
+      const sellerId = p.seller?._id || p.seller;
+
+      const isAvailable =
+        nearbySellerIds.length > 0 && sellerId
+          ? nearbySellerIds.some(
+            (id) => id.toString() === sellerId.toString()
+          )
+          : false;
+
+      return {
+        ...p.toObject(),
+        isAvailable, // Tell frontend if this product is in range
+      };
+    });
+
     return res.status(200).json({
       success: true,
-      data: products,
+      data: productsWithAvailability,
       pagination: {
         page: Number(page),
         limit: Number(limit),
