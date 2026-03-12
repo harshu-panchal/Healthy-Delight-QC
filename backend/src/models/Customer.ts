@@ -11,6 +11,7 @@ export interface ICustomer extends Document {
   deliveryOtp: string; // Permanent 4-digit OTP for delivery verification
   totalOrders: number;
   totalSpent: number;
+  walletAmount: number;
   // Location fields
   latitude?: number;
   longitude?: number;
@@ -106,6 +107,10 @@ const CustomerSchema = new Schema<ICustomer>(
       default: 0,
       min: [0, 'Total spent cannot be negative'],
     },
+    walletAmount: {
+      type: Number,
+      default: 0,
+    },
     // Location fields
     latitude: {
       type: Number,
@@ -178,7 +183,7 @@ CustomerSchema.pre('save', async function (next) {
   next();
 });
 
-const Customer = mongoose.models.Customer || mongoose.model<ICustomer>('Customer', CustomerSchema);
+const Customer = mongoose.model<ICustomer>('Customer', CustomerSchema);
 
 export default Customer;
 

@@ -1,4 +1,5 @@
-import api, { setAuthToken, removeAuthToken } from '../config';
+import api, { removeAuthToken } from '../config';
+import type { UserRole } from '../config';
 
 export interface SendOTPResponse {
   success: boolean;
@@ -105,7 +106,8 @@ export const updateSellerProfile = async (data: any): Promise<any> => {
  * Logout seller
  */
 export const logout = (): void => {
-  removeAuthToken();
+  const role: UserRole = 'Seller';
+  removeAuthToken(role);
 };
 
 /**

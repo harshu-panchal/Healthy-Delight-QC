@@ -213,9 +213,6 @@ export default function DeliverySignUp() {
       });
 
       if (response.success) {
-        // Clear token from registration (we'll get it after OTP verification)
-        localStorage.removeItem("authToken");
-        localStorage.removeItem("userData");
         // Registration successful, now send SMS OTP for verification
         try {
           const otpRes = await sendOTP(formData.mobile);
@@ -260,15 +257,15 @@ export default function DeliverySignUp() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-teal-50 to-green-50 flex flex-col items-center justify-center px-4 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-sky-50 via-emerald-50 to-amber-50 flex flex-col items-center justify-center px-3 py-4 sm:px-4 sm:py-8 relative">
       {/* Back Button */}
       <button
         onClick={() => navigate(-1)}
-        className="absolute top-4 left-4 z-10 w-10 h-10 rounded-full bg-white shadow-md flex items-center justify-center hover:bg-neutral-50 transition-colors"
+        className="absolute top-3 left-3 sm:top-4 sm:left-4 z-10 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/90 shadow-md flex items-center justify-center hover:bg-neutral-50 transition-colors"
         aria-label="Back">
         <svg
-          width="20"
-          height="20"
+          width="18"
+          height="18"
           viewBox="0 0 24 24"
           fill="none"
           xmlns="http://www.w3.org/2000/svg">
@@ -284,31 +281,31 @@ export default function DeliverySignUp() {
       </button>
 
       {/* Sign Up Card */}
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden">
+      <div className="w-full max-w-sm sm:max-w-md bg-white rounded-3xl shadow-xl overflow-hidden border border-emerald-50">
         {/* Header Section */}
         <div
-          className="px-6 py-4 text-center border-b border-green-700"
+          className="px-5 py-3 sm:px-6 sm:py-4 text-center border-b bg-gradient-to-r from-emerald-50 via-white to-emerald-50"
           style={{
-            backgroundColor: "rgb(21 178 74 / var(--tw-bg-opacity, 1))",
+            borderColor: "#a7f3d0",
           }}>
-          <div className="mb-0 -mt-4">
+          <div className="mb-0 -mt-6 sm:-mt-4">
             <img
               src="/assets/kosil1.png"
               alt="Healthy Delight"
-              className="h-44 w-full max-w-xs mx-auto object-fill object-bottom"
+              className="h-28 sm:h-36 w-full max-w-[180px] sm:max-w-xs mx-auto object-contain object-bottom"
             />
           </div>
-          <h1 className="text-2xl font-bold text-white mb-1 -mt-12">
+          <h1 className="text-xl sm:text-2xl font-bold text-emerald-900 mb-1 -mt-6 sm:-mt-10">
             Delivery Sign Up
           </h1>
-          <p className="text-green-50 text-sm -mt-2">
+          <p className="text-emerald-700 text-xs sm:text-sm -mt-1 sm:-mt-2">
             Create your delivery partner account
           </p>
         </div>
 
         {/* Sign Up Form */}
         <div
-          className="p-6 space-y-4 delivery-signup-form"
+          className="px-5 py-5 sm:p-6 space-y-4 delivery-signup-form"
           style={{
             maxHeight: "70vh",
             overflowY: "auto",

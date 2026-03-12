@@ -69,7 +69,7 @@ export default function AdminLogin() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-teal-50 to-green-50 flex flex-col items-center justify-center px-4 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-rose-50 to-stone-50 flex flex-col items-center justify-center px-4 py-8">
       {/* Back Button */}
       <button
         onClick={() => navigate(-1)}
@@ -95,9 +95,10 @@ export default function AdminLogin() {
       <div className="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden">
         {/* Header Section */}
         <div
-          className="px-6 py-4 text-center border-b border-green-700"
+          className="px-6 py-4 text-center border-b"
           style={{
-            backgroundColor: "rgb(21 178 74 / var(--tw-bg-opacity, 1))",
+            backgroundColor: "#FFF5E6", // warm cream
+            borderColor: "#F2D4A3",    // soft biscuit border
           }}>
           <div className="mb-0 -mt-4">
             <img
@@ -106,10 +107,10 @@ export default function AdminLogin() {
               className="h-44 w-full max-w-xs mx-auto object-fill object-bottom"
             />
           </div>
-          <h1 className="text-2xl font-bold text-white mb-1 -mt-12">
+          <h1 className="text-2xl font-bold text-[#4A3428] mb-1 -mt-12">
             Admin Login
           </h1>
-          <p className="text-green-50 text-sm -mt-2">
+          <p className="text-[#8B5E34] text-sm -mt-2">
             Access your admin dashboard
           </p>
         </div>

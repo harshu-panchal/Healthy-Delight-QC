@@ -35,6 +35,7 @@ const Categories = lazy(() => import("./modules/user/Categories"));
 const Category = lazy(() => import("./modules/user/Category"));
 const Invoice = lazy(() => import("./modules/user/Invoice"));
 const Login = lazy(() => import("./modules/user/Login"));
+const Signup = lazy(() => import("./modules/user/Signup"));
 
 const AboutUs = lazy(() => import("./modules/user/AboutUs"));
 const FAQ = lazy(() => import("./modules/user/FAQ"));
@@ -309,6 +310,17 @@ function AppContent() {
                             <PublicRoute>
                               <Suspense fallback={<IconLoader forceShow />}>
                                 <Login />
+                              </Suspense>
+                            </PublicRoute>
+                          }
+                        />
+
+                        <Route
+                          path="/signup"
+                          element={
+                            <PublicRoute>
+                              <Suspense fallback={<IconLoader forceShow />}>
+                                <Signup />
                               </Suspense>
                             </PublicRoute>
                           }

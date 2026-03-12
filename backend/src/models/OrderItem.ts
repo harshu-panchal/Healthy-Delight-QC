@@ -18,8 +18,14 @@ export interface IOrderItem extends Document {
   // Variation
   variation?: string;
 
+  // Additional fields for calculations
+  subtotal?: number;
+  commissionRate?: number;
+  orderId?: any;
+  variantTitle?: string;
+
   // Status
-  status: "Pending" | "Shipped" | "Delivered" | "Cancelled" | "Returned";
+  status: "Pending" | "Confirmed" | "Shipped" | "On the way" | "Delivered" | "Cancelled" | "Returned";
 
   createdAt: Date;
   updatedAt: Date;
@@ -81,10 +87,28 @@ const OrderItemSchema = new Schema<IOrderItem>(
       trim: true,
     },
 
+    // Additional fields for calculations
+    subtotal: {
+      type: Number,
+      default: 0,
+    },
+    commissionRate: {
+      type: Number,
+      default: 0,
+    },
+    orderId: {
+      type: Schema.Types.ObjectId,
+      ref: "Order",
+    },
+    variantTitle: {
+      type: String,
+      trim: true,
+    },
+
     // Status
     status: {
       type: String,
-      enum: ["Pending", "Shipped", "Delivered", "Cancelled", "Returned"],
+      enum: ["Pending", "Confirmed", "Shipped", "On the way", "Delivered", "Cancelled", "Returned"],
       default: "Pending",
     },
   },
@@ -98,6 +122,6 @@ OrderItemSchema.index({ order: 1 });
 OrderItemSchema.index({ product: 1 });
 OrderItemSchema.index({ seller: 1 });
 
-const OrderItem = mongoose.models.OrderItem || mongoose.model<IOrderItem>("OrderItem", OrderItemSchema);
+const OrderItem = mongoose.model<IOrderItem>("OrderItem", OrderItemSchema);
 
 export default OrderItem;

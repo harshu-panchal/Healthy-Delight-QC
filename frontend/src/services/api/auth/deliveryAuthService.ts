@@ -1,4 +1,9 @@
-import api, { setAuthToken, removeAuthToken } from '../config';
+import api, {
+  setAuthToken,
+  removeAuthToken,
+  getUserStorageKeyForRole,
+} from '../config';
+import type { UserRole } from '../config';
 const handleApiError = (error: any) => {
   if (error.response && error.response.data && error.response.data.message) {
     throw new Error(error.response.data.message);
@@ -81,8 +86,13 @@ export const verifyOTP = async (
   });
 
   if (response.data.success && response.data.data?.token) {
-    localStorage.setItem('authToken', response.data.data.token);
-    localStorage.setItem('userData', JSON.stringify(response.data.data.user));
+    const role: UserRole = 'Delivery';
+    const userData = {
+      ...response.data.data.user,
+      userType: role,
+    };
+    setAuthToken(response.data.data.token, role);
+    localStorage.setItem(getUserStorageKeyForRole(role), JSON.stringify(userData));
   }
 
   return response.data;
@@ -100,6 +110,6 @@ export const register = async (data: RegisterData): Promise<RegisterResponse> =>
  * Logout delivery partner
  */
 export const logout = (): void => {
-  removeAuthToken();
+  removeAuthToken('Delivery');
 };
 

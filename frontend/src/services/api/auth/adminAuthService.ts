@@ -1,4 +1,9 @@
-import api, { setAuthToken, removeAuthToken } from '../config';
+import api, {
+  setAuthToken,
+  removeAuthToken,
+  getUserStorageKeyForRole,
+} from '../config';
+import type { UserRole } from '../config';
 
 export interface SendOTPResponse {
   success: boolean;
@@ -61,8 +66,13 @@ export const verifyOTP = async (mobile: string, otp: string): Promise<VerifyOTPR
   const response = await api.post<VerifyOTPResponse>('/auth/admin/verify-otp', { mobile, otp });
 
   if (response.data.success && response.data.data.token) {
-    setAuthToken(response.data.data.token);
-    localStorage.setItem('userData', JSON.stringify(response.data.data.user));
+    const role: UserRole = 'Admin';
+    const userData = {
+      ...response.data.data.user,
+      userType: role,
+    };
+    setAuthToken(response.data.data.token, role);
+    localStorage.setItem(getUserStorageKeyForRole(role), JSON.stringify(userData));
   }
 
   return response.data;
@@ -75,8 +85,13 @@ export const register = async (data: RegisterData): Promise<RegisterResponse> =>
   const response = await api.post<RegisterResponse>('/auth/admin/register', data);
 
   if (response.data.success && response.data.data.token) {
-    setAuthToken(response.data.data.token);
-    localStorage.setItem('userData', JSON.stringify(response.data.data.user));
+    const role: UserRole = 'Admin';
+    const userData = {
+      ...response.data.data.user,
+      userType: role,
+    };
+    setAuthToken(response.data.data.token, role);
+    localStorage.setItem(getUserStorageKeyForRole(role), JSON.stringify(userData));
   }
 
   return response.data;
@@ -86,7 +101,7 @@ export const register = async (data: RegisterData): Promise<RegisterResponse> =>
  * Logout admin
  */
 export const logout = (): void => {
-  removeAuthToken();
+  removeAuthToken('Admin');
 };
 
 export interface AdminProfileResponse {
