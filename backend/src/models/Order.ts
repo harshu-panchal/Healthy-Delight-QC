@@ -32,6 +32,7 @@ export interface IOrder extends Document {
   shipping: number;
   platformFee: number;
   discount: number;
+  commissionRate?: number; // Added field
   couponCode?: string;
   total: number;
 
@@ -43,10 +44,14 @@ export interface IOrder extends Document {
   // Order Status
   status:
   | "Received"
+  | "Accepted"
+  | "Confirmed"
   | "Pending"
   | "Processed"
   | "Shipped"
+  | "On the way"
   | "Out for Delivery"
+  | "Picked up"
   | "Delivered"
   | "Cancelled"
   | "Rejected"
@@ -93,6 +98,12 @@ export interface IOrder extends Document {
   cancellationReason?: string;
   cancelledAt?: Date;
   cancelledBy?: mongoose.Types.ObjectId;
+
+  // Additional fields for calculations/frontend
+  grandTotal?: number;
+  orderId?: string;
+  invoiceNumber?: string;
+  timeSlot?: string;
 
   createdAt: Date;
   updatedAt: Date;
@@ -201,6 +212,11 @@ const OrderSchema = new Schema<IOrder>(
       default: 0,
       min: [0, "Discount cannot be negative"],
     },
+    commissionRate: { // Added field
+      type: Number,
+      default: 0,
+      min: [0, "Commission rate cannot be negative"],
+    },
     couponCode: {
       type: String,
       trim: true,
@@ -233,10 +249,13 @@ const OrderSchema = new Schema<IOrder>(
       enum: [
         "Received",
         "Accepted",
+        "Confirmed",
         "Pending",
         "Processed",
         "Shipped",
+        "On the way",
         "Out for Delivery",
+        "Picked up",
         "Delivered",
         "Cancelled",
         "Rejected",
@@ -344,6 +363,24 @@ const OrderSchema = new Schema<IOrder>(
       type: Schema.Types.ObjectId,
       ref: "Admin",
     },
+
+    // Additional fields for calculations/frontend
+    grandTotal: {
+      type: Number,
+      default: 0,
+    },
+    orderId: {
+      type: String,
+      trim: true,
+    },
+    invoiceNumber: {
+      type: String,
+      trim: true,
+    },
+    timeSlot: {
+      type: String,
+      trim: true,
+    },
   },
   {
     timestamps: true,
@@ -369,6 +406,6 @@ OrderSchema.index({ orderDate: -1 });
 OrderSchema.index({ deliveryBoy: 1 });
 OrderSchema.index({ orderNumber: 1 });
 
-const Order = mongoose.models.Order || mongoose.model<IOrder>("Order", OrderSchema);
+const Order = mongoose.model<IOrder>("Order", OrderSchema);
 
 export default Order;

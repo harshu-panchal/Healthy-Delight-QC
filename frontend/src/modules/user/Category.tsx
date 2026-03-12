@@ -102,11 +102,14 @@ export default function CategoryPage() {
         const response = await getProducts(params);
         if (response.success) {
           // Ensure products have default tags/name array for filtering logic if missing
-          const safeProducts = response.data.map((p: any) => ({
-            ...p,
-            tags: Array.isArray(p.tags) ? p.tags : [],
-            nameParts: p.name ? p.name.toLowerCase().split(" ") : [],
-          }));
+          const safeProducts = response.data.map((p: any) => {
+            const name = p.name || p.productName || "";
+            return {
+              ...p,
+              tags: Array.isArray(p.tags) ? p.tags : [],
+              nameParts: name ? name.toLowerCase().split(" ") : [],
+            };
+          });
           setProducts(safeProducts);
         } else {
           setError("Failed to fetch products for this category.");
@@ -181,7 +184,11 @@ export default function CategoryPage() {
 
     categoryProducts.forEach((product) => {
       // Extract main ingredient/type from product name
-      const name = product.name.toLowerCase();
+      // Use fallback to productName if name is missing
+      const rawName = product.name || (product as any).productName || "";
+      if (!rawName) return;
+
+      const name = rawName.toLowerCase();
       // Remove common prefixes like "fresh", "organic", etc.
       const cleanName = name
         .replace(/^(fresh|organic|premium|best|new)\s+/i, "")
