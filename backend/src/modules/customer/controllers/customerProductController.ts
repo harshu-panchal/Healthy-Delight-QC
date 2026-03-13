@@ -107,30 +107,27 @@ export const getProducts = async (req: Request, res: Response) => {
     };
 
     if (category) {
-      const categoryId = await resolveId(
-        Category,
-        category as string,
-        "Category"
-      );
-      if (categoryId) query.category = categoryId;
+      const categoryValues = (category as string).split(',');
+      const categoryIds = await Promise.all(categoryValues.map(val => resolveId(Category, val.trim(), "Category")));
+      const validCategoryIds = categoryIds.filter(id => id);
+
+      if (validCategoryIds.length > 0) {
+        query.category = validCategoryIds.length > 1 ? { $in: validCategoryIds } : validCategoryIds[0];
+      }
     }
 
     if (subcategory) {
-      // Try to resolve from Category model first (new structure where subcategories are categories with parentId)
-      let subcategoryId = await resolveId(
-        Category,
-        subcategory as string,
-        "Category"
-      );
-      // If not found in Category, try old SubCategory model (backward compatibility)
-      if (!subcategoryId) {
-        subcategoryId = await resolveId(
-          SubCategory,
-          subcategory as string,
-          "SubCategory"
-        );
+      const subcategoryValues = (subcategory as string).split(',');
+      const subcategoryIds = await Promise.all(subcategoryValues.map(async (val) => {
+        let id = await resolveId(Category, val.trim(), "Category");
+        if (!id) id = await resolveId(SubCategory, val.trim(), "SubCategory");
+        return id;
+      }));
+      const validSubcategoryIds = subcategoryIds.filter(id => id);
+
+      if (validSubcategoryIds.length > 0) {
+        query.subcategory = validSubcategoryIds.length > 1 ? { $in: validSubcategoryIds } : validSubcategoryIds[0];
       }
-      if (subcategoryId) query.subcategory = subcategoryId;
     }
 
     if (brand) {

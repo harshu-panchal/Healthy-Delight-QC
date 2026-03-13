@@ -366,10 +366,17 @@ export const getHomeContent = async (req: Request, res: Response) => {
       });
 
     // 3. Categories for Tiles (Grocery, Snacks, etc)
-    const categories = await Category.find({
-      status: "Active",
-    })
-      .select("name image icon color slug")
+    const activeHeaderCategory = headerCategorySlug && headerCategorySlug !== "all"
+      ? await HeaderCategory.findOne({ slug: headerCategorySlug, status: "Published" }).lean()
+      : null;
+
+    const categoriesQuery: any = { status: "Active" };
+    if (activeHeaderCategory) {
+      categoriesQuery.headerCategoryId = activeHeaderCategory._id;
+    }
+
+    const categories = await Category.find(categoriesQuery)
+      .select("name image icon color slug headerCategoryId")
       .sort({ order: 1 });
 
     // 4. Shop By Store - Fetch from database
@@ -696,8 +703,6 @@ export const getStoreProducts = async (req: Request, res: Response) => {
     let query: any = {
       status: "Active",
       publish: true,
-      // Only show shop-by-store-only products in shop by store section
-      isShopByStoreOnly: true,
     };
 
     console.log(`[getStoreProducts] Looking for shop with storeId: ${storeId}`);
@@ -719,18 +724,6 @@ export const getStoreProducts = async (req: Request, res: Response) => {
       .populate("subCategory", "_id name")
       .lean();
 
-    console.log(
-      `[getStoreProducts] Shop found:`,
-      shop
-        ? {
-          name: shop.name,
-          productsCount: shop.products?.length || 0,
-          category: shop.category,
-          image: shop.image,
-        }
-        : "NOT FOUND",
-    );
-
     let shopData: any = null;
 
     if (shop) {
@@ -742,67 +735,46 @@ export const getStoreProducts = async (req: Request, res: Response) => {
       };
 
       // Convert products array to ObjectIds if needed
-      // When using .lean(), products array contains ObjectIds directly
       let productIds: mongoose.Types.ObjectId[] = [];
       if (shop.products && shop.products.length > 0) {
         productIds = shop.products
           .map((p: any) => {
-            // Handle different formats: ObjectId, string, or object with _id
-            if (mongoose.Types.ObjectId.isValid(p)) {
-              return typeof p === "string" ? new mongoose.Types.ObjectId(p) : p;
-            }
-            return p._id
-              ? typeof p._id === "string"
-                ? new mongoose.Types.ObjectId(p._id)
-                : p._id
-              : p;
+            const id = p._id || p;
+            return mongoose.Types.ObjectId.isValid(id) ? new mongoose.Types.ObjectId(id) : null;
           })
-          .filter(Boolean);
+          .filter(Boolean) as mongoose.Types.ObjectId[];
       }
 
-      console.log(
-        `[getStoreProducts] Shop has ${productIds.length} products assigned`,
-      );
-
-      // Get shop ID for filtering
-      const shopId = (shop as any)._id;
-
-      // If shop has specific products assigned, use those
+      // 1. If shop has specific products assigned, use those IDs
       if (productIds.length > 0) {
         query._id = { $in: productIds };
-        // Also filter by shopId to ensure products belong to this shop
-        query.shopId = shopId;
-        console.log(
-          `[getStoreProducts] Filtering by product IDs: ${productIds.length} products and shopId: ${shopId}`,
-        );
       }
-      // Otherwise, filter by shopId and category/subcategory
+      // 2. Otherwise use category/subcategory filters
       else {
-        // Filter by shopId to show only products assigned to this shop
-        query.shopId = shopId;
-        console.log(`[getStoreProducts] Filtering by shopId: ${shopId}`);
+        const orConditions: any[] = [];
 
+        // Handle categories (single or array)
         if (shop.category) {
-          const categoryId =
-            (shop.category as any)._id || (shop.category as any);
-          query.category = categoryId;
-          console.log(
-            `[getStoreProducts] Also filtering by category: ${categoryId}`,
-          );
-
-          // If subcategory is also specified, filter by both
-          if (shop.subCategory) {
-            const subCategoryId =
-              (shop.subCategory as any)._id || (shop.subCategory as any);
-            query.$or = [
-              { category: categoryId, shopId: shopId },
-              { subcategory: subCategoryId, shopId: shopId },
-            ];
-            console.log(
-              `[getStoreProducts] Also filtering by subcategory: ${subCategoryId}`,
-            );
-          }
+          const categoryIds = Array.isArray(shop.category)
+            ? shop.category.map((c: any) => c._id || c)
+            : [shop.category._id || shop.category];
+          orConditions.push({ category: { $in: categoryIds } });
         }
+
+        // Handle subcategories (single or array)
+        if (shop.subCategory) {
+          const subCategoryIds = Array.isArray(shop.subCategory)
+            ? shop.subCategory.map((s: any) => s._id || s)
+            : [shop.subCategory._id || shop.subCategory];
+          orConditions.push({ subcategory: { $in: subCategoryIds } });
+        }
+
+        if (orConditions.length > 0) {
+          query.$or = orConditions;
+        }
+
+        // If it's a shop, we should show "isShopByStoreOnly" products that match
+        // but NOT restrict it ONLY to those. The base query already allows both.
       }
     } else {
       // Fallback: try to match by category name (legacy support)

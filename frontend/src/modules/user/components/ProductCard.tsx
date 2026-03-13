@@ -31,7 +31,7 @@ export default function ProductCard({
   badgeText,
   showPackBadge = false,
   showStockInfo = false,
-  showHeartIcon = false,
+  showHeartIcon = true,
   showVegetarianIcon = false,
   showOptionsText = false,
   optionsCount = 2,
@@ -204,7 +204,7 @@ export default function ProductCard({
       whileHover={{ y: -2 }}
       whileTap={{ scale: 0.97 }}
       transition={{ duration: 0.2 }}
-      className={`${categoryStyle ? 'bg-green-50' : 'bg-white'} rounded-lg shadow-sm overflow-hidden flex flex-col relative`}
+      className={`${categoryStyle ? 'bg-green-50' : 'bg-white'} rounded-lg shadow-sm overflow-hidden flex flex-col relative group`}
     >
       <div
         onClick={handleCardClick}
@@ -268,7 +268,7 @@ export default function ProductCard({
                 e.stopPropagation();
                 toggleWishlist(e);
               }}
-              className="absolute top-2 right-2 z-30 w-9 h-9 rounded-full bg-white/95 backdrop-blur-sm flex items-center justify-center hover:bg-white transition-all shadow-md group/heart"
+              className={`absolute top-2 right-2 z-30 w-8 h-8 md:w-9 md:h-9 rounded-full bg-white/95 backdrop-blur-sm flex items-center justify-center hover:bg-white transition-all shadow-md group/heart ${isWishlisted ? "opacity-100 translate-x-0" : "opacity-0 translate-x-2 group-hover:opacity-100 group-hover:translate-x-0"}`}
               aria-label={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}
             >
               <svg
@@ -299,12 +299,12 @@ export default function ProductCard({
           )}
         </div>
 
-        <div className={`${compact ? 'p-3 md:p-4' : categoryStyle ? 'px-2.5 md:px-3 pt-2 md:pt-3 pb-2.5 md:pb-3.5' : 'p-4 md:p-5'} flex-1 flex flex-col ${categoryStyle ? 'items-center text-center' : ''}`}>
+        <div className={`${compact ? 'p-3 md:p-4' : categoryStyle ? 'px-2.5 md:px-3 pt-2 md:pt-3 pb-2.5 md:pb-3.5' : 'p-4 md:p-5'} flex-1 flex flex-col ${categoryStyle ? 'items-start text-left' : ''}`}>
           {categoryStyle ? (
             // Category Style Layout: Name, Quantity, Price, Time, Button
             <>
               {/* 1. Name */}
-              <h3 className="text-[11px] font-bold text-neutral-900 mb-0.5 line-clamp-2 leading-tight min-h-[1.75rem] max-h-[1.75rem] overflow-hidden px-1">
+              <h3 className="text-[11px] font-bold text-neutral-900 mb-0.5 line-clamp-2 leading-tight min-h-[1.75rem] max-h-[1.75rem] overflow-hidden">
                 {product.name || product.productName || ''}
               </h3>
 
@@ -317,7 +317,7 @@ export default function ProductCard({
 
               {/* 3. Price with discount */}
               <div className="mb-1">
-                <div className="flex flex-col items-center">
+                <div className="flex flex-col items-start">
                   <span className="text-xs font-bold text-neutral-900 leading-tight">
                     ₹{displayPrice.toLocaleString('en-IN')}
                   </span>
@@ -330,7 +330,7 @@ export default function ProductCard({
               </div>
 
               {/* 4. Time */}
-              <p className="text-[9px] text-neutral-500 mb-2.5 flex items-center justify-center gap-0.5 leading-tight">
+              <p className="text-[9px] text-neutral-500 mb-2.5 flex items-center gap-0.5 leading-tight">
                 <svg width="8" height="8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0">
                   <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" />
                   <path d="M12 6v6l4 2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
@@ -351,8 +351,8 @@ export default function ProductCard({
                       handleAdd(e);
                     }}
                     className={`w-full border rounded-full font-bold text-[10px] h-7 px-2 flex items-center justify-center uppercase tracking-wider ${product.isAvailable === false
-                        ? 'border-neutral-300 text-neutral-400 bg-neutral-50 cursor-not-allowed'
-                        : 'border-green-600 text-green-600 bg-transparent hover:bg-green-50 shadow-sm'
+                      ? 'border-neutral-300 text-neutral-400 bg-neutral-50 cursor-not-allowed'
+                      : 'border-green-600 text-green-600 bg-transparent hover:bg-green-50 shadow-sm'
                       }`}
                   >
                     {product.isAvailable === false ? 'Range' : 'ADD'}

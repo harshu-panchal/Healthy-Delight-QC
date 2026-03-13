@@ -7,6 +7,7 @@ import CategoryTileSection from "./components/CategoryTileSection";
 import FeaturedThisWeek from "./components/FeaturedThisWeek";
 import ProductCard from "./components/ProductCard";
 import { getHomeContent } from "../../services/api/customerHomeService";
+import { getProducts } from "../../services/api/customerProductService";
 import { getHeaderCategoriesPublic } from "../../services/api/headerCategoryService";
 import { useLocation } from "../../hooks/useLocation";
 import { useLoading } from "../../context/LoadingContext";
@@ -35,8 +36,25 @@ export default function Home() {
     trending: [],
     cookingIdeas: [],
   });
+  const [headerCategories, setHeaderCategories] = useState<any[]>([]);
 
   const [products, setProducts] = useState<any[]>([]);
+  const [categoryProducts, setCategoryProducts] = useState<any[]>([]);
+  const [selectedSubcategory, setSelectedSubcategory] = useState<string>("all");
+  const [productsLoading, setProductsLoading] = useState(false);
+
+  // Fetch header categories for mapping slugs to IDs
+  useEffect(() => {
+    const fetchHeaderCategories = async () => {
+      try {
+        const cats = await getHeaderCategoriesPublic(true);
+        setHeaderCategories(cats);
+      } catch (err) {
+        console.error("Failed to fetch header categories", err);
+      }
+    };
+    fetchHeaderCategories();
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -44,6 +62,12 @@ export default function Home() {
         startRouteLoading();
         setLoading(true);
         setError(null);
+        setCategoryProducts([]); // Clear stale products immediately
+        if (activeTab !== "all") {
+          setProductsLoading(true);
+          setHomeData((prev: any) => ({ ...prev, categories: [] })); // Clear stale categories
+        }
+
         const response = await getHomeContent(
           activeTab,
           location?.latitude,
@@ -68,6 +92,7 @@ export default function Home() {
     };
 
     fetchData();
+    setSelectedSubcategory("all");
 
     // Preload PromoStrip data for all header categories in the background
     // This ensures instant loading when users switch tabs
@@ -116,21 +141,69 @@ export default function Home() {
     preloadHeaderCategories();
   }, [location?.latitude, location?.longitude, activeTab]);
 
-  const getFilteredProducts = (tabId: string) => {
-    if (tabId === "all") {
-      return products;
-    }
-    return products.filter(
-      (p) =>
-        p.categoryId === tabId ||
-        (p.category && (p.category._id === tabId || p.category.slug === tabId)),
-    );
-  };
+  // Fetch products when category/subcategory changes
+  useEffect(() => {
+    if (activeTab === "all") return;
 
-  const filteredProducts = useMemo(
-    () => getFilteredProducts(activeTab),
-    [activeTab, products],
-  );
+    const fetchCategoryProducts = async () => {
+      try {
+        setProductsLoading(true);
+        const params: any = {
+          latitude: location?.latitude,
+          longitude: location?.longitude,
+          limit: 50
+        };
+
+        // If 'all' is selected under a header category, we need to fetch all products for that header
+        // For now, if we have selectedSubcategory, we use it directly.
+        // If it's 'all', we might need to find all subcategories IDs for this header.
+        if (selectedSubcategory !== "all") {
+          params.category = selectedSubcategory;
+        } else {
+          // Find all category IDs for this header category to fetch all products
+          const currentHeaderCat = headerCategories.find(h => h.slug === activeTab);
+          const currentHeaderId = currentHeaderCat?._id || currentHeaderCat?.id;
+
+          if (currentHeaderId) {
+            // Find all categories matching this header
+            const catIds = homeData.categories
+              .filter((c: any) => {
+                const hId = c.headerCategoryId?._id || c.headerCategoryId;
+                return String(hId) === String(currentHeaderId);
+              })
+              .map((c: any) => c._id || c.id);
+
+            if (catIds.length > 0) {
+              params.category = catIds.join(',');
+            } else {
+              // If we are on 'all' subcategory but haven't loaded categories for this header yet,
+              // don't fetch anything yet - wait for homeData to arrive.
+              return;
+            }
+          } else {
+            // If header categories themselves haven't loaded, wait.
+            return;
+          }
+        }
+
+        const response = await getProducts(params);
+        if (response.success && response.data) {
+          setCategoryProducts(response.data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch products for category:", error);
+      } finally {
+        setProductsLoading(false);
+      }
+    };
+
+    fetchCategoryProducts();
+  }, [activeTab, selectedSubcategory, headerCategories, homeData.categories, location?.latitude, location?.longitude]);
+
+  const filteredProducts = useMemo(() => {
+    if (activeTab === "all") return products;
+    return categoryProducts;
+  }, [activeTab, products, categoryProducts]);
 
   const handleGoToCategories = () => {
     navigate("/categories");
@@ -183,7 +256,8 @@ export default function Home() {
         )}
 
       {/* Quick Categories strip */}
-      {homeData.categories && homeData.categories.length > 0 && (
+      {/* Quick Categories strip - Only visible on 'All' tab */}
+      {activeTab === "all" && homeData.categories && homeData.categories.length > 0 && (
         <div className="bg-neutral-50 px-4 pt-3 pb-3 md:px-6 md:pt-4 md:pb-4">
           <div className="flex items-center justify-between mb-2 md:mb-3">
             <h2 className="text-base md:text-lg font-semibold text-neutral-900">
@@ -229,51 +303,124 @@ export default function Home() {
         </div>
       )}
 
-      {/* Main content */}
+      {/* Main content grid for 'All' tab and Sidebar layout for Categories */}
       <div
         ref={contentRef}
-        className="bg-neutral-50 -mt-2 pt-1 space-y-5 md:space-y-8 md:pt-4">
-        {/* Filtered Products Section (from bestsellers) */}
-        {activeTab !== "all" && filteredProducts.length > 0 && (
-          <div data-products-section className="mt-6 mb-6 md:mt-8 md:mb-8">
-            <h2 className="text-lg md:text-2xl font-semibold text-neutral-900 mb-3 md:mb-6 px-4 md:px-6 lg:px-8 tracking-tight capitalize">
-              {activeTab === "grocery" ? "Grocery Items" : activeTab}
-            </h2>
-            <div className="px-4 md:px-6 lg:px-8">
-              {filteredProducts.length > 0 ? (
-                <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 md:gap-4">
+        className={`bg-neutral-50 -mt-2 pt-1 ${activeTab === "all" ? "space-y-5 md:space-y-8 md:pt-4" : ""}`}>
+        {/* Category Specific View (Sidebar + Products) */}
+        {activeTab !== "all" && (
+          <div className="flex bg-white min-h-[70vh]">
+            {/* Left Sidebar with Round Subcategories */}
+            <div className="w-20 md:w-24 bg-neutral-50 border-r border-neutral-200 py-4 flex-shrink-0 flex flex-col items-center gap-6 overflow-y-auto scrollbar-hide max-h-[80vh] sticky top-36">
+              {/* 'All' Option */}
+              <button
+                type="button"
+                onClick={() => setSelectedSubcategory("all")}
+                className="flex flex-col items-center gap-1 w-full px-1 group">
+                <div
+                  className={`w-12 h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center text-xl transition-all duration-200 shadow-sm border-2 ${selectedSubcategory === "all"
+                    ? "border-emerald-600 bg-white scale-110 shadow-md"
+                    : "border-transparent bg-white group-hover:scale-105"
+                    }`}>
+                  📦
+                </div>
+                <span
+                  className={`text-[9px] md:text-[10px] text-center font-bold px-1 transition-colors leading-tight ${selectedSubcategory === "all" ? "text-emerald-700" : "text-neutral-500"
+                    }`}>
+                  All
+                </span>
+              </button>
+
+              {/* Dynamic Subcategories */}
+              {(() => {
+                const visibleCategories = homeData.categories || [];
+
+                return visibleCategories.map((cat: any) => {
+                  const isSelected = String(cat._id || cat.id) === String(selectedSubcategory);
+                  return (
+                    <button
+                      key={cat._id || cat.id}
+                      type="button"
+                      onClick={() => setSelectedSubcategory(cat._id || cat.id)}
+                      className="flex flex-col items-center gap-1 w-full px-1 group">
+                      <div
+                        className={`w-12 h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center overflow-hidden transition-all duration-200 shadow-sm border-2 ${isSelected
+                          ? "border-emerald-600 bg-white scale-110 shadow-md"
+                          : "border-transparent bg-white group-hover:scale-105"
+                          }`}>
+                        {cat.image ? (
+                          <img
+                            src={cat.image}
+                            alt={cat.name}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <span className="text-xl">{cat.icon || "🛒"}</span>
+                        )}
+                      </div>
+                      <span
+                        className={`text-[9px] md:text-[10px] text-center font-bold px-1 transition-colors leading-tight line-clamp-2 ${isSelected ? "text-emerald-700" : "text-neutral-500"
+                          }`}>
+                        {cat.name}
+                      </span>
+                    </button>
+                  );
+                });
+              })()}
+            </div>
+
+            {/* Right Side: Product Grid */}
+            <div className="flex-1 px-3 py-4 md:px-6 md:py-6 overflow-y-auto">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-base md:text-xl font-bold text-neutral-900 capitalize px-1">
+                  {selectedSubcategory === "all"
+                    ? `${activeTab.replace("-", " ")} Products`
+                    : (homeData.categories || []).find(
+                      (c: any) => String(c._id || c.id) === String(selectedSubcategory)
+                    )?.name || "Products"}
+                </h2>
+                <span className="text-[10px] md:text-xs font-semibold text-neutral-500 bg-neutral-100 px-2 py-1 rounded-full">
+                  {filteredProducts.length} Items
+                </span>
+              </div>
+
+              {productsLoading ? (
+                <div className="flex flex-col items-center justify-center py-20">
+                  <div className="w-10 h-10 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+                  <p className="text-sm text-neutral-500 font-medium">Loading products...</p>
+                </div>
+              ) : filteredProducts.length > 0 ? (
+                <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2.5 md:gap-4">
                   {filteredProducts.map((product) => (
                     <ProductCard
-                      key={product.id}
+                      key={product.id || product._id}
                       product={product}
                       categoryStyle={true}
                       showBadge={true}
                       showPackBadge={false}
-                      showStockInfo={true}
+                      showStockInfo={false}
+                      compact={true}
                     />
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-12 md:py-16 text-neutral-500">
-                  <p className="text-lg md:text-xl mb-2">No products found</p>
-                  <p className="text-sm md:text-base">
-                    Try selecting a different category
-                  </p>
+                <div className="flex flex-col items-center justify-center py-20 text-neutral-400">
+                  <div className="w-16 h-16 bg-neutral-50 rounded-full flex items-center justify-center mb-4 text-3xl">
+                    📦
+                  </div>
+                  <p className="text-sm font-medium">No products found</p>
                 </div>
               )}
             </div>
           </div>
         )}
 
-        {/* Content Sections */}
-        {(activeTab === "all" || (homeData.homeSections && homeData.homeSections.length > 0)) && (
+        {/* Content Sections - Only show on 'All' tab */}
+        {activeTab === "all" && (
           <>
-            {/* Sections only for 'All' tab */}
-            {activeTab === "all" && null}
-
             {/* Dynamic Home Sections - Render sections created by admin (all tabs) */}
             {homeData.homeSections && homeData.homeSections.length > 0 && (
-              <>
+              <div className="space-y-8">
                 {homeData.homeSections.map((section: any) => {
                   if (!section.data || section.data.length === 0) return null;
 
@@ -297,27 +444,25 @@ export default function Home() {
                     const gapClass = columnCount >= 4 ? "gap-2" : "gap-3 md:gap-4";
 
                     return (
-                      <div key={section.id} className="mt-6 mb-6 md:mt-8 md:mb-8">
+                      <div key={section.id} className="mt-8 mb-8 md:mt-10 md:mb-10 px-4 md:px-6 lg:px-8">
                         {section.title && (
-                          <h2 className="text-lg md:text-2xl font-semibold text-neutral-900 mb-3 md:mb-6 px-4 md:px-6 lg:px-8 tracking-tight">
+                          <h2 className="text-xl md:text-2xl font-bold text-neutral-900 mb-4 md:mb-6 tracking-tight">
                             {section.title}
                           </h2>
                         )}
-                        <div className="">
-                          <div className={`flex overflow-x-auto pb-4 gap-2.5 snap-x snap-mandatory scrollbar-hide px-4 md:px-6 lg:px-8 md:grid md:pb-0 md:overflow-visible ${gridClass} ${gapClass}`}>
-                            {section.data.map((product: any) => (
-                              <div key={product.id || product._id} className="flex-shrink-0 w-[42%] sm:w-[32%] md:w-auto snap-start">
-                                <ProductCard
-                                  product={product}
-                                  categoryStyle={true}
-                                  showBadge={true}
-                                  showPackBadge={false}
-                                  showStockInfo={false}
-                                  compact={isCompact}
-                                />
-                              </div>
-                            ))}
-                          </div>
+                        <div className={`flex overflow-x-auto pb-4 gap-3 md:gap-4 snap-x snap-mandatory scrollbar-hide md:grid md:pb-0 md:overflow-visible ${gridClass} ${gapClass}`}>
+                          {section.data.map((product: any) => (
+                            <div key={product.id || product._id} className="flex-shrink-0 w-[45%] sm:w-[35%] md:w-auto snap-start">
+                              <ProductCard
+                                product={product}
+                                categoryStyle={true}
+                                showBadge={true}
+                                showPackBadge={false}
+                                showStockInfo={false}
+                                compact={isCompact}
+                              />
+                            </div>
+                          ))}
                         </div>
                       </div>
                     );
@@ -333,85 +478,78 @@ export default function Home() {
                     />
                   );
                 })}
-              </>
+              </div>
             )}
 
             {/* Shop by Store Section - only on 'all' tab */}
-            {activeTab === "all" && (
-              <div className="mb-6 mt-6 md:mb-8 md:mt-8">
-                <div className="flex items-center justify-between mb-4 md:mb-6 px-4 md:px-6 lg:px-8">
-                  <h2 className="text-lg md:text-2xl font-semibold text-neutral-900 tracking-tight">
-                    Shop by Store
-                  </h2>
-                  <button
-                    onClick={() => navigate('/stores')}
-                    className="text-xs md:text-sm font-semibold text-emerald-600 hover:text-emerald-700 transition-colors"
-                  >
-                    See all stores
-                  </button>
-                </div>
-                <div className="">
-                  {/* Container for horizontal scroll on mobile, grid on desktop */}
-                  <div className="flex overflow-x-auto pb-4 gap-3 snap-x snap-mandatory scrollbar-hide px-4 md:px-6 lg:px-8 md:grid md:grid-cols-4 lg:grid-cols-6 md:gap-6 md:pb-0 md:overflow-visible">
-                    {(homeData.shops || []).map((tile: any) => {
-                      const hasImages =
-                        tile.image ||
-                        (tile.productImages &&
-                          tile.productImages.filter(Boolean).length > 0);
+            <div className="mb-6 mt-6 md:mb-8 md:mt-8 px-4 md:px-6 lg:px-8">
+              <div className="flex items-center justify-between mb-4 md:mb-6">
+                <h2 className="text-lg md:text-2xl font-semibold text-neutral-900 tracking-tight">
+                  Shop by Store
+                </h2>
+                <button
+                  onClick={() => navigate('/stores')}
+                  className="text-xs md:text-sm font-semibold text-emerald-600 hover:text-emerald-700 transition-colors"
+                >
+                  See all stores
+                </button>
+              </div>
+              <div className="">
+                <div className="flex overflow-x-auto pb-4 gap-3 snap-x snap-mandatory scrollbar-hide md:grid md:grid-cols-4 lg:grid-cols-6 md:gap-6 md:pb-0 md:overflow-visible">
+                  {(homeData.shops || []).map((tile: any) => {
+                    const hasImages =
+                      tile.image ||
+                      (tile.productImages &&
+                        tile.productImages.filter(Boolean).length > 0);
 
-                      return (
-                        <div
-                          key={tile.id}
-                          className="group flex flex-col cursor-pointer transition-transform active:scale-95 flex-shrink-0 w-[42%] sm:w-[35%] md:w-auto snap-start"
-                          onClick={() => {
-                            const storeSlug =
-                              tile.slug || tile.id.replace("-store", "");
-                            navigate(`/store/${storeSlug}`);
-                          }}
-                        >
-                          {/* Arched Card Body */}
-                          <div className="relative aspect-[4/5] bg-gradient-to-b from-sky-100 to-sky-50 rounded-t-full overflow-hidden border-x border-t border-white shadow-sm group-hover:shadow-md transition-shadow">
-                            {/* Scenic Background Pattern */}
-                            <div className="absolute inset-x-0 top-1/2 bottom-0 bg-[#e6d5b8] opacity-60"></div>
-                            <div className="absolute bottom-4 left-0 right-0 h-4 bg-amber-200/40 blur-sm"></div>
+                    return (
+                      <div
+                        key={tile.id}
+                        className="group flex flex-col cursor-pointer transition-transform active:scale-95 flex-shrink-0 w-[30%] sm:w-[24%] md:w-auto snap-start"
+                        onClick={() => {
+                          const storeSlug =
+                            tile.slug || tile.id.replace("-store", "");
+                          navigate(`/store/${storeSlug}`);
+                        }}
+                      >
+                        <div className="relative aspect-[4/5] bg-gradient-to-b from-sky-100 to-sky-50 rounded-t-full overflow-hidden border-x border-t border-white shadow-sm group-hover:shadow-md transition-shadow">
+                          <div className="absolute inset-x-0 top-1/2 bottom-0 bg-[#e6d5b8] opacity-60"></div>
+                          <div className="absolute bottom-4 left-0 right-0 h-4 bg-amber-200/40 blur-sm"></div>
 
-                            {/* Store Image / Logos */}
-                            <div className="absolute inset-0 p-2 flex flex-col items-center justify-center">
-                              {hasImages ? (
-                                <img
-                                  src={
-                                    tile.image ||
-                                    (tile.productImages ? tile.productImages[0] : "")
-                                  }
-                                  alt={tile.name}
-                                  className="w-[85%] h-[85%] object-contain drop-shadow-lg transform group-hover:scale-110 transition-transform duration-300"
-                                />
-                              ) : (
-                                <div className="text-4xl text-sky-300 font-bold opacity-50">
-                                  {tile.name.charAt(0)}
-                                </div>
-                              )}
-                            </div>
-
-                            {/* Bottom Label - Gradient pill shape */}
-                            <div className="absolute bottom-0 left-0 right-0 p-1">
-                              <div className="bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 py-2 md:py-2.5 px-2 rounded-xl shadow-lg border border-amber-200/50">
-                                <span className="block text-[9px] md:text-xs font-black text-amber-900 text-center uppercase tracking-wider line-clamp-1 leading-none">
-                                  {tile.name}
-                                </span>
+                          <div className="absolute inset-0 p-2 flex flex-col items-center justify-center">
+                            {hasImages ? (
+                              <img
+                                src={
+                                  tile.image ||
+                                  (tile.productImages ? tile.productImages[0] : "")
+                                }
+                                alt={tile.name}
+                                className="w-[85%] h-[85%] object-contain drop-shadow-lg transform group-hover:scale-110 transition-transform duration-300"
+                              />
+                            ) : (
+                              <div className="text-4xl text-sky-300 font-bold opacity-50">
+                                {tile.name.charAt(0)}
                               </div>
+                            )}
+                          </div>
+
+                          <div className="absolute bottom-0 left-0 right-0 p-1">
+                            <div className="bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 py-2 md:py-2.5 px-2 rounded-xl shadow-lg border border-amber-200/50">
+                              <span className="block text-[9px] md:text-xs font-black text-amber-900 text-center uppercase tracking-wider line-clamp-1 leading-none">
+                                {tile.name}
+                              </span>
                             </div>
                           </div>
                         </div>
-                      );
-                    })}
-                  </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
-            )}
+            </div>
           </>
         )}
       </div>
-    </div>
+    </div >
   );
 }

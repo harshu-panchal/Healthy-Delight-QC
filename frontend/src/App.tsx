@@ -51,6 +51,7 @@ const FashionStore = lazy(() => import("./modules/user/FashionStore"));
 const ToyStore = lazy(() => import("./modules/user/ToyStore"));
 const HobbyStore = lazy(() => import("./modules/user/HobbyStore"));
 const StorePage = lazy(() => import("./modules/user/StorePage"));
+const AllStores = lazy(() => import("./modules/user/AllStores"));
 // Lazy load delivery routes
 const DeliveryLayout = lazy(
   () => import("./modules/delivery/components/DeliveryLayout"),
@@ -806,6 +807,10 @@ function AppContent() {
                                   <Route
                                     path="/store/:slug"
                                     element={<StorePage />}
+                                  />
+                                  <Route
+                                    path="/stores"
+                                    element={<AllStores />}
                                   />
                                   <Route
                                     path="/store/spiritual"

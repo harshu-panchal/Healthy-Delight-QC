@@ -485,7 +485,6 @@ export default function CategoryPage() {
                   <ProductCard
                     key={product.id}
                     product={product}
-                    showHeartIcon={false}
                     showStockInfo={false}
                     showBadge={true}
                     showOptionsText={true}

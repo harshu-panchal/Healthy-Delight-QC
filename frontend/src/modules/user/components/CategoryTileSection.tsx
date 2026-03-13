@@ -90,7 +90,7 @@ export default function CategoryTileSection({
         {title}
       </h2>
       <div className="px-4 md:px-6 lg:px-8">
-        <div className={`flex overflow-x-auto pb-4 gap-3 snap-x snap-mandatory scrollbar-hide -mx-4 px-4 md:grid md:mx-0 md:px-0 md:pb-0 md:overflow-visible ${gridCols} ${gapClass} auto-rows-fr`}>
+        <div className={`flex overflow-x-auto pb-4 gap-3 snap-x snap-mandatory scrollbar-hide md:grid md:pb-0 md:overflow-visible ${gridCols} ${gapClass} auto-rows-fr`}>
           {tiles.map((tile) => {
             const images =
               tile.productImages || (tile.image ? [tile.image] : []);

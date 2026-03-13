@@ -377,9 +377,15 @@ export default function HomeHero({
         }}>
         <div className="px-4 md:px-6 lg:px-8 pt-2 md:pt-2 pb-2 md:pb-2">
           {/* Search Bar */}
-          <div
-            onClick={() => navigate("/search")}
-            className="w-full md:w-auto md:max-w-xl md:mx-auto rounded-xl shadow-lg px-3 py-2 md:px-3 md:py-1.5 flex items-center gap-2 cursor-pointer hover:shadow-xl transition-all duration-300 mb-2 md:mb-1.5 bg-white"
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              const input = e.currentTarget.querySelector('input') as HTMLInputElement;
+              if (input.value.trim()) {
+                navigate(`/search?q=${encodeURIComponent(input.value.trim())}`);
+              }
+            }}
+            className="w-full md:w-auto md:max-w-xl md:mx-auto rounded-xl shadow-lg px-3 py-2 md:px-3 md:py-2 flex items-center gap-2 hover:shadow-xl transition-all duration-300 mb-2 md:mb-1.5 bg-white border border-transparent focus-within:border-emerald-500 focus-within:ring-2 focus-within:ring-emerald-500/20"
             style={{
               backgroundColor:
                 scrollProgress > 0.1
@@ -396,88 +402,29 @@ export default function HomeHero({
               viewBox="0 0 24 24"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
-              className="flex-shrink-0 md:w-4 md:h-4">
+              className="flex-shrink-0 md:w-4 md:h-4 text-emerald-600">
               <circle
                 cx="11"
                 cy="11"
                 r="8"
-                stroke={scrollProgress > 0.5 ? "#9ca3af" : "#6b7280"}
-                strokeWidth="2"
+                stroke="currentColor"
+                strokeWidth="2.5"
               />
               <path
                 d="m21 21-4.35-4.35"
-                stroke={scrollProgress > 0.5 ? "#9ca3af" : "#6b7280"}
-                strokeWidth="2"
+                stroke="currentColor"
+                strokeWidth="2.5"
                 strokeLinecap="round"
               />
             </svg>
-            <div className="flex-1 relative h-4 md:h-4 overflow-hidden">
-              {searchSuggestions.map((suggestion, index) => {
-                const isActive = index === currentSearchIndex;
-                const prevIndex =
-                  (currentSearchIndex - 1 + searchSuggestions.length) %
-                  searchSuggestions.length;
-                const isPrev = index === prevIndex;
-
-                return (
-                  <div
-                    key={suggestion}
-                    className={`absolute inset-0 flex items-center transition-all duration-500 ${
-                      isActive
-                        ? "translate-y-0 opacity-100"
-                        : isPrev
-                          ? "-translate-y-full opacity-0"
-                          : "translate-y-full opacity-0"
-                    }`}>
-                    <span
-                      className={`text-xs md:text-xs`}
-                      style={{
-                        color: scrollProgress > 0.5 ? "#9ca3af" : "#6b7280",
-                      }}>
-                      Search &apos;{suggestion}&apos;
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-            <svg
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-              className="flex-shrink-0 md:w-4 md:h-4">
-              <path
-                d="M12 1C13.1 1 14 1.9 14 3C14 4.1 13.1 5 12 5C10.9 5 10 4.1 10 3C10 1.9 10.9 1 12 1Z"
-                fill={scrollProgress > 0.5 ? "#9ca3af" : "#6b7280"}
-              />
-              <path
-                d="M19 10V17C19 18.1 18.1 19 17 19H7C5.9 19 5 18.1 5 17V10"
-                stroke={scrollProgress > 0.5 ? "#9ca3af" : "#6b7280"}
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <path
-                d="M12 11V17"
-                stroke={scrollProgress > 0.5 ? "#9ca3af" : "#6b7280"}
-                strokeWidth="2"
-                strokeLinecap="round"
-              />
-              <path
-                d="M8 11V17"
-                stroke={scrollProgress > 0.5 ? "#9ca3af" : "#6b7280"}
-                strokeWidth="2"
-                strokeLinecap="round"
-              />
-              <path
-                d="M16 11V17"
-                stroke={scrollProgress > 0.5 ? "#9ca3af" : "#6b7280"}
-                strokeWidth="2"
-                strokeLinecap="round"
-              />
-            </svg>
-          </div>
+            <input
+              type="text"
+              name="q"
+              placeholder={`Search "${searchSuggestions[currentSearchIndex]}"...`}
+              className="flex-1 bg-transparent border-none outline-none text-sm md:text-sm text-neutral-800 placeholder-neutral-400 font-medium"
+              autoComplete="off"
+            />
+          </form>
         </div>
 
         {/* Category Tabs */}
