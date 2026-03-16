@@ -67,7 +67,7 @@ export default function SellerTaxes() {
                         <select
                             value={rowsPerPage}
                             onChange={(e) => setRowsPerPage(Number(e.target.value))}
-                            className="bg-white border border-neutral-300 rounded py-1.5 px-3 text-sm focus:ring-1 focus:ring-teal-500 focus:outline-none cursor-pointer"
+                            className="bg-white border border-neutral-300 rounded py-1.5 px-3 text-sm focus:ring-1 focus:ring-primary focus:outline-none cursor-pointer"
                         >
                             <option value={10}>10</option>
                             <option value={20}>20</option>
@@ -98,7 +98,7 @@ export default function SellerTaxes() {
                                 link.click();
                                 document.body.removeChild(link);
                             }}
-                            className="bg-teal-600 hover:bg-teal-700 text-white px-3 py-1.5 rounded text-sm font-medium flex items-center gap-1 transition-colors"
+                            className="bg-primary border-primary text-neutral-900 hover:bg-neutral-900 text-white px-3 py-1.5 rounded text-sm font-medium flex items-center gap-1 transition-colors"
                         >
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
@@ -114,7 +114,7 @@ export default function SellerTaxes() {
                             <span className="absolute left-2 top-1/2 -translate-y-1/2 text-neutral-400 text-xs">Search:</span>
                             <input
                                 type="text"
-                                className="pl-14 pr-3 py-1.5 bg-neutral-100 border-none rounded text-sm focus:ring-1 focus:ring-teal-500 w-48"
+                                className="pl-14 pr-3 py-1.5 bg-neutral-100 border-none rounded text-sm focus:ring-1 focus:ring-primary w-48"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 placeholder=""
@@ -167,7 +167,7 @@ export default function SellerTaxes() {
                                 <tr>
                                     <td colSpan={4} className="p-8 text-center text-neutral-400 border border-neutral-200">
                                         <div className="flex flex-col items-center gap-2">
-                                            <div className="w-6 h-6 border-2 border-teal-600 border-t-transparent rounded-full animate-spin" />
+                                            <div className="w-6 h-6 border-2 border-neutral-800 border-t-transparent rounded-full animate-spin" />
                                             <span>Loading tax data...</span>
                                         </div>
                                     </td>
@@ -207,9 +207,9 @@ export default function SellerTaxes() {
                         <button
                             onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
                             disabled={currentPage === 1}
-                            className={`p-2 border border-teal-600 rounded ${currentPage === 1
+                            className={`p-2 border border-neutral-800 rounded ${currentPage === 1
                                 ? 'text-neutral-400 cursor-not-allowed bg-neutral-50'
-                                : 'text-teal-600 hover:bg-teal-50'
+                                : 'text-primary hover:bg-cream'
                                 }`}
                             aria-label="Previous page"
                         >
@@ -230,16 +230,16 @@ export default function SellerTaxes() {
                             </svg>
                         </button>
                         <button
-                            className="px-3 py-1.5 border border-teal-600 bg-teal-600 text-white rounded font-medium text-sm"
+                            className="px-3 py-1.5 border border-neutral-800 bg-primary border-primary text-neutral-900 rounded font-medium text-sm"
                         >
                             {currentPage}
                         </button>
                         <button
                             onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
                             disabled={currentPage === totalPages}
-                            className={`p-2 border border-teal-600 rounded ${currentPage === totalPages
+                            className={`p-2 border border-neutral-800 rounded ${currentPage === totalPages
                                 ? 'text-neutral-400 cursor-not-allowed bg-neutral-50'
-                                : 'text-teal-600 hover:bg-teal-50'
+                                : 'text-primary hover:bg-cream'
                                 }`}
                             aria-label="Next page"
                         >

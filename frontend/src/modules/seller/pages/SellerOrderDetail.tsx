@@ -81,7 +81,7 @@ export default function SellerOrderDetail() {
           <p className="text-red-600 mb-4">{error}</p>
           <button
             onClick={() => navigate("/seller/orders")}
-            className="bg-teal-600 hover:bg-teal-700 text-white px-6 py-2 rounded-lg transition-colors">
+            className="bg-primary border-primary text-neutral-900 hover:bg-neutral-900 text-white px-6 py-2 rounded-lg transition-colors">
             Back to Orders
           </button>
         </div>
@@ -98,7 +98,7 @@ export default function SellerOrderDetail() {
           </h2>
           <button
             onClick={() => navigate("/seller/orders")}
-            className="bg-teal-600 hover:bg-teal-700 text-white px-6 py-2 rounded-lg transition-colors">
+            className="bg-primary border-primary text-neutral-900 hover:bg-neutral-900 text-white px-6 py-2 rounded-lg transition-colors">
             Back to Orders
           </button>
         </div>
@@ -414,7 +414,7 @@ export default function SellerOrderDetail() {
     <div className="min-h-screen bg-neutral-50 pb-8">
       {/* Order Action Section */}
       <div className="bg-white mb-6 rounded-lg shadow-sm border border-neutral-200 overflow-hidden">
-        <div className="bg-teal-600 text-white px-4 sm:px-6 py-3">
+        <div className="bg-primary border-primary text-neutral-900 px-4 sm:px-6 py-3">
           <h2 className="text-base sm:text-lg font-semibold">
             Order Action Section
           </h2>
@@ -447,7 +447,7 @@ export default function SellerOrderDetail() {
                 <select
                   value={orderStatus}
                   onChange={(e) => handleStatusUpdate(e.target.value)}
-                  className="w-full sm:w-64 px-4 py-2 border border-neutral-300 rounded-lg text-sm text-neutral-900 bg-white focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                  className="w-full sm:w-64 px-4 py-2 border border-neutral-300 rounded-lg text-sm text-neutral-900 bg-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
                   disabled={
                     orderStatus === "Rejected" ||
                     orderStatus === "Cancelled" ||
@@ -503,7 +503,7 @@ export default function SellerOrderDetail() {
 
       {/* View Order Details Section */}
       <div className="bg-white rounded-lg shadow-sm border border-neutral-200 overflow-hidden">
-        <div className="bg-teal-600 text-white px-4 sm:px-6 py-3">
+        <div className="bg-primary border-primary text-neutral-900 px-4 sm:px-6 py-3">
           <h2 className="text-base sm:text-lg font-semibold">
             View Order Details
           </h2>
@@ -651,7 +651,7 @@ export default function SellerOrderDetail() {
       <footer className="mt-6 px-4 sm:px-6 text-center py-4 bg-neutral-100 rounded-lg">
         <p className="text-xs sm:text-sm text-neutral-600">
           Copyright © 2025. Developed By{" "}
-          <span className="font-semibold text-teal-600">
+          <span className="font-semibold text-primary">
             Kosil - 10 Minute App
           </span>
         </p>

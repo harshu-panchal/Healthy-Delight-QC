@@ -660,7 +660,7 @@ export default function AdminCancelledOrders() {
                       <td className="px-4 sm:px-6 py-3 text-sm text-neutral-900 font-medium">₹{order.total?.toFixed(2) || '0.00'}</td>
                       <td className="px-4 sm:px-6 py-3">
                         <Link to={`/admin/orders/${order._id}`}>
-                          <button className="bg-teal-600 hover:bg-teal-700 text-white p-2 rounded transition-colors" aria-label="View order">
+                          <button className="bg-primary border-primary text-neutral-900 hover:bg-neutral-900 text-white p-2 rounded transition-colors" aria-label="View order">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                               <path d="M1 12C1 12 5 4 12 4C19 4 23 12 23 12C23 12 19 20 12 20C5 20 1 12 1 12Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                               <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />

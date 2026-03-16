@@ -187,7 +187,7 @@ export default function AdminReturnRequest() {
           Return Request
         </h1>
         <div className="text-sm text-neutral-600">
-          <span className="text-teal-600 hover:text-teal-700 cursor-pointer">
+          <span className="text-primary hover:text-primary-dark cursor-pointer">
             Home
           </span>
           <span className="mx-2">/</span>
@@ -622,7 +622,7 @@ export default function AdminReturnRequest() {
                 <tr>
                   <td colSpan={11} className="px-4 sm:px-6 py-8 text-center">
                     <div className="flex items-center justify-center">
-                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-teal-600 mr-2"></div>
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-neutral-800 mr-2"></div>
                       Loading return requests...
                     </div>
                   </td>
@@ -805,7 +805,7 @@ export default function AdminReturnRequest() {
       {/* Footer */}
       <div className="text-center text-sm text-neutral-500 py-4">
         Copyright © 2025. Developed By{" "}
-        <a href="#" className="text-teal-600 hover:text-teal-700">
+        <a href="#" className="text-primary hover:text-primary-dark">
           Kosil - 10 Minute App
         </a>
       </div>

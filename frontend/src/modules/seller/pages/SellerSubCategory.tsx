@@ -109,7 +109,7 @@ export default function SellerSubCategory() {
                                 setRowsPerPage(Number(e.target.value));
                                 setCurrentPage(1);
                             }}
-                            className="bg-white border border-neutral-300 rounded py-1.5 px-3 text-sm focus:ring-1 focus:ring-teal-500 focus:outline-none cursor-pointer"
+                            className="bg-white border border-neutral-300 rounded py-1.5 px-3 text-sm focus:ring-1 focus:ring-primary focus:outline-none cursor-pointer"
                         >
                             <option value={10}>10 entries</option>
                             <option value={20}>20 entries</option>
@@ -129,10 +129,10 @@ export default function SellerSubCategory() {
                             <button
                                 onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                                 disabled={currentPage === 1}
-                                className={`p-2 border border-teal-600 rounded ${
+                                className={`p-2 border border-neutral-800 rounded ${
                                     currentPage === 1
                                         ? 'text-neutral-400 cursor-not-allowed bg-neutral-50'
-                                        : 'text-teal-600 hover:bg-teal-50'
+                                        : 'text-primary hover:bg-cream'
                                 }`}
                             >
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -143,10 +143,10 @@ export default function SellerSubCategory() {
                                 <button
                                     key={page}
                                     onClick={() => setCurrentPage(page)}
-                                    className={`px-3 py-1.5 border border-teal-600 rounded font-medium text-sm ${
+                                    className={`px-3 py-1.5 border border-neutral-800 rounded font-medium text-sm ${
                                         currentPage === page
-                                            ? 'bg-teal-600 text-white'
-                                            : 'text-teal-600 hover:bg-teal-50'
+                                            ? 'bg-primary border-primary text-neutral-900'
+                                            : 'text-primary hover:bg-cream'
                                     }`}
                                 >
                                     {page}
@@ -155,10 +155,10 @@ export default function SellerSubCategory() {
                             <button
                                 onClick={() => setCurrentPage(prev => Math.min(displayTotalPages, prev + 1))}
                                 disabled={currentPage === displayTotalPages}
-                                className={`p-2 border border-teal-600 rounded ${
+                                className={`p-2 border border-neutral-800 rounded ${
                                     currentPage === displayTotalPages
                                         ? 'text-neutral-400 cursor-not-allowed bg-neutral-50'
-                                        : 'text-teal-600 hover:bg-teal-50'
+                                        : 'text-primary hover:bg-cream'
                                 }`}
                             >
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

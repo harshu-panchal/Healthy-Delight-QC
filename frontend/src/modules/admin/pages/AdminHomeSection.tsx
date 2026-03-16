@@ -347,7 +347,7 @@ export default function AdminHomeSection() {
                                     value={title}
                                     onChange={(e) => setTitle(e.target.value)}
                                     placeholder="e.g., Grocery & Kitchen"
-                                    className="w-full px-3 py-2 border border-neutral-300 rounded bg-white focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none"
+                                    className="w-full px-3 py-2 border border-neutral-300 rounded bg-white focus:ring-2 focus:ring-primary focus:border-primary outline-none"
                                 />
                             </div>
 
@@ -361,7 +361,7 @@ export default function AdminHomeSection() {
                                     value={slug}
                                     onChange={(e) => setSlug(e.target.value)}
                                     placeholder="grocery-kitchen"
-                                    className="w-full px-3 py-2 border border-neutral-300 rounded bg-white focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none"
+                                    className="w-full px-3 py-2 border border-neutral-300 rounded bg-white focus:ring-2 focus:ring-primary focus:border-primary outline-none"
                                 />
                                 <p className="text-xs text-neutral-500 mt-1">
                                     URL-friendly identifier (lowercase, hyphens only)
@@ -386,7 +386,7 @@ export default function AdminHomeSection() {
                                                     setSelectedHeaderCategory("");
                                                 }
                                             }}
-                                            className="h-4 w-4 text-teal-600 focus:ring-teal-500 border-gray-300"
+                                            className="h-4 w-4 text-primary focus:ring-primary border-gray-300"
                                         />
                                         <span className="ml-2 text-sm text-neutral-700">Home Page</span>
                                     </label>
@@ -397,7 +397,7 @@ export default function AdminHomeSection() {
                                             value="header_category"
                                             checked={pageLocation === "header_category"}
                                             onChange={() => setPageLocation("header_category")}
-                                            className="h-4 w-4 text-teal-600 focus:ring-teal-500 border-gray-300"
+                                            className="h-4 w-4 text-primary focus:ring-primary border-gray-300"
                                         />
                                         <span className="ml-2 text-sm text-neutral-700">Header Category Page</span>
                                     </label>
@@ -421,7 +421,7 @@ export default function AdminHomeSection() {
                                             setSelectedHeaderCategory("");
                                         }
                                     }}
-                                    className="w-full px-3 py-2 border border-neutral-300 rounded bg-white focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none"
+                                    className="w-full px-3 py-2 border border-neutral-300 rounded bg-white focus:ring-2 focus:ring-primary focus:border-primary outline-none"
                                 >
                                     {DISPLAY_TYPE_OPTIONS.map((option) => (
                                         <option key={option.value} value={option.value}>
@@ -443,7 +443,7 @@ export default function AdminHomeSection() {
                                             setSelectedHeaderCategory(e.target.value);
                                             setSelectedCategories([]); // Clear selected categories when header category changes
                                         }}
-                                        className="w-full px-3 py-2 border border-neutral-300 rounded bg-white focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none"
+                                        className="w-full px-3 py-2 border border-neutral-300 rounded bg-white focus:ring-2 focus:ring-primary focus:border-primary outline-none"
                                     >
                                         <option value="">Select a header category</option>
                                         {headerCategories
@@ -496,7 +496,7 @@ export default function AdminHomeSection() {
                                                             );
                                                         }
                                                     }}
-                                                    className="h-4 w-4 text-teal-600 focus:ring-teal-500 border-gray-300 rounded"
+                                                    className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
                                                 />
                                                 <span className="ml-2 text-sm text-neutral-700">{cat.name}</span>
                                             </label>
@@ -539,7 +539,7 @@ export default function AdminHomeSection() {
                                                                 );
                                                             }
                                                         }}
-                                                        className="h-4 w-4 text-teal-600 focus:ring-teal-500 border-gray-300 rounded"
+                                                        className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
                                                     />
                                                     <span className="ml-2 text-sm text-neutral-700">{sub.subcategoryName}</span>
                                                 </label>
@@ -560,7 +560,7 @@ export default function AdminHomeSection() {
                                 <select
                                     value={columns}
                                     onChange={(e) => setColumns(Number(e.target.value))}
-                                    className="w-full px-3 py-2 border border-neutral-300 rounded bg-white focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none"
+                                    className="w-full px-3 py-2 border border-neutral-300 rounded bg-white focus:ring-2 focus:ring-primary focus:border-primary outline-none"
                                 >
                                     {COLUMNS_OPTIONS.map((col) => (
                                         <option key={col} value={col}>
@@ -581,7 +581,7 @@ export default function AdminHomeSection() {
                                     onChange={(e) => setLimit(Number(e.target.value))}
                                     min="1"
                                     max="50"
-                                    className="w-full px-3 py-2 border border-neutral-300 rounded bg-white focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none"
+                                    className="w-full px-3 py-2 border border-neutral-300 rounded bg-white focus:ring-2 focus:ring-primary focus:border-primary outline-none"
                                 />
                             </div>
 
@@ -592,7 +592,7 @@ export default function AdminHomeSection() {
                                         type="checkbox"
                                         checked={isActive}
                                         onChange={(e) => setIsActive(e.target.checked)}
-                                        className="h-4 w-4 text-teal-600 focus:ring-teal-500 border-gray-300 rounded"
+                                        className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
                                     />
                                     <span className="ml-2 text-sm font-medium text-neutral-700">
                                         Active (Show on home page)
@@ -608,7 +608,7 @@ export default function AdminHomeSection() {
                                 disabled={loading}
                                 className={`w-full px-4 py-2 rounded font-medium transition-colors ${loading
                                     ? "bg-gray-400 cursor-not-allowed text-white"
-                                    : "bg-teal-600 hover:bg-teal-700 text-white"
+                                    : "bg-primary border-primary text-neutral-900 hover:bg-neutral-900 text-white"
                                     }`}
                             >
                                 {loading
@@ -630,7 +630,7 @@ export default function AdminHomeSection() {
 
                     {/* Right Section: View Sections Table */}
                     <div className="lg:col-span-2 bg-white rounded-lg shadow-sm border border-neutral-200 flex flex-col">
-                        <div className="bg-teal-600 text-white px-6 py-4 rounded-t-lg">
+                        <div className="bg-primary border-primary text-neutral-900 px-6 py-4 rounded-t-lg">
                             <h2 className="text-lg font-semibold">View Sections</h2>
                         </div>
 
@@ -645,7 +645,7 @@ export default function AdminHomeSection() {
                                         setRowsPerPage(Number(e.target.value));
                                         setCurrentPage(1);
                                     }}
-                                    className="w-16 px-2 py-1.5 border border-neutral-300 rounded text-sm focus:ring-1 focus:ring-teal-500 focus:outline-none"
+                                    className="w-16 px-2 py-1.5 border border-neutral-300 rounded text-sm focus:ring-1 focus:ring-primary focus:outline-none"
                                 />
                                 <span className="text-sm text-neutral-600">entries</span>
                             </div>
@@ -784,9 +784,9 @@ export default function AdminHomeSection() {
                                 <button
                                     onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
                                     disabled={currentPage === 1}
-                                    className={`p-2 border border-teal-600 rounded ${currentPage === 1
+                                    className={`p-2 border border-neutral-800 rounded ${currentPage === 1
                                         ? "text-neutral-400 cursor-not-allowed bg-neutral-50"
-                                        : "text-teal-600 hover:bg-teal-50"
+                                        : "text-primary hover:bg-cream"
                                         }`}
                                     aria-label="Previous page"
                                 >
@@ -806,7 +806,7 @@ export default function AdminHomeSection() {
                                         />
                                     </svg>
                                 </button>
-                                <button className="px-3 py-1.5 border border-teal-600 bg-teal-600 text-white rounded font-medium text-sm">
+                                <button className="px-3 py-1.5 border border-neutral-800 bg-primary border-primary text-neutral-900 rounded font-medium text-sm">
                                     {currentPage}
                                 </button>
                                 <button
@@ -814,9 +814,9 @@ export default function AdminHomeSection() {
                                         setCurrentPage((prev) => Math.min(totalPages, prev + 1))
                                     }
                                     disabled={currentPage === totalPages}
-                                    className={`p-2 border border-teal-600 rounded ${currentPage === totalPages
+                                    className={`p-2 border border-neutral-800 rounded ${currentPage === totalPages
                                         ? "text-neutral-400 cursor-not-allowed bg-neutral-50"
-                                        : "text-teal-600 hover:bg-teal-50"
+                                        : "text-primary hover:bg-cream"
                                         }`}
                                     aria-label="Next page"
                                 >

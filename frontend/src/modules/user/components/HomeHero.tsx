@@ -9,6 +9,7 @@ import { getCategories } from "../../../services/api/customerProductService";
 import { Category } from "../../../types/domain";
 import { getHeaderCategoriesPublic } from "../../../services/api/headerCategoryService";
 import { getIconByName } from "../../../utils/iconLibrary";
+import logo from "../../../../assets/kosil1.png";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -69,6 +70,7 @@ export default function HomeHero({
   const [, setIsSticky] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0 });
+  const [isListening, setIsListening] = useState(false);
 
   // Format location display text - only show if user has provided location
   const locationDisplayText = useMemo(() => {
@@ -183,6 +185,36 @@ export default function HomeHero({
 
     return () => clearInterval(interval);
   }, [searchSuggestions.length, activeTab]);
+
+  const handleVoiceSearch = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    // @ts-expect-error
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert("Your browser does not support voice search.");
+      return;
+    }
+    
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'en-US';
+    recognition.interimResults = false;
+    
+    recognition.onstart = () => setIsListening(true);
+    recognition.onend = () => setIsListening(false);
+    
+    recognition.onerror = () => {
+      console.error("Speech recognition error");
+      setIsListening(false);
+    };
+    
+    recognition.onresult = (event: { results: Array<Array<{ transcript: string }>> }) => {
+      const speechResult = event.results[0][0].transcript;
+      navigate(`/search?q=${encodeURIComponent(speechResult.trim())}`);
+    };
+    
+    recognition.start();
+  };
 
   // Handle scroll to detect when "LOWEST PRICES EVER" section is out of view
   useEffect(() => {
@@ -321,17 +353,11 @@ export default function HomeHero({
         <div
           ref={topSectionRef}
           className="px-4 md:px-6 lg:px-8 pt-2 md:pt-3 pb-0">
-          <div className="flex items-start justify-between mb-2 md:mb-2">
+          <div className="flex items-center justify-between mb-2 md:mb-2">
             {/* Left: Text content */}
             <div className="flex-1 pr-2">
-              {/* Service name - small, dark */}
-              <div className="text-neutral-800 font-medium text-[10px] md:text-xs mb-0 leading-tight">
-                Healthy Delight E-Commerce
-              </div>
-              {/* Delivery time - large, bold, dark grey/black */}
-              <div className="text-neutral-900 font-extrabold text-2xl md:text-xl mb-0 md:mb-0.5 leading-tight">
-                {appConfig.estimatedDeliveryTime}
-              </div>
+              {/* Logo */}
+              <img src={logo} alt="Kosil Logo" className="h-16 md:h-24 w-auto object-contain mb-1" />
               {/* Location with dropdown indicator - only show if location is provided */}
               {locationDisplayText && (
                 <div className="text-neutral-700 text-[10px] md:text-xs flex items-center gap-0.5 leading-tight">
@@ -356,6 +382,17 @@ export default function HomeHero({
                 </div>
               )}
             </div>
+
+            {/* Right: Subscription Button (Mobile Only) */}
+            <button 
+              onClick={() => navigate('/subscription')}
+              className="md:hidden flex-shrink-0 w-10 h-10 rounded-full bg-white/60 backdrop-blur flex items-center justify-center text-neutral-800 shadow-sm border border-neutral-200/50 hover:bg-white/80 transition-colors self-start mt-3"
+            >
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="5" y="3" width="14" height="18" rx="2" stroke="currentColor" strokeWidth="2" fill="none" />
+                <path d="M9 8h6M9 12h6M9 16h3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" fill="none" />
+              </svg>
+            </button>
           </div>
         </div>
       </div>
@@ -417,13 +454,28 @@ export default function HomeHero({
                 strokeLinecap="round"
               />
             </svg>
-            <input
-              type="text"
-              name="q"
-              placeholder={`Search "${searchSuggestions[currentSearchIndex]}"...`}
-              className="flex-1 bg-transparent border-none outline-none text-sm md:text-sm text-neutral-800 placeholder-neutral-400 font-medium"
-              autoComplete="off"
-            />
+            <div className="flex bg-transparent relative flex-1">
+              <input
+                type="text"
+                name="q"
+                placeholder={isListening ? "Listening..." : `Search "${searchSuggestions[currentSearchIndex]}"...`}
+                className="w-full bg-transparent border-none outline-none text-sm md:text-sm text-neutral-800 placeholder-neutral-400 font-medium pr-8"
+                autoComplete="off"
+              />
+              <button 
+                type="button"
+                onClick={handleVoiceSearch}
+                className={`absolute right-0 top-1/2 -translate-y-1/2 p-1 rounded-full transition-colors ${isListening ? 'bg-red-100 text-red-500' : 'text-neutral-500 hover:text-emerald-600'}`}
+                aria-label="Voice search"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"></path>
+                  <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                  <line x1="12" y1="19" x2="12" y2="22"></line>
+                  <line x1="8" y1="22" x2="16" y2="22"></line>
+                </svg>
+              </button>
+            </div>
           </form>
         </div>
 

@@ -60,7 +60,7 @@ export default function SellerServiceMap({
           center={position}
           radius={radiusMeters}
           pathOptions={{
-            color: '#0D9488', // teal-600
+            color: '#0D9488', // primary-600
             fillColor: '#0D9488',
             fillOpacity: 0.2,
             weight: 2

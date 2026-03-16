@@ -335,7 +335,7 @@ export default function AdminPromoStrip() {
                 <select
                   value={headerCategorySlug}
                   onChange={(e) => setHeaderCategorySlug(e.target.value)}
-                  className="w-full px-3 py-2 border border-neutral-300 rounded bg-white focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none"
+                  className="w-full px-3 py-2 border border-neutral-300 rounded bg-white focus:ring-2 focus:ring-primary focus:border-primary outline-none"
                   required
                 >
                   <option value="">Select header category</option>
@@ -360,7 +360,7 @@ export default function AdminPromoStrip() {
                   value={heading}
                   onChange={(e) => setHeading(e.target.value)}
                   placeholder="e.g., HOUSEFULL SALE"
-                  className="w-full px-3 py-2 border border-neutral-300 rounded bg-white focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none"
+                  className="w-full px-3 py-2 border border-neutral-300 rounded bg-white focus:ring-2 focus:ring-primary focus:border-primary outline-none"
                   required
                 />
               </div>
@@ -375,7 +375,7 @@ export default function AdminPromoStrip() {
                   value={saleText}
                   onChange={(e) => setSaleText(e.target.value)}
                   placeholder="e.g., SALE"
-                  className="w-full px-3 py-2 border border-neutral-300 rounded bg-white focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none"
+                  className="w-full px-3 py-2 border border-neutral-300 rounded bg-white focus:ring-2 focus:ring-primary focus:border-primary outline-none"
                   required
                 />
               </div>
@@ -390,7 +390,7 @@ export default function AdminPromoStrip() {
                     type="date"
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
-                    className="w-full px-3 py-2 border border-neutral-300 rounded bg-white focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none"
+                    className="w-full px-3 py-2 border border-neutral-300 rounded bg-white focus:ring-2 focus:ring-primary focus:border-primary outline-none"
                     required
                   />
                 </div>
@@ -402,7 +402,7 @@ export default function AdminPromoStrip() {
                     type="date"
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
-                    className="w-full px-3 py-2 border border-neutral-300 rounded bg-white focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none"
+                    className="w-full px-3 py-2 border border-neutral-300 rounded bg-white focus:ring-2 focus:ring-primary focus:border-primary outline-none"
                     required
                   />
                 </div>
@@ -417,7 +417,7 @@ export default function AdminPromoStrip() {
                   <button
                     type="button"
                     onClick={addCategoryCard}
-                    className="text-sm text-teal-600 hover:text-teal-700 font-medium"
+                    className="text-sm text-primary hover:text-primary-dark font-medium"
                   >
                     + Add Card
                   </button>
@@ -490,7 +490,7 @@ export default function AdminPromoStrip() {
                   value={crazyDealsTitle}
                   onChange={(e) => setCrazyDealsTitle(e.target.value)}
                   placeholder="e.g., CRAZY DEALS, SPECIAL OFFERS"
-                  className="w-full px-3 py-2 border border-neutral-300 rounded bg-white focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none"
+                  className="w-full px-3 py-2 border border-neutral-300 rounded bg-white focus:ring-2 focus:ring-primary focus:border-primary outline-none"
                 />
                 <p className="text-xs text-neutral-500 mt-1">
                   Custom title for the featured products section (default: "CRAZY DEALS")
@@ -510,7 +510,7 @@ export default function AdminPromoStrip() {
                   value={productSearch}
                   onChange={(e) => setProductSearch(e.target.value)}
                   placeholder="Search products (type at least 3 characters)..."
-                  className="w-full px-3 py-2 border border-neutral-300 rounded bg-white focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none mb-2"
+                  className="w-full px-3 py-2 border border-neutral-300 rounded bg-white focus:ring-2 focus:ring-primary focus:border-primary outline-none mb-2"
                 />
                 {productSearch.length > 0 && productSearch.length < 3 && (
                   <p className="text-xs text-neutral-500 mb-2">Type at least 3 characters to search</p>
@@ -537,13 +537,13 @@ export default function AdminPromoStrip() {
                     return (
                       <div
                         key={productId}
-                        className="flex items-center gap-1 bg-teal-50 text-teal-700 px-2 py-1 rounded text-sm"
+                        className="flex items-center gap-1 bg-cream text-primary-dark px-2 py-1 rounded text-sm"
                       >
                         <span>{product?.productName || productId}</span>
                         <button
                           type="button"
                           onClick={() => removeFeaturedProduct(productId)}
-                          className="text-teal-700 hover:text-teal-900"
+                          className="text-primary-dark hover:text-neutral-900"
                         >
                           ×
                         </button>
@@ -572,7 +572,7 @@ export default function AdminPromoStrip() {
                   id="isActive"
                   checked={isActive}
                   onChange={(e) => setIsActive(e.target.checked)}
-                  className="h-4 w-4 text-teal-600 focus:ring-teal-500 border-gray-300 rounded"
+                  className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
                 />
                 <label htmlFor="isActive" className="text-sm font-medium text-neutral-700">
                   Active
@@ -586,7 +586,7 @@ export default function AdminPromoStrip() {
                   type="number"
                   value={order}
                   onChange={(e) => setOrder(parseInt(e.target.value) || 0)}
-                  className="w-full px-3 py-2 border border-neutral-300 rounded bg-white focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none"
+                  className="w-full px-3 py-2 border border-neutral-300 rounded bg-white focus:ring-2 focus:ring-primary focus:border-primary outline-none"
                 />
               </div>
 
@@ -595,7 +595,7 @@ export default function AdminPromoStrip() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="flex-1 bg-teal-600 text-white px-4 py-2 rounded hover:bg-teal-700 disabled:opacity-50"
+                  className="flex-1 bg-primary border-primary text-neutral-900 px-4 py-2 rounded hover:bg-neutral-900 disabled:opacity-50"
                 >
                   {loading ? "Saving..." : editingId ? "Update" : "Create"}
                 </button>

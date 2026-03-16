@@ -110,7 +110,7 @@ export default function AdminSellerLocation() {
           Seller Locations
         </h1>
         <div className="text-sm text-neutral-600">
-          <span className="text-teal-600 hover:text-teal-700 cursor-pointer">
+          <span className="text-primary hover:text-primary-dark cursor-pointer">
             Home
           </span>
           <span className="mx-2">/</span>
@@ -131,7 +131,7 @@ export default function AdminSellerLocation() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search by name, store, city, or address..."
-              className="w-full px-4 py-2 border border-neutral-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+              className="w-full px-4 py-2 border border-neutral-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
             />
           </div>
 
@@ -145,7 +145,7 @@ export default function AdminSellerLocation() {
               onChange={(e) =>
                 setStatusFilter(e.target.value as typeof statusFilter)
               }
-              className="w-full px-4 py-2 border border-neutral-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500">
+              className="w-full px-4 py-2 border border-neutral-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary">
               <option value="All">All Status</option>
               <option value="Approved">Approved</option>
               <option value="Pending">Pending</option>
@@ -159,7 +159,7 @@ export default function AdminSellerLocation() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
         {/* Map Section - Takes 2 columns */}
         <div className="lg:col-span-2 bg-white rounded-lg shadow-sm border border-neutral-200 overflow-hidden">
-          <div className="bg-teal-600 px-4 sm:px-6 py-3">
+          <div className="bg-primary border-primary text-neutral-900 px-4 sm:px-6 py-3">
             <h2 className="text-white text-lg font-semibold">
               Seller Locations Map
             </h2>
@@ -199,7 +199,7 @@ export default function AdminSellerLocation() {
             )}
           </div>
           {selectedSeller && (
-            <div className="p-4 sm:p-6 border-t border-neutral-200 bg-teal-50">
+            <div className="p-4 sm:p-6 border-t border-neutral-200 bg-cream">
               <h3 className="font-semibold text-neutral-900 mb-2">
                 Selected Seller
               </h3>
@@ -222,7 +222,7 @@ export default function AdminSellerLocation() {
 
         {/* Sellers List - Takes 1 column */}
         <div className="bg-white rounded-lg shadow-sm border border-neutral-200 overflow-hidden">
-          <div className="bg-teal-600 px-4 sm:px-6 py-3">
+          <div className="bg-primary border-primary text-neutral-900 px-4 sm:px-6 py-3">
             <h2 className="text-white text-lg font-semibold">
               Sellers ({filteredSellers.length})
             </h2>
@@ -243,7 +243,7 @@ export default function AdminSellerLocation() {
                     onClick={() => handleSellerClick(seller)}
                     className={`p-4 cursor-pointer transition-colors ${
                       selectedSeller?._id === seller._id
-                        ? "bg-teal-50 border-l-4 border-teal-600"
+                        ? "bg-cream border-l-4 border-neutral-800"
                         : "hover:bg-neutral-50"
                     }`}>
                     <div className="flex items-start justify-between mb-2">
@@ -288,7 +288,7 @@ export default function AdminSellerLocation() {
       {/* Footer */}
       <div className="text-center text-sm text-neutral-500 py-4">
         Copyright © 2025. Developed By{" "}
-        <a href="#" className="text-teal-600 hover:text-teal-700">
+        <a href="#" className="text-primary hover:text-primary-dark">
           Kosil - 10 Minute App
         </a>
       </div>

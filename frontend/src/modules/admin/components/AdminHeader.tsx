@@ -184,7 +184,7 @@ export default function AdminHeader({
                       }
                     }}
                     placeholder="Search orders, customers, products..."
-                    className="w-full px-4 py-2 pl-10 border border-neutral-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                    className="w-full px-4 py-2 pl-10 border border-neutral-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
                     autoFocus
                   />
                   <svg
@@ -273,7 +273,7 @@ export default function AdminHeader({
                       navigate("/admin/notification");
                       setShowNotificationsDropdown(false);
                     }}
-                    className="w-full text-center text-sm text-teal-600 hover:text-teal-700 font-medium">
+                    className="w-full text-center text-sm text-primary hover:text-primary-dark font-medium">
                     View All Notifications
                   </button>
                 </div>

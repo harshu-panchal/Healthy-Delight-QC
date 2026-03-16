@@ -236,7 +236,7 @@ export default function CategoryTreeView({
                         onClick={() => onAddSubcategory(category)}
                         className={`${
                           isSubcategory ? "px-2 py-1" : "px-3 py-1.5"
-                        } text-xs font-medium text-white bg-teal-600 hover:bg-teal-700 rounded transition-colors`}
+                        } text-xs font-medium text-white bg-primary border-primary text-neutral-900 hover:bg-neutral-900 rounded transition-colors`}
                         title="Add Subcategory">
                         {isSubcategory ? (
                           <svg

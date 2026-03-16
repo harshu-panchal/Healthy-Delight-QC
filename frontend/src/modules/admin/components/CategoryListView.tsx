@@ -53,7 +53,7 @@ export default function CategoryListView({
                   type="checkbox"
                   checked={allSelected}
                   onChange={onSelectAll}
-                  className="rounded border-neutral-300 text-teal-600 focus:ring-teal-500"
+                  className="rounded border-neutral-300 text-primary focus:ring-primary"
                   ref={(input) => {
                     if (input) {
                       input.indeterminate = someSelected;
@@ -96,7 +96,7 @@ export default function CategoryListView({
                     type="checkbox"
                     checked={selectedIds.has(category._id)}
                     onChange={() => onSelect(category._id)}
-                    className="rounded border-neutral-300 text-teal-600 focus:ring-teal-500"
+                    className="rounded border-neutral-300 text-primary focus:ring-primary"
                   />
                 </td>
                 <td className="px-4 py-3 whitespace-nowrap">
@@ -246,7 +246,7 @@ export default function CategoryListView({
                       onClick={() => onPageChange(page)}
                       className={`px-3 py-1.5 text-sm font-medium rounded transition-colors ${
                         currentPage === page
-                          ? "bg-teal-600 text-white"
+                          ? "bg-primary border-primary text-neutral-900"
                           : "bg-white text-neutral-700 border border-neutral-300 hover:bg-neutral-50"
                       }`}>
                       {page}

@@ -831,7 +831,7 @@ export default function AdminPendingOrders() {
                           </button>
                           <Link to={`/admin/orders/${order._id}`}>
                             <button
-                              className="bg-teal-600 hover:bg-teal-700 text-white p-2 rounded transition-colors"
+                              className="bg-primary border-primary text-neutral-900 hover:bg-neutral-900 text-white p-2 rounded transition-colors"
                               aria-label="View order">
                               <svg
                                 width="16"

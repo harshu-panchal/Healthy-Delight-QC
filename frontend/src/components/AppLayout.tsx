@@ -22,6 +22,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
   const [showLocationRequest, setShowLocationRequest] = useState(false);
   const [showLocationChangeModal, setShowLocationChangeModal] = useState(false);
   const { currentTheme } = useThemeContext();
+  const [isListening, setIsListening] = useState(false);
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -65,6 +66,39 @@ export default function AppLayout({ children }: AppLayoutProps) {
     const query = searchParams.get('q') || '';
     setSearchQuery(query);
   }, [searchParams]);
+
+  const startVoiceSearch = () => {
+    // @ts-expect-error Window interface lacks speech recognition
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert("Your browser does not support voice search.");
+      return;
+    }
+    
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'en-US';
+    recognition.interimResults = false;
+    
+    recognition.onstart = () => setIsListening(true);
+    recognition.onend = () => setIsListening(false);
+    
+    recognition.onerror = () => {
+      console.error("Speech recognition error");
+      setIsListening(false);
+    };
+    
+    recognition.onresult = (event: { results: Array<Array<{ transcript: string }>> }) => {
+      const speechResult = event.results[0][0].transcript;
+      setSearchQuery(speechResult);
+      if (location.pathname !== '/search') {
+        navigate(`/search?q=${encodeURIComponent(speechResult.trim())}`);
+      } else {
+        setSearchParams({ q: speechResult.trim() });
+      }
+    };
+    
+    recognition.start();
+  };
 
   // Handle search input change (now just updates local state)
   const handleSearchChange = (value: string) => {
@@ -255,11 +289,6 @@ export default function AppLayout({ children }: AppLayoutProps) {
           {/* Sticky Header - Show on search page and other non-home pages, excluding account page */}
           {(showHeader || isSearchPage) && (
             <header className="sticky top-0 z-50 bg-white shadow-sm md:shadow-md md:top-[60px]">
-              {/* Delivery info line */}
-              <div className="px-4 md:px-6 lg:px-8 py-1.5 bg-green-50 text-xs text-green-700 text-center">
-                Delivering in 10–15 mins
-              </div>
-
               {/* Location line - only show if user has provided location */}
               {userLocation && (userLocation.address || userLocation.city) && (
                 <div className="px-4 md:px-6 lg:px-8 py-2 flex items-center justify-between text-sm">
@@ -301,14 +330,27 @@ export default function AppLayout({ children }: AppLayoutProps) {
                         type="text"
                         value={searchQuery}
                         onChange={(e) => handleSearchChange(e.target.value)}
-                        placeholder="Search for products..."
-                        className="w-full px-4 py-2.5 pl-10 bg-neutral-50 border border-neutral-200 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent md:py-3 transition-all"
+                        placeholder={isListening ? "Listening..." : "Search for products..."}
+                        className="w-full px-4 py-2.5 pl-10 pr-10 bg-neutral-50 border border-neutral-200 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent md:py-3 transition-all"
                       />
                       <span className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                           <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
                         </svg>
                       </span>
+                      {/* Voice Search Icon */}
+                      <button 
+                        onClick={startVoiceSearch}
+                        className={`absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-full transition-colors ${isListening ? 'bg-red-100 text-red-500' : 'text-neutral-500 hover:bg-neutral-200'}`}
+                        aria-label="Voice search"
+                      >
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"></path>
+                          <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                          <line x1="12" y1="19" x2="12" y2="22"></line>
+                          <line x1="8" y1="22" x2="16" y2="22"></line>
+                        </svg>
+                      </button>
                     </div>
                   </div>
                 </div>

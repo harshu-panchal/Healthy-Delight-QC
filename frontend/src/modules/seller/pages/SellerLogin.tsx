@@ -144,7 +144,7 @@ export default function SellerLogin() {
                 <label className="block text-sm font-medium text-neutral-700 mb-2">
                   Mobile Number
                 </label>
-                <div className="flex items-center bg-white border border-neutral-300 rounded-xl overflow-hidden focus-within:border-teal-500 focus-within:ring-2 focus-within:ring-teal-200 transition-all">
+                <div className="flex items-center bg-white border border-neutral-300 rounded-xl overflow-hidden focus-within:border-primary focus-within:ring-2 focus-within:ring-primary-200 transition-all">
                   <div className="px-3 py-2 text-xs sm:text-sm font-medium text-neutral-600 border-r border-neutral-300 bg-neutral-50">
                     +91
                   </div>
@@ -174,7 +174,7 @@ export default function SellerLogin() {
                 onClick={handleMobileLogin}
                 disabled={mobileNumber.length !== 10 || loading}
                 className={`w-full py-2.5 rounded-xl font-semibold text-sm transition-colors ${mobileNumber.length === 10 && !loading
-                  ? "bg-teal-600 text-white hover:bg-teal-700 shadow-md"
+                  ? "bg-primary border-primary text-neutral-900 hover:bg-neutral-900 shadow-md"
                   : "bg-neutral-300 text-neutral-500 cursor-not-allowed"
                   }`}>
                 {loading ? "Sending..." : "Continue"}
@@ -237,7 +237,7 @@ export default function SellerLogin() {
                     }
                   }}
                   disabled={loading}
-                  className="flex-1 py-2.5 rounded-lg font-semibold text-sm bg-teal-600 text-white hover:bg-teal-700 transition-colors">
+                  className="flex-1 py-2.5 rounded-lg font-semibold text-sm bg-primary border-primary text-neutral-900 hover:bg-neutral-900 transition-colors">
                   {loading ? "Sending..." : "Resend OTP"}
                 </button>
               </div>
@@ -250,7 +250,7 @@ export default function SellerLogin() {
               Don't have a seller account?{" "}
               <button
                 onClick={() => navigate("/seller/signup")}
-                className="text-teal-600 hover:text-teal-700 font-semibold">
+                className="text-primary hover:text-primary-dark font-semibold">
                 Sign Up
               </button>
             </p>

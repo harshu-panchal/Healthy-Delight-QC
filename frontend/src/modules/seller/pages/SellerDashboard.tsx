@@ -236,7 +236,7 @@ export default function SellerDashboard() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-neutral-800"></div>
       </div>
     );
   }
@@ -264,8 +264,8 @@ export default function SellerDashboard() {
           <button
             onClick={handleToggleShop}
             disabled={statusLoading}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 ${
-              isShopOpen ? 'bg-teal-600' : 'bg-gray-200'
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
+              isShopOpen ? 'bg-primary border-primary text-neutral-900' : 'bg-gray-200'
             } ${statusLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
           >
             <span
@@ -303,8 +303,8 @@ export default function SellerDashboard() {
 
       {/* View New Orders Table Section */}
       <div className="bg-white rounded-lg shadow-sm border border-neutral-200 overflow-hidden">
-        {/* Teal Header Bar */}
-        <div className="bg-teal-600 text-white px-4 sm:px-6 py-3">
+        {/* primary Header Bar */}
+        <div className="bg-primary border-primary text-neutral-900 px-4 sm:px-6 py-3">
           <h2 className="text-base sm:text-lg font-semibold">View New Orders</h2>
         </div>
 
@@ -320,7 +320,7 @@ export default function SellerDashboard() {
                 setEntriesPerPage(Math.max(1, Math.min(100, value)));
                 setCurrentPage(1);
               }}
-              className="w-16 px-2 py-1 border border-neutral-300 rounded text-sm text-neutral-900 bg-white focus:outline-none focus:ring-1 focus:ring-teal-500 focus:border-teal-500"
+              className="w-16 px-2 py-1 border border-neutral-300 rounded text-sm text-neutral-900 bg-white focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
               min="1"
               max="100"
             />
@@ -436,7 +436,7 @@ export default function SellerDashboard() {
                   <td className="px-4 sm:px-6 py-3">
                     <button
                       onClick={() => navigate(`/seller/orders/${order.id}`)}
-                      className="bg-teal-600 hover:bg-teal-700 text-white p-2 rounded transition-colors"
+                      className="bg-primary border-primary text-neutral-900 hover:bg-neutral-900 text-white p-2 rounded transition-colors"
                       aria-label="View order details"
                     >
                       <svg

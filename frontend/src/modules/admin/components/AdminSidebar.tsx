@@ -984,12 +984,12 @@ export default function AdminSidebar({ onClose }: AdminSidebarProps) {
     .filter((section) => section.items.length > 0);
 
   return (
-    <aside className="w-64 bg-teal-700 h-screen flex flex-col">
+    <aside className="w-64 bg-neutral-900 h-screen flex flex-col">
       {/* Close button - only show on mobile */}
-      <div className="flex justify-end p-4 border-b border-teal-600 lg:hidden">
+      <div className="flex justify-end p-4 border-b border-neutral-800 lg:hidden">
         <button
           onClick={onClose}
-          className="p-2 text-teal-100 hover:text-white transition-colors"
+          className="p-2 text-neutral-400 hover:text-white transition-colors"
           aria-label="Close menu">
           <svg
             width="24"
@@ -1009,14 +1009,14 @@ export default function AdminSidebar({ onClose }: AdminSidebarProps) {
       </div>
 
       {/* Search Bar */}
-      <div className="p-4 border-b border-teal-600">
+      <div className="p-4 border-b border-neutral-800">
         <div className="relative">
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search Menu Ctrl + F"
-            className="w-full px-3 py-2 pl-10 bg-teal-800 border border-teal-600 rounded text-white placeholder-teal-300 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+            className="w-full px-3 py-2 pl-10 bg-neutral-800 border border-neutral-800 rounded text-white placeholder-neutral-500 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
           />
           <svg
             width="18"
@@ -1025,7 +1025,7 @@ export default function AdminSidebar({ onClose }: AdminSidebarProps) {
             fill="none"
             stroke="currentColor"
             strokeWidth="2"
-            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-teal-300">
+            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-500">
             <circle cx="11" cy="11" r="8"></circle>
             <path d="M21 21L16.65 16.65"></path>
           </svg>
@@ -1033,12 +1033,12 @@ export default function AdminSidebar({ onClose }: AdminSidebarProps) {
       </div>
 
       {/* Dashboard Link */}
-      <div className="px-4 py-2 border-b border-teal-600">
+      <div className="px-4 py-2 border-b border-neutral-800">
         <button
           onClick={() => handleNavigation("/admin")}
           className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left transition-colors ${isActive("/admin")
-            ? "bg-teal-600 text-white"
-            : "text-teal-100 hover:bg-teal-600/50 hover:text-white"
+            ? "bg-primary border-primary text-neutral-900"
+            : "text-neutral-400 hover:bg-neutral-800 hover:text-white"
             }`}>
           <svg
             width="18"
@@ -1071,7 +1071,7 @@ export default function AdminSidebar({ onClose }: AdminSidebarProps) {
         `}</style>
         {filteredSections.map((section, sectionIndex) => (
           <div key={sectionIndex} className="mb-6">
-            <h3 className="px-4 mb-2 text-xs font-bold text-teal-200 uppercase tracking-wider">
+            <h3 className="px-4 mb-2 text-xs font-bold text-neutral-500 uppercase tracking-wider">
               {section.title}
             </h3>
             <ul className="space-y-1 px-2">
@@ -1091,8 +1091,8 @@ export default function AdminSidebar({ onClose }: AdminSidebarProps) {
                         }
                       }}
                       className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-left transition-colors ${active
-                        ? "bg-teal-600 text-white"
-                        : "text-teal-100 hover:bg-teal-600/50 hover:text-white"
+                        ? "bg-primary border-primary text-neutral-900"
+                        : "text-neutral-400 hover:bg-neutral-800 hover:text-white"
                         }`}>
                       <div className="flex items-center gap-2 flex-1 min-w-0">
                         <span className="flex-shrink-0">{item.icon}</span>
@@ -1109,7 +1109,7 @@ export default function AdminSidebar({ onClose }: AdminSidebarProps) {
                           stroke="currentColor"
                           strokeWidth="2"
                           className={`transition-transform flex-shrink-0 ml-2 ${expanded ? "rotate-90" : ""
-                            } ${active ? "text-white" : "text-teal-200"}`}>
+                            } ${active ? "text-white" : "text-neutral-500"}`}>
                           <path
                             d="M9 18L15 12L9 6"
                             strokeLinecap="round"
@@ -1129,8 +1129,8 @@ export default function AdminSidebar({ onClose }: AdminSidebarProps) {
                                 <button
                                   onClick={() => handleNavigation(subItem.path)}
                                   className={`w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-left transition-colors ${subActive
-                                    ? "bg-teal-500 text-white"
-                                    : "text-teal-100 hover:bg-teal-600/50 hover:text-white"
+                                    ? "bg-primary text-white"
+                                    : "text-neutral-400 hover:bg-neutral-800 hover:text-white"
                                     }`}>
                                   <div className="flex items-center gap-2 flex-1 min-w-0">
                                     <span className="flex-shrink-0">
