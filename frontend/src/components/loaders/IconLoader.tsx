@@ -2,7 +2,7 @@ import React from 'react';
 import Lottie from 'lottie-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLoading } from '../../context/LoadingContext';
-import loadingAnimation from '../../../assets/animation/Milk.json';
+import loadingAnimation from '../../../assets/animation/animation.json';
 import './iconLoader.css';
 
 interface IconLoaderProps {

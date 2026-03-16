@@ -172,12 +172,14 @@ export default function AppLayout({ children }: AppLayoutProps) {
           {/* Top Navigation Bar - Desktop Only */}
           {showFooter && (
             <nav
-              className="hidden md:flex items-center justify-center gap-8 px-6 lg:px-8 py-3 shadow-sm transition-colors duration-300"
+              className="hidden md:flex items-center justify-between gap-8 px-6 lg:px-8 py-3 shadow-sm transition-colors duration-300"
               style={{
                 background: `linear-gradient(to right, ${currentTheme.primary[0]}, ${currentTheme.primary[1]})`,
                 borderBottom: `1px solid ${currentTheme.primary[0]}`
               }}
             >
+              {/* Center: Home, Order Again, Categories, Subscription */}
+              <div className="flex-1 flex items-center justify-center gap-8">
               {/* Home */}
               <Link
                 to="/"
@@ -257,10 +259,36 @@ export default function AppLayout({ children }: AppLayoutProps) {
                 <span className="font-medium text-sm">Categories</span>
               </Link>
 
-              {/* Profile */}
+              {/* Subscription - last (niche) */}
+              <Link
+                to="/subscription"
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${isActive('/subscription')
+                  ? 'bg-white shadow-md font-semibold'
+                  : 'hover:bg-white/20'
+                  }`}
+                style={{
+                  color: isActive('/subscription') ? currentTheme.accentColor : currentTheme.headerTextColor
+                }}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path
+                    d="M19 8H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V10a2 2 0 0 0-2-2z"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <polyline points="8 2 12 6 8 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  <line x1="12" y1="6" x2="16" y2="6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                <span className="font-medium text-sm">Subscription</span>
+              </Link>
+              </div>
+
+              {/* Right: Profile */}
               <Link
                 to="/account"
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${isActive('/account')
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors flex-shrink-0 ${isActive('/account')
                   ? 'bg-white shadow-md font-semibold'
                   : 'hover:bg-white/20'
                   }`}
@@ -312,12 +340,12 @@ export default function AppLayout({ children }: AppLayoutProps) {
 
               {/* Search bar - Hidden on Order Again page */}
               {showSearchBar && (
-                <div className="px-4 md:px-6 lg:px-8 pb-3">
-                  <div className="max-w-2xl md:mx-auto flex items-center gap-2">
+                <div className="px-4 md:px-6 lg:px-8 pb-3 flex items-center gap-2">
+                  <div className="max-w-2xl md:mx-auto flex items-center gap-2 flex-1 min-w-0">
                     {isSearchPage && (
                       <button
                         onClick={() => navigate(-1)}
-                        className="p-2 -ml-2 text-neutral-600 hover:text-emerald-600 transition-colors"
+                        className="p-2 -ml-2 text-neutral-600 hover:text-emerald-600 transition-colors flex-shrink-0"
                         title="Back"
                       >
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -325,7 +353,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
                         </svg>
                       </button>
                     )}
-                    <div className="relative flex-1">
+                    <div className="relative flex-1 min-w-0">
                       <input
                         type="text"
                         value={searchQuery}
@@ -353,6 +381,17 @@ export default function AppLayout({ children }: AppLayoutProps) {
                       </button>
                     </div>
                   </div>
+                  {/* Profile - right side of header */}
+                  <Link
+                    to="/account"
+                    className="p-2 rounded-lg text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900 transition-colors flex-shrink-0"
+                    aria-label="Profile"
+                  >
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="8" r="4" />
+                      <path d="M4 20c0-4 3.5-7 8-7s8 3 8 7" />
+                    </svg>
+                  </Link>
                 </div>
               )}
             </header>
@@ -587,14 +626,14 @@ export default function AppLayout({ children }: AppLayoutProps) {
                   </Link>
                 </motion.div>
 
-                {/* Profile */}
+                {/* Subscription - last (niche) */}
                 <motion.div
                   whileTap={{ scale: 0.95 }}
                   transition={{ duration: 0.1 }}
                   className="flex-1 h-full"
                 >
                   <Link
-                    to="/account"
+                    to="/subscription"
                     className="flex flex-col items-center justify-center h-full relative"
                   >
                     <div className="flex flex-col items-center justify-center relative z-10">
@@ -604,51 +643,46 @@ export default function AppLayout({ children }: AppLayoutProps) {
                         viewBox="0 0 24 24"
                         fill="none"
                         xmlns="http://www.w3.org/2000/svg"
-                        animate={isActive('/account') ? {
+                        animate={isActive('/subscription') ? {
                           scale: [1, 1.05, 1]
                         } : {}}
                         transition={{
                           duration: 0.5,
                           ease: "easeInOut",
-                          repeat: isActive('/account') ? Infinity : 0,
+                          repeat: isActive('/subscription') ? Infinity : 0,
                           repeatDelay: 1.5
                         }}
                       >
-                        {isActive('/account') ? (
+                        {isActive('/subscription') ? (
                           <>
-                            {/* Profile head */}
-                            <motion.circle
-                              cx="12"
-                              cy="8"
-                              r="4"
+                            <path
+                              d="M19 8H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V10a2 2 0 0 0-2-2z"
                               fill="#22c55e"
                               stroke="#1f2937"
                               strokeWidth="2"
-                              animate={{
-                                scale: [1, 1.1, 1]
-                              }}
-                              transition={{
-                                duration: 0.6,
-                                ease: "easeInOut",
-                                repeat: Infinity,
-                                repeatDelay: 1.2
-                              }}
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
                             />
-                            {/* Profile body */}
-                            <path d="M4 20c0-4 3.5-7 8-7s8 3 8 7" stroke="#1f2937" strokeWidth="2" strokeLinecap="round" fill="#22c55e" />
+                            <polyline points="8 2 12 6 8 10" stroke="#1f2937" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+                            <line x1="12" y1="6" x2="16" y2="6" stroke="#1f2937" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                           </>
                         ) : (
                           <>
-                            {/* Profile head */}
-                            <circle cx="12" cy="8" r="4" stroke="#6b7280" strokeWidth="2" fill="none" />
-                            {/* Profile body */}
-                            <path d="M4 20c0-4 3.5-7 8-7s8 3 8 7" stroke="#6b7280" strokeWidth="2" strokeLinecap="round" fill="none" />
+                            <path
+                              d="M19 8H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V10a2 2 0 0 0-2-2z"
+                              stroke="#6b7280"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                            <polyline points="8 2 12 6 8 10" stroke="#6b7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                            <line x1="12" y1="6" x2="16" y2="6" stroke="#6b7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                           </>
                         )}
                       </motion.svg>
                     </div>
-                    <span className={`text-xs mt-0.5 relative z-10 ${isActive('/account') ? 'font-medium text-neutral-700' : 'font-medium text-neutral-500'}`}>
-                      Profile
+                    <span className={`text-xs mt-0.5 relative z-10 ${isActive('/subscription') ? 'font-medium text-neutral-700' : 'font-medium text-neutral-500'}`}>
+                      Subscription
                     </span>
                   </Link>
                 </motion.div>

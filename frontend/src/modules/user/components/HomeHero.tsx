@@ -383,14 +383,15 @@ export default function HomeHero({
               )}
             </div>
 
-            {/* Right: Subscription Button (Mobile Only) */}
-            <button 
-              onClick={() => navigate('/subscription')}
+            {/* Right: Profile Button (top header) */}
+            <button
+              onClick={() => navigate('/account')}
               className="md:hidden flex-shrink-0 w-10 h-10 rounded-full bg-white/60 backdrop-blur flex items-center justify-center text-neutral-800 shadow-sm border border-neutral-200/50 hover:bg-white/80 transition-colors self-start mt-3"
+              aria-label="Profile"
             >
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect x="5" y="3" width="14" height="18" rx="2" stroke="currentColor" strokeWidth="2" fill="none" />
-                <path d="M9 8h6M9 12h6M9 16h3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" fill="none" />
+                <circle cx="12" cy="8" r="4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M4 20c0-4 3.5-7 8-7s8 3 8 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </button>
           </div>
