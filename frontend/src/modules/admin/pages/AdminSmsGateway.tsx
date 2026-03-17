@@ -86,7 +86,7 @@ export default function AdminSmsGateway() {
             <h1 className="text-xl sm:text-2xl font-bold text-neutral-900">SMS Gateway</h1>
           </div>
           <div className="text-sm text-neutral-600">
-            <span className="text-blue-600">Home</span> / <span className="text-neutral-900">SMS Gateway</span>
+            <span className="text-primary-dark">Home</span> / <span className="text-neutral-900">SMS Gateway</span>
           </div>
         </div>
       </div>
@@ -136,7 +136,7 @@ export default function AdminSmsGateway() {
                 <div className="pt-2">
                   <button
                     onClick={() => handleUpdate(gateway.id)}
-                    className="w-full bg-green-600 hover:bg-green-700 text-white px-4 py-2.5 rounded font-medium transition-colors"
+                    className="w-full bg-neutral-900 hover:bg-neutral-800 text-white px-4 py-2.5 rounded font-medium transition-colors"
                   >
                     Update SMS Gateway
                   </button>

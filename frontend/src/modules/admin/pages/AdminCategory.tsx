@@ -433,8 +433,8 @@ export default function AdminCategory() {
       {/* Main Content */}
       <div className="px-3 sm:px-4 md:px-6">
         <div className="bg-white rounded-lg shadow-sm border border-neutral-200 overflow-hidden">
-          {/* Green Banner */}
-          <div className="bg-green-600 text-white px-4 sm:px-6 py-2 sm:py-3">
+          {/* Banner */}
+          <div className="bg-primary text-neutral-900 px-4 sm:px-6 py-2 sm:py-3">
             <h2 className="text-base sm:text-lg font-semibold">
               Category Management
             </h2>
@@ -446,7 +446,7 @@ export default function AdminCategory() {
               {/* Add Category Button */}
               <button
                 onClick={handleCreateCategory}
-                className="bg-primary border-primary text-neutral-900 hover:bg-neutral-900 text-white px-4 py-2 rounded text-sm font-medium flex items-center gap-2 transition-colors w-full sm:w-auto">
+                className="bg-primary border-primary text-neutral-900 hover:bg-neutral-900 hover:text-white px-4 py-2 rounded text-sm font-medium flex items-center gap-2 transition-colors w-full sm:w-auto">
                 <svg
                   width="16"
                   height="16"
@@ -521,7 +521,7 @@ export default function AdminCategory() {
               {/* Export Button */}
               <button
                 onClick={handleExport}
-                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded text-sm font-medium flex items-center gap-2 transition-colors w-full sm:w-auto">
+                className="bg-neutral-900 hover:bg-neutral-800 text-white px-4 py-2 rounded text-sm font-medium flex items-center gap-2 transition-colors w-full sm:w-auto">
                 <svg
                   width="16"
                   height="16"
@@ -611,7 +611,7 @@ export default function AdminCategory() {
       {/* Footer */}
       <div className="text-center py-4 text-xs sm:text-sm text-neutral-600">
         Copyright © 2025. Developed By{" "}
-        <a href="#" className="text-blue-600 hover:text-blue-700">
+        <a href="#" className="text-primary-dark hover:text-neutral-900">
           Healthy Delight
         </a>
       </div>

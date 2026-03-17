@@ -421,7 +421,7 @@ export default function AdminDashboard() {
           <p className="text-neutral-600 mb-4">{error}</p>
           <button
             onClick={() => window.location.reload()}
-            className="bg-primary border-primary text-neutral-900 hover:bg-neutral-900 text-white px-4 py-2 rounded-lg transition-colors">
+            className="bg-primary border-primary text-neutral-900 hover:bg-neutral-900 hover:text-white px-4 py-2 rounded-lg transition-colors">
             Retry
           </button>
         </div>
@@ -518,7 +518,7 @@ export default function AdminDashboard() {
               ₹{salesToday.toFixed(2)}
             </p>
             {salesDifference >= 0 ? (
-              <p className="text-sm text-green-600 mt-1">
+              <p className="text-sm text-neutral-700 mt-1">
                 ▲ ₹{Math.abs(salesDifference).toFixed(2)} (+{salesPercentChange}%)
                 vs same day last week
               </p>
@@ -1053,7 +1053,7 @@ export default function AdminDashboard() {
 
       {/* Footer */}
       <div className="text-center text-sm text-neutral-500 py-4">
-        Copyright © 2025. Developed By{" "}
+        Copyright © 2026. Developed By{" "}
         <a href="#" className="text-primary hover:text-primary-dark">
           Healthy Delight
         </a>

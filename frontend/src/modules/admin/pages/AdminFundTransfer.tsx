@@ -73,8 +73,8 @@ export default function AdminFundTransfer() {
     <div className="space-y-4 sm:space-y-6">
       {/* Header */}
       <div className="bg-primary border-primary text-neutral-900 px-4 sm:px-6 py-4 rounded-t-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
-        <h1 className="text-white text-xl sm:text-2xl font-semibold">View Fund Transfer</h1>
-        <button className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded text-sm font-medium flex items-center gap-2 transition-colors">
+        <h1 className="text-neutral-900 text-xl sm:text-2xl font-semibold">View Fund Transfer</h1>
+        <button className="bg-neutral-900 hover:bg-neutral-800 text-white px-4 py-2 rounded text-sm font-medium flex items-center gap-2 transition-colors">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <line x1="12" y1="5" x2="12" y2="19"></line>
             <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -196,7 +196,7 @@ export default function AdminFundTransfer() {
               {/* Export Button */}
               <button
                 onClick={handleExport}
-                className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded text-sm font-medium flex items-center gap-2 transition-colors"
+                className="bg-neutral-900 hover:bg-neutral-800 text-white px-4 py-2 rounded text-sm font-medium flex items-center gap-2 transition-colors"
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
@@ -352,7 +352,7 @@ export default function AdminFundTransfer() {
                     <td className="px-4 sm:px-6 py-3">
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                         transfer.type === 'Credit' 
-                          ? 'bg-green-100 text-green-800' 
+                          ? 'bg-cream text-neutral-800' 
                           : 'bg-red-100 text-red-800'
                       }`}>
                         {transfer.type}

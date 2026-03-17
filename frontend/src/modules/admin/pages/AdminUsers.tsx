@@ -189,8 +189,8 @@ export default function AdminUsers() {
             <div className="p-6 pb-0">
                 <div className="flex justify-between items-center mb-6">
                     <h1 className="text-2xl font-semibold text-neutral-800">User List</h1>
-                    <div className="text-sm text-blue-500">
-                        <span className="text-blue-500 hover:underline cursor-pointer">Home</span>{' '}
+                    <div className="text-sm text-neutral-600">
+                        <span className="text-primary-dark hover:underline cursor-pointer">Home</span>{' '}
                         <span className="text-neutral-400">/</span> User List
                     </div>
                 </div>
@@ -332,7 +332,7 @@ export default function AdminUsers() {
                                             <td className="p-4 align-middle">{new Date(user.registrationDate).toLocaleString()}</td>
                                             <td className="p-4 align-middle">
                                                 <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${user.status === 'Active'
-                                                    ? 'bg-green-100 text-green-800'
+                                                    ? 'bg-cream text-neutral-800'
                                                     : user.status === 'Suspended'
                                                         ? 'bg-red-100 text-red-800'
                                                         : 'bg-yellow-100 text-yellow-800'
@@ -350,7 +350,7 @@ export default function AdminUsers() {
                                                         onClick={() => handleStatusChange(user._id, user.status === 'Active' ? 'Suspended' : 'Active')}
                                                         className={`p-1.5 text-white rounded transition-colors ${user.status === 'Active'
                                                             ? 'bg-red-600 hover:bg-red-700'
-                                                            : 'bg-green-600 hover:bg-green-700'
+                                                            : 'bg-neutral-900 hover:bg-neutral-800'
                                                             }`}
                                                         title={user.status === 'Active' ? 'Suspend User' : 'Activate User'}
                                                     >
@@ -465,7 +465,7 @@ export default function AdminUsers() {
             {/* Footer */}
             <footer className="text-center py-4 text-sm text-neutral-600 border-t border-neutral-200 bg-white">
                 Copyright © 2025. Developed By{' '}
-                <a href="#" className="text-blue-600 hover:underline">Healthy Delight</a>
+                <a href="#" className="text-primary-dark hover:underline">Healthy Delight</a>
             </footer>
         </div>
     );

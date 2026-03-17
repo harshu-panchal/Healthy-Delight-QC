@@ -267,7 +267,7 @@ export default function AdminPaymentList() {
                 <button
                   onClick={() => handleUpdatePaymentMethod(method._id)}
                   disabled={updating === method._id}
-                  className="w-full bg-primary border-primary text-neutral-900 hover:bg-neutral-900 disabled:bg-neutral-400 disabled:cursor-not-allowed text-white px-4 py-2.5 rounded text-sm font-medium transition-colors flex items-center justify-center">
+                  className="w-full bg-primary border-primary text-neutral-900 hover:bg-neutral-900 hover:text-white disabled:bg-neutral-400 disabled:cursor-not-allowed px-4 py-2.5 rounded text-sm font-medium transition-colors flex items-center justify-center">
                   {updating === method._id ? (
                     <>
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
@@ -285,7 +285,7 @@ export default function AdminPaymentList() {
 
       {/* Footer */}
       <div className="text-center text-sm text-neutral-500 py-4">
-        Copyright © 2025. Developed By{" "}
+        Copyright © 2026. Developed By{" "}
         <a href="#" className="text-primary hover:text-primary-dark">
           Healthy Delight
         </a>

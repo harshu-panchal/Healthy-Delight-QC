@@ -475,8 +475,8 @@ export default function AdminShopByStore() {
         <h1 className="text-2xl font-semibold text-neutral-800">
           Shop by Store
         </h1>
-        <div className="text-sm text-blue-500">
-          <span className="text-blue-500 hover:underline cursor-pointer">
+        <div className="text-sm text-neutral-600">
+          <span className="text-primary-dark hover:underline cursor-pointer">
             Home
           </span>{" "}
           <span className="text-neutral-400">/</span> Dashboard
@@ -690,11 +690,11 @@ export default function AdminShopByStore() {
               </div>
             )}
             {successMessage && (
-              <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg flex items-center justify-between">
+              <div className="bg-cream border border-primary/40 text-neutral-800 px-4 py-3 rounded-lg flex items-center justify-between">
                 <span>{successMessage}</span>
                 <button
                   onClick={() => setSuccessMessage("")}
-                  className="text-green-700 hover:text-green-900 ml-4 text-lg font-bold"
+                  className="text-neutral-700 hover:text-neutral-900 ml-4 text-lg font-bold"
                   type="button">
                   ×
                 </button>
@@ -956,7 +956,7 @@ export default function AdminShopByStore() {
                         <div className="flex items-center gap-2">
                           <button
                             onClick={() => handleEdit(store._id)}
-                            className="p-1.5 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded transition-colors"
+                            className="p-1.5 bg-cream hover:bg-primary/20 text-neutral-800 rounded transition-colors"
                             title="Edit">
                             <svg
                               width="16"

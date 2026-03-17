@@ -80,9 +80,9 @@ export default function SellerDashboard() {
   const getStatusBadgeClass = (status: NewOrder['status']) => {
     switch (status) {
       case 'Out For Delivery':
-        return 'text-blue-800 bg-blue-100 border border-blue-400';
+        return 'text-neutral-900 bg-cream border border-primary/40';
       case 'Received':
-        return 'text-blue-600 bg-blue-50';
+        return 'text-neutral-900 bg-cream border border-primary/40';
       case 'Payment Pending':
         return 'text-orange-600 bg-orange-50';
       case 'Cancelled':
@@ -258,7 +258,7 @@ export default function SellerDashboard() {
           <p className="text-sm text-gray-500">Overview of your store performance</p>
         </div>
         <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-start">
-          <span className={`text-sm font-medium ${isShopOpen ? 'text-green-600' : 'text-red-500'}`}>
+          <span className={`text-sm font-medium ${isShopOpen ? 'text-neutral-900' : 'text-red-500'}`}>
             {isShopOpen ? 'Shop is Live' : 'Shop is Closed'}
           </span>
           <button
@@ -278,12 +278,12 @@ export default function SellerDashboard() {
       </div>
       {/* KPI Cards Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-        <DashboardCard icon={userIcon} title="Total User" value={stats.totalUser} accentColor="#3b82f6" />
+        <DashboardCard icon={userIcon} title="Total User" value={stats.totalUser} accentColor="#FFC94A" />
         <DashboardCard icon={categoryIcon} title="Total Category" value={stats.totalCategory} accentColor="#eab308" />
         <DashboardCard icon={subcategoryIcon} title="Total Subcategory" value={stats.totalSubcategory} accentColor="#ec4899" />
         <DashboardCard icon={productIcon} title="Total Product" value={stats.totalProduct} accentColor="#f97316" />
-        <DashboardCard icon={ordersIcon} title="Total Orders" value={stats.totalOrders} accentColor="#3b82f6" />
-        <DashboardCard icon={completedOrdersIcon} title="Completed Orders" value={stats.completedOrders} accentColor="#16a34a" />
+        <DashboardCard icon={ordersIcon} title="Total Orders" value={stats.totalOrders} accentColor="#FFC94A" />
+        <DashboardCard icon={completedOrdersIcon} title="Completed Orders" value={stats.completedOrders} accentColor="#FFC94A" />
         <DashboardCard icon={pendingOrdersIcon} title="Pending Orders" value={stats.pendingOrders} accentColor="#a855f7" />
         <DashboardCard icon={cancelledOrdersIcon} title="Cancelled Orders" value={stats.cancelledOrders} accentColor="#ef4444" />
       </div>
@@ -436,7 +436,7 @@ export default function SellerDashboard() {
                   <td className="px-4 sm:px-6 py-3">
                     <button
                       onClick={() => navigate(`/seller/orders/${order.id}`)}
-                      className="bg-primary border-primary text-neutral-900 hover:bg-neutral-900 text-white p-2 rounded transition-colors"
+                      className="bg-primary border-primary text-neutral-900 hover:bg-primary-dark p-2 rounded transition-colors"
                       aria-label="View order details"
                     >
                       <svg

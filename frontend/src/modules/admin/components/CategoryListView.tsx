@@ -89,7 +89,7 @@ export default function CategoryListView({
               <tr
                 key={category._id}
                 className={`hover:bg-neutral-50 ${
-                  selectedIds.has(category._id) ? "bg-blue-50" : ""
+                  selectedIds.has(category._id) ? "bg-cream" : ""
                 }`}>
                 <td className="px-4 py-3 whitespace-nowrap">
                   <input
@@ -166,7 +166,7 @@ export default function CategoryListView({
                   <span
                     className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                       category.status === "Active"
-                        ? "bg-green-100 text-green-800"
+                        ? "bg-cream text-neutral-800"
                         : "bg-red-100 text-red-800"
                     }`}>
                     {category.status}
@@ -179,7 +179,7 @@ export default function CategoryListView({
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => onEdit(category)}
-                      className="text-blue-600 hover:text-blue-900"
+                      className="text-neutral-700 hover:text-neutral-900"
                       title="Edit">
                       <svg
                         width="16"

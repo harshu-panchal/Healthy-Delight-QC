@@ -160,7 +160,7 @@ export default function AdminProfile() {
                         </h1>
                     </div>
                     <div className="text-sm text-neutral-600">
-                        <span className="text-blue-600">Home</span> /{' '}
+                        <span className="text-primary-dark">Home</span> /{' '}
                         <span className="text-neutral-900">Profile</span>
                     </div>
                 </div>
@@ -171,7 +171,7 @@ export default function AdminProfile() {
                 <div className="max-w-3xl mx-auto">
                     {/* Success Message */}
                     {success && (
-                        <div className="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded">
+                        <div className="mb-4 p-4 bg-cream border border-primary/40 text-neutral-800 rounded">
                             {success}
                         </div>
                     )}
@@ -193,7 +193,7 @@ export default function AdminProfile() {
                             {!isEditing && (
                                 <button
                                     onClick={() => setIsEditing(true)}
-                                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded transition-colors"
+                                    className="px-4 py-2 bg-neutral-900 hover:bg-neutral-800 text-white text-sm font-medium rounded transition-colors"
                                 >
                                     Edit Profile
                                 </button>
@@ -214,7 +214,7 @@ export default function AdminProfile() {
                                             name="firstName"
                                             value={formData.firstName}
                                             onChange={handleInputChange}
-                                            className="w-full px-3 py-2 border border-neutral-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                            className="w-full px-3 py-2 border border-neutral-300 rounded focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
                                         />
                                     ) : (
                                         <p className="text-neutral-900 py-2">{profile.firstName}</p>
@@ -232,7 +232,7 @@ export default function AdminProfile() {
                                             name="lastName"
                                             value={formData.lastName}
                                             onChange={handleInputChange}
-                                            className="w-full px-3 py-2 border border-neutral-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                            className="w-full px-3 py-2 border border-neutral-300 rounded focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
                                         />
                                     ) : (
                                         <p className="text-neutral-900 py-2">{profile.lastName}</p>
@@ -250,7 +250,7 @@ export default function AdminProfile() {
                                             name="email"
                                             value={formData.email}
                                             onChange={handleInputChange}
-                                            className="w-full px-3 py-2 border border-neutral-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                            className="w-full px-3 py-2 border border-neutral-300 rounded focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
                                         />
                                     ) : (
                                         <p className="text-neutral-900 py-2">{profile.email}</p>
@@ -269,7 +269,7 @@ export default function AdminProfile() {
                                             value={formData.mobile}
                                             onChange={handleInputChange}
                                             maxLength={10}
-                                            className="w-full px-3 py-2 border border-neutral-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                            className="w-full px-3 py-2 border border-neutral-300 rounded focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
                                         />
                                     ) : (
                                         <p className="text-neutral-900 py-2">{profile.mobile}</p>
@@ -282,7 +282,7 @@ export default function AdminProfile() {
                                         Role
                                     </label>
                                     <p className="text-neutral-900 py-2">
-                                        <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+                                        <span className="px-3 py-1 bg-neutral-100 text-neutral-800 rounded-full text-sm font-medium">
                                             {profile.role}
                                         </span>
                                     </p>
@@ -305,7 +305,7 @@ export default function AdminProfile() {
                                     <button
                                         onClick={handleSave}
                                         disabled={saving}
-                                        className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                        className="px-6 py-2 bg-neutral-900 hover:bg-neutral-800 text-white font-medium rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
                                         {saving ? 'Saving...' : 'Save Changes'}
                                     </button>

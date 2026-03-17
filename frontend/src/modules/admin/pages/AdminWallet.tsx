@@ -156,8 +156,8 @@ export default function AdminWallet() {
           title="Total Platform Earning"
           value={`₹${stats?.totalGMV?.toLocaleString('en-IN') || '0'}`}
           icon={TrendingUpIcon}
-          color="text-blue-600"
-          bg="bg-blue-50"
+          color="text-primary-dark"
+          bg="bg-cream"
           label="Total money collected"
         />
         <StatsCard
@@ -172,8 +172,8 @@ export default function AdminWallet() {
           title="Current Platform Balance"
           value={`₹${stats?.currentAccountBalance?.toLocaleString('en-IN') || '0'}`}
           icon={WalletIcon}
-          color="text-emerald-600"
-          bg="bg-emerald-50"
+          color="text-primary-dark"
+          bg="bg-cream"
           label="Available for business"
         />
         <StatsCard
@@ -188,8 +188,8 @@ export default function AdminWallet() {
           title="Seller Pending Payouts"
           value={`₹${stats?.sellerPendingPayouts?.toLocaleString('en-IN') || '0'}`}
           icon={CreditCardIcon}
-          color="text-blue-600"
-          bg="bg-blue-50"
+          color="text-primary-dark"
+          bg="bg-cream"
           label="Owed to sellers"
         />
         <StatsCard
@@ -232,7 +232,7 @@ export default function AdminWallet() {
               {/* Filters */}
               <div className="flex flex-wrap gap-3 mb-4">
                 <select
-                  className="px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                   value={trxFilter.userType}
                   onChange={(e) => setTrxFilter({ ...trxFilter, userType: e.target.value })}
                 >
@@ -241,7 +241,7 @@ export default function AdminWallet() {
                   <option value="DELIVERY_BOY">Delivery Partners</option>
                 </select>
                 <select
-                  className="px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                   value={trxFilter.type}
                   onChange={(e) => setTrxFilter({ ...trxFilter, type: e.target.value })}
                 >
@@ -279,7 +279,7 @@ export default function AdminWallet() {
                             </div>
                           </td>
                           <td className="py-3 px-4">
-                            <span className={`px-2 py-1 rounded text-xs font-medium ${trx.type === 'Credit' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                            <span className={`px-2 py-1 rounded text-xs font-medium ${trx.type === 'Credit' ? 'bg-cream text-neutral-800' : 'bg-red-100 text-red-700'
                               }`}>
                               {trx.type}
                             </span>
@@ -287,7 +287,7 @@ export default function AdminWallet() {
                           <td className="py-3 px-4 text-sm text-gray-600">
                             {trx.description}
                           </td>
-                          <td className={`py-3 px-4 text-right font-medium ${trx.type === 'Credit' ? 'text-green-600' : 'text-red-600'
+                          <td className={`py-3 px-4 text-right font-medium ${trx.type === 'Credit' ? 'text-neutral-900' : 'text-red-600'
                             }`}>
                             {trx.type === 'Credit' ? '+' : '-'}₹{trx.amount.toFixed(2)}
                           </td>
@@ -331,12 +331,12 @@ export default function AdminWallet() {
                             {earning.description}
                           </td>
                           <td className="py-3 px-4">
-                            <span className={`px-2 py-1 rounded text-xs font-medium ${earning.status === 'Paid' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
+                            <span className={`px-2 py-1 rounded text-xs font-medium ${earning.status === 'Paid' ? 'bg-cream text-neutral-800' : 'bg-yellow-100 text-yellow-700'
                               }`}>
                               {earning.status}
                             </span>
                           </td>
-                          <td className="py-3 px-4 text-right font-medium text-green-600">
+                          <td className="py-3 px-4 text-right font-medium text-neutral-900">
                             ₹{earning.amount.toFixed(2)}
                           </td>
                         </tr>
@@ -371,7 +371,7 @@ function StatsCard({ title, value, icon: Icon, color, bg, label }: any) {
         </div>
         <div className="flex flex-col items-end">
           <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Live Status</span>
-          <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse mt-1"></div>
+          <div className="w-2 h-2 rounded-full bg-primary-dark animate-pulse mt-1"></div>
         </div>
       </div>
       <div>
@@ -393,7 +393,7 @@ function TabButton({ active, onClick, label, icon: Icon, badge }: any) {
     <button
       onClick={onClick}
       className={`flex items-center gap-2 px-6 py-4 font-medium text-sm transition relative whitespace-nowrap ${active
-        ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50/50'
+        ? 'text-neutral-900 border-b-2 border-neutral-900 bg-cream'
         : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
         }`}
     >
@@ -411,7 +411,7 @@ function TabButton({ active, onClick, label, icon: Icon, badge }: any) {
 function LoadingSpinner() {
   return (
     <div className="flex items-center justify-center py-12">
-      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
     </div>
   );
 }

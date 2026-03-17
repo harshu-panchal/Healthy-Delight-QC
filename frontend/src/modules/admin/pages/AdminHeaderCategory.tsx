@@ -239,8 +239,8 @@ export default function AdminHeaderCategory() {
         <h1 className="text-2xl font-semibold text-neutral-800">
           Header Category
         </h1>
-        <div className="text-sm text-blue-500">
-          <span className="text-blue-500 hover:underline cursor-pointer">
+        <div className="text-sm text-neutral-600">
+          <span className="text-primary-dark hover:underline cursor-pointer">
             Home
           </span>{" "}
           <span className="text-neutral-400">/</span> Dashboard
@@ -486,7 +486,7 @@ export default function AdminHeaderCategory() {
                             px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full
                             ${
                               category.status === "Published"
-                                ? "bg-green-100 text-green-800 border border-green-200"
+                                ? "bg-cream text-neutral-800 border border-primary/40"
                                 : "bg-red-100 text-red-800 border border-red-200"
                             }
                           `}>
@@ -496,7 +496,7 @@ export default function AdminHeaderCategory() {
                       <td className="px-4 py-3 text-sm flex gap-2">
                         <button
                           onClick={() => handleEdit(category)}
-                          className="text-blue-600 hover:text-blue-900 bg-blue-50 hover:bg-blue-100 p-1.5 rounded transition-colors"
+                          className="text-neutral-700 hover:text-neutral-900 bg-cream hover:bg-primary/20 p-1.5 rounded transition-colors"
                           title="Edit">
                           <svg
                             xmlns="http://www.w3.org/2000/svg"

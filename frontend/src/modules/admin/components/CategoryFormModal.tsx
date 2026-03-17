@@ -428,9 +428,9 @@ export default function CategoryFormModal({
         <div className="px-6 py-4">
           {/* Parent Category Info (for subcategory mode) */}
           {isSubcategoryMode && parentCategory && (
-            <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-              <p className="text-sm text-blue-600">Parent Category</p>
-              <p className="text-base font-semibold text-blue-900">
+            <div className="mb-4 p-3 bg-cream border border-primary/30 rounded-lg">
+              <p className="text-sm text-neutral-700">Parent Category</p>
+              <p className="text-base font-semibold text-neutral-900">
                 {parentCategory.name}
               </p>
             </div>
@@ -518,7 +518,7 @@ export default function CategoryFormModal({
                   disabled
                   className="w-full px-3 py-2 border border-neutral-300 rounded-lg bg-neutral-50 text-neutral-600 cursor-not-allowed"
                 />
-                <p className="mt-1 text-xs text-blue-600">
+                <p className="mt-1 text-xs text-neutral-600">
                   Inherited from parent category
                 </p>
                 {errors.headerCategoryId && (

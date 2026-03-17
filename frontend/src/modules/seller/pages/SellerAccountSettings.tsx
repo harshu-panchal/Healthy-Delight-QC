@@ -252,7 +252,7 @@ const SellerAccountSettings = () => {
             </div>
 
             {/* Status Card */}
-            <div className="mt-6 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl p-5 text-white shadow-lg">
+            <div className="mt-6 bg-gradient-to-br from-cream to-primary rounded-xl p-5 text-neutral-900 shadow-lg border border-primary/30">
               <div className="flex items-center justify-between mb-4">
                 <span className="text-xs font-semibold uppercase tracking-wider bg-white/20 px-2 py-0.5 rounded">
                   Account Status
@@ -264,7 +264,7 @@ const SellerAccountSettings = () => {
                 </div>
                 <div>
                   <p className="font-medium">{sellerData.sellerName}</p>
-                  <p className="text-xs text-indigo-100 uppercase">{sellerData.status || 'Active'}</p>
+                  <p className="text-xs text-neutral-700 uppercase">{sellerData.status || 'Active'}</p>
                 </div>
               </div>
             </div>
@@ -523,7 +523,7 @@ const SellerAccountSettings = () => {
                       <div className="space-y-10">
                         <section>
                           <div className="flex items-center gap-3 mb-6">
-                            <div className="p-2 bg-indigo-50 text-indigo-600 rounded-lg">
+                            <div className="p-2 bg-cream text-neutral-900 rounded-lg border border-primary/30">
                               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /></svg>
                             </div>
                             <h4 className="text-lg font-bold text-gray-900">Bank Details</h4>
@@ -538,7 +538,7 @@ const SellerAccountSettings = () => {
 
                         <section>
                           <div className="flex items-center gap-3 mb-6">
-                            <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
+                            <div className="p-2 bg-cream text-neutral-900 rounded-lg border border-primary/30">
                               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                             </div>
                             <h4 className="text-lg font-bold text-gray-900">Tax Information</h4>
@@ -568,7 +568,7 @@ const SellerAccountSettings = () => {
                       <button
                         type="submit"
                         disabled={saveLoading}
-                        className={`px-6 py-2.5 rounded-lg text-sm font-bold text-white bg-teal-600 hover:bg-teal-700 shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed ${saveLoading ? 'cursor-not-allowed' : ''}`}
+                        className={`px-6 py-2.5 rounded-lg text-sm font-bold text-neutral-900 bg-primary hover:bg-primary-dark shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed ${saveLoading ? 'cursor-not-allowed' : ''}`}
                       >
                         {saveLoading ? (
                           <span className="flex items-center gap-2">

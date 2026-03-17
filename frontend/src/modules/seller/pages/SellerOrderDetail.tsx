@@ -81,7 +81,7 @@ export default function SellerOrderDetail() {
           <p className="text-red-600 mb-4">{error}</p>
           <button
             onClick={() => navigate("/seller/orders")}
-            className="bg-primary border-primary text-neutral-900 hover:bg-neutral-900 text-white px-6 py-2 rounded-lg transition-colors">
+            className="bg-primary border-primary text-neutral-900 hover:bg-primary-dark px-6 py-2 rounded-lg transition-colors">
             Back to Orders
           </button>
         </div>
@@ -98,7 +98,7 @@ export default function SellerOrderDetail() {
           </h2>
           <button
             onClick={() => navigate("/seller/orders")}
-            className="bg-primary border-primary text-neutral-900 hover:bg-neutral-900 text-white px-6 py-2 rounded-lg transition-colors">
+            className="bg-primary border-primary text-neutral-900 hover:bg-primary-dark px-6 py-2 rounded-lg transition-colors">
             Back to Orders
           </button>
         </div>
@@ -153,10 +153,11 @@ export default function SellerOrderDetail() {
     };
 
     // Header - Company Info
-    doc.setFillColor(22, 163, 74); // Green color
+    // Primary (Tailwind): #FFC94A -> rgb(255, 201, 74)
+    doc.setFillColor(255, 201, 74);
     doc.rect(margin, yPos, contentWidth, 15, "F");
 
-    doc.setTextColor(255, 255, 255);
+    doc.setTextColor(0, 0, 0);
     doc.setFontSize(16);
     doc.setFont("helvetica", "bold");
     doc.text("Healthy Delight", margin + 5, yPos + 10);
@@ -356,7 +357,7 @@ export default function SellerOrderDetail() {
 
     doc.setFontSize(8);
     doc.text(
-      "Copyright © 2025. Developed By Healthy Delight",
+      "Copyright © 2026. Developed By Healthy Delight",
       pageWidth / 2,
       yPos,
       { align: "center" }
@@ -374,17 +375,17 @@ export default function SellerOrderDetail() {
   const getStatusBadgeClass = (status: string) => {
     switch (status) {
       case "Accepted":
-        return "bg-blue-100 text-blue-800 border border-blue-400";
+        return "bg-cream text-neutral-900 border border-primary/40";
       case "On the way":
         return "bg-purple-100 text-purple-800 border border-purple-400";
       case "Delivered":
-        return "bg-green-100 text-green-800 border border-green-400";
+        return "bg-cream text-neutral-900 border border-primary/40";
       case "Cancelled":
         return "bg-red-100 text-red-800 border border-red-400";
       case "Out For Delivery":
-        return "bg-blue-600 text-white border border-blue-700";
+        return "bg-primary text-neutral-900 border border-primary/50";
       case "Received":
-        return "bg-blue-50 text-blue-600 border border-blue-200";
+        return "bg-cream text-neutral-900 border border-primary/40";
       case "Payment Pending":
         return "bg-orange-50 text-orange-600 border border-orange-200";
       default:
@@ -426,7 +427,7 @@ export default function SellerOrderDetail() {
                 <div className="flex gap-3">
                   <button
                     onClick={() => handleStatusUpdate("Accepted")}
-                    className="flex-1 bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg transition-colors font-medium shadow-sm">
+                    className="flex-1 bg-primary hover:bg-primary-dark text-neutral-900 px-6 py-2 rounded-lg transition-colors font-medium shadow-sm">
                     Accept Order
                   </button>
                   <button
@@ -465,7 +466,7 @@ export default function SellerOrderDetail() {
             </div>
             <button
               onClick={handleExportPDF}
-              className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors text-sm font-medium">
+              className="flex items-center gap-2 bg-primary hover:bg-primary-dark text-neutral-900 px-4 py-2 rounded-lg transition-colors text-sm font-medium">
               <svg
                 width="16"
                 height="16"
@@ -483,7 +484,7 @@ export default function SellerOrderDetail() {
             </button>
             <button
               onClick={handlePrint}
-              className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors text-sm font-medium">
+              className="flex items-center gap-2 bg-primary hover:bg-primary-dark text-neutral-900 px-4 py-2 rounded-lg transition-colors text-sm font-medium">
               <svg
                 width="16"
                 height="16"
@@ -514,11 +515,11 @@ export default function SellerOrderDetail() {
             {/* Left: Company Info */}
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-2">
-                <div className="w-8 h-8 bg-green-600 rounded flex items-center justify-center">
-                  <span className="text-white text-xs font-bold">A</span>
+                <div className="w-8 h-8 bg-primary rounded flex items-center justify-center">
+                  <span className="text-neutral-900 text-xs font-bold">A</span>
                 </div>
                 <div>
-                  <div className="text-xs text-green-600 font-semibold">
+                  <div className="text-xs text-neutral-900 font-semibold">
                     Healthy Delight
                   </div>
                 </div>
@@ -647,7 +648,7 @@ export default function SellerOrderDetail() {
       {/* Footer */}
       <footer className="mt-6 px-4 sm:px-6 text-center py-4 bg-neutral-100 rounded-lg">
         <p className="text-xs sm:text-sm text-neutral-600">
-          Copyright © 2025. Developed By{" "}
+          Copyright © 2026. Developed By{" "}
           <span className="font-semibold text-primary">
             Healthy Delight
           </span>

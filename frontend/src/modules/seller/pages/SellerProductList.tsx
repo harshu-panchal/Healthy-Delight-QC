@@ -276,7 +276,7 @@ export default function SellerProductList() {
         <h1 className="text-2xl font-semibold text-neutral-800">
           Product List
         </h1>
-        <div className="text-sm text-blue-500">
+        <div className="text-sm text-primary-dark">
           <span className="cursor-pointer hover:underline">Home</span>{" "}
           <span className="text-neutral-400">/</span>{" "}
           <span className="text-neutral-600">Dashboard</span>
@@ -392,7 +392,7 @@ export default function SellerProductList() {
                 link.click();
                 document.body.removeChild(link);
               }}
-              className="bg-primary border-primary text-neutral-900 hover:bg-neutral-900 text-white px-3 py-1.5 rounded text-sm font-medium flex items-center gap-1 transition-colors">
+              className="bg-primary border-primary text-neutral-900 hover:bg-primary-dark px-3 py-1.5 rounded text-sm font-medium flex items-center gap-1 transition-colors">
               <svg
                 width="16"
                 height="16"
@@ -449,7 +449,7 @@ export default function SellerProductList() {
             <p>{error}</p>
             <button
               onClick={fetchProducts}
-              className="mt-4 px-4 py-2 bg-primary border-primary text-neutral-900 rounded hover:bg-neutral-900">
+              className="mt-4 px-4 py-2 bg-primary border-primary text-neutral-900 rounded hover:bg-primary-dark">
               Retry
             </button>
           </div>
@@ -561,7 +561,7 @@ export default function SellerProductList() {
                         {isFirstVariation && hasMultipleVariations && (
                           <button
                             onClick={() => toggleProduct(variation.productId)}
-                            className="text-blue-600 hover:text-blue-700">
+                            className="text-primary-dark hover:text-primary-dark">
                             <svg
                               width="16"
                               height="16"
@@ -630,7 +630,7 @@ export default function SellerProductList() {
                       <div className="flex items-center justify-center gap-2">
                         <button
                           onClick={() => handleEdit(variation.productId)}
-                          className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                          className="p-1.5 text-primary-dark hover:bg-cream rounded transition-colors"
                           title="Edit Product">
                           <svg
                             width="16"

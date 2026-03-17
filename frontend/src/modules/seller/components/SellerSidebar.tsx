@@ -23,7 +23,6 @@ const menuItems: MenuItem[] = [
   { label: "Dashboard", path: "/seller" },
   { label: "Orders", path: "/seller/orders" },
   { label: "Category", path: "/seller/category" },
-  { label: "SubCategory", path: "/seller/subcategory" },
   {
     label: "Product",
     path: "/seller/product",
@@ -284,7 +283,7 @@ export default function SellerSidebar({ onClose }: SellerSidebarProps) {
                           <button
                             onClick={() => handleNavigation(subItem.path)}
                             className={`w-full flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg text-left transition-colors ${subActive
-                              ? "bg-primary text-white"
+                              ? "bg-primary text-neutral-900"
                               : "text-neutral-400 hover:bg-neutral-800 hover:text-white"
                               }`}>
                             <span className="flex-shrink-0">

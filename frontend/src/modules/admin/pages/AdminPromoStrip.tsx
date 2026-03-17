@@ -294,8 +294,8 @@ export default function AdminPromoStrip() {
       <div className="p-6 pb-0">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-semibold text-neutral-800">Promo Strips</h1>
-          <div className="text-sm text-blue-500">
-            <span className="text-blue-500 hover:underline cursor-pointer">Home</span>{" "}
+          <div className="text-sm text-neutral-600">
+            <span className="text-primary-dark hover:underline cursor-pointer">Home</span>{" "}
             <span className="text-neutral-400">/</span> Promo Strips
           </div>
         </div>
@@ -305,7 +305,7 @@ export default function AdminPromoStrip() {
       {(success || error) && (
         <div className="px-6">
           {success && (
-            <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded mb-4">
+            <div className="bg-cream border border-primary/40 text-neutral-800 px-4 py-3 rounded mb-4">
               {success}
             </div>
           )}
@@ -553,7 +553,7 @@ export default function AdminPromoStrip() {
                 </div>
                 <div className="flex items-center gap-2">
                   <span className={`text-xs font-medium ${
-                    featuredProducts.length >= 4 ? 'text-green-600' : 'text-orange-600'
+                    featuredProducts.length >= 4 ? 'text-neutral-700' : 'text-orange-600'
                   }`}>
                     {featuredProducts.length} / 4 products selected
                   </span>
@@ -662,7 +662,7 @@ export default function AdminPromoStrip() {
                             <span
                               className={`px-2 py-1 rounded text-xs ${
                                 promoStrip.isActive
-                                  ? "bg-green-100 text-green-700"
+                                  ? "bg-cream text-neutral-800"
                                   : "bg-gray-100 text-gray-700"
                               }`}
                             >
@@ -673,7 +673,7 @@ export default function AdminPromoStrip() {
                             <div className="flex gap-2">
                               <button
                                 onClick={() => handleEdit(promoStrip)}
-                                className="text-blue-600 hover:text-blue-700"
+                                className="text-primary-dark hover:text-neutral-900"
                               >
                                 Edit
                               </button>

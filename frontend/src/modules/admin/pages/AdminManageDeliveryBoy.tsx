@@ -318,11 +318,11 @@ export default function AdminManageDeliveryBoy() {
 
                     {/* Success Message */}
                     {successMessage && (
-                        <div className="p-4 bg-green-50 border-l-4 border-green-500 text-green-700 flex items-center justify-between">
+                        <div className="p-4 bg-cream border-l-4 border-primary text-neutral-800 flex items-center justify-between">
                             <p className="text-sm">{successMessage}</p>
                             <button
                                 onClick={() => setSuccessMessage('')}
-                                className="text-green-700 hover:text-green-900 ml-4 text-lg font-bold"
+                                className="text-neutral-700 hover:text-neutral-900 ml-4 text-lg font-bold"
                                 type="button"
                             >
                                 ×
@@ -406,7 +406,7 @@ export default function AdminManageDeliveryBoy() {
 
                             <button
                                 onClick={handleExport}
-                                className="bg-primary border-primary text-neutral-900 hover:bg-neutral-900 text-white px-3 py-1.5 rounded text-sm font-medium flex items-center gap-1 transition-colors"
+                                className="bg-primary border-primary text-neutral-900 hover:bg-neutral-900 hover:text-white px-3 py-1.5 rounded text-sm font-medium flex items-center gap-1 transition-colors"
                             >
                                 Export
                                 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -545,7 +545,7 @@ export default function AdminManageDeliveryBoy() {
                                             <td className="p-4 align-middle">₹{deliveryBoy.cashCollected.toFixed(2)}</td>
                                             <td className="p-4 align-middle">
                                                 <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${deliveryBoy.status === 'Active'
-                                                    ? 'bg-green-100 text-green-800'
+                                                    ? 'bg-cream text-neutral-800'
                                                     : 'bg-red-100 text-red-800'
                                                     }`}>
                                                     {deliveryBoy.status}
@@ -553,7 +553,7 @@ export default function AdminManageDeliveryBoy() {
                                             </td>
                                             <td className="p-4 align-middle">
                                                 <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${deliveryBoy.available === 'Available'
-                                                    ? 'bg-green-100 text-green-800'
+                                                    ? 'bg-cream text-neutral-800'
                                                     : 'bg-red-100 text-red-800'
                                                     }`}>
                                                     {deliveryBoy.available}
@@ -566,7 +566,7 @@ export default function AdminManageDeliveryBoy() {
                                                         disabled={processing === deliveryBoy._id}
                                                         className={`p-1.5 rounded transition-colors ${deliveryBoy.status === 'Active'
                                                             ? 'text-red-600 hover:bg-red-50'
-                                                            : 'text-green-600 hover:bg-green-50'
+                                                            : 'text-neutral-700 hover:bg-cream'
                                                             }`}
                                                         title={deliveryBoy.status === 'Active' ? 'Deactivate' : 'Activate'}
                                                     >
@@ -586,7 +586,7 @@ export default function AdminManageDeliveryBoy() {
                                                         disabled={processing === deliveryBoy._id}
                                                         className={`p-1.5 rounded transition-colors ${deliveryBoy.available === 'Available'
                                                             ? 'text-yellow-600 hover:bg-yellow-50'
-                                                            : 'text-green-600 hover:bg-green-50'
+                                                            : 'text-neutral-700 hover:bg-cream'
                                                             }`}
                                                         title={deliveryBoy.available === 'Available' ? 'Mark as Not Available' : 'Mark as Available'}
                                                     >
@@ -706,7 +706,7 @@ export default function AdminManageDeliveryBoy() {
             {/* Footer */}
             <footer className="text-center py-4 text-sm text-neutral-600 border-t border-neutral-200 bg-white">
                 Copyright © 2025. Developed By{' '}
-                <a href="#" className="text-blue-600 hover:underline">Healthy Delight</a>
+                <a href="#" className="text-primary-dark hover:underline">Healthy Delight</a>
             </footer>
         </div>
     );

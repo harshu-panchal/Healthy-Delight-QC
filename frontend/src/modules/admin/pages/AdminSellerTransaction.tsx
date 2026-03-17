@@ -738,7 +738,7 @@ export default function AdminSellerTransaction() {
                     <td className="px-4 sm:px-6 py-3">
                       <span
                         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${transaction.flag === "credit"
-                          ? "bg-green-100 text-green-800"
+                          ? "bg-cream text-neutral-800"
                           : transaction.flag === "debit"
                             ? "bg-red-100 text-red-800"
                             : "bg-yellow-100 text-yellow-800"

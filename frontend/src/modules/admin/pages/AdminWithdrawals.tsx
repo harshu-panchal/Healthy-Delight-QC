@@ -109,7 +109,7 @@ export default function AdminWithdrawals() {
     if (loading) {
         return (
             <div className="flex items-center justify-center min-h-[400px]">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
             </div>
         );
     }
@@ -123,7 +123,7 @@ export default function AdminWithdrawals() {
                         key={status}
                         onClick={() => setFilter(status)}
                         className={`px-4 py-2 rounded-lg font-medium transition whitespace-nowrap ${filter === status
-                            ? 'bg-blue-600 text-white'
+                            ? 'bg-neutral-900 text-white'
                             : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
                             }`}
                     >
@@ -168,9 +168,9 @@ export default function AdminWithdrawals() {
                                     <p className="text-2xl font-bold text-gray-900">₹{withdrawal.amount?.toFixed(2)}</p>
                                     <span
                                         className={`inline-block px-3 py-1 rounded-full text-xs font-semibold mt-2 ${withdrawal.status === 'Completed'
-                                            ? 'bg-green-100 text-green-700'
+                                            ? 'bg-cream text-neutral-800'
                                             : withdrawal.status === 'Approved'
-                                                ? 'bg-blue-100 text-blue-700'
+                                                ? 'bg-neutral-100 text-neutral-800'
                                                 : withdrawal.status === 'Rejected'
                                                     ? 'bg-red-100 text-red-700'
                                                     : 'bg-yellow-100 text-yellow-700'
@@ -213,7 +213,7 @@ export default function AdminWithdrawals() {
                                     <button
                                         onClick={() => handleApprove(withdrawal._id || withdrawal.id)}
                                         disabled={isProcessing}
-                                        className="flex-1 bg-green-600 text-white py-2 rounded-lg font-medium hover:bg-green-700 transition disabled:opacity-50"
+                                        className="flex-1 bg-neutral-900 text-white py-2 rounded-lg font-medium hover:bg-neutral-800 transition disabled:opacity-50"
                                     >
                                         Approve
                                     </button>
@@ -235,7 +235,7 @@ export default function AdminWithdrawals() {
                                             setShowCompleteModal(true);
                                         }}
                                         disabled={isProcessing}
-                                        className="w-full bg-blue-600 text-white py-2 rounded-lg font-medium hover:bg-blue-700 transition disabled:opacity-50"
+                                        className="w-full bg-neutral-900 text-white py-2 rounded-lg font-medium hover:bg-neutral-800 transition disabled:opacity-50"
                                     >
                                         Mark as Completed
                                     </button>
@@ -263,7 +263,7 @@ export default function AdminWithdrawals() {
                                 type="text"
                                 value={transactionRef}
                                 onChange={(e) => setTransactionRef(e.target.value)}
-                                className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
+                                className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary outline-none"
                                 placeholder="e.g. UPI Ref No. or Bank TRN ID"
                                 autoFocus
                             />
@@ -282,7 +282,7 @@ export default function AdminWithdrawals() {
                             </button>
                             <button
                                 onClick={handleComplete}
-                                className="flex-1 bg-blue-600 text-white rounded-lg py-2 font-medium hover:bg-blue-700 disabled:opacity-50"
+                                className="flex-1 bg-neutral-900 text-white rounded-lg py-2 font-medium hover:bg-neutral-800 disabled:opacity-50"
                                 disabled={isProcessing}
                             >
                                 {isProcessing ? 'Processing...' : 'Complete Transfer'}

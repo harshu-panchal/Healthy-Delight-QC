@@ -386,11 +386,11 @@ export default function AdminManageSellerList() {
                     )}
                     {/* Success Message */}
                     {successMessage && (
-                        <div className="p-4 bg-green-50 border-l-4 border-green-500 text-green-700 flex items-center justify-between">
+                        <div className="p-4 bg-cream border-l-4 border-primary text-neutral-800 flex items-center justify-between">
                             <p className="text-sm">{successMessage}</p>
                             <button
                                 onClick={() => setSuccessMessage('')}
-                                className="text-green-700 hover:text-green-900 ml-4 text-lg font-bold"
+                                className="text-neutral-700 hover:text-neutral-900 ml-4 text-lg font-bold"
                                 type="button"
                             >
                                 ×
@@ -426,7 +426,7 @@ export default function AdminManageSellerList() {
                         <div className="flex items-center gap-2">
                             <button
                                 onClick={handleExport}
-                                className="bg-primary border-primary text-neutral-900 hover:bg-neutral-900 text-white px-3 py-1.5 rounded text-sm font-medium flex items-center gap-1 transition-colors"
+                                className="bg-primary border-primary text-neutral-900 hover:bg-neutral-900 hover:text-white px-3 py-1.5 rounded text-sm font-medium flex items-center gap-1 transition-colors"
                             >
                                 Export
                                 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -562,7 +562,7 @@ export default function AdminManageSellerList() {
                                             </td>
                                             <td className="p-4 align-middle">
                                                 <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${seller.status === 'Approved'
-                                                        ? 'bg-green-100 text-green-800'
+                                                        ? 'bg-cream text-neutral-800'
                                                         : seller.status === 'Pending'
                                                             ? 'bg-yellow-100 text-yellow-800'
                                                             : 'bg-red-100 text-red-800'
@@ -687,7 +687,7 @@ export default function AdminManageSellerList() {
             {/* Footer */}
             <footer className="text-center py-4 text-sm text-neutral-600 border-t border-neutral-200 bg-white">
                 Copyright © 2025. Developed By{' '}
-                <a href="#" className="text-blue-600 hover:underline">Healthy Delight</a>
+                <a href="#" className="text-primary-dark hover:underline">Healthy Delight</a>
             </footer>
 
             {/* Categories Modal */}
@@ -784,7 +784,7 @@ export default function AdminManageSellerList() {
                                 <div className="flex items-center justify-between">
                                     <div>
                                         <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${editingSeller.status === 'Approved'
-                                                ? 'bg-green-100 text-green-800'
+                                                ? 'bg-cream text-neutral-800'
                                                 : editingSeller.status === 'Pending'
                                                     ? 'bg-yellow-100 text-yellow-800'
                                                     : 'bg-red-100 text-red-800'
@@ -796,7 +796,7 @@ export default function AdminManageSellerList() {
                                         <div className="flex gap-2">
                                             <button
                                                 onClick={() => handleApprove(editingSeller._id)}
-                                                className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded text-sm font-medium transition-colors flex items-center gap-2"
+                                                className="px-4 py-2 bg-neutral-900 hover:bg-neutral-800 text-white rounded text-sm font-medium transition-colors flex items-center gap-2"
                                             >
                                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                                     <polyline points="20 6 9 17 4 12"></polyline>

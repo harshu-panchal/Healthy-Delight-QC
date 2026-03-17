@@ -243,7 +243,7 @@ export default function AdminPendingOrders() {
       case "Payment Pending":
         return "bg-yellow-100 text-yellow-800";
       case "Received":
-        return "bg-blue-100 text-blue-800";
+        return "bg-neutral-100 text-neutral-800";
       case "Processed":
         return "bg-purple-100 text-purple-800";
       case "Shipped":
@@ -251,7 +251,7 @@ export default function AdminPendingOrders() {
       case "Out For Delivery":
         return "bg-orange-100 text-orange-800";
       case "Delivered":
-        return "bg-green-100 text-green-800";
+        return "bg-cream text-neutral-800";
       case "Cancelled":
         return "bg-red-100 text-red-800";
       default:
@@ -262,7 +262,7 @@ export default function AdminPendingOrders() {
   const getDeliveryBoyStatusColor = (status: string) => {
     switch (status) {
       case "Assigned":
-        return "bg-green-100 text-green-800";
+        return "bg-cream text-neutral-800";
       case "Not Assigned":
         return "bg-red-100 text-red-800";
       default:
@@ -282,7 +282,7 @@ export default function AdminPendingOrders() {
 
           {/* Breadcrumb */}
           <div className="flex items-center gap-2 text-xs sm:text-sm">
-            <Link to="/admin" className="text-blue-600 hover:text-blue-700">
+            <Link to="/admin" className="text-primary-dark hover:text-neutral-900">
               Dashboard
             </Link>
             <span className="text-neutral-500">/</span>
@@ -295,8 +295,8 @@ export default function AdminPendingOrders() {
       <div className="px-3 sm:px-4 md:px-6">
         {/* White Card Container */}
         <div className="bg-white rounded-lg shadow-sm border border-neutral-200 overflow-hidden">
-          {/* Green Banner */}
-          <div className="bg-green-600 text-white px-4 sm:px-6 py-2 sm:py-3">
+          {/* Banner */}
+          <div className="bg-primary text-neutral-900 px-4 sm:px-6 py-2 sm:py-3">
             <h2 className="text-base sm:text-lg font-semibold">
               View Order List
             </h2>
@@ -357,7 +357,7 @@ export default function AdminPendingOrders() {
                     setSeller(e.target.value);
                     setCurrentPage(1);
                   }}
-                  className="w-full sm:w-auto px-3 py-2 border border-neutral-300 rounded text-xs sm:text-sm text-neutral-900 bg-white focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500">
+                  className="w-full sm:w-auto px-3 py-2 border border-neutral-300 rounded text-xs sm:text-sm text-neutral-900 bg-white focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary">
                   <option>All Sellers</option>
                   <option>Seller 1</option>
                   <option>Seller 2</option>
@@ -376,7 +376,7 @@ export default function AdminPendingOrders() {
                     setStatus(e.target.value);
                     setCurrentPage(1);
                   }}
-                  className="w-full sm:w-auto px-3 py-2 border border-neutral-300 rounded text-xs sm:text-sm text-neutral-900 bg-white focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500">
+                  className="w-full sm:w-auto px-3 py-2 border border-neutral-300 rounded text-xs sm:text-sm text-neutral-900 bg-white focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary">
                   <option>Pending</option>
                   <option>Received</option>
                   <option>Processed</option>
@@ -396,7 +396,7 @@ export default function AdminPendingOrders() {
                     setEntriesPerPage(e.target.value);
                     setCurrentPage(1);
                   }}
-                  className="w-full sm:w-auto px-3 py-2 border border-neutral-300 rounded text-xs sm:text-sm text-neutral-900 bg-white focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500">
+                  className="w-full sm:w-auto px-3 py-2 border border-neutral-300 rounded text-xs sm:text-sm text-neutral-900 bg-white focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary">
                   <option>10</option>
                   <option>25</option>
                   <option>50</option>
@@ -409,7 +409,7 @@ export default function AdminPendingOrders() {
                 <div className="relative">
                   <button
                     onClick={handleExport}
-                    className="flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white px-3 sm:px-4 py-2 rounded text-xs sm:text-sm font-medium transition-colors w-full sm:w-auto">
+                    className="flex items-center justify-center gap-2 bg-primary hover:bg-primary-dark text-neutral-900 px-3 sm:px-4 py-2 rounded text-xs sm:text-sm font-medium transition-colors w-full sm:w-auto">
                     <svg
                       width="16"
                       height="16"
@@ -456,7 +456,7 @@ export default function AdminPendingOrders() {
                     setSearchQuery(e.target.value);
                     setCurrentPage(1);
                   }}
-                  className="flex-1 w-full sm:w-auto px-3 py-2 border border-neutral-300 rounded text-xs sm:text-sm text-neutral-900 bg-white focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500"
+                  className="flex-1 w-full sm:w-auto px-3 py-2 border border-neutral-300 rounded text-xs sm:text-sm text-neutral-900 bg-white focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
                   placeholder="Search by Order ID, Customer, or Amount"
                 />
               </div>
@@ -817,8 +817,8 @@ export default function AdminPendingOrders() {
                             }}
                             className={`px-2 py-1.5 text-xs font-medium rounded transition-colors ${
                               order.deliveryBoyStatus === "Assigned"
-                                ? "bg-green-100 text-green-700 hover:bg-green-200"
-                                : "bg-blue-600 text-white hover:bg-blue-700"
+                                ? "bg-cream text-neutral-800 hover:bg-primary/40"
+                                : "bg-neutral-900 text-white hover:bg-neutral-800"
                             }`}
                             title={
                               order.deliveryBoyStatus === "Assigned"
@@ -831,7 +831,7 @@ export default function AdminPendingOrders() {
                           </button>
                           <Link to={`/admin/orders/${order._id}`}>
                             <button
-                              className="bg-primary border-primary text-neutral-900 hover:bg-neutral-900 text-white p-2 rounded transition-colors"
+                              className="bg-primary border-primary text-neutral-900 hover:bg-neutral-900 hover:text-white p-2 rounded transition-colors"
                               aria-label="View order">
                               <svg
                                 width="16"
@@ -923,8 +923,8 @@ export default function AdminPendingOrders() {
 
       {/* Footer */}
       <div className="text-center py-4 text-xs sm:text-sm text-neutral-600">
-        Copyright © 2025. Developed By{" "}
-        <Link to="/" className="text-blue-600 hover:text-blue-700">
+        Copyright © 2026. Developed By{" "}
+        <Link to="/" className="text-primary-dark hover:text-neutral-900">
           Healthy Delight
         </Link>
       </div>

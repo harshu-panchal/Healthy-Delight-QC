@@ -271,7 +271,7 @@ export default function AdminCoupon() {
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
           <h1 className="text-2xl font-semibold text-neutral-800">Coupon</h1>
           <div className="text-sm">
-            <span className="text-blue-600 hover:underline cursor-pointer">
+            <span className="text-primary-dark hover:underline cursor-pointer">
               Home
             </span>
             <span className="text-neutral-400 mx-1">/</span>
@@ -416,7 +416,7 @@ export default function AdminCoupon() {
                   <button
                     type="button"
                     onClick={generateCouponCode}
-                    className="p-2 bg-green-600 hover:bg-green-700 text-white rounded-full transition-colors"
+                    className="p-2 bg-neutral-900 hover:bg-neutral-800 text-white rounded-full transition-colors"
                     title="Generate Code">
                     <svg
                       width="16"
@@ -542,7 +542,7 @@ export default function AdminCoupon() {
               className={`w-full px-6 py-3 rounded font-medium transition-colors ${
                 uploading
                   ? "bg-neutral-400 cursor-not-allowed text-white"
-                  : "bg-green-600 hover:bg-green-700 text-white"
+                  : "bg-neutral-900 hover:bg-neutral-800 text-white"
               }`}>
               {uploading ? "Creating Coupon..." : "Add Coupon"}
             </button>
@@ -777,7 +777,7 @@ export default function AdminCoupon() {
       {/* Footer */}
       <footer className="text-center py-4 text-sm text-neutral-600 border-t border-neutral-200 bg-white">
         Copyright © 2025. Developed By{" "}
-        <a href="#" className="text-blue-600 hover:underline">
+        <a href="#" className="text-primary-dark hover:underline">
           Healthy Delight
         </a>
       </footer>

@@ -960,7 +960,7 @@ export default function SellerAddProduct() {
                   <button
                     type="button"
                     onClick={addVariation}
-                    className="w-full px-4 py-2 bg-primary border-primary text-neutral-900 hover:bg-neutral-900 text-white rounded-lg font-medium">
+                    className="w-full px-4 py-2 bg-primary border-primary text-neutral-900 hover:bg-primary-dark rounded-lg font-medium">
                     Add Variation
                   </button>
                 </div>
@@ -981,7 +981,7 @@ export default function SellerAddProduct() {
                           <span className="font-medium">{variation.title}</span>{" "}
                           - ₹{variation.price}
                           {variation.discPrice > 0 && (
-                            <span className="text-green-600 ml-2">
+                            <span className="text-neutral-900 ml-2">
                               (₹{variation.discPrice})
                             </span>
                           )}
@@ -1128,7 +1128,7 @@ export default function SellerAddProduct() {
                 </div>
               )}
               {successMessage && (
-                <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg">
+                <div className="bg-cream border border-primary/40 text-neutral-900 px-4 py-3 rounded-lg">
                   {successMessage}
                 </div>
               )}
@@ -1274,8 +1274,8 @@ export default function SellerAddProduct() {
               <h2 className="text-lg font-semibold">Shop by Store</h2>
             </div>
             <div className="p-4 sm:p-6 space-y-4">
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <p className="text-sm text-blue-800">
+              <div className="bg-cream border border-primary/40 rounded-lg p-4">
+                <p className="text-sm text-neutral-900">
                   <strong>Note:</strong> If you select "Show in Shop by Store
                   only", this product will only be visible in the Shop by Store
                   section and will not appear on category pages, home page, or
@@ -1334,7 +1334,7 @@ export default function SellerAddProduct() {
               className={`px-8 py-3 rounded-lg font-medium text-lg transition-colors shadow-sm ${
                 uploading
                   ? "bg-neutral-400 cursor-not-allowed text-white"
-                  : "bg-primary border-primary text-neutral-900 hover:bg-neutral-900 text-white"
+                  : "bg-primary border-primary text-neutral-900 hover:bg-primary-dark"
               }`}>
               {uploading ? "Uploading Images..." : "Add Product"}
             </button>

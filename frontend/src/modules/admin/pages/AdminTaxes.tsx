@@ -278,7 +278,7 @@ export default function AdminTaxes() {
                 <button
                   onClick={handleAddTax}
                   disabled={submitting}
-                  className="w-full bg-primary border-primary text-neutral-900 hover:bg-neutral-900 disabled:bg-neutral-400 disabled:cursor-not-allowed text-white px-4 py-2 rounded font-medium transition-colors flex items-center justify-center">
+                  className="w-full bg-primary border-primary text-neutral-900 hover:bg-neutral-900 hover:text-white disabled:bg-neutral-400 disabled:cursor-not-allowed px-4 py-2 rounded font-medium transition-colors flex items-center justify-center">
                   {submitting ? (
                     <>
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
@@ -332,7 +332,7 @@ export default function AdminTaxes() {
                 <div className="relative">
                   <button
                     onClick={handleExport}
-                    className="bg-primary border-primary text-neutral-900 hover:bg-neutral-900 text-white px-3 py-1.5 rounded text-sm font-medium flex items-center gap-1 transition-colors">
+                    className="bg-primary border-primary text-neutral-900 hover:bg-neutral-900 hover:text-white px-3 py-1.5 rounded text-sm font-medium flex items-center gap-1 transition-colors">
                     Export
                     <svg
                       width="10"
@@ -443,7 +443,7 @@ export default function AdminTaxes() {
                         <td className="p-4 align-middle border border-neutral-200">
                           <span
                             className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${tax.status === "Active"
-                                ? "bg-green-100 text-green-800"
+                                ? "bg-cream text-neutral-800"
                                 : "bg-red-100 text-red-800"
                               }`}>
                             {tax.status}
@@ -574,8 +574,8 @@ export default function AdminTaxes() {
 
       {/* Footer */}
       <footer className="text-center py-4 text-sm text-neutral-600 border-t border-neutral-200 bg-white">
-        Copyright © 2025. Developed By{" "}
-        <a href="#" className="text-blue-600 hover:underline">
+        Copyright © 2026. Developed By{" "}
+        <a href="#" className="text-primary-dark hover:underline">
           Healthy Delight
         </a>
       </footer>

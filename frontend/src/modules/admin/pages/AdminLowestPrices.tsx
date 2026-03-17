@@ -189,8 +189,8 @@ export default function AdminLowestPrices() {
                     <h1 className="text-2xl font-semibold text-neutral-800">
                         Lowest Prices Ever Products
                     </h1>
-                    <div className="text-sm text-blue-500">
-                        <span className="text-blue-500 hover:underline cursor-pointer">
+                    <div className="text-sm text-neutral-600">
+                        <span className="text-primary-dark hover:underline cursor-pointer">
                             Home
                         </span>{" "}
                         <span className="text-neutral-400">/</span> Lowest Prices Products
@@ -202,7 +202,7 @@ export default function AdminLowestPrices() {
             {(success || error) && (
                 <div className="px-6">
                     {success && (
-                        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded mb-4">
+                        <div className="bg-cream border border-primary/40 text-neutral-800 px-4 py-3 rounded mb-4">
                             {success}
                         </div>
                     )}
@@ -433,7 +433,7 @@ export default function AdminLowestPrices() {
                                                         <span
                                                             className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                                                                 item.isActive
-                                                                    ? "bg-green-100 text-green-800"
+                                                                            ? "bg-cream text-neutral-800"
                                                                     : "bg-gray-100 text-gray-800"
                                                             }`}
                                                         >
@@ -444,7 +444,7 @@ export default function AdminLowestPrices() {
                                                         <div className="flex items-center gap-2">
                                                             <button
                                                                 onClick={() => handleEdit(item)}
-                                                                className="p-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors"
+                                                                className="p-1.5 bg-neutral-900 hover:bg-neutral-800 text-white rounded transition-colors"
                                                                 title="Edit"
                                                             >
                                                                 <svg

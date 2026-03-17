@@ -304,8 +304,8 @@ export default function AdminSystemUser() {
       <div className="p-6 pb-0">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-semibold text-neutral-800">System User</h1>
-          <div className="text-sm text-blue-500">
-            <span className="text-blue-500 hover:underline cursor-pointer">Home</span>{' '}
+          <div className="text-sm text-neutral-600">
+            <span className="text-primary-dark hover:underline cursor-pointer">Home</span>{' '}
             <span className="text-neutral-400">/</span> Dashboard
           </div>
         </div>
@@ -336,11 +336,11 @@ export default function AdminSystemUser() {
             
             {/* Success Message */}
             {successMessage && (
-              <div className="p-4 bg-green-50 border-l-4 border-green-500 text-green-700 flex items-center justify-between">
+              <div className="p-4 bg-cream border-l-4 border-primary text-neutral-800 flex items-center justify-between">
                 <p className="text-sm">{successMessage}</p>
                 <button
                   onClick={() => setSuccessMessage('')}
-                  className="text-green-700 hover:text-green-900 ml-4 text-lg font-bold"
+                  className="text-neutral-700 hover:text-neutral-900 ml-4 text-lg font-bold"
                   type="button"
                 >
                   ×
@@ -470,7 +470,7 @@ export default function AdminSystemUser() {
                     <button
                       onClick={handleAddSystemUser}
                       disabled={loading}
-                      className="flex-1 bg-primary border-primary text-neutral-900 hover:bg-neutral-900 disabled:opacity-50 disabled:cursor-not-allowed text-white py-2.5 rounded text-sm font-medium transition-colors"
+                      className="flex-1 bg-primary border-primary text-neutral-900 hover:bg-neutral-900 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed py-2.5 rounded text-sm font-medium transition-colors"
                     >
                       {loading ? 'Updating...' : 'Update System User'}
                     </button>
@@ -486,7 +486,7 @@ export default function AdminSystemUser() {
                   <button
                     onClick={handleAddSystemUser}
                     disabled={loading}
-                    className="w-full bg-primary border-primary text-neutral-900 hover:bg-neutral-900 disabled:opacity-50 disabled:cursor-not-allowed text-white py-2.5 rounded text-sm font-medium transition-colors"
+                    className="w-full bg-primary border-primary text-neutral-900 hover:bg-neutral-900 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed py-2.5 rounded text-sm font-medium transition-colors"
                   >
                     {loading ? 'Adding...' : 'Add System User'}
                   </button>
@@ -620,7 +620,7 @@ export default function AdminSystemUser() {
                                 <button
                                   onClick={() => handleEdit(user.id)}
                                   disabled={loading}
-                                  className="p-1.5 bg-green-500 hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded transition-colors"
+                                  className="p-1.5 bg-primary hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed text-neutral-900 rounded transition-colors"
                                   title="Edit"
                                 >
                                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

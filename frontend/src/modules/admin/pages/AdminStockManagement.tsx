@@ -458,7 +458,7 @@ export default function AdminStockManagement() {
               <div className="flex items-center gap-2">
                 <button
                   onClick={handleExport}
-                  className="bg-primary border-primary text-neutral-900 hover:bg-neutral-900 text-white px-3 py-1.5 rounded text-sm font-medium flex items-center gap-1 transition-colors">
+                  className="bg-primary border-primary text-neutral-900 hover:bg-neutral-900 hover:text-white px-3 py-1.5 rounded text-sm font-medium flex items-center gap-1 transition-colors">
                   Export
                   <svg
                     width="10"
@@ -625,7 +625,7 @@ export default function AdminStockManagement() {
                         <div className="flex items-center gap-2">
                           <button
                             onClick={() => handleEdit(product.productId)}
-                            className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                            className="p-1 text-neutral-700 hover:bg-cream rounded"
                             title="Edit">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                               <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
@@ -718,8 +718,8 @@ export default function AdminStockManagement() {
 
       {/* Footer */}
       <footer className="text-center py-4 text-sm text-neutral-600 border-t border-neutral-200 bg-white">
-        Copyright © 2025. Developed By{" "}
-        <a href="#" className="text-blue-600 hover:underline">
+        Copyright © 2026. Developed By{" "}
+        <a href="#" className="text-primary-dark hover:underline">
           Healthy Delight
         </a>
       </footer>

@@ -61,7 +61,7 @@ Last updated: December 2025`);
             <h1 className="text-xl sm:text-2xl font-bold text-neutral-900">Customer App Policy</h1>
           </div>
           <div className="text-sm text-neutral-600">
-            <span className="text-blue-600">Home</span> / <span className="text-neutral-900">Customer App Policy</span>
+            <span className="text-primary-dark">Home</span> / <span className="text-neutral-900">Customer App Policy</span>
           </div>
         </div>
       </div>

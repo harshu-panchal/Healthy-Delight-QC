@@ -42,6 +42,7 @@ const FAQ = lazy(() => import("./modules/user/FAQ"));
 const Wishlist = lazy(() => import("./modules/user/Wishlist"));
 const Addresses = lazy(() => import("./modules/user/Addresses"));
 const AddressBook = lazy(() => import("./modules/user/AddressBook"));
+const Subscription = lazy(() => import("./modules/user/Subscription"));
 const SpiritualStore = lazy(() => import("./modules/user/SpiritualStore"));
 const PharmaStore = lazy(() => import("./modules/user/PharmaStore"));
 const EGiftStore = lazy(() => import("./modules/user/EGiftStore"));
@@ -122,9 +123,6 @@ const SellerOrderDetail = lazy(
 );
 const SellerCategory = lazy(
   () => import("./modules/seller/pages/SellerCategory"),
-);
-const SellerSubCategory = lazy(
-  () => import("./modules/seller/pages/SellerSubCategory"),
 );
 const SellerAddProduct = lazy(
   () => import("./modules/seller/pages/SellerAddProduct"),
@@ -211,15 +209,6 @@ const AdminUsers = lazy(() => import("./modules/admin/pages/AdminUsers"));
 const AdminFAQ = lazy(() => import("./modules/admin/pages/AdminFAQ"));
 const AdminHomeSection = lazy(
   () => import("./modules/admin/pages/AdminHomeSection"),
-);
-const AdminBestsellerCards = lazy(
-  () => import("./modules/admin/pages/AdminBestsellerCards"),
-);
-const AdminPromoStrip = lazy(
-  () => import("./modules/admin/pages/AdminPromoStrip"),
-);
-const AdminLowestPrices = lazy(
-  () => import("./modules/admin/pages/AdminLowestPrices"),
 );
 const AdminShopByStore = lazy(
   () => import("./modules/admin/pages/AdminShopByStore"),
@@ -479,10 +468,6 @@ function AppContent() {
                                       element={<SellerCategory />}
                                     />
                                     <Route
-                                      path="subcategory"
-                                      element={<SellerSubCategory />}
-                                    />
-                                    <Route
                                       path="product/add"
                                       element={<SellerAddProduct />}
                                     />
@@ -668,18 +653,6 @@ function AppContent() {
                                       element={<AdminHomeSection />}
                                     />
                                     <Route
-                                      path="bestseller-cards"
-                                      element={<AdminBestsellerCards />}
-                                    />
-                                    <Route
-                                      path="promo-strip"
-                                      element={<AdminPromoStrip />}
-                                    />
-                                    <Route
-                                      path="lowest-prices"
-                                      element={<AdminLowestPrices />}
-                                    />
-                                    <Route
                                       path="shop-by-store"
                                       element={<AdminShopByStore />}
                                     />
@@ -774,6 +747,10 @@ function AppContent() {
                                   <Route
                                     path="/categories"
                                     element={<Categories />}
+                                  />
+                                  <Route
+                                    path="/subscription"
+                                    element={<Subscription />}
                                   />
                                   <Route
                                     path="/category/:id"

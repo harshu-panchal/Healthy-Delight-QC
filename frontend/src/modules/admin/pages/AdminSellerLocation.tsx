@@ -92,7 +92,7 @@ export default function AdminSellerLocation() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "Approved":
-        return "bg-green-100 text-green-800";
+        return "bg-cream text-neutral-800";
       case "Pending":
         return "bg-yellow-100 text-yellow-800";
       case "Rejected":

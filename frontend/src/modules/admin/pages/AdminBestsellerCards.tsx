@@ -194,8 +194,8 @@ export default function AdminBestsellerCards() {
                     <h1 className="text-2xl font-semibold text-neutral-800">
                         Bestseller Cards
                     </h1>
-                    <div className="text-sm text-blue-500">
-                        <span className="text-blue-500 hover:underline cursor-pointer">
+                    <div className="text-sm text-neutral-600">
+                        <span className="text-primary-dark hover:underline cursor-pointer">
                             Home
                         </span>{" "}
                         <span className="text-neutral-400">/</span> Bestseller Cards
@@ -207,7 +207,7 @@ export default function AdminBestsellerCards() {
             {(success || error) && (
                 <div className="px-6">
                     {success && (
-                        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded mb-4">
+                        <div className="bg-cream border border-primary/40 text-neutral-800 px-4 py-3 rounded mb-4">
                             {success}
                         </div>
                     )}
@@ -221,7 +221,7 @@ export default function AdminBestsellerCards() {
 
             {/* Max Cards Info */}
             <div className="px-6 mb-4">
-                <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-2 rounded text-sm">
+                <div className="bg-cream border border-primary/30 text-neutral-800 px-4 py-2 rounded text-sm">
                     Active cards: {activeCardsCount} / {MAX_ACTIVE_CARDS} (Maximum {MAX_ACTIVE_CARDS} active cards allowed)
                 </div>
             </div>
@@ -407,7 +407,7 @@ export default function AdminBestsellerCards() {
                                                     <span
                                                         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                                                             card.isActive
-                                                                ? "bg-green-100 text-green-800"
+                                                                ? "bg-cream text-neutral-800"
                                                                 : "bg-gray-100 text-gray-800"
                                                         }`}
                                                     >
@@ -418,7 +418,7 @@ export default function AdminBestsellerCards() {
                                                     <div className="flex items-center gap-2">
                                                         <button
                                                             onClick={() => handleEdit(card)}
-                                                            className="p-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors"
+                                                            className="p-1.5 bg-neutral-900 hover:bg-neutral-800 text-white rounded transition-colors"
                                                             title="Edit"
                                                         >
                                                             <svg

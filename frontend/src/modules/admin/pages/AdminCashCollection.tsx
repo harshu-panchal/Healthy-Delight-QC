@@ -172,7 +172,7 @@ export default function AdminCashCollection() {
         <h1 className="text-white text-xl sm:text-2xl font-semibold">
           Delivery Boy Cash Collection List
         </h1>
-        <button className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded text-sm font-medium flex items-center gap-2 transition-colors">
+        <button className="bg-neutral-900 hover:bg-neutral-800 text-white px-4 py-2 rounded text-sm font-medium flex items-center gap-2 transition-colors">
           <svg
             width="16"
             height="16"
@@ -337,7 +337,7 @@ export default function AdminCashCollection() {
               {/* Export Button */}
               <button
                 onClick={handleExport}
-                className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded text-sm font-medium flex items-center gap-2 transition-colors">
+                className="bg-neutral-900 hover:bg-neutral-800 text-white px-4 py-2 rounded text-sm font-medium flex items-center gap-2 transition-colors">
                 <svg
                   width="16"
                   height="16"
@@ -640,7 +640,7 @@ export default function AdminCashCollection() {
       {/* Footer */}
       <div className="bg-neutral-800 text-white text-center text-sm py-4">
         Copyright © 2025. Developed By{" "}
-        <a href="#" className="text-blue-400 hover:text-blue-300">
+        <a href="#" className="text-primary hover:text-primary-dark">
           Healthy Delight
         </a>
       </div>

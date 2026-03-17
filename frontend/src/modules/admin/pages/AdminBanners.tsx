@@ -88,7 +88,7 @@ export default function AdminBanners() {
         </div>
         <button
           onClick={handleCreate}
-          className="flex items-center justify-center gap-2 px-6 py-3 bg-green-600 text-white font-bold rounded-xl hover:bg-green-700 shadow-lg shadow-green-100 transition-all active:scale-95"
+          className="flex items-center justify-center gap-2 px-6 py-3 bg-neutral-900 text-white font-bold rounded-xl hover:bg-neutral-800 shadow-lg shadow-black/5 transition-all active:scale-95"
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
             <path d="M12 5v14M5 12h14" />
@@ -99,7 +99,7 @@ export default function AdminBanners() {
 
       {loading ? (
         <div className="flex items-center justify-center min-h-[400px]">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-600"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
         </div>
       ) : error ? (
         <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-xl text-center">
@@ -117,7 +117,7 @@ export default function AdminBanners() {
           <p className="text-gray-500 mb-6">Create your first banner to show on the homepage</p>
           <button
             onClick={handleCreate}
-            className="px-6 py-2.5 bg-green-600 text-white font-bold rounded-xl hover:bg-green-700 transition-all"
+            className="px-6 py-2.5 bg-neutral-900 text-white font-bold rounded-xl hover:bg-neutral-800 transition-all"
           >
             Create Banner
           </button>
@@ -142,7 +142,7 @@ export default function AdminBanners() {
                 <div className="absolute top-3 right-3 flex gap-2">
                   <button
                     onClick={() => handleEdit(banner)}
-                    className="p-2 bg-white/90 hover:bg-white text-gray-700 rounded-lg shadow-sm transition-all hover:text-green-600"
+                    className="p-2 bg-white/90 hover:bg-white text-gray-700 rounded-lg shadow-sm transition-all hover:text-primary-dark"
                   >
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />

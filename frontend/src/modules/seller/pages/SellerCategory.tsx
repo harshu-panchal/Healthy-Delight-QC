@@ -45,7 +45,7 @@ export default function SellerCategory() {
             {/* Page Header */}
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-2xl font-semibold text-neutral-800">Category</h1>
-                <div className="text-sm text-blue-500">
+                <div className="text-sm text-primary-dark">
                     <span className="cursor-pointer hover:underline">Home</span> <span className="text-neutral-400">/</span> <span className="text-neutral-600">Dashboard</span>
                 </div>
             </div>

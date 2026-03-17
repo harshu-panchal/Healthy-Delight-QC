@@ -233,12 +233,12 @@ export default function AdminFAQ() {
       <div className="p-6 pb-0">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-semibold text-neutral-800">FAQ</h1>
-          <div className="text-sm text-blue-500">
-            <span className="text-blue-500 hover:underline cursor-pointer">
+          <div className="text-sm text-neutral-600">
+            <span className="text-primary-dark hover:underline cursor-pointer">
               Home
             </span>{" "}
             <span className="text-neutral-400">/</span>{" "}
-            <span className="text-blue-500 hover:underline cursor-pointer">
+            <span className="text-primary-dark hover:underline cursor-pointer">
               Dashboard
             </span>
           </div>
@@ -284,7 +284,7 @@ export default function AdminFAQ() {
                 <button
                   onClick={handleAddFAQ}
                   disabled={submitting}
-                  className="w-full bg-primary border-primary text-neutral-900 hover:bg-neutral-900 disabled:bg-neutral-400 disabled:cursor-not-allowed text-white px-4 py-2 rounded font-medium transition-colors flex items-center justify-center">
+                  className="w-full bg-primary border-primary text-neutral-900 hover:bg-neutral-900 hover:text-white disabled:bg-neutral-400 disabled:cursor-not-allowed px-4 py-2 rounded font-medium transition-colors flex items-center justify-center">
                   {submitting ? (
                     <>
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
@@ -442,7 +442,7 @@ export default function AdminFAQ() {
                             <button
                               onClick={() => handleEdit(faq)}
                               disabled={submitting}
-                              className="p-1.5 bg-green-600 hover:bg-green-700 disabled:bg-neutral-400 disabled:cursor-not-allowed text-white rounded transition-colors"
+                              className="p-1.5 bg-neutral-900 hover:bg-neutral-800 disabled:bg-neutral-400 disabled:cursor-not-allowed text-white rounded transition-colors"
                               title="Edit">
                               <svg
                                 width="14"
@@ -554,7 +554,7 @@ export default function AdminFAQ() {
       {/* Footer */}
       <footer className="text-center py-4 text-sm text-neutral-600 border-t border-neutral-200 bg-white">
         Copyright © 2025. Developed By{" "}
-        <a href="#" className="text-blue-600 hover:underline">
+        <a href="#" className="text-primary-dark hover:underline">
           Healthy Delight
         </a>
       </footer>

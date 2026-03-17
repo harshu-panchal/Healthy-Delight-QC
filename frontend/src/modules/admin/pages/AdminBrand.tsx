@@ -233,8 +233,8 @@ export default function AdminBrand() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
         <h1 className="text-2xl font-semibold text-neutral-800">Brand</h1>
-        <div className="text-sm text-blue-500">
-          <span className="text-blue-500 hover:underline cursor-pointer">
+        <div className="text-sm text-neutral-600">
+          <span className="text-primary-dark hover:underline cursor-pointer">
             Home
           </span>{" "}
           <span className="text-neutral-400">/</span> Dashboard
@@ -568,7 +568,7 @@ export default function AdminBrand() {
                         <div className="flex items-center gap-2">
                           <button
                             onClick={() => handleEdit(brand._id)}
-                            className="p-1.5 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded transition-colors"
+                            className="p-1.5 bg-cream hover:bg-primary/20 text-neutral-800 rounded transition-colors"
                             title="Edit">
                             <svg
                               width="16"

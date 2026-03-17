@@ -60,7 +60,7 @@ const SellerNotificationAlert: React.FC<SellerNotificationAlertProps> = ({ notif
 
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in duration-300">
         {/* Header */}
-        <div className={`px-6 py-4 flex items-center justify-between ${notification.type === 'NEW_ORDER' ? 'bg-primary border-primary text-neutral-900' : 'bg-blue-600'} text-white`}>
+        <div className={`px-6 py-4 flex items-center justify-between bg-primary border-primary text-neutral-900`}>
           <div className="flex items-center gap-3">
             <div className="bg-white bg-opacity-20 p-2 rounded-full">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -77,7 +77,7 @@ const SellerNotificationAlert: React.FC<SellerNotificationAlertProps> = ({ notif
           </div>
           <button
             onClick={onClose}
-            className="text-white hover:bg-white hover:bg-opacity-10 p-1 rounded-full transition-colors"
+            className="text-neutral-900 hover:bg-white/40 p-1 rounded-full transition-colors"
           >
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -103,7 +103,7 @@ const SellerNotificationAlert: React.FC<SellerNotificationAlertProps> = ({ notif
               step="0.1"
               value={volume}
               onChange={(e) => setVolume(parseFloat(e.target.value))}
-              className="flex-1 accent-primary-600"
+              className="flex-1 accent-primary"
             />
           </div>
 
@@ -164,7 +164,7 @@ const SellerNotificationAlert: React.FC<SellerNotificationAlertProps> = ({ notif
                <button
                  onClick={() => handleStatusUpdate('Accepted')}
                  disabled={loading}
-                 className="flex-1 py-4 rounded-xl font-bold text-white shadow-lg bg-primary border-primary text-neutral-900 hover:bg-neutral-900 transition-transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 py-4 rounded-xl font-bold text-neutral-900 shadow-lg bg-primary border-primary hover:bg-primary-dark transition-transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                >
                  {loading ? 'Please wait...' : 'Accept Order'}
                </button>
@@ -183,7 +183,7 @@ const SellerNotificationAlert: React.FC<SellerNotificationAlertProps> = ({ notif
           ) : (
             <button
               onClick={onClose}
-              className="w-full py-4 rounded-xl font-bold text-white shadow-lg transition-transform active:scale-95 bg-blue-600 hover:bg-blue-700"
+              className="w-full py-4 rounded-xl font-bold text-neutral-900 shadow-lg transition-transform active:scale-95 bg-primary hover:bg-primary-dark"
             >
               Acknowledge & Dismiss
             </button>

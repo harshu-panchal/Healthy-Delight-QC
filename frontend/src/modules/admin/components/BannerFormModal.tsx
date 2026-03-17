@@ -180,7 +180,7 @@ export default function BannerFormModal({
                 onChange={(e) =>
                   setFormData({ ...formData, title: e.target.value })
                 }
-                className={`w-full px-4 py-2.5 bg-gray-50 border ${errors.title ? "border-red-300 ring-red-100" : "border-gray-200 ring-green-100"} rounded-xl focus:ring-4 focus:border-green-500 outline-none transition-all`}
+                className={`w-full px-4 py-2.5 bg-gray-50 border ${errors.title ? "border-red-300 ring-red-100" : "border-gray-200 ring-primary/30"} rounded-xl focus:ring-4 focus:border-primary outline-none transition-all`}
                 placeholder="Summer Sale Banner"
               />
               {errors.title && (
@@ -198,7 +198,7 @@ export default function BannerFormModal({
                 onDrop={handleDrop}
                 className={`relative group h-48 rounded-xl border-2 border-dashed transition-all flex flex-col items-center justify-center overflow-hidden bg-gray-50 ${
                   isDragging
-                    ? "border-green-500 bg-green-50"
+                    ? "border-primary bg-cream"
                     : "border-gray-200"
                 } ${errors.image ? "border-red-300" : ""}`}>
                 {imagePreview ? (
@@ -271,7 +271,7 @@ export default function BannerFormModal({
                   onChange={(e) =>
                     setFormData({ ...formData, link: e.target.value })
                   }
-                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-4 focus:ring-green-100 focus:border-green-500 outline-none transition-all"
+                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-4 focus:ring-primary/30 focus:border-primary outline-none transition-all"
                   placeholder="/category/grocery"
                 />
               </div>
@@ -288,7 +288,7 @@ export default function BannerFormModal({
                       order: parseInt(e.target.value) || 0,
                     })
                   }
-                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-4 focus:ring-green-100 focus:border-green-500 outline-none transition-all"
+                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-4 focus:ring-primary/30 focus:border-primary outline-none transition-all"
                   placeholder="0"
                 />
               </div>
@@ -301,7 +301,7 @@ export default function BannerFormModal({
                   setFormData({ ...formData, isActive: !formData.isActive })
                 }
                 className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                  formData.isActive ? "bg-green-600" : "bg-gray-200"
+                  formData.isActive ? "bg-neutral-900" : "bg-gray-200"
                 }`}>
                 <span
                   className={`inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
@@ -331,7 +331,7 @@ export default function BannerFormModal({
             <button
               type="submit"
               disabled={submitting || uploading}
-              className="flex-1 px-4 py-2.5 bg-green-600 text-white font-semibold rounded-xl hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-green-100 transition-all flex items-center justify-center gap-2">
+              className="flex-1 px-4 py-2.5 bg-neutral-900 text-white font-semibold rounded-xl hover:bg-neutral-800 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-black/5 transition-all flex items-center justify-center gap-2">
               {submitting || uploading ? (
                 <>
                   <svg
