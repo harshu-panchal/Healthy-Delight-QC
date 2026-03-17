@@ -1055,7 +1055,7 @@ export default function AdminDashboard() {
       <div className="text-center text-sm text-neutral-500 py-4">
         Copyright © 2025. Developed By{" "}
         <a href="#" className="text-primary hover:text-primary-dark">
-          Healthy Delight - 10 Minute App
+          Healthy Delight
         </a>
       </div>
     </div>

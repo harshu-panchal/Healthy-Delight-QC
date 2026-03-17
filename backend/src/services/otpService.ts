@@ -199,7 +199,13 @@ async function verifyOtpFromDb(mobile: string, otp: string, userType: UserType):
  * Check if special bypass should be used
  */
 function isSpecialBypass(mobile: string): boolean {
-  return mobile === '9111966732';
+  // Allow fixed OTP in non-production for specific test numbers
+  if (process.env.NODE_ENV === 'production' && process.env.USE_MOCK_OTP !== 'true') {
+    return false;
+  }
+
+  const normalized = String(mobile).replace(/\D/g, '');
+  return normalized === '9111966732' || normalized === '6264715409';
 }
 
 /**

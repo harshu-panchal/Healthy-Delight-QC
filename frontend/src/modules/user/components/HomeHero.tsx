@@ -357,7 +357,7 @@ export default function HomeHero({
             {/* Left: Text content */}
             <div className="flex-1 pr-2">
               {/* Logo */}
-              <img src={logo} alt="Kosil Logo" className="h-16 md:h-24 w-auto object-contain mb-1" />
+              <img src={logo} alt="Healthy Delight Logo" className="h-16 md:h-24 w-auto object-contain mb-1" />
               {/* Location with dropdown indicator - only show if location is provided */}
               {locationDisplayText && (
                 <div className="text-neutral-700 text-[10px] md:text-xs flex items-center gap-0.5 leading-tight">

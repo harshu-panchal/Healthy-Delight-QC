@@ -380,6 +380,7 @@ const OrderSchema = new Schema<IOrder>(
     timeSlot: {
       type: String,
       trim: true,
+      required: [true, "Time slot is required"],
     },
   },
   {

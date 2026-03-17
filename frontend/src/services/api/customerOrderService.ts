@@ -20,6 +20,7 @@ export interface CreateOrderData {
         quantity: number;
         variant?: string;
     }[];
+    timeSlot: string;
     address: {
         addressLine?: string;
         city: string;

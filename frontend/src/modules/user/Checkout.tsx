@@ -87,6 +87,7 @@ export default function Checkout() {
   const [showRazorpayCheckout, setShowRazorpayCheckout] = useState(false);
   const [pendingOrderId, setPendingOrderId] = useState<string | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<"COD" | "Online">("Online");
+  const [timeSlot, setTimeSlot] = useState<string>("");
 
   // Profile completion modal state
   const [showProfileModal, setShowProfileModal] = useState(false);
@@ -171,6 +172,37 @@ export default function Checkout() {
 
       const cartItem = items[0];
       try {
+        const latitude = userLocation?.latitude ?? selectedAddress?.latitude;
+        const longitude = userLocation?.longitude ?? selectedAddress?.longitude;
+
+        const locationParams =
+          latitude != null && longitude != null
+            ? { latitude, longitude }
+            : {};
+
+        const itemsInCartIds = new Set(
+          (cart?.items || [])
+            .map((i) => i.product?.id || i.product?._id)
+            .filter(Boolean)
+        );
+
+        const mapToCardProduct = (p: any) => {
+          const { displayPrice, mrp } = calculateProductPrice(p);
+          return {
+            ...p,
+            id: p._id || p.id,
+            name: p.productName || p.name || "Product",
+            imageUrl: p.mainImage || p.imageUrl || p.mainImageUrl || "",
+            price: displayPrice,
+            mrp: mrp,
+            pack:
+              p.pack ||
+              p.variations?.[0]?.title ||
+              p.variations?.[0]?.name ||
+              "Standard",
+          };
+        };
+
         let response;
         if (cartItem && cartItem.product) {
           // Try to fetch by category of the first item
@@ -186,40 +218,46 @@ export default function Checkout() {
           }
 
           if (catId) {
-            response = await getProducts({ category: catId, limit: 10 });
+            response = await getProducts({
+              category: catId,
+              limit: 10,
+              ...locationParams,
+            });
           } else {
-            response = await getProducts({ limit: 10, sort: "popular" });
+            response = await getProducts({
+              limit: 10,
+              sort: "popular",
+              ...locationParams,
+            });
           }
         } else {
-          response = await getProducts({ limit: 10, sort: "popular" });
+          response = await getProducts({
+            limit: 10,
+            sort: "popular",
+            ...locationParams,
+          });
         }
 
         if (response && response.data) {
           // Filter out items already in cart
-          const itemsInCartIds = new Set(
-            (cart?.items || [])
-              .map((i) => i.product?.id || i.product?._id)
-              .filter(Boolean)
-          );
-          const filtered = response.data
+          let filtered = (response.data || [])
             .filter((p: any) => !itemsInCartIds.has(p.id || p._id))
-            .map((p: any) => {
-              const { displayPrice, mrp } = calculateProductPrice(p);
-              return {
-                ...p,
-                id: p._id || p.id,
-                name: p.productName || p.name || "Product",
-                imageUrl: p.mainImage || p.imageUrl || p.mainImageUrl || "",
-                price: displayPrice,
-                mrp: mrp,
-                pack:
-                  p.pack ||
-                  p.variations?.[0]?.title ||
-                  p.variations?.[0]?.name ||
-                  "Standard",
-              };
-            })
+            .map(mapToCardProduct)
             .slice(0, 6);
+
+          // Fallback: if category-based list becomes empty, show popular products
+          if (filtered.length === 0) {
+            const popular = await getProducts({
+              limit: 12,
+              sort: "popular",
+              ...locationParams,
+            });
+            filtered = (popular?.data || [])
+              .filter((p: any) => !itemsInCartIds.has(p.id || p._id))
+              .map(mapToCardProduct)
+              .slice(0, 6);
+          }
+
           setSimilarProducts(filtered);
         }
       } catch (err) {
@@ -227,7 +265,13 @@ export default function Checkout() {
       }
     };
     fetchSimilar();
-  }, [cart?.items?.length]);
+  }, [
+    cart?.items?.length,
+    userLocation?.latitude,
+    userLocation?.longitude,
+    selectedAddress?.latitude,
+    selectedAddress?.longitude,
+  ]);
 
   if (cartLoading || ((cart?.items?.length || 0) === 0 && !showOrderSuccess)) {
     return (
@@ -394,6 +438,11 @@ export default function Checkout() {
       return;
     }
 
+    if (!timeSlot || timeSlot.trim() === "") {
+      alert("Please select a shift time to place your order.");
+      return;
+    }
+
     // Check if user needs to complete their profile first
     if (!bypassProfileCheck && isPlaceholderUser) {
       setProfileFormData({
@@ -449,6 +498,7 @@ export default function Checkout() {
       },
       totalAmount: grandTotal,
       address: addressWithLocation,
+      timeSlot,
       paymentMethod: paymentMethod,
       status: "Placed",
       createdAt: new Date().toISOString(),
@@ -1087,29 +1137,6 @@ export default function Checkout() {
       {/* Main Product Card */}
       <div className="px-4 md:px-6 lg:px-8 py-2 md:py-3 bg-white border-b border-neutral-200">
         <div className="bg-white rounded-lg border border-neutral-200 p-2.5">
-          {/* Delivery info */}
-          <div className="flex items-center gap-1.5 mb-2">
-            <div className="w-5 h-5 rounded-full bg-green-600 flex items-center justify-center flex-shrink-0">
-              <svg
-                width="12"
-                height="12"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg">
-                <circle cx="12" cy="12" r="10" stroke="white" strokeWidth="2" />
-                <path
-                  d="M12 6v6l4 2"
-                  stroke="white"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                />
-              </svg>
-            </div>
-            <span className="text-xs font-semibold text-neutral-900">
-              Delivery in {appConfig.estimatedDeliveryTime}
-            </span>
-          </div>
-
           <p className="text-[10px] text-neutral-600 mb-2.5">
             Shipment of {displayCart.itemCount || 0}{" "}
             {(displayCart.itemCount || 0) === 1 ? "item" : "items"}
@@ -1231,7 +1258,7 @@ export default function Checkout() {
 
             return (
               <div
-                key={product.id}
+                key={product.id || product._id}
                 className="flex-shrink-0 w-[140px]"
                 style={{ scrollSnapAlign: "start" }}>
                 <div
@@ -2143,6 +2170,57 @@ export default function Checkout() {
         </SheetContent>
       </Sheet>
 
+      {/* Shift Time Selection */}
+      <div className="px-4 py-3 border-b border-neutral-200 bg-white">
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="text-sm font-bold text-neutral-900">Shift time</h3>
+          <span className="text-[10px] font-semibold text-red-600">Required</span>
+        </div>
+        <p className="text-xs text-neutral-600 mb-2">
+          Choose a preferred delivery shift to continue.
+        </p>
+
+        <div className="grid grid-cols-2 gap-2">
+          {[
+            { value: "Morning (9:00 AM - 12:00 PM)", label: "Morning", sub: "9:00 AM - 12:00 PM" },
+            { value: "Evening (5:00 PM - 9:00 PM)", label: "Evening", sub: "5:00 PM - 9:00 PM" },
+          ].map((slot) => {
+            const selected = timeSlot === slot.value;
+            return (
+              <button
+                key={slot.value}
+                type="button"
+                onClick={() => setTimeSlot(slot.value)}
+                className={`p-3 rounded-xl border-2 text-left transition-all ${selected
+                  ? "border-green-600 bg-green-50"
+                  : "border-neutral-200 bg-white hover:bg-neutral-50"
+                  }`}
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className={`text-xs font-bold ${selected ? "text-green-700" : "text-neutral-900"}`}>
+                      {slot.label}
+                    </div>
+                    <div className="text-[10px] text-neutral-500">{slot.sub}</div>
+                  </div>
+                  {selected && (
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-green-600">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                  )}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+
+        {!timeSlot && (
+          <div className="mt-2 text-[10px] text-red-600">
+            Please select a shift time to place the order.
+          </div>
+        )}
+      </div>
+
       {/* Payment Method Selection */}
       <div className="px-4 py-3 border-b border-neutral-200 bg-neutral-50/50">
         <h3 className="text-sm font-bold text-neutral-900 mb-2">Payment Method</h3>
@@ -2319,8 +2397,8 @@ export default function Checkout() {
         {selectedAddress ? (
           <button
             onClick={handlePlaceOrder}
-            disabled={cart.items.length === 0}
-            className={`w-full py-3 px-4 font-bold text-sm uppercase tracking-wide transition-colors ${cart.items.length > 0
+            disabled={cart.items.length === 0 || !timeSlot}
+            className={`w-full py-3 px-4 font-bold text-sm uppercase tracking-wide transition-colors ${cart.items.length > 0 && timeSlot
               ? "bg-green-600 text-white hover:bg-green-700"
               : "bg-neutral-300 text-neutral-500 cursor-not-allowed"
               }`}>

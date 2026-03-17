@@ -43,3 +43,14 @@
   width: 100%;
   height: 100%;
 }
+
+.loader-quote {
+  margin-top: 14px;
+  max-width: 320px;
+  padding: 0 16px;
+  text-align: center;
+  font-size: 14px;
+  line-height: 1.4;
+  color: #6b7280;
+  font-weight: 600;
+}

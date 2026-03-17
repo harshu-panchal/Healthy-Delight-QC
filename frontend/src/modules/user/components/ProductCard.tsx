@@ -329,16 +329,7 @@ export default function ProductCard({
                 </div>
               </div>
 
-              {/* 4. Time */}
-              <p className="text-[9px] text-neutral-500 mb-2.5 flex items-center gap-0.5 leading-tight">
-                <svg width="8" height="8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0">
-                  <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" />
-                  <path d="M12 6v6l4 2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                </svg>
-                <span>14 MINS</span>
-              </p>
-
-              {/* 5. ADD button or Quantity stepper */}
+              {/* 4. ADD button or Quantity stepper */}
               <div className="w-full mt-auto">
                 {inCartQty === 0 ? (
                   <Button

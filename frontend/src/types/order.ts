@@ -31,6 +31,7 @@ export interface Order {
   fees: OrderFees;
   totalAmount: number;
   address: OrderAddress;
+  timeSlot: string;
   status: OrderStatus;
   paymentMethod?: string;
   createdAt: string;

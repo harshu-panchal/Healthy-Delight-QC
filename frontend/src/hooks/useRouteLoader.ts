@@ -8,6 +8,19 @@ const useRouteLoader = () => {
   const isInitialMount = useRef(true);
 
   useEffect(() => {
+    const isRestrictedApp =
+      location.pathname.startsWith('/seller') ||
+      location.pathname.startsWith('/admin') ||
+      location.pathname.startsWith('/delivery');
+
+    if (isRestrictedApp) {
+      // Do not trigger the global route loader on seller/admin/delivery
+      if (isInitialMount.current) {
+        isInitialMount.current = false;
+      }
+      return;
+    }
+
     // Start loader on navigation
     // On initial mount, the LoadingProvider already started it (count=1)
     if (!isInitialMount.current) {

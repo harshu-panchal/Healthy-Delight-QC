@@ -1,8 +1,12 @@
 import React, { createContext, useContext, useState, useCallback, useRef } from 'react';
 
+export type LoadingVariant = 'first' | 'milk_bottle' | 'milk';
+
 interface LoadingContextType {
   isLoading: boolean;
   isRouteLoading: boolean;
+  loadingVariant: LoadingVariant;
+  routeLoadingQuote: string | null;
   startLoading: () => void;
   stopLoading: () => void;
   startRouteLoading: () => void;
@@ -11,9 +15,21 @@ interface LoadingContextType {
 
 const LoadingContext = createContext<LoadingContextType | undefined>(undefined);
 
+const ROUTE_LOADER_VARIANTS = ['milk_bottle', 'milk'] as const;
+const ROUTE_LOADER_QUOTES = [
+  'Bringing farm freshness to you...',
+  'Freshness is on the way...',
+  'Just a moment, fresh milk arriving...',
+  'Gathering cheesy delights...',
+] as const;
+
 export const LoadingProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isRouteLoading, setIsRouteLoading] = useState(true); // Default to true for full page reload
+  const [loadingVariant, setLoadingVariant] = useState<LoadingVariant>('first');
+  const [routeLoadingQuote, setRouteLoadingQuote] = useState<string | null>(null);
+  const hasCompletedFirstLoadRef = useRef(false);
+  const routeQuoteIndexRef = useRef(0);
   const loadingStartTime = useRef<number | null>(null);
   const routeLoadingStartTime = useRef<number | null>(Date.now()); // Start timing immediately
   const activeRequests = useRef(0);
@@ -63,6 +79,17 @@ export const LoadingProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const startRouteLoading = useCallback(() => {
     activeRouteRequests.current += 1;
     if (activeRouteRequests.current === 1) {
+      if (hasCompletedFirstLoadRef.current) {
+        setLoadingVariant(
+          ROUTE_LOADER_VARIANTS[Math.floor(Math.random() * ROUTE_LOADER_VARIANTS.length)]
+        );
+        const idx = routeQuoteIndexRef.current % ROUTE_LOADER_QUOTES.length;
+        setRouteLoadingQuote(ROUTE_LOADER_QUOTES[idx]);
+        routeQuoteIndexRef.current += 1;
+      } else {
+        // First load: keep main loader clean (no quote)
+        setRouteLoadingQuote(null);
+      }
       routeLoadingStartTime.current = Date.now();
       setIsRouteLoading(true);
       if (routeSafetyTimer.current) clearTimeout(routeSafetyTimer.current);
@@ -88,6 +115,7 @@ export const LoadingProvider: React.FC<{ children: React.ReactNode }> = ({ child
       const remainingTime = Math.max(0, MINIMUM_LOADING_TIME - elapsed);
       setTimeout(() => {
         if (activeRouteRequests.current === 0) {
+          hasCompletedFirstLoadRef.current = true;
           setIsRouteLoading(false);
           routeLoadingStartTime.current = null;
         }
@@ -99,6 +127,8 @@ export const LoadingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     <LoadingContext.Provider value={{
       isLoading,
       isRouteLoading,
+      loadingVariant,
+      routeLoadingQuote,
       startLoading,
       stopLoading,
       startRouteLoading,
