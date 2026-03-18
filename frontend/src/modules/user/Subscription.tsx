@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-type PlanId = "weekly" | "monthly" | "yearly";
+type PlanId = "Quaterly" | "monthly" | "yearly";
 
 export default function Subscription() {
   const navigate = useNavigate();
@@ -10,10 +10,10 @@ export default function Subscription() {
   const plans = useMemo(
     () => [
       {
-        id: "weekly" as const,
-        title: "Weekly",
-        price: "₹49",
-        cadence: "/week",
+        id: "quaterly" as const,
+        title: "quaterly",
+        price: "₹499",
+        cadence: "/quaterly",
         perks: ["Free delivery on eligible orders", "Early access to offers"],
         badge: "Starter",
       },
