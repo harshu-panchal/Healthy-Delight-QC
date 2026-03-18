@@ -5,19 +5,11 @@ type PlanId = "Quaterly" | "monthly" | "yearly";
 
 export default function Subscription() {
   const navigate = useNavigate();
-  const [selectedPlan, setSelectedPlan] = useState<PlanId>("monthly");
+  const [selectedPlan, setSelectedPlan] = useState<PlanId>("Quaterly");
 
   const plans = useMemo(
     () => [
-      {
-        id: "quaterly" as const,
-        title: "quaterly",
-        price: "₹499",
-        cadence: "/quaterly",
-        perks: ["Free delivery on eligible orders", "Early access to offers"],
-        badge: "Starter",
-      },
-      {
+       {
         id: "monthly" as const,
         title: "Monthly",
         price: "₹149",
@@ -25,10 +17,19 @@ export default function Subscription() {
         perks: [
           "Free delivery on eligible orders",
           "Extra savings on selected items",
-          "Priority support",
+          ,
         ],
-        badge: "Best value",
+        badge: "Starter",
       },
+      {
+        id: "Quaterly" as const,
+        title: "Quaterly",
+        price: "₹499",
+        cadence: "/quaterly",
+        perks: ["Free delivery on eligible orders", "Early access to offers","Priority support"],
+        badge: "Best Value",
+      },
+     
       {
         id: "yearly" as const,
         title: "Yearly",
