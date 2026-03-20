@@ -12,6 +12,7 @@ import { getHeaderCategoriesPublic } from "../../services/api/headerCategoryServ
 import { useLocation } from "../../hooks/useLocation";
 import { useLoading } from "../../context/LoadingContext";
 import PageLoader from "../../components/PageLoader";
+import { AnimatePresence, motion } from "framer-motion";
 
 import { useThemeContext } from "../../context/ThemeContext";
 
@@ -371,46 +372,56 @@ export default function Home() {
 
             {/* Right Side: Product Grid */}
             <div className="flex-1 px-3 py-4 md:px-6 md:py-6 overflow-y-auto">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-base md:text-xl font-bold text-neutral-900 capitalize px-1">
-                  {selectedSubcategory === "all"
-                    ? `${activeTab.replace("-", " ")} Products`
-                    : (homeData.categories || []).find(
-                      (c: any) => String(c._id || c.id) === String(selectedSubcategory)
-                    )?.name || "Products"}
-                </h2>
-                <span className="text-[10px] md:text-xs font-semibold text-neutral-500 bg-neutral-100 px-2 py-1 rounded-full">
-                  {filteredProducts.length} Items
-                </span>
-              </div>
-
-              {productsLoading ? (
-                <div className="flex flex-col items-center justify-center py-20">
-                  <div className="w-10 h-10 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-                  <p className="text-sm text-neutral-500 font-medium">Loading products...</p>
-                </div>
-              ) : filteredProducts.length > 0 ? (
-                <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2.5 md:gap-4">
-                  {filteredProducts.map((product) => (
-                    <ProductCard
-                      key={product.id || product._id}
-                      product={product}
-                      categoryStyle={true}
-                      showBadge={true}
-                      showPackBadge={false}
-                      showStockInfo={false}
-                      compact={true}
-                    />
-                  ))}
-                </div>
-              ) : (
-                <div className="flex flex-col items-center justify-center py-20 text-neutral-400">
-                  <div className="w-16 h-16 bg-neutral-50 rounded-full flex items-center justify-center mb-4 text-3xl">
-                    📦
+              <AnimatePresence mode="wait" initial={false}>
+                <motion.div
+                  key={selectedSubcategory}
+                  initial={{ x: 28, opacity: 0 }}
+                  animate={{ x: 0, opacity: 1 }}
+                  exit={{ x: -28, opacity: 0 }}
+                  transition={{ duration: 0.28, ease: "easeInOut" }}
+                >
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-base md:text-xl font-bold text-neutral-900 capitalize px-1">
+                      {selectedSubcategory === "all"
+                        ? `${activeTab.replace("-", " ")} Products`
+                        : (homeData.categories || []).find(
+                          (c: any) => String(c._id || c.id) === String(selectedSubcategory)
+                        )?.name || "Products"}
+                    </h2>
+                    <span className="text-[10px] md:text-xs font-semibold text-neutral-500 bg-neutral-100 px-2 py-1 rounded-full">
+                      {filteredProducts.length} Items
+                    </span>
                   </div>
-                  <p className="text-sm font-medium">No products found</p>
-                </div>
-              )}
+
+                  {productsLoading ? (
+                    <div className="flex flex-col items-center justify-center py-20">
+                      <div className="w-10 h-10 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+                      <p className="text-sm text-neutral-500 font-medium">Loading products...</p>
+                    </div>
+                  ) : filteredProducts.length > 0 ? (
+                    <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2.5 md:gap-4">
+                      {filteredProducts.map((product) => (
+                        <ProductCard
+                          key={product.id || product._id}
+                          product={product}
+                          categoryStyle={true}
+                          showBadge={true}
+                          showPackBadge={false}
+                          showStockInfo={false}
+                          compact={true}
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center py-20 text-neutral-400">
+                      <div className="w-16 h-16 bg-neutral-50 rounded-full flex items-center justify-center mb-4 text-3xl">
+                        📦
+                      </div>
+                      <p className="text-sm font-medium">No products found</p>
+                    </div>
+                  )}
+                </motion.div>
+              </AnimatePresence>
             </div>
           </div>
         )}
@@ -489,7 +500,7 @@ export default function Home() {
                 </h2>
                 <button
                   onClick={() => navigate('/stores')}
-                  className="text-xs md:text-sm font-semibold text-emerald-600 hover:text-emerald-700 transition-colors"
+                  className="text-xs md:text-sm font-semibold text-amber-700 hover:text-amber-800 transition-colors"
                 >
                   See all stores
                 </button>
@@ -512,7 +523,7 @@ export default function Home() {
                           navigate(`/store/${storeSlug}`);
                         }}
                       >
-                        <div className="relative aspect-[4/5] bg-gradient-to-b from-sky-100 to-sky-50 rounded-t-full overflow-hidden border-x border-t border-white shadow-sm group-hover:shadow-md transition-shadow">
+                        <div className="relative aspect-[4/5] bg-gradient-to-b from-amber-100 to-amber-50 rounded-t-full overflow-hidden border-x border-t border-[#b89a72] shadow-sm group-hover:shadow-md transition-shadow">
                           <div className="absolute inset-x-0 top-1/2 bottom-0 bg-[#e6d5b8] opacity-60"></div>
                           <div className="absolute bottom-4 left-0 right-0 h-4 bg-amber-200/40 blur-sm"></div>
 
@@ -527,7 +538,7 @@ export default function Home() {
                                 className="w-[85%] h-[85%] object-contain drop-shadow-lg transform group-hover:scale-110 transition-transform duration-300"
                               />
                             ) : (
-                              <div className="text-4xl text-sky-300 font-bold opacity-50">
+                              <div className="text-4xl text-amber-500 font-bold opacity-50">
                                 {tile.name.charAt(0)}
                               </div>
                             )}
@@ -540,6 +551,7 @@ export default function Home() {
                               </span>
                             </div>
                           </div>
+                          <div className="absolute bottom-0 left-0 right-0 h-px bg-[#b89a72]" />
                         </div>
                       </div>
                     );

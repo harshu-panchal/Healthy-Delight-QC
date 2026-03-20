@@ -17,10 +17,14 @@ const LoadingContext = createContext<LoadingContextType | undefined>(undefined);
 
 const ROUTE_LOADER_VARIANTS = ['milk_bottle', 'milk'] as const;
 const ROUTE_LOADER_QUOTES = [
+  'Collecting milk from the dairy...',
+  'Pouring freshness into your cart...',
+  'Preparing super-fresh delivery...',
   'Bringing farm freshness to you...',
-  'Freshness is on the way...',
-  'Just a moment, fresh milk arriving...',
-  'Gathering cheesy delights...',
+  'Packing pure goodness for you...',
+  'Fetching today’s freshest picks...',
+  'Fresh dairy delights coming up...',
+  'Almost there, freshness in motion...',
 ] as const;
 
 export const LoadingProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {

@@ -204,7 +204,7 @@ export default function ProductCard({
       whileHover={{ y: -2 }}
       whileTap={{ scale: 0.97 }}
       transition={{ duration: 0.2 }}
-      className={`${categoryStyle ? 'bg-green-50' : 'bg-white'} rounded-lg shadow-sm overflow-hidden flex flex-col relative group`}
+      className={`${categoryStyle ? 'bg-amber-50' : 'bg-white'} rounded-lg shadow-sm overflow-hidden flex flex-col relative group`}
     >
       <div
         onClick={handleCardClick}
@@ -343,13 +343,13 @@ export default function ProductCard({
                     }}
                     className={`w-full border rounded-full font-bold text-[10px] h-7 px-2 flex items-center justify-center uppercase tracking-wider ${product.isAvailable === false
                       ? 'border-neutral-300 text-neutral-400 bg-neutral-50 cursor-not-allowed'
-                      : 'border-green-600 text-green-600 bg-transparent hover:bg-green-50 shadow-sm'
+                      : 'border-emerald-600 text-emerald-600 bg-transparent hover:bg-emerald-50 shadow-sm'
                       }`}
                   >
                     {product.isAvailable === false ? 'Range' : 'ADD'}
                   </Button>
                 ) : (
-                  <div className="flex items-center justify-center gap-2 bg-white border border-green-600 rounded-full px-1.5 py-0.5 h-7 w-full shadow-sm">
+                  <div className="flex items-center justify-center gap-2 bg-white border border-emerald-600 rounded-full px-1.5 py-0.5 h-7 w-full shadow-sm">
                     <Button
                       variant="default"
                       size="icon"
@@ -357,12 +357,12 @@ export default function ProductCard({
                         e.stopPropagation();
                         handleDecrease(e);
                       }}
-                      className="w-5 h-5 p-0 bg-transparent text-green-600 hover:bg-green-50 shadow-none border-none"
+                      className="w-5 h-5 p-0 bg-transparent text-emerald-600 hover:bg-emerald-50 shadow-none border-none"
                       aria-label="Decrease quantity"
                     >
                       −
                     </Button>
-                    <span className="text-xs font-bold text-green-600 min-w-[1rem] text-center">
+                    <span className="text-xs font-bold text-emerald-600 min-w-[1rem] text-center">
                       {inCartQty}
                     </span>
                     <Button
@@ -373,7 +373,7 @@ export default function ProductCard({
                         e.stopPropagation();
                         handleIncrease(e);
                       }}
-                      className={`w-5 h-5 p-0 bg-transparent text-green-600 shadow-none border-none ${product.isAvailable === false ? 'text-neutral-300 cursor-not-allowed' : 'hover:bg-green-50'
+                      className={`w-5 h-5 p-0 bg-transparent text-emerald-600 shadow-none border-none ${product.isAvailable === false ? 'text-neutral-300 cursor-not-allowed' : 'hover:bg-emerald-50'
                         }`}
                       aria-label="Increase quantity"
                     >
@@ -441,7 +441,7 @@ export default function ProductCard({
                   onClick={handleAdd}
                   className={`w-full border h-8 text-xs font-semibold uppercase tracking-wide ${product.isAvailable === false
                     ? 'border-neutral-300 text-neutral-400 bg-neutral-50 cursor-not-allowed'
-                    : 'border-green-600 text-green-600 hover:bg-green-50'
+                      : 'border-emerald-600 text-emerald-600 hover:bg-emerald-50'
                     }`}
                 >
                   {product.isAvailable === false ? 'Out of Range' : 'Add'}
@@ -450,17 +450,17 @@ export default function ProductCard({
                 </div>
               </div>
             ) : (
-              <div className="flex items-center justify-center gap-2 bg-white border border-green-600 rounded-full px-2 py-0.5 h-8">
+              <div className="flex items-center justify-center gap-2 bg-white border border-emerald-600 rounded-full px-2 py-0.5 h-8">
                 <Button
                   variant="default"
                   size="icon"
                   onClick={handleDecrease}
-                  className="w-6 h-6 p-0 bg-transparent text-green-600 hover:bg-green-50 shadow-none"
+                  className="w-6 h-6 p-0 bg-transparent text-emerald-600 hover:bg-emerald-50 shadow-none"
                   aria-label="Decrease quantity"
                 >
                   −
                 </Button>
-                <span className="text-xs font-bold text-green-600 min-w-[1.5rem] text-center">
+                <span className="text-xs font-bold text-emerald-600 min-w-[1.5rem] text-center">
                   {inCartQty}
                 </span>
                 <Button
@@ -468,7 +468,7 @@ export default function ProductCard({
                   size="icon"
                   disabled={product.isAvailable === false}
                   onClick={handleIncrease}
-                  className={`w-6 h-6 p-0 bg-transparent text-green-600 shadow-none ${product.isAvailable === false ? 'text-neutral-300 cursor-not-allowed' : 'hover:bg-green-50'
+                  className={`w-6 h-6 p-0 bg-transparent text-emerald-600 shadow-none ${product.isAvailable === false ? 'text-neutral-300 cursor-not-allowed' : 'hover:bg-emerald-50'
                     }`}
                   aria-label="Increase quantity"
                 >

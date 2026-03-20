@@ -982,7 +982,7 @@ export default function Checkout() {
                 },
               })
             }
-            className="text-xs text-green-600 font-medium hover:text-green-700 transition-colors">
+            className="text-xs text-emerald-600 font-medium hover:text-emerald-700 transition-colors">
             Add details
           </button>
         </div>
@@ -1335,7 +1335,7 @@ export default function Checkout() {
                                 e.stopPropagation();
                                 addToCart(product, e.currentTarget);
                               }}
-                              className="bg-white/95 backdrop-blur-sm text-green-600 border-2 border-green-600 text-[10px] font-semibold px-2 py-1 rounded shadow-md hover:bg-white transition-colors">
+                              className="bg-emerald-600 text-white border-2 border-emerald-600 text-[10px] font-semibold px-2 py-1 rounded shadow-md hover:bg-emerald-700 transition-colors">
                               ADD
                             </motion.button>
                           ) : (
@@ -1345,7 +1345,7 @@ export default function Checkout() {
                               animate={{ opacity: 1, scale: 1 }}
                               exit={{ opacity: 0, scale: 0.8 }}
                               transition={{ duration: 0.2 }}
-                              className="flex items-center gap-1 bg-green-600 rounded px-1.5 py-1 shadow-md"
+                              className="flex items-center gap-1 bg-emerald-600 rounded px-1.5 py-1 shadow-md"
                               onClick={(e) => e.stopPropagation()}>
                               <motion.button
                                 whileTap={{ scale: 0.9 }}
@@ -1354,7 +1354,7 @@ export default function Checkout() {
                                   e.stopPropagation();
                                   updateQuantity(productId, inCartQty - 1);
                                 }}
-                                className="w-4 h-4 flex items-center justify-center text-white font-bold hover:bg-green-700 rounded transition-colors p-0 leading-none"
+                                className="w-4 h-4 flex items-center justify-center text-white font-bold hover:bg-emerald-700 rounded transition-colors p-0 leading-none"
                                 style={{ lineHeight: 1, fontSize: "14px" }}>
                                 <span className="relative top-[-1px]">−</span>
                               </motion.button>
@@ -1378,7 +1378,7 @@ export default function Checkout() {
                                   e.stopPropagation();
                                   updateQuantity(productId, inCartQty + 1);
                                 }}
-                                className="w-4 h-4 flex items-center justify-center text-white font-bold hover:bg-green-700 rounded transition-colors p-0 leading-none"
+                                className="w-4 h-4 flex items-center justify-center text-white font-bold hover:bg-emerald-700 rounded transition-colors p-0 leading-none"
                                 style={{ lineHeight: 1, fontSize: "14px" }}>
                                 <span className="relative top-[-1px]">+</span>
                               </motion.button>
@@ -2399,7 +2399,7 @@ export default function Checkout() {
             onClick={handlePlaceOrder}
             disabled={cart.items.length === 0 || !timeSlot}
             className={`w-full py-3 px-4 font-bold text-sm uppercase tracking-wide transition-colors ${cart.items.length > 0 && timeSlot
-              ? "bg-green-600 text-white hover:bg-green-700"
+              ? "bg-emerald-600 text-white hover:bg-emerald-700"
               : "bg-neutral-300 text-neutral-500 cursor-not-allowed"
               }`}>
             Place Order
@@ -2413,7 +2413,7 @@ export default function Checkout() {
                 },
               })
             }
-            className="w-full bg-green-600 text-white py-3 px-4 font-bold text-sm uppercase tracking-wide hover:bg-green-700 transition-colors">
+            className="w-full bg-emerald-600 text-white py-3 px-4 font-bold text-sm uppercase tracking-wide hover:bg-emerald-700 transition-colors">
             Choose address at next step
           </button>
         )}

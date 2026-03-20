@@ -494,18 +494,18 @@ export default function AppLayout({ children }: AppLayoutProps) {
                         ) : (
                           <>
                             {/* Roof */}
-                            <path d="M2 12L12 4L22 12" stroke="#6b7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+                            <path d="M2 12L12 4L22 12" stroke="#4b5563" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
                             {/* House body */}
-                            <rect x="4" y="12" width="16" height="8" stroke="#6b7280" strokeWidth="2" strokeLinejoin="round" fill="none" />
+                            <rect x="4" y="12" width="16" height="8" stroke="#4b5563" strokeWidth="2" strokeLinejoin="round" fill="none" />
                             {/* Chimney */}
-                            <rect x="15" y="5" width="4" height="5" stroke="#6b7280" strokeWidth="2" fill="none" />
+                            <rect x="15" y="5" width="4" height="5" stroke="#4b5563" strokeWidth="2" fill="none" />
                             {/* Door */}
-                            <rect x="8" y="15" width="4" height="5" stroke="#6b7280" strokeWidth="2" fill="none" />
+                            <rect x="8" y="15" width="4" height="5" stroke="#4b5563" strokeWidth="2" fill="none" />
                           </>
                         )}
                       </motion.svg>
                     </div>
-                    <span className={`text-xs mt-0.5 relative z-10 ${isActive('/') ? 'font-medium text-neutral-700' : 'font-medium text-neutral-500'}`}>
+                    <span className={`text-xs mt-0.5 relative z-10 ${isActive('/') ? 'font-medium text-neutral-700' : 'font-medium text-neutral-600'}`}>
                       Home
                     </span>
                   </Link>
@@ -549,9 +549,9 @@ export default function AppLayout({ children }: AppLayoutProps) {
                         ) : (
                           <>
                             {/* Shopping bag body */}
-                            <path d="M5 8V6C5 4.34315 6.34315 3 8 3H16C17.6569 3 19 4.34315 19 6V8H21C21.5523 8 22 8.44772 22 9V20C22 20.5523 21.5523 21 21 21H3C2.44772 21 2 20.5523 2 20V9C2 8.44772 2.44772 8 3 8H5Z" stroke="#6b7280" strokeWidth="2" strokeLinejoin="round" fill="none" />
+                            <path d="M5 8V6C5 4.34315 6.34315 3 8 3H16C17.6569 3 19 4.34315 19 6V8H21C21.5523 8 22 8.44772 22 9V20C22 20.5523 21.5523 21 21 21H3C2.44772 21 2 20.5523 2 20V9C2 8.44772 2.44772 8 3 8H5Z" stroke="#4b5563" strokeWidth="2" strokeLinejoin="round" fill="none" />
                             {/* Handles */}
-                            <path d="M7 8V6C7 5.44772 7.44772 5 8 5H16C16.5523 5 17 5.44772 17 6V8" stroke="#6b7280" strokeWidth="2" strokeLinecap="round" fill="none" />
+                            <path d="M7 8V6C7 5.44772 7.44772 5 8 5H16C16.5523 5 17 5.44772 17 6V8" stroke="#4b5563" strokeWidth="2" strokeLinecap="round" fill="none" />
                           </>
                         )}
                         {/* Heart inside basket - grows when active, shrinks when inactive */}
@@ -570,7 +570,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
                         </AnimatePresence>
                       </motion.svg>
                     </div>
-                    <span className={`text-xs mt-0.5 relative z-10 ${isActive('/order-again') ? 'font-medium text-neutral-700' : 'font-medium text-neutral-500'}`}>
+                    <span className={`text-xs mt-0.5 relative z-10 ${isActive('/order-again') ? 'font-medium text-neutral-700' : 'font-medium text-neutral-600'}`}>
                       Order Again
                     </span>
                   </Link>
@@ -612,15 +612,15 @@ export default function AppLayout({ children }: AppLayoutProps) {
                           </>
                         ) : (
                           <>
-                            <circle cx="7" cy="7" r="2.5" stroke="#6b7280" strokeWidth="2" fill="none" />
-                            <circle cx="17" cy="7" r="2.5" stroke="#6b7280" strokeWidth="2" fill="none" />
-                            <circle cx="7" cy="17" r="2.5" stroke="#6b7280" strokeWidth="2" fill="none" />
-                            <circle cx="17" cy="17" r="2.5" stroke="#6b7280" strokeWidth="2" fill="none" />
+                            <circle cx="7" cy="7" r="2.5" stroke="#4b5563" strokeWidth="2" fill="none" />
+                            <circle cx="17" cy="7" r="2.5" stroke="#4b5563" strokeWidth="2" fill="none" />
+                            <circle cx="7" cy="17" r="2.5" stroke="#4b5563" strokeWidth="2" fill="none" />
+                            <circle cx="17" cy="17" r="2.5" stroke="#4b5563" strokeWidth="2" fill="none" />
                           </>
                         )}
                       </motion.svg>
                     </div>
-                    <span className={`text-xs mt-0.5 relative z-10 ${(isActive('/categories') || location.pathname.startsWith('/category/')) ? 'font-medium text-neutral-700' : 'font-medium text-neutral-500'}`}>
+                    <span className={`text-xs mt-0.5 relative z-10 ${(isActive('/categories') || location.pathname.startsWith('/category/')) ? 'font-medium text-neutral-700' : 'font-medium text-neutral-600'}`}>
                       Categories
                     </span>
                   </Link>
@@ -657,7 +657,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
                           <>
                             <path
                               d="M19 8H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V10a2 2 0 0 0-2-2z"
-                              fill="#22c55e"
+                              fill="#059669"
                               stroke="#1f2937"
                               strokeWidth="2"
                               strokeLinecap="round"
@@ -670,18 +670,18 @@ export default function AppLayout({ children }: AppLayoutProps) {
                           <>
                             <path
                               d="M19 8H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V10a2 2 0 0 0-2-2z"
-                              stroke="#6b7280"
+                              stroke="#4b5563"
                               strokeWidth="2"
                               strokeLinecap="round"
                               strokeLinejoin="round"
                             />
-                            <polyline points="8 2 12 6 8 10" stroke="#6b7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                            <line x1="12" y1="6" x2="16" y2="6" stroke="#6b7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                            <polyline points="8 2 12 6 8 10" stroke="#4b5563" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                            <line x1="12" y1="6" x2="16" y2="6" stroke="#4b5563" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                           </>
                         )}
                       </motion.svg>
                     </div>
-                    <span className={`text-xs mt-0.5 relative z-10 ${isActive('/subscription') ? 'font-medium text-neutral-700' : 'font-medium text-neutral-500'}`}>
+                    <span className={`text-xs mt-0.5 relative z-10 ${isActive('/subscription') ? 'font-medium text-neutral-700' : 'font-medium text-neutral-600'}`}>
                       Subscription
                     </span>
                   </Link>

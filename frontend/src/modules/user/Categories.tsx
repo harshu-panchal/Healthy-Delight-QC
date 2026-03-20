@@ -116,13 +116,13 @@ export default function Categories() {
                   key={cat._id}
                   type="button"
                   onClick={() => handleCategoryClick(cat)}
-                  className="group relative bg-gradient-to-b from-emerald-50/70 via-white to-amber-50/60 rounded-2xl shadow-sm border border-emerald-100/80 transition-all active:scale-[0.97] overflow-hidden">
+                  className="group relative bg-gradient-to-b from-amber-100/70 via-white to-amber-50/60 rounded-2xl shadow-sm border border-[#b89a72]/70 transition-all active:scale-[0.97] overflow-hidden">
                   {/* Soft glassy highlight */}
                   <div className="pointer-events-none absolute inset-x-2 top-1 h-6 rounded-full bg-white/70 blur-md opacity-60" />
 
                   {/* Image / icon badge */}
                   <div className="relative w-full pt-3 pb-1 flex items-center justify-center">
-                    <div className="relative w-18 h-18 md:w-20 md:h-20 rounded-2xl bg-white shadow-md ring-2 ring-emerald-100/90 overflow-hidden flex items-center justify-center transition-transform">
+                    <div className="relative w-18 h-18 md:w-20 md:h-20 rounded-none bg-white shadow-md ring-2 ring-[#b89a72]/70 overflow-hidden flex items-center justify-center transition-transform">
                       {cat.image ? (
                         <img
                           src={cat.image}

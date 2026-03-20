@@ -51,7 +51,7 @@ const IconLoader: React.FC<IconLoaderProps> = ({ forceShow = false }) => {
                   animationData={animationData}
                   loop={true}
                   className="loader-lottie"
-                  style={{ backgroundColor: '#EADDCF' }}
+                  style={{ backgroundColor: 'transparent' }}
                 />
               )}
             </div>

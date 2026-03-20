@@ -49,8 +49,8 @@ export default function Subscription() {
   const selected = plans.find((p) => p.id === selectedPlan);
 
   return (
-    <div className="min-h-screen bg-white">
-      <div className="px-4 md:px-6 lg:px-8 py-4 border-b border-neutral-200 sticky top-0 bg-white z-10">
+    <div className="min-h-screen bg-cream">
+      <div className="px-4 md:px-6 lg:px-8 py-4 border-b border-neutral-200 sticky top-0 bg-cream z-10">
         <div className="flex items-center gap-3">
           <button
             onClick={() => navigate(-1)}
@@ -108,8 +108,8 @@ export default function Subscription() {
                 onClick={() => setSelectedPlan(p.id)}
                 className={`text-left rounded-2xl border-2 p-4 transition-all ${
                   isSelected
-                    ? "border-primary bg-white shadow-sm"
-                    : "border-neutral-200 bg-white hover:border-neutral-300"
+                    ? "border-primary bg-cream shadow-sm"
+                    : "border-neutral-200 bg-cream hover:border-neutral-300"
                 }`}
               >
                 <div className="flex items-start justify-between gap-3">
@@ -155,7 +155,7 @@ export default function Subscription() {
           })}
         </div>
 
-        <div className="rounded-2xl border border-neutral-200 bg-white p-4">
+        <div className="rounded-2xl border border-neutral-200 bg-cream p-4">
           <div className="flex items-center justify-between">
             <div>
               <div className="text-xs font-semibold text-neutral-500">

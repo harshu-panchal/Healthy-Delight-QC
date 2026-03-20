@@ -159,7 +159,7 @@ export default function Login() {
                   onClick={handleContinue}
                   disabled={mobileNumber.length !== 10 || loading}
                   className={`w-full py-2.5 sm:py-3 rounded-xl font-semibold text-sm transition-colors border px-3 ${mobileNumber.length === 10 && !loading
-                    ? "bg-amber-500 text-white border-amber-500 hover:bg-amber-600 shadow-md"
+                    ? "bg-emerald-600 text-white border-emerald-600 hover:bg-emerald-700 shadow-md"
                     : "bg-neutral-300 text-neutral-500 cursor-not-allowed border-neutral-300"
                     }`}
                 >
@@ -200,7 +200,7 @@ export default function Login() {
                 <button
                   onClick={handleContinue}
                   disabled={loading}
-                  className="flex-1 py-2.5 rounded-xl font-semibold text-xs bg-amber-500 text-white border border-amber-500 hover:bg-amber-600 transition-colors"
+                  className="flex-1 py-2.5 rounded-xl font-semibold text-xs bg-emerald-600 text-white border border-emerald-600 hover:bg-emerald-700 transition-colors"
                 >
                   {loading ? "Verifying..." : "Resend OTP"}
                 </button>

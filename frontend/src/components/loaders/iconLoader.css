@@ -29,7 +29,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: #EADDCF !important;
+  background: transparent !important;
 }
 
 .lottie-wrapper {
@@ -38,12 +38,13 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  background: #EADDCF !important;
+  background: transparent !important;
 }
 
 .loader-lottie {
   width: 100%;
   height: 100%;
+  /* Blend against loader overlay background to avoid white “card” */
   mix-blend-mode: multiply;
 }
 

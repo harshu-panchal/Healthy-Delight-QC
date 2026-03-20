@@ -76,8 +76,8 @@ export default function Account() {
   // Show login/signup prompt for unregistered users
   if (!user) {
     return (
-      <div className="pb-24 md:pb-8 bg-white min-h-screen">
-        <div className="bg-gradient-to-b from-green-200 via-green-100 to-white pb-6 md:pb-8 pt-12 md:pt-16">
+      <div className="pb-24 md:pb-8 bg-cream min-h-screen">
+        <div className="bg-gradient-to-b from-cream via-amber-50 to-cream pb-6 md:pb-8 pt-12 md:pt-16">
           <div className="px-4 md:px-6 lg:px-8">
             <button
               onClick={() => navigate(-1)}
@@ -173,8 +173,8 @@ export default function Account() {
   const displayDateOfBirth = profile?.dateOfBirth;
 
   return (
-    <div className="pb-24 md:pb-8 bg-white min-h-screen">
-      <div className="bg-gradient-to-b from-green-200 via-green-100 to-white pb-6 md:pb-8 pt-12 md:pt-16">
+    <div className="pb-24 md:pb-8 bg-cream min-h-screen">
+      <div className="bg-gradient-to-b from-cream via-amber-50 to-cream pb-6 md:pb-8 pt-12 md:pt-16">
         <div className="px-4 md:px-6 lg:px-8">
           <button
             onClick={() => navigate(-1)}
