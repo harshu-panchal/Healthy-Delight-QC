@@ -288,9 +288,9 @@ export default function CategoryPage() {
   };
 
   return (
-    <div className="flex bg-white h-screen overflow-hidden">
+    <div className="flex bg-transparent h-screen overflow-hidden">
       {/* Left Sidebar */}
-      <div className="w-24 bg-white border-r border-neutral-100 overflow-y-auto scrollbar-hide flex-shrink-0 py-2">
+      <div className="w-24 bg-transparent border-r border-neutral-100 overflow-y-auto scrollbar-hide flex-shrink-0 py-2">
         <div className="space-y-1">
           {subcategories.map((subcat) => {
             const isSelected =
@@ -362,9 +362,9 @@ export default function CategoryPage() {
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col overflow-hidden bg-white">
+      <div className="flex-1 flex flex-col overflow-hidden bg-transparent">
         {/* Header */}
-        <div className="sticky top-0 z-40 bg-white border-b border-neutral-200 flex-shrink-0">
+        <div className="sticky top-0 z-40 bg-transparent border-b border-neutral-200 flex-shrink-0">
           <div className="px-4 md:px-6 lg:px-8 py-3 md:py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -396,7 +396,7 @@ export default function CategoryPage() {
         </div>
 
         {/* Filter/Sort Bar - Updated layout */}
-        <div className="px-4 md:px-6 lg:px-8 py-1.5 md:py-2 bg-white border-b border-neutral-200 flex-shrink-0">
+        <div className="px-4 md:px-6 lg:px-8 py-1.5 md:py-2 bg-transparent border-b border-neutral-200 flex-shrink-0">
           <div className="flex items-center gap-1.5 md:gap-2 overflow-x-auto scrollbar-hide -mx-4 md:-mx-6 lg:-mx-8 px-4 md:px-6 lg:px-8 scroll-smooth">
             {/* Filters Button */}
             <button
@@ -476,7 +476,7 @@ export default function CategoryPage() {
         </div>
 
         {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto scrollbar-hide bg-white">
+        <div className="flex-1 overflow-y-auto scrollbar-hide bg-transparent">
           {/* Products Grid */}
           {categoryProducts.length > 0 ? (
             <div className="px-3 md:px-6 lg:px-8 py-4 md:py-6">

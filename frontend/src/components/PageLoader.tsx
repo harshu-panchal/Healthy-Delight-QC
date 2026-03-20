@@ -6,7 +6,7 @@ import { ReactNode } from 'react';
  */
 export default function PageLoader({ children }: { children?: ReactNode }) {
   return (
-    <div className="min-h-screen bg-white flex items-center justify-center">
+    <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#EADDCF' }}>
       {children || (
         <div className="flex flex-col items-center gap-3">
           <div className="w-8 h-8 border-2 border-green-600 border-t-transparent rounded-full animate-spin" />

@@ -17,7 +17,7 @@ const HomeBackground: React.FC<HomeBackgroundProps> = ({ children, className = "
           backgroundSize: 'cover',
           backgroundPosition: 'center bottom',
           backgroundAttachment: 'fixed',
-          backgroundColor: '#FFFDD0',
+          backgroundColor: '#EADDCF',
         }}
       />
 

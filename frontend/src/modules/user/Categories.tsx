@@ -99,15 +99,15 @@ export default function Categories() {
   }
 
   return (
-    <div className="pb-4 md:pb-8 bg-white min-h-screen">
+    <div className="pb-4 md:pb-8 bg-transparent min-h-screen">
       {/* Page Header */}
-      <div className="px-4 py-4 md:px-6 md:py-6 bg-white border-b border-neutral-200 sticky top-0 z-10 shadow-sm">
+      <div className="px-4 py-4 md:px-6 md:py-6 bg-transparent border-b border-neutral-200 sticky top-0 z-10 shadow-sm">
         <h1 className="text-xl md:text-2xl font-bold text-neutral-900">
           Categories
         </h1>
       </div>
 
-      <div className="bg-neutral-50 pt-3 pb-6">
+      <div className="bg-transparent pt-3 pb-6">
         {allCategories.length > 0 ? (
           <div className="px-4 md:px-6 lg:px-8">
             <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
