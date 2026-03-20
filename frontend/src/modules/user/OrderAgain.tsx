@@ -407,11 +407,7 @@ export default function OrderAgain() {
 
       {/* Empty State Illustration - Show when no orders */}
       {!hasOrders && (
-<<<<<<< HEAD
-        <div className="bg-stone-50 py-6 px-4">
-=======
         <div className="bg-transparent py-6 px-4">
->>>>>>> 1a2135b (updates)
           <div className="flex flex-col items-center justify-center max-w-md mx-auto">
             {/* Grocery Illustration */}
             <div className="relative w-full max-w-xs mb-4">

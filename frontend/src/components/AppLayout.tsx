@@ -5,10 +5,7 @@ import FloatingCartPill from './FloatingCartPill';
 import { useLocation as useLocationContext } from '../hooks/useLocation';
 import LocationPermissionRequest from './LocationPermissionRequest';
 import { useThemeContext } from '../context/ThemeContext';
-<<<<<<< HEAD
-=======
 import HomeBackground from './ui/HomeBackground';
->>>>>>> 1a2135b (updates)
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -78,16 +75,6 @@ export default function AppLayout({ children }: AppLayoutProps) {
       alert("Your browser does not support voice search.");
       return;
     }
-<<<<<<< HEAD
-    
-    const recognition = new SpeechRecognition();
-    recognition.lang = 'en-US';
-    recognition.interimResults = false;
-    
-    recognition.onstart = () => setIsListening(true);
-    recognition.onend = () => setIsListening(false);
-    
-=======
 
     const recognition = new SpeechRecognition();
     recognition.lang = 'en-US';
@@ -95,17 +82,11 @@ export default function AppLayout({ children }: AppLayoutProps) {
 
     recognition.onstart = () => setIsListening(true);
     recognition.onend = () => setIsListening(false);
-
->>>>>>> 1a2135b (updates)
     recognition.onerror = () => {
       console.error("Speech recognition error");
       setIsListening(false);
     };
-<<<<<<< HEAD
-    
-=======
 
->>>>>>> 1a2135b (updates)
     recognition.onresult = (event: { results: Array<Array<{ transcript: string }>> }) => {
       const speechResult = event.results[0][0].transcript;
       setSearchQuery(speechResult);
@@ -115,11 +96,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
         setSearchParams({ q: speechResult.trim() });
       }
     };
-<<<<<<< HEAD
-    
-=======
 
->>>>>>> 1a2135b (updates)
     recognition.start();
   };
 
@@ -188,15 +165,9 @@ export default function AppLayout({ children }: AppLayoutProps) {
   const showFooter = !isCheckoutPage && !isProductDetailPage;
 
   return (
-<<<<<<< HEAD
-    <div className="flex flex-col min-h-screen w-full overflow-x-hidden">
-      {/* Desktop Container Wrapper */}
-      <div className="md:w-full md:bg-white md:min-h-screen overflow-x-hidden">
-=======
     <HomeBackground className="flex flex-col min-h-screen w-full">
       {/* Desktop Container Wrapper */}
       <div className="md:w-full md:min-h-screen overflow-x-hidden">
->>>>>>> 1a2135b (updates)
         <div className="md:w-full md:min-h-screen md:flex md:flex-col overflow-x-hidden">
           {/* Top Navigation Bar - Desktop Only */}
           {showFooter && (
@@ -209,111 +180,6 @@ export default function AppLayout({ children }: AppLayoutProps) {
             >
               {/* Center: Home, Order Again, Categories, Subscription */}
               <div className="flex-1 flex items-center justify-center gap-8">
-<<<<<<< HEAD
-              {/* Home */}
-              <Link
-                to="/"
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${isActive('/')
-                  ? 'bg-white shadow-md font-semibold'
-                  : 'hover:bg-white/20'
-                  }`}
-                style={{
-                  color: isActive('/') ? currentTheme.accentColor : currentTheme.headerTextColor
-                }}
-              >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  {isActive('/') ? (
-                    <>
-                      <path d="M2 12L12 4L22 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="currentColor" />
-                      <rect x="4" y="12" width="16" height="8" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
-                    </>
-                  ) : (
-                    <>
-                      <path d="M2 12L12 4L22 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-                      <rect x="4" y="12" width="16" height="8" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" fill="none" />
-                    </>
-                  )}
-                </svg>
-                <span className="font-medium text-sm">Home</span>
-              </Link>
-
-              {/* Order Again */}
-              <Link
-                to="/order-again"
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${isActive('/order-again')
-                  ? 'bg-white shadow-md font-semibold'
-                  : 'hover:bg-white/20'
-                  }`}
-                style={{
-                  color: isActive('/order-again') ? currentTheme.accentColor : currentTheme.headerTextColor
-                }}
-              >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  {isActive('/order-again') ? (
-                    <path d="M5 8V6C5 4.34315 6.34315 3 8 3H16C17.6569 3 19 4.34315 19 6V8H21C21.5523 8 22 8.44772 22 9V20C22 20.5523 21.5523 21 21 21H3C2.44772 21 2 20.5523 2 20V9C2 8.44772 2.44772 8 3 8H5Z" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
-                  ) : (
-                    <path d="M5 8V6C5 4.34315 6.34315 3 8 3H16C17.6569 3 19 4.34315 19 6V8H21C21.5523 8 22 8.44772 22 9V20C22 20.5523 21.5523 21 21 21H3C2.44772 21 2 20.5523 2 20V9C2 8.44772 2.44772 8 3 8H5Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" fill="none" />
-                  )}
-                </svg>
-                <span className="font-medium text-sm">Order Again</span>
-              </Link>
-
-              {/* Categories */}
-              <Link
-                to="/categories"
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${(isActive('/categories') || location.pathname.startsWith('/category/'))
-                  ? 'bg-white shadow-md font-semibold'
-                  : 'hover:bg-white/20'
-                  }`}
-                style={{
-                  color: (isActive('/categories') || location.pathname.startsWith('/category/')) ? currentTheme.accentColor : currentTheme.headerTextColor
-                }}
-              >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  {(isActive('/categories') || location.pathname.startsWith('/category/')) ? (
-                    <>
-                      <circle cx="7" cy="7" r="2.5" fill="currentColor" stroke="currentColor" strokeWidth="2" />
-                      <circle cx="17" cy="7" r="2.5" fill="currentColor" stroke="currentColor" strokeWidth="2" />
-                      <circle cx="7" cy="17" r="2.5" fill="currentColor" stroke="currentColor" strokeWidth="2" />
-                      <circle cx="17" cy="17" r="2.5" fill="currentColor" stroke="currentColor" strokeWidth="2" />
-                    </>
-                  ) : (
-                    <>
-                      <circle cx="7" cy="7" r="2.5" stroke="currentColor" strokeWidth="2" fill="none" />
-                      <circle cx="17" cy="7" r="2.5" stroke="currentColor" strokeWidth="2" fill="none" />
-                      <circle cx="7" cy="17" r="2.5" stroke="currentColor" strokeWidth="2" fill="none" />
-                      <circle cx="17" cy="17" r="2.5" stroke="currentColor" strokeWidth="2" fill="none" />
-                    </>
-                  )}
-                </svg>
-                <span className="font-medium text-sm">Categories</span>
-              </Link>
-
-              {/* Subscription - last (niche) */}
-              <Link
-                to="/subscription"
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${isActive('/subscription')
-                  ? 'bg-white shadow-md font-semibold'
-                  : 'hover:bg-white/20'
-                  }`}
-                style={{
-                  color: isActive('/subscription') ? currentTheme.accentColor : currentTheme.headerTextColor
-                }}
-              >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path
-                    d="M19 8H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V10a2 2 0 0 0-2-2z"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <polyline points="8 2 12 6 8 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                  <line x1="12" y1="6" x2="16" y2="6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-                <span className="font-medium text-sm">Subscription</span>
-              </Link>
-=======
                 {/* Home */}
                 <Link
                   to="/"
@@ -417,7 +283,6 @@ export default function AppLayout({ children }: AppLayoutProps) {
                   </svg>
                   <span className="font-medium text-sm">Subscription</span>
                 </Link>
->>>>>>> 1a2135b (updates)
               </div>
 
               {/* Right: Profile */}
@@ -502,11 +367,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
                         </svg>
                       </span>
                       {/* Voice Search Icon */}
-<<<<<<< HEAD
-                      <button 
-=======
                       <button
->>>>>>> 1a2135b (updates)
                         onClick={startVoiceSearch}
                         className={`absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-full transition-colors ${isListening ? 'bg-red-100 text-red-500' : 'text-neutral-500 hover:bg-neutral-200'}`}
                         aria-label="Voice search"
@@ -537,11 +398,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
           )}
 
           {/* Scrollable Main Content */}
-<<<<<<< HEAD
-          <main ref={mainRef} className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide pb-24 md:pb-8">
-=======
           <main ref={mainRef} className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide pb-24 md:pb-8 bg-transparent" style={{ background: 'transparent' }}>
->>>>>>> 1a2135b (updates)
             <AnimatePresence mode="wait" initial={false}>
               <motion.div
                 key={location.pathname}
@@ -552,13 +409,8 @@ export default function AppLayout({ children }: AppLayoutProps) {
                   duration: 0.2,
                   ease: "easeInOut"
                 }}
-<<<<<<< HEAD
-                className="w-full max-w-full"
-                style={{ minHeight: '100%' }}
-=======
                 className="w-full max-w-full bg-transparent"
                 style={{ minHeight: '100%', background: 'transparent' }}
->>>>>>> 1a2135b (updates)
                 onAnimationComplete={() => {
                   if (mainRef.current) {
                     mainRef.current.scrollTop = 0;
@@ -839,11 +691,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
           )}
         </div>
       </div>
-<<<<<<< HEAD
-    </div>
-=======
     </HomeBackground>
->>>>>>> 1a2135b (updates)
   );
 }
 
