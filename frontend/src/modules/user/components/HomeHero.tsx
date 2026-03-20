@@ -10,6 +10,7 @@ import { Category } from "../../../types/domain";
 import { getHeaderCategoriesPublic } from "../../../services/api/headerCategoryService";
 import { getIconByName } from "../../../utils/iconLibrary";
 import logo from "../../../../assets/kosil1.png";
+import headerBg from "../../../../assets/Header2.jpg";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -195,24 +196,24 @@ export default function HomeHero({
       alert("Your browser does not support voice search.");
       return;
     }
-    
+
     const recognition = new SpeechRecognition();
     recognition.lang = 'en-US';
     recognition.interimResults = false;
-    
+
     recognition.onstart = () => setIsListening(true);
     recognition.onend = () => setIsListening(false);
-    
+
     recognition.onerror = () => {
       console.error("Speech recognition error");
       setIsListening(false);
     };
-    
+
     recognition.onresult = (event: { results: Array<Array<{ transcript: string }>> }) => {
       const speechResult = event.results[0][0].transcript;
       navigate(`/search?q=${encodeURIComponent(speechResult.trim())}`);
     };
-    
+
     recognition.start();
   };
 
@@ -344,7 +345,9 @@ export default function HomeHero({
     <div
       ref={heroRef}
       style={{
-        background: heroGradient,
+        backgroundImage: `url(${headerBg})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
         paddingBottom: 0,
         marginBottom: 0,
       }}>
@@ -352,15 +355,15 @@ export default function HomeHero({
       <div>
         <div
           ref={topSectionRef}
-          className="px-4 md:px-6 lg:px-8 pt-2 md:pt-3 pb-0">
+          className="px-4 md:px-6 lg:px-8 pt-1 md:pt-1.5 pb-0">
           <div className="flex items-center justify-between mb-2 md:mb-2">
             {/* Left: Text content */}
             <div className="flex-1 pr-2">
               {/* Logo */}
-              <img src={logo} alt="Healthy Delight Logo" className="h-16 md:h-24 w-auto object-contain mb-1" />
+              <img src={logo} alt="Healthy Delight Logo" className="h-10 md:h-12 w-auto object-contain mb-0" />
               {/* Location with dropdown indicator - only show if location is provided */}
               {locationDisplayText && (
-                <div className="text-neutral-700 text-[10px] md:text-xs flex items-center gap-0.5 leading-tight">
+                <div className="text-neutral-900 text-[10px] md:text-xs flex items-center gap-0.5 leading-tight">
                   <span className="line-clamp-1" title={locationDisplayText}>
                     {locationDisplayText}
                   </span>
@@ -403,17 +406,13 @@ export default function HomeHero({
         ref={stickyRef}
         className="sticky top-0 z-50"
         style={{
-          ...(scrollProgress >= 0.1 && {
-            background: `linear-gradient(to bottom right,
-              ${rgbToRgba(theme.primary[0], 1 - scrollProgress)},
-              ${rgbToRgba(theme.primary[1], 1 - scrollProgress)},
-              ${rgbToRgba(theme.primary[2], 1 - scrollProgress)}),
-              rgba(255, 255, 255, ${scrollProgress})`,
-            boxShadow: `0 4px 6px -1px rgba(0, 0, 0, ${scrollProgress * 0.1})`,
-            transition: "background 0.1s ease-out, box-shadow 0.1s ease-out",
-          }),
+          backgroundImage: `url(${headerBg})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center bottom',
+          boxShadow: scrollProgress > 0.05 ? "0 4px 6px -1px rgba(0, 0, 0, 0.1)" : "none",
+          transition: "box-shadow 0.3s ease-out",
         }}>
-        <div className="px-4 md:px-6 lg:px-8 pt-2 md:pt-2 pb-2 md:pb-2">
+        <div className="px-4 md:px-6 lg:px-8 pt-0.5 md:pt-1 pb-1 md:pb-1">
           {/* Search Bar */}
           <form
             onSubmit={(e) => {
@@ -423,7 +422,7 @@ export default function HomeHero({
                 navigate(`/search?q=${encodeURIComponent(input.value.trim())}`);
               }
             }}
-            className="w-full md:w-auto md:max-w-xl md:mx-auto rounded-xl shadow-lg px-3 py-2 md:px-3 md:py-2 flex items-center gap-2 hover:shadow-xl transition-all duration-300 mb-2 md:mb-1.5 bg-white border border-transparent focus-within:border-emerald-500 focus-within:ring-2 focus-within:ring-emerald-500/20"
+            className="w-full md:w-auto md:max-w-xl md:mx-auto rounded-xl shadow-lg px-3 py-1.5 md:px-3 md:py-1.5 flex items-center gap-2 hover:shadow-xl transition-all duration-300 mb-1 md:mb-1 bg-white border border-transparent focus-within:border-emerald-500 focus-within:ring-2 focus-within:ring-emerald-500/20"
             style={{
               backgroundColor:
                 scrollProgress > 0.1
@@ -460,10 +459,10 @@ export default function HomeHero({
                 type="text"
                 name="q"
                 placeholder={isListening ? "Listening..." : `Search "${searchSuggestions[currentSearchIndex]}"...`}
-                className="w-full bg-transparent border-none outline-none text-sm md:text-sm text-neutral-800 placeholder-neutral-400 font-medium pr-8"
+                className="w-full bg-transparent border-none outline-none text-sm md:text-sm text-neutral-950 placeholder-neutral-500 font-bold pr-8"
                 autoComplete="off"
               />
-              <button 
+              <button
                 type="button"
                 onClick={handleVoiceSearch}
                 className={`absolute right-0 top-1/2 -translate-y-1/2 p-1 rounded-full transition-colors ${isListening ? 'bg-red-100 text-red-500' : 'text-neutral-500 hover:text-emerald-600'}`}
@@ -487,8 +486,8 @@ export default function HomeHero({
           <div
             ref={tabsContainerRef}
             className="relative flex gap-2 md:gap-3 overflow-x-auto scrollbar-hide -mx-2 md:mx-0 px-4 md:px-6 lg:px-8 md:justify-center scroll-smooth"
-            style={{ paddingBottom: "12px" }}
-            data-padding-bottom="md:8px">
+            style={{ paddingBottom: "4px" }}
+            data-padding-bottom="md:2px">
             {/* Sliding Indicator */}
             {indicatorStyle.width > 0 && (
               <div
@@ -506,10 +505,10 @@ export default function HomeHero({
             {tabs.map((tab, index) => {
               const isActive = activeTab === tab.id;
               const tabColor = isActive
-                ? "text-neutral-900"
+                ? "text-neutral-950"
                 : scrollProgress > 0.5
-                  ? "text-neutral-600"
-                  : "text-neutral-800";
+                  ? "text-neutral-800"
+                  : "text-neutral-900";
               const isFirstTab = index === 0;
 
               return (

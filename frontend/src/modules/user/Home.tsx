@@ -244,7 +244,11 @@ export default function Home() {
   }
 
   return (
+<<<<<<< HEAD
     <div className="bg-white min-h-screen pb-20 md:pb-0" ref={contentRef}>
+=======
+    <div className="bg-transparent min-h-screen pb-20 md:pb-0" ref={contentRef}>
+>>>>>>> 1a2135b (updates)
       {/* Hero Header with Gradient and Tabs */}
       <HomeHero activeTab={activeTab} onTabChange={setActiveTab} />
 
@@ -258,7 +262,11 @@ export default function Home() {
       {/* Quick Categories strip */}
       {/* Quick Categories strip - Only visible on 'All' tab */}
       {activeTab === "all" && homeData.categories && homeData.categories.length > 0 && (
+<<<<<<< HEAD
         <div className="bg-neutral-50 px-4 pt-3 pb-3 md:px-6 md:pt-4 md:pb-4">
+=======
+        <div className="px-4 pt-3 pb-3 md:px-6 md:pt-4 md:pb-4">
+>>>>>>> 1a2135b (updates)
           <div className="flex items-center justify-between mb-2 md:mb-3">
             <h2 className="text-base md:text-lg font-semibold text-neutral-900">
               Categories
@@ -306,10 +314,17 @@ export default function Home() {
       {/* Main content grid for 'All' tab and Sidebar layout for Categories */}
       <div
         ref={contentRef}
+<<<<<<< HEAD
         className={`bg-neutral-50 -mt-2 pt-1 ${activeTab === "all" ? "space-y-5 md:space-y-8 md:pt-4" : ""}`}>
         {/* Category Specific View (Sidebar + Products) */}
         {activeTab !== "all" && (
           <div className="flex bg-white min-h-[70vh]">
+=======
+        className={`-mt-2 pt-1 ${activeTab === "all" ? "space-y-5 md:space-y-8 md:pt-4" : ""}`}>
+        {/* Category Specific View (Sidebar + Products) */}
+        {activeTab !== "all" && (
+          <div className="flex bg-transparent min-h-[70vh]">
+>>>>>>> 1a2135b (updates)
             {/* Left Sidebar with Round Subcategories */}
             <div className="w-20 md:w-24 bg-neutral-50 border-r border-neutral-200 py-4 flex-shrink-0 flex flex-col items-center gap-6 overflow-y-auto scrollbar-hide max-h-[80vh] sticky top-36">
               {/* 'All' Option */}

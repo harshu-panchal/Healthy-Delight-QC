@@ -10,7 +10,12 @@
 
 @layer base {
   body {
+<<<<<<< HEAD
     @apply bg-white md:bg-white text-neutral-900;
+=======
+    background: transparent !important;
+    @apply text-neutral-900;
+>>>>>>> 1a2135b (updates)
     margin: 0;
     padding: 0;
     padding-top: env(safe-area-inset-top);
@@ -24,7 +29,11 @@
     padding: 0;
     width: 100%;
     overflow-x: hidden;
+<<<<<<< HEAD
     background: white;
+=======
+    background: transparent !important;
+>>>>>>> 1a2135b (updates)
   }
 
   #root {
@@ -32,7 +41,11 @@
     padding: 0;
     width: 100%;
     min-height: 100vh;
+<<<<<<< HEAD
     background: white;
+=======
+    background: transparent !important;
+>>>>>>> 1a2135b (updates)
     overflow-x: hidden;
   }
 }
@@ -42,6 +55,10 @@
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
+<<<<<<< HEAD
+=======
+
+>>>>>>> 1a2135b (updates)
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
@@ -60,6 +77,10 @@ video {
     opacity: 0;
     transform: translateX(20px);
   }
+<<<<<<< HEAD
+=======
+
+>>>>>>> 1a2135b (updates)
   100% {
     opacity: 1;
     transform: translateX(0);
@@ -70,6 +91,10 @@ video {
   0% {
     transform: translateX(-100%);
   }
+<<<<<<< HEAD
+=======
+
+>>>>>>> 1a2135b (updates)
   100% {
     transform: translateX(100%);
   }
@@ -88,9 +113,17 @@ video {
     opacity: 0;
     transform: translateX(-50%) translateY(-10px);
   }
+<<<<<<< HEAD
+=======
+
+>>>>>>> 1a2135b (updates)
   to {
     opacity: 1;
     transform: translateX(-50%) translateY(0);
   }
+<<<<<<< HEAD
 }
 
+=======
+}
+>>>>>>> 1a2135b (updates)
