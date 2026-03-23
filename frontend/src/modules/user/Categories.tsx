@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
 import {
   getCategories,
   Category as CustomerCategory,
@@ -100,49 +101,68 @@ export default function Categories() {
 
   return (
     <div className="pb-4 md:pb-8 bg-transparent min-h-screen">
-      {/* Page Header */}
-      <div className="px-4 py-4 md:px-6 md:py-6 bg-transparent border-b border-neutral-200 sticky top-0 z-10 shadow-sm">
-        <h1 className="text-xl md:text-2xl font-bold text-neutral-900">
-          Categories
-        </h1>
+      {/* Page Header - Ribbon Style */}
+      <div className="px-4 py-8 md:px-6 md:py-10 bg-transparent flex items-center justify-start -ml-4 md:-ml-6 lg:-ml-8 overflow-visible">
+        <div className="relative flex items-center">
+          {/* Subtle Ribbon Tail Wrap */}
+          <div className="absolute -left-0.5 top-full -mt-1.5 w-3 h-3 bg-[#8A6642] origin-top-right -rotate-45 -z-10 opacity-60"></div>
+
+          {/* Premium Glass-Brown Ribbon Body */}
+          <div className="bg-gradient-to-r from-[#8A6642] to-[#A88A68] pl-5 md:pl-7 lg:pl-10 pr-10 py-2 md:py-3 rounded-r-lg shadow-lg relative flex items-center border-y border-white/10">
+            <h1 className="text-xs md:text-sm font-bold text-white uppercase tracking-[0.25em] drop-shadow-sm">
+              All Categories
+            </h1>
+
+            {/* Elegant Minimal Notch */}
+            <div className="absolute -right-3 top-0 bottom-0 w-6 bg-[#A88A68]" style={{ clipPath: 'polygon(0 0, 100% 50%, 0 100%)' }}></div>
+          </div>
+        </div>
       </div>
 
-      <div className="bg-transparent pt-3 pb-6">
+      <div className="bg-transparent pb-6">
         {allCategories.length > 0 ? (
           <div className="px-4 md:px-6 lg:px-8">
-            <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
-              {allCategories.map((cat) => (
+            <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-5 lg:gap-6">
+              {allCategories.map((cat, index) => (
                 <button
                   key={cat._id}
                   type="button"
                   onClick={() => handleCategoryClick(cat)}
-                  className="group relative bg-gradient-to-b from-amber-100/70 via-white to-amber-50/60 rounded-2xl shadow-sm border border-[#b89a72]/70 transition-all active:scale-[0.97] overflow-hidden">
-                  {/* Soft glassy highlight */}
-                  <div className="pointer-events-none absolute inset-x-2 top-1 h-6 rounded-full bg-white/70 blur-md opacity-60" />
+                  className="group flex flex-col items-center relative active:scale-95 transition-transform duration-300 pb-2">
+                  {/* Completely Static Circular Icon */}
+                  <div
+                    className="w-20 h-20 md:w-24 md:h-24 aspect-square rounded-full bg-gradient-to-br from-[#E6D5C3] to-[#DFCBB7] flex items-center justify-center shadow-md border-[1.5px] border-[#8A6642] group-hover:border-[#6B4E31] relative overflow-hidden flex-shrink-0 mb-1 z-0">
 
-                  {/* Image / icon badge */}
-                  <div className="relative w-full pt-3 pb-1 flex items-center justify-center">
-                    <div className="relative w-18 h-18 md:w-20 md:h-20 rounded-none bg-white shadow-md ring-2 ring-[#b89a72]/70 overflow-hidden flex items-center justify-center transition-transform">
+                    {/* Inner Glassy Highlight */}
+                    <div className="w-[82%] h-[82%] rounded-full bg-white/50 backdrop-blur-[1px] flex items-center justify-center overflow-hidden shadow-inner transform group-hover:scale-110 transition-transform duration-500">
                       {cat.image ? (
                         <img
                           src={cat.image}
                           alt={cat.name}
-                          className="w-full h-full object-cover"
+                          className="w-[85%] h-[85%] object-contain drop-shadow-sm"
                           loading="lazy"
                         />
                       ) : (
-                        <span className="text-3xl md:text-4xl" aria-hidden="true">
-                          🥛
-                        </span>
+                        <span className="text-2xl" aria-hidden="true">🥛</span>
                       )}
                     </div>
                   </div>
 
-                  {/* Bottom label area */}
-                  <div className="px-2 pt-1 pb-2 flex flex-col items-center gap-0.5">
-                    <span className="text-[10px] md:text-[11px] font-semibold text-slate-900 text-center leading-tight line-clamp-2">
-                      {cat.name}
-                    </span>
+                  {/* Ribbon Flag Label - Overlapping more of the bottom circle */}
+                  <div className="absolute bottom-1 left-1/2 -translate-x-1/2 w-[90%] z-10 pointer-events-none">
+                    <div className="relative group-hover:scale-105 transition-transform duration-300">
+                      {/* Ribbon Tail (Left Notch) */}
+                      <div className="absolute top-1 -left-1.5 w-3 h-3 bg-[#6B4E31] -z-10 origin-top-right -rotate-45" />
+                      {/* Ribbon Tail (Right Notch) */}
+                      <div className="absolute top-1 -right-1.5 w-3 h-3 bg-[#6B4E31] -z-10 origin-top-left rotate-45" />
+
+                      {/* Main Ribbon Body with Gradient */}
+                      <div className="bg-gradient-to-r from-[#8A6642] via-[#A68662] to-[#8A6642] px-2 py-0.5 rounded shadow-sm border border-white/10">
+                        <span className="block text-[9px] md:text-[11px] font-semibold text-white text-center line-clamp-1 leading-tight drop-shadow-sm">
+                          {cat.name}
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 </button>
               ))}

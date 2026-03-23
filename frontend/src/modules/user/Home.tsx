@@ -260,16 +260,28 @@ export default function Home() {
       {/* Quick Categories strip - Only visible on 'All' tab */}
       {activeTab === "all" && homeData.categories && homeData.categories.length > 0 && (
         <div className="px-4 pt-3 pb-3 md:px-6 md:pt-4 md:pb-4">
-          <div className="flex items-center justify-between mb-2 md:mb-3">
-            <h2 className="text-base md:text-lg font-semibold text-neutral-900">
-              Categories
-            </h2>
+          <div className="flex items-center justify-between mb-5 -ml-4 md:-ml-6 lg:-ml-8">
+            <div className="relative flex items-center">
+              {/* Subtle Ribbon Tail Wrap */}
+              <div className="absolute -left-0.5 top-full -mt-1.5 w-3 h-3 bg-[#8A6642] origin-top-right -rotate-45 -z-10 opacity-60"></div>
+
+              {/* Premium Glass-Brown Ribbon Body */}
+              <div className="bg-gradient-to-r from-[#8A6642] to-[#A88A68] pl-5 md:pl-7 lg:pl-10 pr-6 py-1.5 md:py-2 rounded-r-lg shadow-md relative flex items-center border-y border-white/10">
+                <h2 className="text-[10px] md:text-xs font-bold text-white uppercase tracking-[0.2em] drop-shadow-sm">
+                  Categories
+                </h2>
+
+                {/* Elegant Minimal Notch */}
+                <div className="absolute -right-2 top-0 bottom-0 w-4 bg-[#A88A68]" style={{ clipPath: 'polygon(0 0, 100% 50%, 0 100%)' }}></div>
+              </div>
+            </div>
+
             <button
               type="button"
               onClick={handleGoToCategories}
-              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[11px] md:text-xs font-semibold bg-emerald-600 text-white shadow-sm hover:bg-emerald-700 active:scale-95 transition-colors transition-transform">
-              See all
-              <span className="text-[13px]" aria-hidden="true">
+              className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[9px] md:text-[10px] font-bold tracking-widest uppercase bg-white/40 backdrop-blur-sm text-[#8A6642] border border-[#8A6642]/30 hover:bg-white/60 active:scale-95 transition-all shadow-sm mr-4 md:mr-6 lg:mr-8">
+              See All
+              <span className="text-xs" aria-hidden="true">
                 →
               </span>
             </button>
@@ -280,8 +292,8 @@ export default function Home() {
                 key={cat._id || cat.id}
                 type="button"
                 onClick={() => navigate(`/category/${cat._id || cat.id}`)}
-                className="bg-white rounded-2xl px-2.5 py-2 flex flex-col items-center shadow-sm border border-neutral-200 active:scale-95 transition-transform">
-                <div className="w-10 h-10 md:w-11 md:h-11 rounded-2xl bg-emerald-50 flex items-center justify-center overflow-hidden mb-1">
+                className="bg-[#E6D5C3] rounded-2xl px-2.5 py-2 flex flex-col items-center shadow-sm border-[2px] border-[#8A6642] hover:bg-[#DFCBB7] hover:border-[#6B4E31] active:scale-95 transition-all duration-300">
+                <div className="w-10 h-10 md:w-11 md:h-11 rounded-2xl bg-white/40 flex items-center justify-center overflow-hidden mb-1">
                   {cat.image ? (
                     <img
                       src={cat.image}
@@ -380,15 +392,22 @@ export default function Home() {
                   exit={{ x: -28, opacity: 0 }}
                   transition={{ duration: 0.28, ease: "easeInOut" }}
                 >
-                  <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-base md:text-xl font-bold text-neutral-900 capitalize px-1">
-                      {selectedSubcategory === "all"
-                        ? `${activeTab.replace("-", " ")} Products`
-                        : (homeData.categories || []).find(
-                          (c: any) => String(c._id || c.id) === String(selectedSubcategory)
-                        )?.name || "Products"}
-                    </h2>
-                    <span className="text-[10px] md:text-xs font-semibold text-neutral-500 bg-neutral-100 px-2 py-1 rounded-full">
+                  <div className="flex items-center justify-between mb-6 -ml-3 md:-ml-6 pr-1">
+                    <div className="relative flex items-center">
+                      <div className="absolute -left-0.5 top-full -mt-1 w-2.5 h-2.5 bg-[#8A6642] origin-top-right -rotate-45 -z-10 opacity-60"></div>
+                      <div className="bg-gradient-to-r from-[#8A6642] to-[#A88A68] pl-3 md:pl-6 pr-5 py-1.5 md:py-2 rounded-r-lg shadow-md relative flex items-center border-y border-white/10">
+                        <h2 className="text-[10px] md:text-sm font-bold text-white uppercase tracking-[0.15em] drop-shadow-sm line-clamp-1 max-w-[150px] md:max-w-[300px]">
+                          {selectedSubcategory === "all"
+                            ? `${activeTab.replace("-", " ")}`
+                            : (homeData.categories || []).find(
+                              (c: any) => String(c._id || c.id) === String(selectedSubcategory)
+                            )?.name || "Products"}
+                        </h2>
+                        <div className="absolute -right-1.5 top-0 bottom-0 w-3.5 bg-[#A88A68]" style={{ clipPath: 'polygon(0 0, 100% 50%, 0 100%)' }}></div>
+                      </div>
+                    </div>
+
+                    <span className="text-[10px] md:text-xs font-semibold text-neutral-500 bg-neutral-100/50 backdrop-blur-sm px-2.5 py-1 rounded-full border border-neutral-200/50">
                       {filteredProducts.length} Items
                     </span>
                   </div>
@@ -457,9 +476,17 @@ export default function Home() {
                     return (
                       <div key={section.id} className="mt-8 mb-8 md:mt-10 md:mb-10 px-4 md:px-6 lg:px-8">
                         {section.title && (
-                          <h2 className="text-xl md:text-2xl font-bold text-neutral-900 mb-4 md:mb-6 tracking-tight">
-                            {section.title}
-                          </h2>
+                          <div className="flex items-center justify-between mb-5 -ml-4 md:-ml-6 lg:-ml-8">
+                            <div className="relative flex items-center">
+                              <div className="absolute -left-0.5 top-full -mt-1.5 w-3 h-3 bg-[#8A6642] origin-top-right -rotate-45 -z-10 opacity-60"></div>
+                              <div className="bg-gradient-to-r from-[#8A6642] to-[#A88A68] pl-5 md:pl-7 lg:pl-10 pr-6 py-1.5 md:py-2 rounded-r-lg shadow-md relative flex items-center border-y border-white/10">
+                                <h2 className="text-[10px] md:text-xs font-bold text-white uppercase tracking-[0.2em] drop-shadow-sm">
+                                  {section.title}
+                                </h2>
+                                <div className="absolute -right-2 top-0 bottom-0 w-4 bg-[#A88A68]" style={{ clipPath: 'polygon(0 0, 100% 50%, 0 100%)' }}></div>
+                              </div>
+                            </div>
+                          </div>
                         )}
                         <div className={`flex overflow-x-auto pb-4 gap-3 md:gap-4 snap-x snap-mandatory scrollbar-hide md:grid md:pb-0 md:overflow-visible ${gridClass} ${gapClass}`}>
                           {section.data.map((product: any) => (
@@ -494,15 +521,29 @@ export default function Home() {
 
             {/* Shop by Store Section - only on 'all' tab */}
             <div className="mb-6 mt-6 md:mb-8 md:mt-8 px-4 md:px-6 lg:px-8">
-              <div className="flex items-center justify-between mb-4 md:mb-6">
-                <h2 className="text-lg md:text-2xl font-semibold text-neutral-900 tracking-tight">
-                  Shop by Store
-                </h2>
+              <div className="flex items-center justify-between mb-5 -ml-4 md:-ml-6 lg:-ml-8">
+                <div className="relative flex items-center">
+                  {/* Subtle Ribbon Tail Wrap */}
+                  <div className="absolute -left-0.5 top-full -mt-1.5 w-3 h-3 bg-[#8A6642] origin-top-right -rotate-45 -z-10 opacity-60"></div>
+
+                  {/* Premium Glass-Brown Ribbon Body */}
+                  <div className="bg-gradient-to-r from-[#8A6642] to-[#A88A68] pl-5 md:pl-7 lg:pl-10 pr-6 py-1.5 md:py-2 rounded-r-lg shadow-md relative flex items-center border-y border-white/10">
+                    <h2 className="text-[10px] md:text-xs font-bold text-white uppercase tracking-[0.2em] drop-shadow-sm">
+                      Shop by Store
+                    </h2>
+
+                    {/* Elegant Minimal Notch */}
+                    <div className="absolute -right-2 top-0 bottom-0 w-4 bg-[#A88A68]" style={{ clipPath: 'polygon(0 0, 100% 50%, 0 100%)' }}></div>
+                  </div>
+                </div>
+
                 <button
                   onClick={() => navigate('/stores')}
-                  className="text-xs md:text-sm font-semibold text-amber-700 hover:text-amber-800 transition-colors"
-                >
-                  See all stores
+                  className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[9px] md:text-[10px] font-bold tracking-widest uppercase bg-white/40 backdrop-blur-sm text-[#8A6642] border border-[#8A6642]/30 hover:bg-white/60 active:scale-95 transition-all shadow-sm mr-4 md:mr-6 lg:mr-8">
+                  See All
+                  <span className="text-xs" aria-hidden="true">
+                    →
+                  </span>
                 </button>
               </div>
               <div className="">
@@ -523,9 +564,9 @@ export default function Home() {
                           navigate(`/store/${storeSlug}`);
                         }}
                       >
-                        <div className="relative aspect-[4/5] bg-gradient-to-b from-amber-100 to-amber-50 rounded-t-full overflow-hidden border-x border-t border-[#b89a72] shadow-sm group-hover:shadow-md transition-shadow">
-                          <div className="absolute inset-x-0 top-1/2 bottom-0 bg-[#e6d5b8] opacity-60"></div>
-                          <div className="absolute bottom-4 left-0 right-0 h-4 bg-amber-200/40 blur-sm"></div>
+                        <div className="relative aspect-[4/5] bg-gradient-to-b from-[#E6D5C3] to-white rounded-t-full overflow-hidden border-x border-t border-[#8A6642] shadow-sm group-hover:shadow-md transition-shadow">
+                          <div className="absolute inset-x-0 top-1/2 bottom-0 bg-[#DFCBB7] opacity-40"></div>
+                          <div className="absolute bottom-4 left-0 right-0 h-4 bg-white/20 blur-sm"></div>
 
                           <div className="absolute inset-0 p-2 flex flex-col items-center justify-center">
                             {hasImages ? (
@@ -538,20 +579,20 @@ export default function Home() {
                                 className="w-[85%] h-[85%] object-contain drop-shadow-lg transform group-hover:scale-110 transition-transform duration-300"
                               />
                             ) : (
-                              <div className="text-4xl text-amber-500 font-bold opacity-50">
+                              <div className="text-4xl text-[#8A6642] font-bold opacity-30">
                                 {tile.name.charAt(0)}
                               </div>
                             )}
                           </div>
 
                           <div className="absolute bottom-0 left-0 right-0 p-1">
-                            <div className="bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 py-2 md:py-2.5 px-2 rounded-xl shadow-lg border border-amber-200/50">
-                              <span className="block text-[9px] md:text-xs font-black text-amber-900 text-center uppercase tracking-wider line-clamp-1 leading-none">
+                            <div className="bg-gradient-to-r from-[#8A6642] via-[#A88A68] to-[#8A6642] py-2 md:py-2.5 px-2 rounded-xl shadow-lg border border-white/20">
+                              <span className="block text-[9px] md:text-xs font-black text-white text-center uppercase tracking-wider line-clamp-1 leading-none">
                                 {tile.name}
                               </span>
                             </div>
                           </div>
-                          <div className="absolute bottom-0 left-0 right-0 h-px bg-[#b89a72]" />
+                          <div className="absolute bottom-0 left-0 right-0 h-px bg-[#8A6642]" />
                         </div>
                       </div>
                     );

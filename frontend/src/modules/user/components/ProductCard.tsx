@@ -204,13 +204,16 @@ export default function ProductCard({
       whileHover={{ y: -2 }}
       whileTap={{ scale: 0.97 }}
       transition={{ duration: 0.2 }}
-      className={`${categoryStyle ? 'bg-amber-50' : 'bg-white'} rounded-lg shadow-sm overflow-hidden flex flex-col relative group`}
+      className={`rounded-xl shadow-sm overflow-hidden flex flex-col relative group transition-all duration-300 ${categoryStyle
+        ? 'bg-[#E6D5C3] border-[1px] border-[#8A6642] hover:bg-[#DFCBB7] hover:border-[#6B4E31]'
+        : 'bg-white border border-neutral-200 hover:shadow-md'
+        }`}
     >
       <div
         onClick={handleCardClick}
         className="cursor-pointer flex-1 flex flex-col"
       >
-        <div className={`w-full ${compact ? 'h-32 md:h-40' : categoryStyle ? 'h-28 md:h-36' : 'h-40 md:h-48'} bg-neutral-100 flex items-center justify-center overflow-hidden relative`}>
+        <div className={`w-full ${compact ? 'h-32 md:h-40' : categoryStyle ? 'h-28 md:h-36' : 'h-40 md:h-48'} ${categoryStyle ? 'bg-white/40' : 'bg-neutral-100'} flex items-center justify-center overflow-hidden relative`}>
           {product.imageUrl || product.mainImage ? (
             <img
               ref={imageRef}
@@ -341,15 +344,15 @@ export default function ProductCard({
                       e.stopPropagation();
                       handleAdd(e);
                     }}
-                    className={`w-full border rounded-full font-bold text-[10px] h-7 px-2 flex items-center justify-center uppercase tracking-wider ${product.isAvailable === false
+                    className={`w-full border-2 rounded-full font-bold text-[10px] h-7 px-2 flex items-center justify-center uppercase tracking-wider ${product.isAvailable === false
                       ? 'border-neutral-300 text-neutral-400 bg-neutral-50 cursor-not-allowed'
-                      : 'border-emerald-600 text-emerald-600 bg-transparent hover:bg-emerald-50 shadow-sm'
+                      : 'border-[#8A6642] text-[#8A6642] bg-white/50 hover:bg-white/80 hover:text-[#6B4E31] hover:border-[#6B4E31] shadow-sm'
                       }`}
                   >
                     {product.isAvailable === false ? 'Range' : 'ADD'}
                   </Button>
                 ) : (
-                  <div className="flex items-center justify-center gap-2 bg-white border border-emerald-600 rounded-full px-1.5 py-0.5 h-7 w-full shadow-sm">
+                  <div className="flex items-center justify-center gap-2 bg-white/60 backdrop-blur-sm border-2 border-[#8A6642] rounded-full px-1.5 py-0.5 h-7 w-full shadow-sm">
                     <Button
                       variant="default"
                       size="icon"
@@ -357,12 +360,12 @@ export default function ProductCard({
                         e.stopPropagation();
                         handleDecrease(e);
                       }}
-                      className="w-5 h-5 p-0 bg-transparent text-emerald-600 hover:bg-emerald-50 shadow-none border-none"
+                      className="w-5 h-5 p-0 bg-transparent text-[#8A6642] hover:bg-white/40 shadow-none border-none"
                       aria-label="Decrease quantity"
                     >
                       −
                     </Button>
-                    <span className="text-xs font-bold text-emerald-600 min-w-[1rem] text-center">
+                    <span className="text-xs font-bold text-[#8A6642] min-w-[1rem] text-center">
                       {inCartQty}
                     </span>
                     <Button
@@ -373,7 +376,7 @@ export default function ProductCard({
                         e.stopPropagation();
                         handleIncrease(e);
                       }}
-                      className={`w-5 h-5 p-0 bg-transparent text-emerald-600 shadow-none border-none ${product.isAvailable === false ? 'text-neutral-300 cursor-not-allowed' : 'hover:bg-emerald-50'
+                      className={`w-5 h-5 p-0 bg-transparent text-[#8A6642] shadow-none border-none ${product.isAvailable === false ? 'text-neutral-300 cursor-not-allowed' : 'hover:bg-white/40'
                         }`}
                       aria-label="Increase quantity"
                     >
@@ -441,7 +444,7 @@ export default function ProductCard({
                   onClick={handleAdd}
                   className={`w-full border h-8 text-xs font-semibold uppercase tracking-wide ${product.isAvailable === false
                     ? 'border-neutral-300 text-neutral-400 bg-neutral-50 cursor-not-allowed'
-                      : 'border-emerald-600 text-emerald-600 hover:bg-emerald-50'
+                    : 'border-emerald-600 text-emerald-600 hover:bg-emerald-50'
                     }`}
                 >
                   {product.isAvailable === false ? 'Out of Range' : 'Add'}

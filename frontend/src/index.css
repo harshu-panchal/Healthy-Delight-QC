@@ -98,3 +98,14 @@ video {
     transform: translateX(-50%) translateY(0);
   }
 }
+
+/* 3D Animation Utilities */
+.preserve-3d {
+  transform-style: preserve-3d;
+  perspective: 1000px;
+}
+
+.backface-hidden {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}

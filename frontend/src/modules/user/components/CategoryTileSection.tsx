@@ -140,12 +140,12 @@ export default function CategoryTileSection({
                       handleTileClick(tile);
                     }
                   }}
-                  className={`block bg-white rounded-xl shadow-sm border border-neutral-200 hover:shadow-md transition-shadow h-full ${showProductCount ? "px-2.5" : "px-1.5"
+                  className={`block bg-[#E6D5C3] rounded-xl shadow-sm border-[2px] border-[#8A6642] hover:bg-[#DFCBB7] hover:border-[#6B4E31] hover:shadow-md transition-all duration-300 h-full ${showProductCount ? "px-2.5" : "px-1.5"
                     }`}>
                   {/* Image - Single image for non-bestsellers, 2x2 grid for bestsellers */}
                   <div
                     className={`w-full rounded-lg overflow-hidden ${showProductCount ? "h-32 md:h-36 mb-2" : "aspect-square"
-                      } ${tile.bgColor || "bg-cyan-50"}`}>
+                      } ${tile.bgColor || "bg-white/40"}`}>
                     {hasImages ? (
                       showProductCount ? (
                         // Bestsellers: 2x2 grid
