@@ -7,7 +7,7 @@ import {
 import { useAuth } from "../../context/AuthContext";
 import OTPInput from "../../components/OTPInput";
 import Lottie from "lottie-react";
-import cowAnimation from "../../../assets/animation/Cow Drink Milk.json";
+import cowAnimation from "@assets/animation/cow_drink.json";
 
 export default function Signup() {
     const navigate = useNavigate();
@@ -184,8 +184,8 @@ export default function Signup() {
                                     onClick={handleContinue}
                                     disabled={formData.mobileNumber.length !== 10 || !formData.name.trim() || loading}
                                     className={`w-full py-2.5 sm:py-3 rounded-xl font-semibold text-sm transition-colors border px-3 ${formData.mobileNumber.length === 10 && formData.name.trim() && !loading
-                                            ? "bg-amber-500 text-white border-amber-500 hover:bg-amber-600 shadow-md"
-                                            : "bg-neutral-300 text-neutral-500 cursor-not-allowed border-neutral-300"
+                                        ? "bg-amber-500 text-white border-amber-500 hover:bg-amber-600 shadow-md"
+                                        : "bg-neutral-300 text-neutral-500 cursor-not-allowed border-neutral-300"
                                         }`}
                                 >
                                     {loading ? "Please wait..." : "Continue"}

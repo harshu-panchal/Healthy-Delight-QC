@@ -1306,9 +1306,9 @@ export default function Checkout() {
                         </div>
                       )}
 
-                      {/* Red Discount Badge - Top Left */}
+                      {/* Light Brown Discount Badge - Top Left */}
                       {discount > 0 && (
-                        <div className="absolute top-1 left-1 z-10 bg-red-600 text-white text-[9px] font-bold px-1 py-0.5 rounded">
+                        <div className="absolute top-1 left-1 z-10 bg-[#E6D5C3] text-[#8A6642] text-[9px] font-bold px-1 py-0.5 rounded border border-[#8A6642]/20 shadow-sm">
                           {discount}% OFF
                         </div>
                       )}
@@ -1439,9 +1439,9 @@ export default function Checkout() {
                       20 MINS
                     </div>
 
-                    {/* Discount - Blue Text */}
+                    {/* Discount - Light Brown Text */}
                     {discount > 0 && (
-                      <div className="text-[9px] text-blue-600 font-semibold mb-0.5">
+                      <div className="text-[9px] text-[#8A6642] font-bold mb-0.5">
                         {discount}% OFF
                       </div>
                     )}
@@ -1490,9 +1490,9 @@ export default function Checkout() {
         </div>
       </div>
 
-      {/* Get FREE delivery banner */}
+      {/* Get FREE delivery banner - Themed */}
       {deliveryCharge > 0 && (
-        <div className="px-4 py-2 bg-blue-50 border-b border-blue-100">
+        <div className="px-4 py-2 bg-amber-50/50 border-b border-amber-100">
           <div className="flex items-center gap-2 mb-1.5">
             <svg
               width="18"
@@ -1502,16 +1502,16 @@ export default function Checkout() {
               xmlns="http://www.w3.org/2000/svg">
               <path
                 d="M5 13h14M5 13l4-4m-4 4l4 4"
-                stroke="#3b82f6"
+                stroke="#8A6642"
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
               />
-              <circle cx="18" cy="5" r="2" fill="#3b82f6" />
+              <circle cx="18" cy="5" r="2" fill="#8A6642" />
             </svg>
             <div className="flex-1">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-blue-700">
+                <span className="text-xs font-bold text-[#8A6642]">
                   Get FREE delivery
                 </span>
                 <svg
@@ -1522,22 +1522,22 @@ export default function Checkout() {
                   xmlns="http://www.w3.org/2000/svg">
                   <path
                     d="M9 18l6-6-6-6"
-                    stroke="#3b82f6"
+                    stroke="#8A6642"
                     strokeWidth="2"
                     strokeLinecap="round"
                     strokeLinejoin="round"
                   />
                 </svg>
               </div>
-              <p className="text-[10px] text-blue-600 mt-0.5">
+              <p className="text-[10px] text-[#8A6642]/80 mt-0.5">
                 Add products worth ₹{amountNeededForFreeDelivery.toLocaleString('en-IN')} more
               </p>
             </div>
           </div>
           {/* Progress bar */}
-          <div className="w-full h-1 bg-blue-200 rounded-full overflow-hidden">
+          <div className="w-full h-1 bg-[#E6D5C3] rounded-full overflow-hidden">
             <div
-              className="h-full bg-blue-600 transition-all duration-300"
+              className="h-full bg-[#8A6642] transition-all duration-300"
               style={{
                 width: `${Math.min(
                   100,

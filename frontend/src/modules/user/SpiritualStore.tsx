@@ -195,7 +195,7 @@ export default function SpiritualStore() {
 
                     {/* Discount */}
                     {hasDiscount && (
-                      <div className="text-[9px] text-blue-600 font-semibold mb-0.5">
+                      <div className="text-[9px] text-[#8A6642] font-bold mb-0.5">
                         {discount}% OFF
                       </div>
                     )}

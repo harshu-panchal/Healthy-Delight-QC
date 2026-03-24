@@ -637,7 +637,7 @@ export default function ProductDetail() {
                   ₹{variantMrp.toLocaleString("en-IN")}
                 </span>
                 {discount > 0 && (
-                  <Badge className="!bg-blue-500 !text-white !border-blue-500 text-xs px-1.5 py-0.5 rounded-full font-semibold">
+                  <Badge className="!bg-[#E6D5C3] !text-[#8A6642] border-[#8A6642]/20 text-xs px-1.5 py-0.5 rounded-full font-bold shadow-sm">
                     {discount}% OFF
                   </Badge>
                 )}
@@ -1083,7 +1083,7 @@ export default function ProductDetail() {
                           return (
                             <div className="flex flex-col">
                               {sHasDiscount && (
-                                <Badge className="!bg-blue-500 !text-white !border-blue-500 text-[10px] px-1.5 py-0.5 rounded-full font-semibold mb-1 w-fit">
+                                <Badge className="!bg-[#E6D5C3] !text-[#8A6642] border-[#8A6642]/20 text-[10px] px-1.5 py-0.5 rounded-full font-bold mb-1 w-fit shadow-sm">
                                   {sDiscount}% OFF
                                 </Badge>
                               )}
@@ -1209,7 +1209,7 @@ export default function ProductDetail() {
                     MRP ₹{variantMrp.toLocaleString("en-IN")}
                   </span>
                   {discount > 0 && (
-                    <Badge className="!bg-blue-500 !text-white !border-blue-500 text-[10px] px-1.5 py-0.5 rounded-full font-semibold">
+                    <Badge className="!bg-[#E6D5C3] !text-[#8A6642] border-[#8A6642]/20 text-[10px] px-1.5 py-0.5 rounded-full font-bold shadow-sm">
                       {discount}% OFF
                     </Badge>
                   )}

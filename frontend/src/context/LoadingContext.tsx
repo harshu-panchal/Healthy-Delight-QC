@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useCallback, useRef } from 'react';
 
-export type LoadingVariant = 'first' | 'milk_bottle' | 'milk';
+export type LoadingVariant = 'first' | 'milk_bottle' | 'milk_can_open';
 
 interface LoadingContextType {
   isLoading: boolean;
@@ -15,7 +15,7 @@ interface LoadingContextType {
 
 const LoadingContext = createContext<LoadingContextType | undefined>(undefined);
 
-const ROUTE_LOADER_VARIANTS = ['milk_bottle', 'milk'] as const;
+const ROUTE_LOADER_VARIANTS = ['milk_bottle', 'milk_can_open'] as const;
 const ROUTE_LOADER_QUOTES = [
   'Collecting milk from the dairy...',
   'Pouring freshness into your cart...',

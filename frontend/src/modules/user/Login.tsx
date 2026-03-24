@@ -7,7 +7,7 @@ import {
 import { useAuth } from "../../context/AuthContext";
 import OTPInput from "../../components/OTPInput";
 import Lottie from "lottie-react";
-import cowAnimation from "../../../assets/animation/Cow Drink Milk.json";
+import cowAnimation from "@assets/animation/cow_drink.json";
 
 export default function Login() {
   const navigate = useNavigate();

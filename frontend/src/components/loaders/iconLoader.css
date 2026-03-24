@@ -19,8 +19,12 @@
 /* Mobile optimizations for centered content */
 @media (max-width: 768px) {
   .lottie-wrapper {
-    width: 150px;
-    height: 150px;
+    width: 200px; /* vs current 150px */
+    height: 200px;
+  }
+  .lottie-wrapper.first-load-variant {
+    width: 280px;
+    height: 280px;
   }
 }
 
@@ -33,12 +37,17 @@
 }
 
 .lottie-wrapper {
-  width: 200px;
-  height: 200px;
+  width: 250px; /* vs current 200 */
+  height: 250px;
   display: flex;
   justify-content: center;
   align-items: center;
   background: transparent !important;
+}
+
+.lottie-wrapper.first-load-variant {
+  width: 350px;
+  height: 350px;
 }
 
 .loader-lottie {

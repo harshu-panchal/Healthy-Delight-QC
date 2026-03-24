@@ -241,15 +241,15 @@ export default function ProductCard({
           )}
 
           {categoryStyle && showBadge && discount > 0 && (
-            <div className="absolute top-2 left-2 z-10 bg-green-600 text-white text-[10px] font-semibold px-2 py-0.5 rounded">
+            <div className="absolute top-2 left-2 z-10 bg-[#E6D5C3] text-[#8A6642] text-[10px] font-bold px-2 py-0.5 rounded border border-[#8A6642]/20 shadow-sm">
               {discount}% off
             </div>
           )}
 
           {!categoryStyle && showBadge && (badgeText || discount > 0) && (
             <Badge
-              variant="destructive"
-              className="absolute top-2 left-2 z-10 text-xs px-2 py-1"
+              variant="secondary"
+              className="absolute top-2 left-2 z-10 text-xs px-2 py-1 bg-[#E6D5C3] text-[#8A6642] border-[#8A6642]/20 shadow-sm"
             >
               {badgeText || `${discount}% OFF`}
             </Badge>

@@ -75,7 +75,7 @@ const ProductCard = memo(({
 
             {/* Red Discount Badge - Top Left */}
             {discount > 0 && (
-              <div className="absolute top-1 left-1 z-10 bg-red-600 text-white text-[9px] font-bold px-1 py-0.5 rounded">
+              <div className="absolute top-1 left-1 z-10 bg-[#E6D5C3] text-[#8A6642] text-[9px] font-bold px-1 py-0.5 rounded border border-[#8A6642]/20 shadow-sm">
                 {discount}% OFF
               </div>
             )}
@@ -125,11 +125,10 @@ const ProductCard = memo(({
                       e.stopPropagation();
                       onAddToCart(product, e.currentTarget);
                     }}
-                    className={`bg-white/95 backdrop-blur-sm text-[10px] font-semibold px-2 py-1 rounded shadow-md transition-colors ${
-                      product.isAvailable === false
-                      ? 'text-neutral-400 border-2 border-neutral-300 cursor-not-allowed'
-                      : 'text-green-600 border-2 border-green-600 hover:bg-white'
-                    }`}
+                    className={`bg-white/95 backdrop-blur-sm text-[10px] font-semibold px-2 py-1 rounded shadow-md transition-colors ${product.isAvailable === false
+                        ? 'text-neutral-400 border-2 border-neutral-300 cursor-not-allowed'
+                        : 'text-green-600 border-2 border-green-600 hover:bg-white'
+                      }`}
                   >
                     {product.isAvailable === false ? 'Out of Range' : 'ADD'}
                   </motion.button>
@@ -173,11 +172,10 @@ const ProductCard = memo(({
                         e.stopPropagation();
                         onUpdateQuantity(product.id, inCartQty + 1);
                       }}
-                      className={`w-4 h-4 flex items-center justify-center font-bold rounded transition-colors p-0 leading-none ${
-                        product.isAvailable === false
-                        ? 'text-neutral-300 cursor-not-allowed'
-                        : 'text-white hover:bg-green-700'
-                      }`}
+                      className={`w-4 h-4 flex items-center justify-center font-bold rounded transition-colors p-0 leading-none ${product.isAvailable === false
+                          ? 'text-neutral-300 cursor-not-allowed'
+                          : 'text-white hover:bg-green-700'
+                        }`}
                       style={{ lineHeight: 1, fontSize: '14px' }}
                     >
                       <span className="relative top-[-1px]">+</span>
@@ -234,9 +232,9 @@ const ProductCard = memo(({
             20 MINS
           </div>
 
-          {/* Discount - Blue Text */}
+          {/* Discount - Light Brown Text */}
           {discount > 0 && (
-            <div className="text-[9px] text-blue-600 font-semibold mb-0.5">
+            <div className="text-[9px] text-[#8A6642] font-bold mb-0.5">
               {discount}% OFF
             </div>
           )}

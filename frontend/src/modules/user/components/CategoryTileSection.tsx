@@ -86,9 +86,17 @@ export default function CategoryTileSection({
 
   return (
     <div className="mb-6 md:mb-8 mt-0 overflow-visible">
-      <h2 className="text-lg md:text-2xl font-semibold text-neutral-900 mb-3 md:mb-6 px-4 md:px-6 lg:px-8 tracking-tight">
-        {title}
-      </h2>
+      <div className="flex items-center justify-between mb-5 -ml-4 md:-ml-6 lg:-ml-8 px-4 md:px-6 lg:px-8">
+        <div className="relative flex items-center">
+          <div className="absolute -left-0.5 top-full -mt-1.5 w-3 h-3 bg-[#8A6642] origin-top-right -rotate-45 -z-10 opacity-60"></div>
+          <div className="bg-gradient-to-r from-[#8A6642] to-[#A88A68] pl-5 md:pl-7 lg:pl-10 pr-6 py-1.5 md:py-2 rounded-r-lg shadow-md relative flex items-center border-y border-white/10">
+            <h2 className="text-[10px] md:text-xs font-bold text-white uppercase tracking-[0.2em] drop-shadow-sm">
+              {title}
+            </h2>
+            <div className="absolute -right-2 top-0 bottom-0 w-4 bg-[#A88A68]" style={{ clipPath: 'polygon(0 0, 100% 50%, 0 100%)' }}></div>
+          </div>
+        </div>
+      </div>
       <div className="px-4 md:px-6 lg:px-8">
         <div className={`flex overflow-x-auto pb-4 gap-3 snap-x snap-mandatory scrollbar-hide md:grid md:pb-0 md:overflow-visible ${gridCols} ${gapClass} auto-rows-fr`}>
           {tiles.map((tile) => {

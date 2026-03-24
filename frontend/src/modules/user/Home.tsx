@@ -279,9 +279,9 @@ export default function Home() {
             <button
               type="button"
               onClick={handleGoToCategories}
-              className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[9px] md:text-[10px] font-bold tracking-widest uppercase bg-white/40 backdrop-blur-sm text-[#8A6642] border border-[#8A6642]/30 hover:bg-white/60 active:scale-95 transition-all shadow-sm mr-4 md:mr-6 lg:mr-8">
+              className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[8px] md:text-[10px] font-bold tracking-[0.1em] uppercase bg-[#8A6642] text-white shadow-md hover:scale-105 active:scale-95 transition-all border border-white/10 mr-4 md:mr-6 lg:mr-8">
               See All
-              <span className="text-xs" aria-hidden="true">
+              <span className="text-[10px] opacity-80" aria-hidden="true">
                 →
               </span>
             </button>
@@ -539,9 +539,9 @@ export default function Home() {
 
                 <button
                   onClick={() => navigate('/stores')}
-                  className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[9px] md:text-[10px] font-bold tracking-widest uppercase bg-white/40 backdrop-blur-sm text-[#8A6642] border border-[#8A6642]/30 hover:bg-white/60 active:scale-95 transition-all shadow-sm mr-4 md:mr-6 lg:mr-8">
+                  className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[8px] md:text-[10px] font-bold tracking-[0.1em] uppercase bg-[#8A6642] text-white shadow-md hover:scale-105 active:scale-95 transition-all border border-white/10 mr-4 md:mr-6 lg:mr-8">
                   See All
-                  <span className="text-xs" aria-hidden="true">
+                  <span className="text-[10px] opacity-80" aria-hidden="true">
                     →
                   </span>
                 </button>
