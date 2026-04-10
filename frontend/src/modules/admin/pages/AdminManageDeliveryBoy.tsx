@@ -298,8 +298,8 @@ export default function AdminManageDeliveryBoy() {
                 {/* Main Panel */}
                 <div className="bg-white rounded-lg shadow-sm border border-neutral-200">
                     {/* Header */}
-                    <div className="bg-primary border-primary text-neutral-900 px-6 py-4 rounded-t-lg">
-                        <h2 className="text-lg font-semibold">View Delivery Boy List</h2>
+                    <div className="bg-neutral-50 border-b border-neutral-200 px-6 py-4 rounded-t-lg">
+                        <h2 className="text-lg font-semibold text-neutral-800">View Delivery Boy List</h2>
                     </div>
 
                     {/* Error Message */}
@@ -406,7 +406,7 @@ export default function AdminManageDeliveryBoy() {
 
                             <button
                                 onClick={handleExport}
-                                className="bg-primary border-primary text-neutral-900 hover:bg-neutral-900 hover:text-white px-3 py-1.5 rounded text-sm font-medium flex items-center gap-1 transition-colors"
+                                className="bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white px-3 py-1.5 rounded text-sm font-medium flex items-center gap-1 transition-all active:scale-95"
                             >
                                 Export
                                 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -661,8 +661,8 @@ export default function AdminManageDeliveryBoy() {
                                     <button
                                         key={pageNum}
                                         onClick={() => setCurrentPage(pageNum)}
-                                        className={`px-3 py-1.5 border border-neutral-800 rounded font-medium text-sm ${currentPage === pageNum
-                                            ? 'bg-primary border-primary text-neutral-900'
+                                        className={`px-3 py-1.5 border border-neutral-800 rounded font-medium text-sm transition-all active:scale-95 ${currentPage === pageNum
+                                            ? 'bg-primary border-primary text-white'
                                             : 'text-primary hover:bg-cream'
                                             }`}
                                     >

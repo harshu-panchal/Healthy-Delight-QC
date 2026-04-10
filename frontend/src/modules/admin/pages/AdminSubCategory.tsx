@@ -133,6 +133,10 @@ export default function AdminSubCategory() {
       setUploadError("Please enter a subcategory name");
       return;
     }
+    if (!/^[a-zA-Z\s]*$/.test(subcategoryName)) {
+      setUploadError("Subcategory name can only contain letters and spaces");
+      return;
+    }
     if (!subcategoryImageFile && !editingId) {
       setUploadError("Subcategory image is required");
       return;
@@ -262,8 +266,8 @@ export default function AdminSubCategory() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         {/* Left Panel - Add SubCategory */}
         <div className="bg-white rounded-lg shadow-sm border border-neutral-200 overflow-hidden">
-          <div className="bg-primary border-primary text-neutral-900 px-4 sm:px-6 py-3">
-            <h2 className="text-base sm:text-lg font-semibold">
+          <div className="bg-neutral-50 border-b border-neutral-200 px-4 sm:px-6 py-3">
+            <h2 className="text-base sm:text-lg font-semibold text-neutral-800">
               Add SubCategory
             </h2>
           </div>
@@ -300,7 +304,10 @@ export default function AdminSubCategory() {
               <input
                 type="text"
                 value={subcategoryName}
-                onChange={(e) => setSubcategoryName(e.target.value)}
+                onChange={(e) => {
+                  const val = e.target.value.replace(/[^a-zA-Z\s]/g, "");
+                  setSubcategoryName(val);
+                }}
                 placeholder="Enter Category Name"
                 className="w-full px-3 py-2 border border-neutral-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
                 disabled={uploading}
@@ -388,9 +395,9 @@ export default function AdminSubCategory() {
             <button
               onClick={handleAddSubCategory}
               disabled={uploading}
-              className={`w-full py-2.5 rounded text-sm font-medium transition-colors ${uploading
-                  ? "bg-neutral-400 cursor-not-allowed text-white"
-                  : "bg-primary border-primary text-neutral-900 hover:bg-neutral-900 text-white"
+              className={`w-full py-2.5 rounded text-sm font-medium transition-all active:scale-95 ${uploading
+                  ? "bg-neutral-100 text-neutral-400 border border-neutral-200 cursor-not-allowed"
+                  : "bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white"
                 }`}>
               {uploading
                 ? "Saving..."
@@ -418,8 +425,8 @@ export default function AdminSubCategory() {
 
         {/* Right Panel - View SubCategory */}
         <div className="bg-white rounded-lg shadow-sm border border-neutral-200 overflow-hidden">
-          <div className="bg-primary border-primary text-neutral-900 px-4 sm:px-6 py-3">
-            <h2 className="text-base sm:text-lg font-semibold">
+          <div className="bg-neutral-50 border-b border-neutral-200 px-4 sm:px-6 py-3">
+            <h2 className="text-base sm:text-lg font-semibold text-neutral-800">
               View SubCategory
             </h2>
           </div>
@@ -448,7 +455,7 @@ export default function AdminSubCategory() {
               {/* Export Button */}
               <button
                 onClick={handleExport}
-                className="bg-primary border-primary text-neutral-900 hover:bg-neutral-900 text-white px-4 py-2 rounded text-sm font-medium flex items-center gap-2 transition-colors">
+                className="bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white px-4 py-2 rounded text-sm font-medium flex items-center gap-2 transition-all active:scale-95">
                 <svg
                   width="16"
                   height="16"
@@ -738,7 +745,7 @@ export default function AdminSubCategory() {
                     key={page}
                     onClick={() => setCurrentPage(page)}
                     className={`px-3 py-1 border border-neutral-300 rounded text-sm ${currentPage === page
-                        ? "bg-primary border-primary text-neutral-900 border-neutral-800"
+                        ? "bg-primary text-white border-primary"
                         : "text-neutral-700 hover:bg-neutral-50"
                       }`}>
                     {page}

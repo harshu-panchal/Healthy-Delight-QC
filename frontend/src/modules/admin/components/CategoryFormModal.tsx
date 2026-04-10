@@ -187,14 +187,20 @@ export default function CategoryFormModal({
     const { name, value, type } = e.target;
     const checked = (e.target as HTMLInputElement).checked;
 
+    let finalValue: string | number | boolean = value;
+
+    if (name === "name") {
+      // Only allow letters and spaces
+      finalValue = value.replace(/[^a-zA-Z\s]/g, "");
+    } else if (type === "checkbox") {
+      finalValue = checked;
+    } else if (type === "number") {
+      finalValue = parseInt(value) || 0;
+    }
+
     setFormData((prev) => ({
       ...prev,
-      [name]:
-        type === "checkbox"
-          ? checked
-          : type === "number"
-            ? parseInt(value) || 0
-            : value,
+      [name]: finalValue,
     }));
 
     // Clear error for this field
@@ -275,6 +281,8 @@ export default function CategoryFormModal({
 
     if (!formData.name.trim()) {
       newErrors.name = "Category name is required";
+    } else if (!/^[a-zA-Z\s]*$/.test(formData.name)) {
+      newErrors.name = "Only letters and spaces are allowed";
     }
 
     if (formData.order < 0) {

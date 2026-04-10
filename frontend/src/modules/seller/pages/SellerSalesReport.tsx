@@ -109,8 +109,8 @@ export default function SellerSalesReport() {
             <div className="flex-1 p-4 sm:p-6">
                 <div className="bg-white rounded-lg shadow-sm border border-neutral-200 flex flex-col">
                     {/* Section Header */}
-                    <div className="bg-primary border-primary text-neutral-900 px-4 sm:px-6 py-3 rounded-t-lg">
-                        <h2 className="text-lg sm:text-xl font-semibold">View Sales Report</h2>
+                    <div className="bg-neutral-50 border-b border-neutral-200 px-4 sm:px-6 py-3 rounded-t-lg">
+                        <h2 className="text-lg sm:text-xl font-semibold text-neutral-800">View Sales Report</h2>
                     </div>
 
                     {/* Controls Panel */}
@@ -196,7 +196,7 @@ export default function SellerSalesReport() {
                                     link.click();
                                     document.body.removeChild(link);
                                 }}
-                                className="bg-primary hover:bg-primary-dark text-neutral-900 px-3 py-1.5 rounded text-sm font-medium flex items-center gap-1 transition-colors"
+                                className="bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white px-3 py-1.5 rounded text-sm font-medium flex items-center gap-1 transition-all active:scale-95 shadow-sm"
                             >
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
@@ -344,9 +344,9 @@ export default function SellerSalesReport() {
                                     <button
                                         key={pageNum}
                                         onClick={() => setCurrentPage(pageNum)}
-                                        className={`w-8 h-8 flex items-center justify-center border rounded transition-colors ${currentPage === pageNum
-                                                ? 'border-neutral-800 bg-primary border-primary text-neutral-900'
-                                                : 'border-primary-300 hover:bg-cream text-neutral-900'
+                                        className={`w-8 h-8 flex items-center justify-center border-2 rounded font-bold transition-all active:scale-95 ${currentPage === pageNum
+                                                ? 'bg-white border-primary text-primary shadow-sm'
+                                                : 'border-neutral-200 hover:bg-neutral-50 text-neutral-500'
                                             }`}
                                     >
                                         {pageNum}

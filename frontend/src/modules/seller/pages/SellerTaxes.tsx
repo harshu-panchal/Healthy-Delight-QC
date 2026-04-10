@@ -98,7 +98,7 @@ export default function SellerTaxes() {
                                 link.click();
                                 document.body.removeChild(link);
                             }}
-                            className="bg-primary border-primary text-neutral-900 hover:bg-primary-dark px-3 py-1.5 rounded text-sm font-medium flex items-center gap-1 transition-colors"
+                            className="bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white px-3 py-1.5 rounded text-sm font-medium flex items-center gap-1 transition-all active:scale-95 shadow-sm"
                         >
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
@@ -230,7 +230,7 @@ export default function SellerTaxes() {
                             </svg>
                         </button>
                         <button
-                            className="px-3 py-1.5 border border-neutral-800 bg-primary border-primary text-neutral-900 rounded font-medium text-sm"
+                            className="px-3 py-1.5 border-2 border-primary bg-white text-primary rounded font-bold text-sm shadow-sm transition-all active:scale-95"
                         >
                             {currentPage}
                         </button>

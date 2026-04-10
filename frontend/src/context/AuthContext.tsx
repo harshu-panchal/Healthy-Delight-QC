@@ -89,9 +89,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = (newToken: string, userData: User) => {
     const effectiveRole: UserRole =
       userData.userType === "Admin" ||
-      userData.userType === "Seller" ||
-      userData.userType === "Delivery" ||
-      userData.userType === "Customer"
+        userData.userType === "Seller" ||
+        userData.userType === "Delivery" ||
+        userData.userType === "Customer"
         ? userData.userType
         : role;
 
@@ -114,9 +114,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const updateUser = (userData: User) => {
     const effectiveRole: UserRole =
       userData.userType === "Admin" ||
-      userData.userType === "Seller" ||
-      userData.userType === "Delivery" ||
-      userData.userType === "Customer"
+        userData.userType === "Seller" ||
+        userData.userType === "Delivery" ||
+        userData.userType === "Customer"
         ? userData.userType
         : role;
     const storageKey = getUserStorageKeyForRole(effectiveRole);

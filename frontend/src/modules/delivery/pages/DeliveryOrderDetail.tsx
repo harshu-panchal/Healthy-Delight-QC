@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getOrderDetails, updateOrderStatus, getSellerLocationsForOrder, sendDeliveryOtp, verifyDeliveryOtp, updateDeliveryLocation, checkSellerProximity, confirmSellerPickup, checkCustomerProximity } from '../../../services/api/delivery/deliveryService';
+import { getOrderDetails, updateOrderStatus, getSellerLocationsForOrder, sendDeliveryOtp, verifyDeliveryOtp, updateDeliveryLocation, checkSellerProximity, confirmSellerPickup, checkCustomerProximity, acceptAssignment, rejectAssignment } from '../../../services/api/delivery/deliveryService';
 import deliveryIcon from '@assets/deliveryboy/deliveryIcon.png';
 import GoogleMapsTracking from '../../../components/GoogleMapsTracking';
 
@@ -216,6 +216,36 @@ export default function DeliveryOrderDetail() {
         }
     };
 
+    // Handle targeted assignment acceptance
+    const handleAcceptAssignment = async () => {
+        if (!id) return;
+        try {
+            setLoading(true);
+            await acceptAssignment(id);
+            alert('Assignment accepted successfully');
+            await fetchOrder(); // Refresh order data
+        } catch (err: any) {
+            alert(err.message || 'Failed to accept assignment');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Handle targeted assignment rejection
+    const handleRejectAssignment = async () => {
+        if (!id) return;
+        try {
+            setLoading(true);
+            await rejectAssignment(id);
+            alert('Assignment rejected');
+            navigate('/delivery'); // Go back to dashboard after rejection
+        } catch (err: any) {
+            alert(err.message || 'Failed to reject assignment');
+        } finally {
+            setLoading(false);
+        }
+    };
+
     // Check proximity to sellers (runs periodically)
     useEffect(() => {
         const checkSellersProximity = async () => {
@@ -239,11 +269,15 @@ export default function DeliveryOrderDetail() {
                         };
                     }
                 } catch (error) {
-                    console.error(`Failed to check proximity for seller ${seller.sellerId}:`, error);
+                    // Silently handle proximity check errors
                 }
             }
 
-            setSellerProximity(proximityChecks);
+            try {
+                setSellerProximity(proximityChecks);
+            } catch (err) {
+                // Silently handle state update errors if unmounted
+            }
         };
 
         if (sellerLocations.length > 0 && deliveryBoyLocation) {
@@ -269,7 +303,7 @@ export default function DeliveryOrderDetail() {
                     setGetOtpEnabled(response.data.withinRange);
                 }
             } catch (error) {
-                console.error('Failed to check customer proximity:', error);
+                // Silently handle proximity check errors
             }
         };
 
@@ -311,19 +345,15 @@ export default function DeliveryOrderDetail() {
                         case error.PERMISSION_DENIED:
                             locationPermissionDeniedRef.current = true;
                             setLocationError('Location permission denied. Please enable location access in your browser settings to track delivery.');
-                            console.warn('Location permission denied. Please enable location access in your browser settings.');
                             break;
                         case error.POSITION_UNAVAILABLE:
                             setLocationError('Location information unavailable. Please check your device settings.');
-                            console.warn('Location information unavailable. Please check your device settings.');
                             break;
                         case error.TIMEOUT:
                             setLocationError('Location request timed out. Please try again.');
-                            console.warn('Location request timed out. Please try again.');
                             break;
                         default:
                             setLocationError(`Error getting location: ${error.message}`);
-                            console.warn('Error getting location:', error.message);
                             break;
                     }
                 },
@@ -355,7 +385,12 @@ export default function DeliveryOrderDetail() {
                 if (!isMounted) return;
 
                 const baseURL = getSocketBaseURL();
-                const token = getAuthToken();
+                const token = getAuthToken('Delivery');
+
+                if (!token) {
+                    console.warn('⚠️ No delivery auth token found for socket connection');
+                    return;
+                }
 
                 socket = io(baseURL, {
                     auth: { token },
@@ -844,8 +879,8 @@ export default function DeliveryOrderDetail() {
 
             </div>
 
-            {/* Customer Delivery OTP Section (only when order is Out for Delivery) */}
-            {order.status === 'Out for Delivery' && (
+            {/* Customer Delivery OTP Section - Shown immediately when assigned and not yet delivered */}
+            {!['Delivered', 'Cancelled', 'Returned', 'Rejected'].includes(order.status) && order.deliveryBoyStatus !== 'Pending' && (
                 <div className="fixed bottom-24 left-6 right-6 z-30">
                     <div className="bg-white rounded-2xl p-4 shadow-2xl border border-neutral-200">
                         <p className="text-sm font-semibold text-neutral-900 mb-3">Customer Delivery OTP</p>
@@ -861,58 +896,70 @@ export default function DeliveryOrderDetail() {
                             </p>
                         )}
 
-                        {/* 4-digit OTP Input - Always visible but disabled until OTP is sent */}
+                        {/* 4-digit OTP Input - Always visible when Out for Delivery */}
                         <input
                             type="text"
                             value={otpValue}
                             onChange={(e) => setOtpValue(e.target.value.replace(/\D/g, '').slice(0, 4))}
-                            placeholder="Enter 4-digit OTP"
-                            disabled={!showOtpInput}
-                            className={`w-full px-4 py-3 border rounded-xl text-lg font-semibold text-center mb-3 focus:outline-none focus:ring-2 focus:ring-blue-500 ${showOtpInput ? 'border-neutral-300 bg-white' : 'border-neutral-200 bg-neutral-100 text-neutral-400'
-                                }`}
+                            placeholder="Enter 4-digit OTP from customer"
+                            className="w-full px-4 py-3 border border-neutral-300 rounded-xl text-lg font-semibold text-center mb-3 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                             maxLength={4}
                         />
 
-                        <div className="flex gap-3">
-                            {!showOtpInput ? (
-                                <button
-                                    onClick={handleSendOtp}
-                                    disabled={!getOtpEnabled || otpSending}
-                                    className={`flex-1 py-3 rounded-xl font-semibold transition-all ${getOtpEnabled && !otpSending
-                                        ? 'bg-green-600 text-white hover:bg-green-700 active:scale-[0.98]'
+                        <div className="flex flex-col gap-2">
+                            <button
+                                onClick={handleVerifyOtp}
+                                className={`w-full py-4 rounded-xl font-bold text-lg shadow-lg transition-all ${otpValue.length === 4 && !otpVerifying
+                                        ? 'bg-blue-600 text-white hover:bg-blue-700 active:scale-[0.98]'
                                         : 'bg-neutral-200 text-neutral-400 cursor-not-allowed'
-                                        }`}
-                                >
-                                    {otpSending ? 'Sending...' : getOtpEnabled ? 'Get OTP' : 'Move within 500m to get OTP'}
-                                </button>
-                            ) : (
-                                <>
-                                    <button
-                                        onClick={() => {
-                                            setShowOtpInput(false);
-                                            setOtpValue('');
-                                        }}
-                                        className="flex-1 py-3 rounded-xl bg-neutral-200 text-neutral-700 font-semibold hover:bg-neutral-300 transition-colors"
-                                    >
-                                        Cancel
-                                    </button>
-                                    <button
-                                        onClick={handleVerifyOtp}
-                                        className="flex-1 py-3 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors"
-                                        disabled={otpVerifying || otpValue.length !== 4}
-                                    >
-                                        {otpVerifying ? 'Verifying...' : 'Verify OTP'}
-                                    </button>
-                                </>
+                                    }`}
+                                disabled={otpVerifying || otpValue.length !== 4}
+                            >
+                                {otpVerifying ? 'Verifying...' : 'Mark as Delivered'}
+                            </button>
+
+                            {!getOtpEnabled && (
+                                <p className="text-[10px] text-center text-neutral-400 uppercase tracking-wider">
+                                    Ideally you should be within 500m of customer
+                                </p>
                             )}
+
+                            <button
+                                onClick={handleSendOtp}
+                                disabled={otpSending}
+                                className="text-xs text-blue-600 font-medium py-1 hover:underline"
+                            >
+                                {otpSending ? 'Sending SMS...' : 'Resend SMS OTP to Customer'}
+                            </button>
                         </div>
                     </div>
                 </div>
             )}
 
+            {/* Targeted Assignment Action Buttons */}
+            {order.deliveryBoyStatus === 'Pending' && (
+                <div className="fixed bottom-24 left-6 right-6 z-30 flex gap-4">
+                    <button
+                        onClick={handleRejectAssignment}
+                        disabled={loading}
+                        className="flex-1 py-4 rounded-2xl bg-white border-2 border-red-500 text-red-600 font-bold text-lg shadow-lg active:scale-[0.98] transition-all disabled:opacity-50"
+                    >
+                        {loading ? '...' : 'Reject'}
+                    </button>
+                    <button
+                        onClick={handleAcceptAssignment}
+                        disabled={loading}
+                        className="flex-1 py-4 rounded-2xl bg-teal-600 text-white font-bold text-lg shadow-lg active:scale-[0.98] transition-all disabled:opacity-50"
+                    >
+                        {loading ? '...' : 'Accept'}
+                    </button>
+                </div>
+            )}
+
             {/* Floating Glassmorphic Action Button Dock - Order Taken button or status update */}
             {/* Hide this button when order is "Out for Delivery" because OTP section is shown instead */}
-            {nextStatus && order.status !== 'Picked up' && order.status !== 'Out for Delivery' && !showOtpInput && (
+            {/* Also hide when assignment is pending */}
+            {nextStatus && order.status !== 'Picked up' && order.status !== 'Out for Delivery' && !showOtpInput && order.deliveryBoyStatus !== 'Pending' && (
                 <div className="fixed bottom-24 left-6 right-6 z-30">
                     <button
                         onClick={() => handleStatusChange(nextStatus)}

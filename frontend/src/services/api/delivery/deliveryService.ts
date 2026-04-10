@@ -79,6 +79,24 @@ export const updateOrderStatus = async (id: string, status: string) => {
     }
 };
 
+export const acceptAssignment = async (id: string) => {
+    try {
+        const response = await api.post(`${BASE_URL}/orders/${id}/accept-assignment`);
+        return response.data;
+    } catch (error) {
+        throw handleApiError(error);
+    }
+};
+
+export const rejectAssignment = async (id: string) => {
+    try {
+        const response = await api.post(`${BASE_URL}/orders/${id}/reject-assignment`);
+        return response.data;
+    } catch (error) {
+        throw handleApiError(error);
+    }
+};
+
 export const getSellerLocationsForOrder = async (id: string) => {
     try {
         const response = await api.get(`${BASE_URL}/orders/${id}/seller-locations`);

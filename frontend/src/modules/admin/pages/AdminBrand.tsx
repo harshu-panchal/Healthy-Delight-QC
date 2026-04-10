@@ -244,8 +244,8 @@ export default function AdminBrand() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         {/* Left Panel - Add Brand */}
         <div className="bg-white rounded-lg shadow-sm border border-neutral-200 overflow-hidden">
-          <div className="bg-primary border-primary text-neutral-900 px-4 sm:px-6 py-3">
-            <h2 className="text-base sm:text-lg font-semibold">Add Brand</h2>
+          <div className="bg-neutral-50 border-b border-neutral-200 px-4 sm:px-6 py-3">
+            <h2 className="text-base sm:text-lg font-semibold text-neutral-800">Add Brand</h2>
           </div>
           <div className="p-4 sm:p-6 space-y-4">
             {uploadError && (
@@ -336,10 +336,10 @@ export default function AdminBrand() {
             <button
               onClick={handleAddBrand}
               disabled={uploading}
-              className={`w-full py-2.5 rounded text-sm font-medium transition-colors ${
+              className={`w-full py-2.5 rounded text-sm font-medium transition-all active:scale-95 ${
                 uploading
-                  ? "bg-neutral-400 cursor-not-allowed text-white"
-                  : "bg-primary border-primary text-neutral-900 hover:bg-neutral-900 text-white"
+                  ? "bg-neutral-100 text-neutral-400 border border-neutral-200 cursor-not-allowed"
+                  : "bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white"
               }`}>
               {uploading
                 ? "Saving..."
@@ -365,8 +365,8 @@ export default function AdminBrand() {
 
         {/* Right Panel - View Brand */}
         <div className="bg-white rounded-lg shadow-sm border border-neutral-200 overflow-hidden">
-          <div className="bg-primary border-primary text-neutral-900 px-4 sm:px-6 py-3">
-            <h2 className="text-base sm:text-lg font-semibold">View Brand</h2>
+          <div className="bg-neutral-50 border-b border-neutral-200 px-4 sm:px-6 py-3">
+            <h2 className="text-base sm:text-lg font-semibold text-neutral-800">View Brand</h2>
           </div>
 
           {/* Controls */}
@@ -393,7 +393,7 @@ export default function AdminBrand() {
               {/* Export Button */}
               <button
                 onClick={handleExport}
-                className="bg-primary border-primary text-neutral-900 hover:bg-neutral-900 text-white px-4 py-2 rounded text-sm font-medium flex items-center gap-2 transition-colors">
+                className="bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white px-4 py-2 rounded text-sm font-medium flex items-center gap-2 transition-all active:scale-95">
                 <svg
                   width="16"
                   height="16"
@@ -642,16 +642,16 @@ export default function AdminBrand() {
               </button>
               {Array.from({ length: totalPages }, (_, i) => i + 1).map(
                 (page) => (
-                  <button
-                    key={page}
-                    onClick={() => setCurrentPage(page)}
-                    className={`px-3 py-1 border border-neutral-300 rounded text-sm ${
-                      currentPage === page
-                        ? "bg-primary border-primary text-neutral-900 border-neutral-800"
-                        : "text-neutral-700 hover:bg-neutral-50"
-                    }`}>
-                    {page}
-                  </button>
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      className={`px-3 py-1 border-2 rounded text-sm transition-all active:scale-95 ${
+                        currentPage === page
+                          ? "bg-primary border-primary text-white font-medium"
+                          : "bg-white border-neutral-300 text-neutral-700 hover:bg-neutral-50"
+                      }`}>
+                      {page}
+                    </button>
                 )
               )}
               <button

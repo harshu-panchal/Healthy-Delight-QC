@@ -85,20 +85,17 @@ export default function CategoryTileSection({
   const gapClass = columns >= 6 ? "gap-1.5 md:gap-2.5" : "gap-2.5 md:gap-4";
 
   return (
-    <div className="mb-6 md:mb-8 mt-0 overflow-visible">
-      <div className="flex items-center justify-between mb-5 -ml-4 md:-ml-6 lg:-ml-8 px-4 md:px-6 lg:px-8">
-        <div className="relative flex items-center">
-          <div className="absolute -left-0.5 top-full -mt-1.5 w-3 h-3 bg-[#8A6642] origin-top-right -rotate-45 -z-10 opacity-60"></div>
-          <div className="bg-gradient-to-r from-[#8A6642] to-[#A88A68] pl-5 md:pl-7 lg:pl-10 pr-6 py-1.5 md:py-2 rounded-r-lg shadow-md relative flex items-center border-y border-white/10">
-            <h2 className="text-[10px] md:text-xs font-bold text-white uppercase tracking-[0.2em] drop-shadow-sm">
-              {title}
-            </h2>
-            <div className="absolute -right-2 top-0 bottom-0 w-4 bg-[#A88A68]" style={{ clipPath: 'polygon(0 0, 100% 50%, 0 100%)' }}></div>
-          </div>
-        </div>
+    <div className="mb-8 mt-6 overflow-visible px-4 md:px-6 lg:px-8">
+      {/* Modern Clean Header */}
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-[17px] md:text-xl font-semibold text-[#0a193b] tracking-tight">
+          {title}
+        </h2>
+        {/* Optional 'See all' for shared sections if link exists in parent, but here we keep it clean */}
       </div>
-      <div className="px-4 md:px-6 lg:px-8">
-        <div className={`flex overflow-x-auto pb-4 gap-3 snap-x snap-mandatory scrollbar-hide md:grid md:pb-0 md:overflow-visible ${gridCols} ${gapClass} auto-rows-fr`}>
+
+      <div className="">
+        <div className={`flex overflow-x-auto pb-6 gap-4 snap-x snap-mandatory scrollbar-hide md:grid md:pb-0 md:overflow-visible ${gridCols} ${gapClass} auto-rows-fr`}>
           {tiles.map((tile) => {
             const images =
               tile.productImages || (tile.image ? [tile.image] : []);
@@ -112,7 +109,7 @@ export default function CategoryTileSection({
                 transition={{ duration: 0.2 }}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className="flex flex-col flex-shrink-0 w-[42%] sm:w-[30%] md:w-auto snap-start">
+                className="flex flex-col flex-shrink-0 w-[30%] sm:w-[25%] md:w-auto snap-start group">
                 <Link
                   to={
                     tile.subcategoryId || tile.type === "subcategory"
@@ -148,25 +145,25 @@ export default function CategoryTileSection({
                       handleTileClick(tile);
                     }
                   }}
-                  className={`block bg-[#E6D5C3] rounded-xl shadow-sm border-[2px] border-[#8A6642] hover:bg-[#DFCBB7] hover:border-[#6B4E31] hover:shadow-md transition-all duration-300 h-full ${showProductCount ? "px-2.5" : "px-1.5"
+                  className={`block bg-white rounded-[20px] border border-black/[0.04] shadow-[0_6px_16px_rgba(0,0,0,0.06)] hover:shadow-[0_10px_24px_rgba(0,0,0,0.1)] transition-all duration-300 h-full p-2.5 ${showProductCount ? "md:p-4" : "p-2.5"
                     }`}>
-                  {/* Image - Single image for non-bestsellers, 2x2 grid for bestsellers */}
+                  
+                  {/* Image Container - Circular Highlight */}
                   <div
-                    className={`w-full rounded-lg overflow-hidden ${showProductCount ? "h-32 md:h-36 mb-2" : "aspect-square"
-                      } ${tile.bgColor || "bg-white/40"}`}>
+                    className={`w-full rounded-[16px] overflow-hidden flex items-center justify-center transition-colors group-hover:bg-[#f3eee5] ${showProductCount ? "h-28 md:h-40 mb-2.5" : "aspect-square mb-2.5"
+                      } ${tile.bgColor || "bg-[#f8f6f2]"}`}>
                     {hasImages ? (
                       showProductCount ? (
                         // Bestsellers: 2x2 grid
-                        <div className="w-full h-full grid grid-cols-2 gap-0.5 p-0.5">
+                        <div className="w-full h-full grid grid-cols-2 gap-1 p-1">
                           {images.slice(0, 4).map((img, idx) =>
                             img ? (
                               <img
                                 key={idx}
                                 src={img}
                                 alt=""
-                                className="w-full h-full object-contain bg-white rounded-sm"
+                                className="w-full h-full object-contain bg-white rounded-lg shadow-sm"
                                 onError={(e) => {
-                                  // Hide broken image
                                   const target = e.target as HTMLImageElement;
                                   target.style.display = 'none';
                                 }}
@@ -174,57 +171,56 @@ export default function CategoryTileSection({
                             ) : (
                               <div
                                 key={idx}
-                                className="w-full h-full bg-neutral-200 rounded-sm flex items-center justify-center text-xs text-neutral-400">
+                                className="w-full h-full bg-white/50 rounded-lg flex items-center justify-center text-[10px] text-neutral-400">
                                 {idx + 1}
                               </div>
                             )
                           )}
                         </div>
                       ) : (
-                        // Other sections: Single image - use contain to show full image without cropping
+                        // Other sections: Single image
                         <img
                           src={images[0]}
                           alt={tile.name}
-                          className="w-full h-full object-contain rounded-lg"
+                          className="w-[85%] h-[85%] object-contain drop-shadow-md transition-transform duration-500 group-hover:scale-110"
                           onError={(e) => {
-                            // Hide broken image and show fallback
                             const target = e.target as HTMLImageElement;
                             target.style.display = 'none';
                             const parent = target.parentElement;
                             if (parent) {
-                              parent.innerHTML = `<div class="w-full h-full flex items-center justify-center text-3xl text-neutral-300">${tile.name.charAt(0)}</div>`;
+                              parent.innerHTML = `<div class="w-full h-full flex items-center justify-center text-3xl font-bold text-[#0a193b]/20">${tile.name.charAt(0)}</div>`;
                             }
                           }}
                         />
                       )
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center text-3xl text-neutral-300">
+                      <div className="w-full h-full flex items-center justify-center text-3xl font-bold text-[#0a193b]/20">
                         {tile.name.charAt(0)}
                       </div>
                     )}
                   </div>
 
-                  {/* Product count - shown first (only for bestsellers) */}
+                  {/* Product count (only for bestsellers) */}
                   {showProductCount && tile.productCount && (
-                    <div className="mb-1.5 flex justify-center">
-                      <span className="inline-block bg-neutral-100 text-neutral-600 text-[10px] font-medium px-2 py-0.5 rounded-full leading-tight">
-                        +{tile.productCount} more
+                    <div className="mb-2 flex justify-center">
+                      <span className="inline-block bg-[#c5a059]/10 text-[#c5a059] text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                        +{tile.productCount} Items
                       </span>
                     </div>
                   )}
 
-                  {/* Tile name - inside card only for bestsellers */}
+                  {/* Tile name inside for bestsellers */}
                   {showProductCount && (
-                    <div className="text-[11px] font-semibold text-neutral-900 line-clamp-2 leading-tight text-center w-full block">
+                    <div className="text-[12px] md:text-[14px] font-bold text-[#0f172a] line-clamp-2 leading-tight text-center w-full block group-hover:text-[#0a193b] transition-colors">
                       {tile.name}
                     </div>
                   )}
                 </Link>
 
-                {/* Category name - outside card for non-bestsellers */}
+                {/* Category name outside card for non-bestsellers */}
                 {!showProductCount && (
-                  <div className="mt-1.5 text-center">
-                    <span className="text-xs font-semibold text-neutral-900 line-clamp-2 leading-tight">
+                  <div className="mt-2 text-center">
+                    <span className="text-[13px] md:text-sm font-semibold text-[#0f172a] group-hover:text-[#0a193b] transition-colors line-clamp-2 leading-tight">
                       {tile.name}
                     </span>
                   </div>

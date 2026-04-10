@@ -60,6 +60,8 @@ export interface IOrder extends Document {
   // Delivery Assignment
   deliveryBoy?: mongoose.Types.ObjectId;
   deliveryBoyStatus?:
+  | "Pending"
+  | "Accepted"
   | "Assigned"
   | "Picked Up"
   | "In Transit"
@@ -271,7 +273,7 @@ const OrderSchema = new Schema<IOrder>(
     },
     deliveryBoyStatus: {
       type: String,
-      enum: ["Assigned", "Picked Up", "In Transit", "Delivered", "Failed"],
+      enum: ["Pending", "Accepted", "Assigned", "Picked Up", "In Transit", "Delivered", "Failed"],
     },
     assignedAt: {
       type: Date,

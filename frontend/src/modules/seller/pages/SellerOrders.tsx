@@ -159,7 +159,7 @@ export default function SellerOrders() {
         {/* White Card Container */}
         <div className="bg-white rounded-lg shadow-sm border border-neutral-200 overflow-hidden">
           {/* Section Banner */}
-          <div className="bg-primary border-b border-primary/40 text-neutral-900 px-4 sm:px-6 py-2 sm:py-3 rounded-t-lg">
+          <div className="bg-white border-b border-neutral-200 text-primary px-4 sm:px-6 py-2 sm:py-3 rounded-t-lg">
             <h2 className="text-base sm:text-lg font-semibold">View Order List</h2>
           </div>
 
@@ -269,7 +269,7 @@ export default function SellerOrders() {
               <div className="flex items-center gap-2 w-full sm:w-auto sm:ml-auto">
                 <button
                   onClick={handleExport}
-                  className="flex items-center justify-center gap-2 bg-primary hover:bg-primary-dark text-neutral-900 px-3 sm:px-4 py-2 rounded text-xs sm:text-sm font-medium transition-colors w-full sm:w-auto"
+                  className="flex items-center justify-center gap-2 text-primary border border-neutral-200 hover:bg-neutral-50 px-3 sm:px-4 py-2 rounded text-xs sm:text-sm font-medium transition-colors w-full sm:w-auto"
                 >
                   <svg
                     width="16"

@@ -180,7 +180,11 @@ export default function CheckoutAddress() {
   };
 
   const handleInputChange = (field: keyof OrderAddress, value: string) => {
-    setAddress((prev) => ({ ...prev, [field]: value }));
+    let filteredValue = value;
+    if (field === 'name') {
+      filteredValue = value.replace(/[^a-zA-Z\s]/g, "");
+    }
+    setAddress((prev) => ({ ...prev, [field]: filteredValue }));
     if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: undefined }));
     }

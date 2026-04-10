@@ -37,6 +37,8 @@ router.post("/orders/:id/send-delivery-otp", deliveryOrderController.sendDeliver
 router.post("/orders/:id/verify-delivery-otp", deliveryOrderController.verifyDeliveryOtpController);
 
 // New proximity and pickup routes
+router.post("/orders/:id/accept-assignment", deliveryOrderController.acceptAssignment);
+router.post("/orders/:id/reject-assignment", deliveryOrderController.rejectAssignment);
 router.post("/orders/:id/check-seller-proximity", deliveryOrderController.checkSellerProximity);
 router.post("/orders/:id/confirm-seller-pickup", deliveryOrderController.confirmSellerPickup);
 router.post("/orders/:id/check-customer-proximity", deliveryOrderController.checkCustomerProximity);

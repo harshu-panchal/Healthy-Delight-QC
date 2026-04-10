@@ -289,8 +289,8 @@ export default function AdminAllOrders() {
         {/* White Card Container */}
         <div className="bg-white rounded-lg shadow-sm border border-neutral-200 overflow-hidden">
           {/* Banner */}
-          <div className="bg-primary text-neutral-900 px-4 sm:px-6 py-2 sm:py-3">
-            <h2 className="text-base sm:text-lg font-semibold">
+          <div className="bg-neutral-50 border-b border-neutral-200 px-4 sm:px-6 py-2 sm:py-3">
+            <h2 className="text-base sm:text-lg font-semibold text-neutral-800">
               View Order List
             </h2>
           </div>
@@ -402,40 +402,40 @@ export default function AdminAllOrders() {
               {/* Export Button */}
               <div className="flex items-center gap-2 w-full lg:w-auto lg:ml-auto">
                 <div className="relative">
-                  <button
-                    onClick={handleExport}
-                    className="flex items-center justify-center gap-2 bg-primary hover:bg-primary-dark text-neutral-900 px-3 sm:px-4 py-2 rounded text-xs sm:text-sm font-medium transition-colors w-full sm:w-auto">
-                    <svg
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="flex-shrink-0">
-                      <path
-                        d="M21 15V19C21 20.1046 20.1046 21 19 21H5C3.89543 21 3 20.1046 3 19V15M7 10L12 15M12 15L17 10M12 15V3"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                    Export
-                    <svg
-                      width="12"
-                      height="12"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg">
-                      <path
-                        d="M6 9L12 15L18 9"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </button>
+                    <button
+                      onClick={handleExport}
+                      className="flex items-center justify-center gap-2 bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white px-3 sm:px-4 py-2 rounded text-xs sm:text-sm font-medium transition-all active:scale-95 w-full sm:w-auto">
+                      <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="flex-shrink-0">
+                        <path
+                          d="M21 15V19C21 20.1046 20.1046 21 19 21H5C3.89543 21 3 20.1046 3 19V15M7 10L12 15M12 15L17 10M12 15V3"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                      Export
+                      <svg
+                        width="12"
+                        height="12"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg">
+                        <path
+                          d="M6 9L12 15L18 9"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </button>
                 </div>
               </div>
 
@@ -806,7 +806,7 @@ export default function AdminAllOrders() {
                       <td className="px-4 sm:px-6 py-3">
                         <Link to={`/admin/orders/${order._id}`}>
                           <button
-                            className="bg-primary border-primary text-neutral-900 hover:bg-neutral-900 hover:text-white p-2 rounded transition-colors"
+                            className="bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white p-2 rounded transition-all active:scale-95"
                             aria-label="View order">
                             <svg
                               width="16"

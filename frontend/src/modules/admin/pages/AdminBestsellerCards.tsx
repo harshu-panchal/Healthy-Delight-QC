@@ -313,10 +313,10 @@ export default function AdminBestsellerCards() {
                             <button
                                 onClick={handleSubmit}
                                 disabled={loading}
-                                className={`w-full px-4 py-2 rounded font-medium transition-colors ${
+                                className={`w-full px-4 py-2 rounded font-medium transition-all active:scale-95 ${
                                     loading
-                                        ? "bg-gray-400 cursor-not-allowed text-white"
-                                        : "bg-primary border-primary text-neutral-900 hover:bg-neutral-900 text-white"
+                                        ? "bg-neutral-300 cursor-not-allowed text-white border-neutral-300"
+                                        : "bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white"
                                 }`}
                             >
                                 {loading
@@ -338,8 +338,8 @@ export default function AdminBestsellerCards() {
 
                     {/* Right Section: View Cards Table */}
                     <div className="lg:col-span-2 bg-white rounded-lg shadow-sm border border-neutral-200 flex flex-col">
-                        <div className="bg-primary border-primary text-neutral-900 px-6 py-4 rounded-t-lg">
-                            <h2 className="text-lg font-semibold">View Cards</h2>
+                        <div className="bg-neutral-50 border-b border-neutral-200 px-6 py-4 rounded-t-lg">
+                            <h2 className="text-lg font-semibold text-neutral-800">View Cards</h2>
                         </div>
 
                         {/* Controls */}

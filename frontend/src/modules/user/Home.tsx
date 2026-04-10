@@ -245,7 +245,7 @@ export default function Home() {
   }
 
   return (
-    <div className="bg-transparent min-h-screen pb-20 md:pb-0" ref={contentRef}>
+    <div className={`${activeTab === "all" ? "pt-[var(--header-height)]" : "pt-[calc(var(--header-height)-34px)]"} `} ref={contentRef}>
       {/* Hero Header with Gradient and Tabs */}
       <HomeHero activeTab={activeTab} onTabChange={setActiveTab} />
 
@@ -257,57 +257,50 @@ export default function Home() {
         )}
 
       {/* Quick Categories strip */}
-      {/* Quick Categories strip - Only visible on 'All' tab */}
+      {/* Refined Quick Categories strip - Full Width Solid Architecture */}
       {activeTab === "all" && homeData.categories && homeData.categories.length > 0 && (
-        <div className="px-4 pt-3 pb-3 md:px-6 md:pt-4 md:pb-4">
-          <div className="flex items-center justify-between mb-5 -ml-4 md:-ml-6 lg:-ml-8">
-            <div className="relative flex items-center">
-              {/* Subtle Ribbon Tail Wrap */}
-              <div className="absolute -left-0.5 top-full -mt-1.5 w-3 h-3 bg-[#8A6642] origin-top-right -rotate-45 -z-10 opacity-60"></div>
-
-              {/* Premium Glass-Brown Ribbon Body */}
-              <div className="bg-gradient-to-r from-[#8A6642] to-[#A88A68] pl-5 md:pl-7 lg:pl-10 pr-6 py-1.5 md:py-2 rounded-r-lg shadow-md relative flex items-center border-y border-white/10">
-                <h2 className="text-[10px] md:text-xs font-bold text-white uppercase tracking-[0.2em] drop-shadow-sm">
-                  Categories
-                </h2>
-
-                {/* Elegant Minimal Notch */}
-                <div className="absolute -right-2 top-0 bottom-0 w-4 bg-[#A88A68]" style={{ clipPath: 'polygon(0 0, 100% 50%, 0 100%)' }}></div>
-              </div>
-            </div>
-
+        <div className="w-full mt-8 mb-12 px-5 py-8 md:px-10 lg:px-12 bg-[#f8f6f2] border-y border-black/[0.02] shadow-[0_4px_12px_rgba(0,0,0,0.03),0_20px_50px_rgba(0,0,0,0.06)]">
+          {/* Section Header */}
+          <div className="flex items-center justify-between mb-8 px-1">
+            <h2 className="text-[18px] md:text-2xl font-bold text-[#0a193b] tracking-tight">
+              Categories
+            </h2>
             <button
               type="button"
               onClick={handleGoToCategories}
-              className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[8px] md:text-[10px] font-bold tracking-[0.1em] uppercase bg-[#8A6642] text-white shadow-md hover:scale-105 active:scale-95 transition-all border border-white/10 mr-4 md:mr-6 lg:mr-8">
-              See All
-              <span className="text-[10px] opacity-80" aria-hidden="true">
-                →
-              </span>
+              className="section-see-all group flex items-center gap-1.5 transition-all hover:translate-x-1"
+            >
+              See all
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M5 12h14m-7-7l7 7-7 7" />
+              </svg>
             </button>
           </div>
-          <div className="grid grid-cols-4 md:grid-cols-6 gap-2 pb-1">
-            {homeData.categories.slice(0, 8).map((cat: any) => (
+
+          {/* Premium White-on-Cream Architecture - Increased Breathing Room */}
+          <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6 md:gap-y-10 md:gap-x-12">
+            {homeData.categories.slice(0, 12).map((cat: any) => (
               <button
                 key={cat._id || cat.id}
                 type="button"
                 onClick={() => navigate(`/category/${cat._id || cat.id}`)}
-                className="bg-[#E6D5C3] rounded-2xl px-2.5 py-2 flex flex-col items-center shadow-sm border-[2px] border-[#8A6642] hover:bg-[#DFCBB7] hover:border-[#6B4E31] active:scale-95 transition-all duration-300">
-                <div className="w-10 h-10 md:w-11 md:h-11 rounded-2xl bg-white/40 flex items-center justify-center overflow-hidden mb-1">
+                className="hover-lift tap-scale group flex flex-col items-center gap-2 transition-all duration-300"
+              >
+                <div className="w-16 h-16 md:w-24 md:h-24 rounded-[22px] bg-white p-2 flex items-center justify-center overflow-hidden transition-all duration-300 group-hover:translate-y-[-4px] shadow-[0_4px_12px_rgba(0,0,0,0.06),0_10px_24px_rgba(0,0,0,0.08)] group-hover:shadow-[0_12px_32px_rgba(0,0,0,0.12)] border border-black/[0.04] relative after:absolute after:inset-0 after:rounded-[22px] after:shadow-[inset_0_1.5px_1px_rgba(255,255,255,0.95)] after:pointer-events-none">
                   {cat.image ? (
                     <img
                       src={cat.image}
                       alt={cat.name}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-contain"
                       loading="lazy"
                     />
                   ) : (
-                    <span className="text-xl" aria-hidden="true">
+                    <span className="text-lg" aria-hidden="true">
                       🥛
                     </span>
                   )}
                 </div>
-                <span className="text-[10px] md:text-[11px] font-medium text-neutral-900 text-center leading-tight line-clamp-2">
+                <span className="text-[11px] md:text-[13px] font-bold text-[#0a193b] text-center leading-tight">
                   {cat.name}
                 </span>
               </button>
@@ -319,30 +312,35 @@ export default function Home() {
       {/* Main content grid for 'All' tab and Sidebar layout for Categories */}
       <div
         ref={contentRef}
-        className={`-mt-2 pt-1 ${activeTab === "all" ? "space-y-5 md:space-y-8 md:pt-4" : ""}`}>
+        className={`${activeTab === "all"
+          ? "pt-0 space-y-5 md:space-y-8 md:pt-4"
+          : "pt-0"
+          }`}>
         {/* Category Specific View (Sidebar + Products) */}
         {activeTab !== "all" && (
-          <div className="flex bg-transparent min-h-[70vh]">
-            {/* Left Sidebar with Round Subcategories */}
-            <div className="w-20 md:w-24 bg-neutral-50 border-r border-neutral-200 py-4 flex-shrink-0 flex flex-col items-center gap-6 overflow-y-auto scrollbar-hide max-h-[80vh] sticky top-36">
+          <div className="flex bg-transparent min-h-[70vh] relative">
+            {/* Unified Floating Navigation Rail - Descriptive Color Icons */}
+            <div className="flex flex-col items-center gap-5 md:gap-6 sticky top-[calc(var(--header-height)+16px)] h-fit w-[64px] md:w-[82px] ml-2 md:ml-4 mr-3 md:mr-8 py-4 px-1.5 bg-white/70 backdrop-blur-md rounded-[20px] shadow-[0_8px_32px_rgba(0,0,0,0.06)] border border-white/30 z-40 transition-all duration-300">
               {/* 'All' Option */}
               <button
                 type="button"
-                onClick={() => setSelectedSubcategory("all")}
-                className="flex flex-col items-center gap-1 w-full px-1 group">
+                onClick={() => {
+                  setSelectedSubcategory("all");
+                  window.scrollTo({ top: contentRef.current?.offsetTop ? contentRef.current.offsetTop - 100 : 0, behavior: 'smooth' });
+                }}
+                className="group flex flex-col items-center gap-1.5 w-full transition-all duration-200 active:scale-95"
+              >
                 <div
-                  className={`w-12 h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center text-xl transition-all duration-200 shadow-sm border-2 ${selectedSubcategory === "all"
-                    ? "border-emerald-600 bg-white scale-110 shadow-md"
-                    : "border-transparent bg-white group-hover:scale-105"
-                    }`}>
-                  📦
+                  className={`flex items-center justify-center w-10 h-10 md:w-12 md:h-12 transition-all duration-300 rounded-[12px] md:rounded-[14px] shadow-sm ${selectedSubcategory === "all" ? "bg-[#0a193b] text-white scale-105 shadow-md" : "bg-white border border-black/[0.04] hover:bg-black/[0.02]"}`}
+                >
+                  <span className="text-base md:text-lg">📦</span>
                 </div>
-                <span
-                  className={`text-[9px] md:text-[10px] text-center font-bold px-1 transition-colors leading-tight ${selectedSubcategory === "all" ? "text-emerald-700" : "text-neutral-500"
-                    }`}>
+                <span className={`text-[9px] md:text-[10px] font-bold text-center leading-tight transition-colors ${selectedSubcategory === "all" ? "text-[#0a193b]" : "text-[#0a193b]/50"}`}>
                   All
                 </span>
               </button>
+
+              <div className="w-8 h-[1px] bg-black/[0.05] -my-1"></div>
 
               {/* Dynamic Subcategories */}
               {(() => {
@@ -354,26 +352,28 @@ export default function Home() {
                     <button
                       key={cat._id || cat.id}
                       type="button"
-                      onClick={() => setSelectedSubcategory(cat._id || cat.id)}
-                      className="flex flex-col items-center gap-1 w-full px-1 group">
+                      onClick={() => {
+                        setSelectedSubcategory(cat._id || cat.id);
+                        window.scrollTo({ top: contentRef.current?.offsetTop ? contentRef.current.offsetTop - 100 : 0, behavior: 'smooth' });
+                      }}
+                      className="group flex flex-col items-center gap-1.5 w-full transition-all duration-200 active:scale-95"
+                    >
                       <div
-                        className={`w-12 h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center overflow-hidden transition-all duration-200 shadow-sm border-2 ${isSelected
-                          ? "border-emerald-600 bg-white scale-110 shadow-md"
-                          : "border-transparent bg-white group-hover:scale-105"
-                          }`}>
-                        {cat.image ? (
-                          <img
-                            src={cat.image}
-                            alt={cat.name}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <span className="text-xl">{cat.icon || "🛒"}</span>
-                        )}
+                        className={`flex items-center justify-center w-10 h-10 md:w-12 md:h-12 transition-all duration-300 rounded-[12px] md:rounded-[14px] shadow-sm overflow-hidden ${isSelected ? "bg-[#0a193b] text-white scale-105 shadow-md ring-2 ring-[#0a193b]/10" : "bg-white border border-black/[0.04] hover:bg-black/[0.02]"}`}
+                      >
+                        <div className="w-7 h-7 md:w-8 md:h-8 flex items-center justify-center pointer-events-none">
+                          {cat.image ? (
+                            <img
+                              src={cat.image}
+                              alt={cat.name}
+                              className={`w-full h-full object-cover transition-all duration-300 ${isSelected ? "brightness-125 contrast-125 scale-110" : ""}`}
+                            />
+                          ) : (
+                            <span className={`text-sm md:text-base ${isSelected ? "" : "opacity-80"}`}>{cat.icon || "🛒"}</span>
+                          )}
+                        </div>
                       </div>
-                      <span
-                        className={`text-[9px] md:text-[10px] text-center font-bold px-1 transition-colors leading-tight line-clamp-2 ${isSelected ? "text-emerald-700" : "text-neutral-500"
-                          }`}>
+                      <span className={`text-[9px] md:text-[10px] font-bold text-center leading-tight line-clamp-2 px-1 transition-colors ${isSelected ? "text-[#0a193b]" : "text-[#0a193b]/50"}`}>
                         {cat.name}
                       </span>
                     </button>
@@ -383,42 +383,36 @@ export default function Home() {
             </div>
 
             {/* Right Side: Product Grid */}
-            <div className="flex-1 px-3 py-4 md:px-6 md:py-6 overflow-y-auto">
-              <AnimatePresence mode="wait" initial={false}>
+            <div className="flex-1 pr-4 md:pr-10 py-4 md:py-4 min-w-0">
+              <AnimatePresence mode="wait">
                 <motion.div
                   key={selectedSubcategory}
-                  initial={{ x: 28, opacity: 0 }}
-                  animate={{ x: 0, opacity: 1 }}
-                  exit={{ x: -28, opacity: 0 }}
-                  transition={{ duration: 0.28, ease: "easeInOut" }}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.25, ease: "easeOut" }}
                 >
-                  <div className="flex items-center justify-between mb-6 -ml-3 md:-ml-6 pr-1">
-                    <div className="relative flex items-center">
-                      <div className="absolute -left-0.5 top-full -mt-1 w-2.5 h-2.5 bg-[#8A6642] origin-top-right -rotate-45 -z-10 opacity-60"></div>
-                      <div className="bg-gradient-to-r from-[#8A6642] to-[#A88A68] pl-3 md:pl-6 pr-5 py-1.5 md:py-2 rounded-r-lg shadow-md relative flex items-center border-y border-white/10">
-                        <h2 className="text-[10px] md:text-sm font-bold text-white uppercase tracking-[0.15em] drop-shadow-sm line-clamp-1 max-w-[150px] md:max-w-[300px]">
-                          {selectedSubcategory === "all"
-                            ? `${activeTab.replace("-", " ")}`
-                            : (homeData.categories || []).find(
-                              (c: any) => String(c._id || c.id) === String(selectedSubcategory)
-                            )?.name || "Products"}
-                        </h2>
-                        <div className="absolute -right-1.5 top-0 bottom-0 w-3.5 bg-[#A88A68]" style={{ clipPath: 'polygon(0 0, 100% 50%, 0 100%)' }}></div>
-                      </div>
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 md:mb-8 px-1 md:px-0">
+                    <div className="flex items-center gap-3">
+                      <div className="w-1 md:w-1.5 h-5 md:h-6 bg-[#0a193b] rounded-full"></div>
+                      <h2 className="text-[17px] md:text-[22px] font-semibold text-[#0a193b] tracking-tight">
+                        {selectedSubcategory === "all"
+                          ? `${activeTab.charAt(0).toUpperCase()}${activeTab.slice(1).replace("-", " ")}`
+                          : (homeData.categories || []).find(
+                            (c: any) => String(c._id || c.id) === String(selectedSubcategory)
+                          )?.name || "Products"}
+                      </h2>
                     </div>
-
-                    <span className="text-[10px] md:text-xs font-semibold text-neutral-500 bg-neutral-100/50 backdrop-blur-sm px-2.5 py-1 rounded-full border border-neutral-200/50">
-                      {filteredProducts.length} Items
-                    </span>
                   </div>
 
                   {productsLoading ? (
-                    <div className="flex flex-col items-center justify-center py-20">
-                      <div className="w-10 h-10 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-                      <p className="text-sm text-neutral-500 font-medium">Loading products...</p>
+                    <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-8 animate-pulse">
+                      {[1, 2, 3, 4, 5, 6].map((i) => (
+                        <div key={i} className="bg-[#0a193b]/5 h-[240px] md:h-[260px] rounded-[16px] md:rounded-[20px] shadow-sm"></div>
+                      ))}
                     </div>
                   ) : filteredProducts.length > 0 ? (
-                    <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2.5 md:gap-4">
+                    <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-5 md:gap-10 lg:gap-8 xl:gap-10">
                       {filteredProducts.map((product) => (
                         <ProductCard
                           key={product.id || product._id}
@@ -432,11 +426,11 @@ export default function Home() {
                       ))}
                     </div>
                   ) : (
-                    <div className="flex flex-col items-center justify-center py-20 text-neutral-400">
-                      <div className="w-16 h-16 bg-neutral-50 rounded-full flex items-center justify-center mb-4 text-3xl">
+                    <div className="flex flex-col items-center justify-center py-24 text-neutral-400">
+                      <div className="w-14 h-14 md:w-16 md:h-16 bg-[#0a193b]/5 rounded-full flex items-center justify-center mb-6 text-2xl md:text-3xl shadow-sm">
                         📦
                       </div>
-                      <p className="text-sm font-medium">No products found</p>
+                      <p className="text-sm md:text-base font-medium">No matches in this category</p>
                     </div>
                   )}
                 </motion.div>
@@ -450,7 +444,7 @@ export default function Home() {
           <>
             {/* Dynamic Home Sections - Render sections created by admin (all tabs) */}
             {homeData.homeSections && homeData.homeSections.length > 0 && (
-              <div className="space-y-8">
+              <div className="space-y-10 md:space-y-16">
                 {homeData.homeSections.map((section: any) => {
                   if (!section.data || section.data.length === 0) return null;
 
@@ -471,26 +465,29 @@ export default function Home() {
                       }[columnCount] || "grid-cols-4";
 
                     const isCompact = columnCount >= 4;
-                    const gapClass = columnCount >= 4 ? "gap-2" : "gap-3 md:gap-4";
+                    const gapClass = columnCount >= 4 ? "gap-3 md:gap-4" : "gap-4 md:gap-6";
 
                     return (
-                      <div key={section.id} className="mt-8 mb-8 md:mt-10 md:mb-10 px-4 md:px-6 lg:px-8">
+                      <div key={section.id} className="mt-8 mb-8 md:mt-12 md:mb-12 px-4 md:px-6 lg:px-8">
                         {section.title && (
-                          <div className="flex items-center justify-between mb-5 -ml-4 md:-ml-6 lg:-ml-8">
-                            <div className="relative flex items-center">
-                              <div className="absolute -left-0.5 top-full -mt-1.5 w-3 h-3 bg-[#8A6642] origin-top-right -rotate-45 -z-10 opacity-60"></div>
-                              <div className="bg-gradient-to-r from-[#8A6642] to-[#A88A68] pl-5 md:pl-7 lg:pl-10 pr-6 py-1.5 md:py-2 rounded-r-lg shadow-md relative flex items-center border-y border-white/10">
-                                <h2 className="text-[10px] md:text-xs font-bold text-white uppercase tracking-[0.2em] drop-shadow-sm">
-                                  {section.title}
-                                </h2>
-                                <div className="absolute -right-2 top-0 bottom-0 w-4 bg-[#A88A68]" style={{ clipPath: 'polygon(0 0, 100% 50%, 0 100%)' }}></div>
-                              </div>
-                            </div>
+                          <div className="flex items-center justify-between mb-10">
+                            <h2 className="text-[18px] md:text-2xl font-bold text-[#0a193b] tracking-tight">
+                              {section.title}
+                            </h2>
+                            <button
+                              onClick={() => navigate(`/category/${section.categoryId || 'all'}`)}
+                              className="section-see-all group flex items-center gap-1.5 transition-all hover:translate-x-1"
+                            >
+                              See all 
+                              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M5 12h14m-7-7l7 7-7 7" />
+                              </svg>
+                            </button>
                           </div>
                         )}
-                        <div className={`flex overflow-x-auto pb-4 gap-3 md:gap-4 snap-x snap-mandatory scrollbar-hide md:grid md:pb-0 md:overflow-visible ${gridClass} ${gapClass}`}>
+                        <div className={`flex overflow-x-auto pb-4 gap-5 md:gap-8 snap-x snap-mandatory scrollbar-hide md:grid md:pb-0 md:overflow-visible ${gridClass} ${gapClass}`}>
                           {section.data.map((product: any) => (
-                            <div key={product.id || product._id} className="flex-shrink-0 w-[45%] sm:w-[35%] md:w-auto snap-start">
+                            <div key={product.id || product._id} className="flex-shrink-0 w-[41%] sm:w-[32%] md:w-auto snap-start">
                               <ProductCard
                                 product={product}
                                 categoryStyle={true}
@@ -520,84 +517,68 @@ export default function Home() {
             )}
 
             {/* Shop by Store Section - only on 'all' tab */}
-            <div className="mb-6 mt-6 md:mb-8 md:mt-8 px-4 md:px-6 lg:px-8">
-              <div className="flex items-center justify-between mb-5 -ml-4 md:-ml-6 lg:-ml-8">
-                <div className="relative flex items-center">
-                  {/* Subtle Ribbon Tail Wrap */}
-                  <div className="absolute -left-0.5 top-full -mt-1.5 w-3 h-3 bg-[#8A6642] origin-top-right -rotate-45 -z-10 opacity-60"></div>
-
-                  {/* Premium Glass-Brown Ribbon Body */}
-                  <div className="bg-gradient-to-r from-[#8A6642] to-[#A88A68] pl-5 md:pl-7 lg:pl-10 pr-6 py-1.5 md:py-2 rounded-r-lg shadow-md relative flex items-center border-y border-white/10">
-                    <h2 className="text-[10px] md:text-xs font-bold text-white uppercase tracking-[0.2em] drop-shadow-sm">
-                      Shop by Store
-                    </h2>
-
-                    {/* Elegant Minimal Notch */}
-                    <div className="absolute -right-2 top-0 bottom-0 w-4 bg-[#A88A68]" style={{ clipPath: 'polygon(0 0, 100% 50%, 0 100%)' }}></div>
-                  </div>
-                </div>
-
+            <div className="px-5 mt-10 mb-12 md:px-10">
+              {/* Modern Clean Header */}
+              <div className="flex items-center justify-between mb-8">
+                <h2 className="text-[18px] md:text-[22px] font-semibold text-[#0a193b] tracking-tight">
+                  Shop by Store
+                </h2>
                 <button
                   onClick={() => navigate('/stores')}
-                  className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[8px] md:text-[10px] font-bold tracking-[0.1em] uppercase bg-[#8A6642] text-white shadow-md hover:scale-105 active:scale-95 transition-all border border-white/10 mr-4 md:mr-6 lg:mr-8">
-                  See All
-                  <span className="text-[10px] opacity-80" aria-hidden="true">
-                    →
-                  </span>
+                  className="section-see-all group flex items-center gap-1.5 transition-all hover:translate-x-1"
+                >
+                  See all
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M5 12h14m-7-7l7 7-7 7" />
+                  </svg>
                 </button>
               </div>
-              <div className="">
-                <div className="flex overflow-x-auto pb-4 gap-3 snap-x snap-mandatory scrollbar-hide md:grid md:grid-cols-4 lg:grid-cols-6 md:gap-6 md:pb-0 md:overflow-visible">
-                  {(homeData.shops || []).map((tile: any) => {
-                    const hasImages =
-                      tile.image ||
-                      (tile.productImages &&
-                        tile.productImages.filter(Boolean).length > 0);
 
-                    return (
-                      <div
-                        key={tile.id}
-                        className="group flex flex-col cursor-pointer transition-transform active:scale-95 flex-shrink-0 w-[30%] sm:w-[24%] md:w-auto snap-start"
-                        onClick={() => {
-                          const storeSlug =
-                            tile.slug || tile.id.replace("-store", "");
-                          navigate(`/store/${storeSlug}`);
-                        }}
-                      >
-                        <div className="relative aspect-[4/5] bg-gradient-to-b from-[#E6D5C3] to-white rounded-t-full overflow-hidden border-x border-t border-[#8A6642] shadow-sm group-hover:shadow-md transition-shadow">
-                          <div className="absolute inset-x-0 top-1/2 bottom-0 bg-[#DFCBB7] opacity-40"></div>
-                          <div className="absolute bottom-4 left-0 right-0 h-4 bg-white/20 blur-sm"></div>
+              <div className="flex overflow-x-auto pb-8 gap-4 snap-x snap-mandatory scrollbar-hide md:grid md:grid-cols-4 lg:grid-cols-6 md:pb-0 md:overflow-visible">
+                {(homeData.shops || []).map((tile: any) => {
+                  const hasImages =
+                    tile.image ||
+                    (tile.productImages &&
+                      tile.productImages.filter(Boolean).length > 0);
 
-                          <div className="absolute inset-0 p-2 flex flex-col items-center justify-center">
-                            {hasImages ? (
-                              <img
-                                src={
-                                  tile.image ||
-                                  (tile.productImages ? tile.productImages[0] : "")
-                                }
-                                alt={tile.name}
-                                className="w-[85%] h-[85%] object-contain drop-shadow-lg transform group-hover:scale-110 transition-transform duration-300"
-                              />
-                            ) : (
-                              <div className="text-4xl text-[#8A6642] font-bold opacity-30">
-                                {tile.name.charAt(0)}
-                              </div>
-                            )}
+                  return (
+                    <div
+                      key={tile.id}
+                      className="hover-lift tap-scale group flex flex-col cursor-pointer bg-white rounded-[20px] border border-black/[0.04] shadow-card transition-all duration-300 flex-shrink-0 w-[32%] sm:w-[24%] md:w-auto snap-start p-3"
+                      onClick={() => {
+                        const storeSlug =
+                          tile.slug || tile.id.replace("-store", "");
+                        navigate(`/store/${storeSlug}`);
+                      }}
+                    >
+                      {/* Dominant Image Component - No Double Container */}
+                      <div className="relative aspect-square rounded-[14px] overflow-hidden mb-3 flex items-center justify-center">
+                        {hasImages ? (
+                          <img
+                            src={
+                              tile.image ||
+                              (tile.productImages ? tile.productImages[0] : "")
+                            }
+                            alt={tile.name}
+                            className="w-[90%] h-[90%] object-contain drop-shadow-sm transform transition-transform duration-500 group-hover:scale-110"
+                          />
+                        ) : (
+                          <div className="text-4xl text-[#0a193b] font-bold opacity-20">
+                            {tile.name.charAt(0)}
                           </div>
-
-                          <div className="absolute bottom-0 left-0 right-0 p-1">
-                            <div className="bg-gradient-to-r from-[#8A6642] via-[#A88A68] to-[#8A6642] py-2 md:py-2.5 px-2 rounded-xl shadow-lg border border-white/20">
-                              <span className="block text-[9px] md:text-xs font-black text-white text-center uppercase tracking-wider line-clamp-1 leading-none">
-                                {tile.name}
-                              </span>
-                            </div>
-                          </div>
-                          <div className="absolute bottom-0 left-0 right-0 h-px bg-[#8A6642]" />
-                        </div>
+                        )}
                       </div>
-                    );
-                  })}
-                </div>
+
+                      <div className="text-center">
+                        <span className="block text-[13px] md:text-[14px] font-medium text-[#0f172a] capitalize line-clamp-1 leading-tight mb-1.5">
+                          {tile.name.toLowerCase()}
+                        </span>
+                        {/* Minimal 24px Gold Accent */}
+                        {/* <div className="w-5 h-[2px] bg-[#c5a059] mx-auto rounded-full group-hover:w-8 transition-all duration-300" /> */}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </>

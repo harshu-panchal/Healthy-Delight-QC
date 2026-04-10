@@ -9,7 +9,7 @@ import { getCategories } from "../../../services/api/customerProductService";
 import { Category } from "../../../types/domain";
 import { getHeaderCategoriesPublic } from "../../../services/api/headerCategoryService";
 import { getIconByName } from "../../../utils/iconLibrary";
-import logo from "../../../../assets/kosil1.png";
+import logo from "../../../../assets/logo.png";
 import headerBg from "../../../../assets/Header2.jpg";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -70,6 +70,7 @@ export default function HomeHero({
   const [currentSearchIndex, setCurrentSearchIndex] = useState(0);
   const [, setIsSticky] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
+  const [hasScrolled, setHasScrolled] = useState(false);
   const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0 });
   const [isListening, setIsListening] = useState(false);
 
@@ -220,38 +221,55 @@ export default function HomeHero({
   // Handle scroll to detect when "LOWEST PRICES EVER" section is out of view
   useEffect(() => {
     const handleScroll = () => {
-      if (topSectionRef.current && stickyRef.current) {
-        // Find the "LOWEST PRICES EVER" section
-        const lowestPricesSection = document.querySelector(
-          '[data-section="lowest-prices"]',
-        );
+      const appScrollContainer = document.getElementById("app-main-scroll");
+      const scrollY = Math.max(
+        appScrollContainer?.scrollTop || 0,
+        window.scrollY || 0,
+        window.pageYOffset || 0,
+        document.documentElement.scrollTop || 0,
+        document.body.scrollTop || 0,
+      );
+      const fallbackProgress = Math.min(scrollY / 160, 1);
+      let progress = fallbackProgress;
+      let sticky = scrollY > 8;
 
-        if (lowestPricesSection) {
-          const sectionBottom =
-            lowestPricesSection.getBoundingClientRect().bottom;
-          // When the section has scrolled up past the viewport, transition to white
-          const progress = Math.min(Math.max(1 - sectionBottom / 200, 0), 1);
-          setScrollProgress(progress);
-          setIsSticky(sectionBottom <= 100);
-        } else {
-          // Fallback to original logic if section not found
-          const topSectionBottom =
-            topSectionRef.current.getBoundingClientRect().bottom;
-          const topSectionHeight = topSectionRef.current.offsetHeight;
-          const progress = Math.min(
-            Math.max(1 - topSectionBottom / topSectionHeight, 0),
-            1,
-          );
-          setScrollProgress(progress);
-          setIsSticky(topSectionBottom <= 0);
-        }
+      // Find the "LOWEST PRICES EVER" section when available
+      const lowestPricesSection = document.querySelector(
+        '[data-section="lowest-prices"]',
+      );
+
+      if (lowestPricesSection) {
+        const sectionBottom = lowestPricesSection.getBoundingClientRect().bottom;
+        const sectionProgress = Math.min(Math.max(1 - sectionBottom / 200, 0), 1);
+        progress = Math.max(fallbackProgress, sectionProgress);
+        sticky = sticky || sectionBottom <= 100;
+      } else if (topSectionRef.current) {
+        const topSectionBottom = topSectionRef.current.getBoundingClientRect().bottom;
+        const topSectionHeight = topSectionRef.current.offsetHeight || 1;
+        const sectionProgress = Math.min(
+          Math.max(1 - topSectionBottom / topSectionHeight, 0),
+          1,
+        );
+        progress = Math.max(fallbackProgress, sectionProgress);
+        sticky = sticky || topSectionBottom <= 0;
       }
+
+      setScrollProgress(progress);
+      setIsSticky(sticky);
+      setHasScrolled(scrollY > 2);
     };
 
+    // Capture scroll from nested containers too (main app scroll root can change on navigation/HMR).
+    document.addEventListener("scroll", handleScroll, { passive: true, capture: true });
     window.addEventListener("scroll", handleScroll, { passive: true });
+    const pollId = window.setInterval(handleScroll, 120);
     handleScroll(); // Check initial state
 
-    return () => window.removeEventListener("scroll", handleScroll);
+    return () => {
+      document.removeEventListener("scroll", handleScroll, true);
+      window.removeEventListener("scroll", handleScroll);
+      window.clearInterval(pollId);
+    };
   }, []);
 
   // Update sliding indicator position when activeTab changes and scroll to active tab
@@ -335,6 +353,10 @@ export default function HomeHero({
   const themeId = currentTab.themeKey || currentTab.id || "all";
   const theme = getTheme(themeId);
   const heroGradient = `linear-gradient(to bottom right, ${theme.primary[0]}, ${theme.primary[1]}, ${theme.primary[2]})`;
+  const isHeaderSolid = hasScrolled;
+  const categoryHideRaw = Math.min(scrollProgress * 1.15, 1);
+  const categoryHideProgress = 1 - Math.pow(1 - categoryHideRaw, 2);
+  const bottomRadiusPx = Math.round(Math.max(0, Math.min(1, (categoryHideProgress - 0.9) / 0.1)) * 18);
 
   // Helper to convert RGB to RGBA
   const rgbToRgba = (rgb: string, alpha: number) => {
@@ -344,76 +366,95 @@ export default function HomeHero({
   return (
     <div
       ref={heroRef}
+      className="fixed top-0 left-0 w-full z-50 overflow-hidden transition-all duration-300"
       style={{
-        backgroundImage: `url(${headerBg})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
+        background: isHeaderSolid
+          ? '#0a193b'
+          : 'linear-gradient(180deg, #0a193b 0%, rgba(10, 25, 59, 0.9) 20%, rgba(10, 25, 59, 0.7) 45%, rgba(10, 25, 59, 0.4) 70%, rgba(252, 250, 247, 0) 100%)',
+        boxShadow: scrollProgress > 0 ? "0 12px 40px rgba(0,0,0,0.12)" : "0 4px 16px rgba(0,0,0,0.04)",
+        borderBottomLeftRadius: `${bottomRadiusPx}px`,
+        borderBottomRightRadius: `${bottomRadiusPx}px`,
         paddingBottom: 0,
         marginBottom: 0,
       }}>
-      {/* Top section with delivery info and buttons - NOT sticky */}
-      <div>
-        <div
-          ref={topSectionRef}
-          className="px-4 md:px-6 lg:px-8 pt-1 md:pt-1.5 pb-0">
-          <div className="flex items-center justify-between mb-2 md:mb-2">
-            {/* Left: Text content */}
-            <div className="flex-1 pr-2">
-              {/* Logo */}
-              <img src={logo} alt="Healthy Delight Logo" className="h-10 md:h-12 w-auto object-contain mb-0" />
-              {/* Location with dropdown indicator - only show if location is provided */}
-              {locationDisplayText && (
-                <div className="text-neutral-900 text-[10px] md:text-xs flex items-center gap-0.5 leading-tight">
-                  <span className="line-clamp-1" title={locationDisplayText}>
-                    {locationDisplayText}
-                  </span>
-                  <svg
-                    width="10"
-                    height="10"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="flex-shrink-0">
-                    <path
-                      d="M6 9l6 6 6-6"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </div>
-              )}
+      {/* Top section: Logo and Location (Deep Navy Area) */}
+      <div className="px-5 md:px-10 pt-5 pb-3">
+        <div className="flex items-center justify-between gap-6">
+          {/* Logo & Location Container */}
+          <div className="flex items-center gap-8 flex-1 min-w-0">
+            {/* Logo with subtle depth highlight */}
+            <div className="flex items-center gap-2.5 flex-shrink-0 cursor-pointer group" onClick={() => navigate('/')}>
+              <div className="relative">
+                <img src={logo} alt="Healthy Delight" className="h-8 md:h-10 w-auto object-contain brightness-0 invert drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)] transition-transform group-hover:scale-105" />
+              </div>
+              <span className="hidden md:block text-xl font-bold tracking-tight text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.2)]">
+                Healthy Delight
+              </span>
             </div>
 
-            {/* Right: Profile Button (top header) */}
+            {/* Location with elevated feel */}
+            {locationDisplayText && (
+              <div
+                onClick={() => navigate('/account')}
+                className="flex items-center gap-2 cursor-pointer max-w-[220px] md:max-w-md group"
+              >
+                <div className="p-1.5 rounded-full bg-white/10 text-white/90 group-hover:bg-white/20 transition-all shadow-inner border border-white/20">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="drop-shadow-[0_1px_1px_rgba(0,0,0,0.3)]">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" strokeLinecap="round" strokeLinejoin="round" />
+                    <circle cx="12" cy="10" r="3" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </div>
+                <div className="flex flex-col min-w-0">
+                  <span className="text-[10px] uppercase tracking-widest font-bold text-white/50 leading-none mb-0.5 drop-shadow-[0_1px_1px_rgba(0,0,0,0.1)]">Delivery to</span>
+                  <div className="flex items-center gap-1">
+                    <span className="text-sm font-bold text-white/95 truncate group-hover:text-white transition-colors">
+                      {locationDisplayText}
+                    </span>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" className="text-white/40 group-hover:text-white transition-colors">
+                      <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Right side - Profile (Desktop) */}
+          <div className="hidden md:flex items-center gap-4">
             <button
               onClick={() => navigate('/account')}
-              className="md:hidden flex-shrink-0 w-10 h-10 rounded-full bg-white/60 backdrop-blur flex items-center justify-center text-neutral-800 shadow-sm border border-neutral-200/50 hover:bg-white/80 transition-colors self-start mt-3"
-              aria-label="Profile"
+              className="p-2.5 rounded-full bg-white/10 text-white hover:bg-white/20 transition-all shadow-[0_4px_12px_rgba(0,0,0,0.1)] border border-white/20 hover:border-white/40"
             >
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="12" cy="8" r="4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                <path d="M4 20c0-4 3.5-7 8-7s8 3 8 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.2)]">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
               </svg>
             </button>
           </div>
+
+          {/* Profile (Mobile) */}
+          <button
+            onClick={() => navigate('/account')}
+            className="md:hidden flex-shrink-0 w-10 h-10 rounded-full bg-white/10 text-white flex items-center justify-center border border-white/20 hover:bg-white/30 transition-all shadow-lg"
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
+            </svg>
+          </button>
         </div>
       </div>
 
-      {/* Sticky section: Search Bar and Category Tabs - Always sticky */}
+      {/* Sticky section: Fully Unified Search & Categories */}
       <div
         ref={stickyRef}
-        className="sticky top-0 z-50"
+        className="sticky top-0 z-50 transition-all duration-300"
         style={{
-          backgroundImage: `url(${headerBg})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center bottom',
-          boxShadow: scrollProgress > 0.05 ? "0 4px 6px -1px rgba(0, 0, 0, 0.1)" : "none",
-          transition: "box-shadow 0.3s ease-out",
+          background: isHeaderSolid ? '#0a193b' : 'transparent',
+          backdropFilter: 'none',
+          boxShadow: scrollProgress > 0.1 ? "0 10px 30px rgba(0,0,0,0.08)" : "none",
         }}>
-        <div className="px-4 md:px-6 lg:px-8 pt-0.5 md:pt-1 pb-1 md:pb-1">
-          {/* Search Bar */}
+
+        {/* Search Bar Container */}
+        <div className="px-5 md:px-10 py-3">
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -422,126 +463,85 @@ export default function HomeHero({
                 navigate(`/search?q=${encodeURIComponent(input.value.trim())}`);
               }
             }}
-            className="w-full md:w-auto md:max-w-xl md:mx-auto rounded-xl shadow-lg px-3 py-1.5 md:px-3 md:py-1.5 flex items-center gap-2 hover:shadow-xl transition-all duration-300 mb-1 md:mb-1 bg-white border border-transparent focus-within:border-emerald-500 focus-within:ring-2 focus-within:ring-emerald-500/20"
-            style={{
-              backgroundColor:
-                scrollProgress > 0.1
-                  ? `rgba(249, 250, 251, ${scrollProgress})`
-                  : "white",
-              border:
-                scrollProgress > 0.1
-                  ? `1px solid rgba(229, 231, 235, ${scrollProgress})`
-                  : "none",
-            }}>
+            className="w-full md:max-w-2xl md:mx-auto h-12 md:h-14 bg-white rounded-2xl flex items-center gap-4 px-5 transition-all shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-neutral-100 focus-within:ring-4 focus-within:ring-primary-500/10 focus-within:shadow-[0_12px_40px_rgb(0,0,0,0.16)]">
             <svg
-              width="18"
-              height="18"
+              width="22"
+              height="22"
               viewBox="0 0 24 24"
               fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-              className="flex-shrink-0 md:w-4 md:h-4 text-emerald-600">
-              <circle
-                cx="11"
-                cy="11"
-                r="8"
-                stroke="currentColor"
-                strokeWidth="2.5"
-              />
-              <path
-                d="m21 21-4.35-4.35"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-              />
+              stroke="#0a193b"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="opacity-70 drop-shadow-[0_1px_1px_rgba(0,0,0,0.1)]">
+              <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
             </svg>
-            <div className="flex bg-transparent relative flex-1">
-              <input
-                type="text"
-                name="q"
-                placeholder={isListening ? "Listening..." : `Search "${searchSuggestions[currentSearchIndex]}"...`}
-                className="w-full bg-transparent border-none outline-none text-sm md:text-sm text-neutral-950 placeholder-neutral-500 font-bold pr-8"
-                autoComplete="off"
-              />
-              <button
-                type="button"
-                onClick={handleVoiceSearch}
-                className={`absolute right-0 top-1/2 -translate-y-1/2 p-1 rounded-full transition-colors ${isListening ? 'bg-red-100 text-red-500' : 'text-neutral-500 hover:text-emerald-600'}`}
-                aria-label="Voice search"
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"></path>
-                  <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
-                  <line x1="12" y1="19" x2="12" y2="22"></line>
-                  <line x1="8" y1="22" x2="16" y2="22"></line>
-                </svg>
-              </button>
-            </div>
+            <input
+              type="text"
+              name="q"
+              placeholder={isListening ? "Listening..." : `Search for "${searchSuggestions[currentSearchIndex]}"`}
+              className="flex-1 bg-transparent border-none outline-none text-[16px] font-semibold text-neutral-high placeholder-slate-400"
+              autoComplete="off"
+            />
+            <button
+              type="button"
+              onClick={handleVoiceSearch}
+              className={`p-2 rounded-full transition-all ${isListening ? 'bg-red-50 text-red-500 shadow-inner' : 'text-slate-400 hover:text-primary-500 hover:bg-slate-50'}`}
+            >
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"></path>
+                <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                <line x1="12" y1="19" x2="12" y2="22"></line>
+                <line x1="8" y1="22" x2="16" y2="22"></line>
+              </svg>
+            </button>
           </form>
         </div>
 
-        {/* Category Tabs */}
+        {/* Category Navigation (slides up behind search bar on scroll) */}
         <div
-          className="border-b border-neutral-400/40 w-full relative z-10"
-          style={{ paddingBottom: 0 }}>
+          className="w-full relative z-10 overflow-hidden transition-all duration-900 ease-[cubic-bezier(0.22,1,0.36,1)]"
+          style={{
+            maxHeight: `${128 - (120 * categoryHideProgress)}px`,
+            opacity: 1 - categoryHideProgress,
+            transform: `translateY(${-26 * categoryHideProgress}px)`,
+            pointerEvents: categoryHideProgress > 0.85 ? "none" : "auto",
+          }}
+        >
           <div
             ref={tabsContainerRef}
-            className="relative flex gap-2 md:gap-3 overflow-x-auto scrollbar-hide -mx-2 md:mx-0 px-4 md:px-6 lg:px-8 md:justify-center scroll-smooth"
-            style={{ paddingBottom: "4px" }}
-            data-padding-bottom="md:2px">
-            {/* Sliding Indicator */}
+            className="relative flex gap-1 md:gap-3 overflow-x-auto scrollbar-hide px-5 md:px-10 md:justify-center scroll-smooth">
+
+            {/* Sliding Indicator (Navy/Primary) */}
             {indicatorStyle.width > 0 && (
               <div
-                className="absolute bottom-0 h-1 bg-neutral-900 rounded-t-md transition-all duration-300 ease-out pointer-events-none"
+                className="absolute bottom-0 h-1 bg-primary-500 rounded-t-full transition-all duration-300 ease-out pointer-events-none shadow-[0_-2px_6px_rgba(10,25,59,0.2)]"
                 style={{
                   left: `${indicatorStyle.left}px`,
                   width: `${indicatorStyle.width}px`,
-                  transition:
-                    "left 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                  transition: "left 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
                   zIndex: 0,
                 }}
               />
             )}
 
-            {tabs.map((tab, index) => {
+            {tabs.map((tab) => {
               const isActive = activeTab === tab.id;
-              const tabColor = isActive
-                ? "text-neutral-950"
-                : scrollProgress > 0.5
-                  ? "text-neutral-800"
-                  : "text-neutral-900";
-              const isFirstTab = index === 0;
-
               return (
                 <button
                   key={tab.id}
-                  ref={(el) => {
-                    if (el) {
-                      tabRefs.current.set(tab.id, el);
-                    } else {
-                      tabRefs.current.delete(tab.id);
-                    }
-                  }}
+                  ref={(el) => (el ? tabRefs.current.set(tab.id, el) : tabRefs.current.delete(tab.id))}
                   onClick={(e) => handleTabClick(e, tab.id)}
-                  className={`flex-shrink-0 flex flex-col md:flex-row items-center justify-center min-w-[50px] md:min-w-fit md:px-3 py-2 md:py-1.5 relative ${tabColor} z-10 cursor-pointer select-none ${isFirstTab ? "pl-5 pr-2 md:pl-3" : "px-2 md:px-3"}`}
-                  style={{
-                    transition: "color 0.3s ease-out",
-                    touchAction: "manipulation",
-                  }}
+                  className={`flex-shrink-0 flex flex-col md:flex-row items-center justify-center min-w-[60px] md:min-w-fit px-3 py-3 md:py-4 relative z-10 cursor-pointer select-none transition-all duration-300 ${isActive ? "text-primary-500 scale-105" : "text-neutral-medium hover:text-primary-400 hover:scale-[1.02]"
+                    }`}
                   type="button">
                   <div
-                    className={`mb-0.5 md:hidden w-5 h-5 flex items-center justify-center ${tabColor}`}
-                    style={{
-                      transition:
-                        "color 0.3s ease-out, transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-                      transform: isActive ? "scale(1.1)" : "scale(1)",
-                    }}>
+                    className={`mb-1 md:mb-0 md:mr-2 w-5 h-5 flex items-center justify-center transition-all duration-300 ${isActive ? "scale-110 drop-shadow-[0_2px_4px_rgba(10,25,59,0.15)]" : "scale-100 opacity-60"
+                      }`}>
                     {tab.icon}
                   </div>
-                  <span
-                    className={`text-[10px] md:text-xs md:whitespace-nowrap ${isActive ? "font-semibold" : "font-medium"}`}
-                    style={{
-                      transition: "font-weight 0.3s ease-out",
-                    }}>
+                  <span className={`text-[11px] md:text-sm whitespace-nowrap transition-all duration-300 ${isActive ? "font-bold tracking-tight" : "font-semibold"
+                    }`}>
                     {tab.label}
                   </span>
                 </button>

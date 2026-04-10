@@ -159,6 +159,8 @@ export default function AdminHeaderCategory() {
   const handleAddOrUpdate = async () => {
     if (!headerCategoryName.trim())
       return alert("Please enter a header category name");
+    if (!/^[a-zA-Z\s]*$/.test(headerCategoryName))
+      return alert("Header category name can only contain letters and spaces");
     if (!headerCategoryIcon.trim())
       return alert(
         "Please select an icon. If your category is unique, try searching for a generic icon.",
@@ -250,8 +252,8 @@ export default function AdminHeaderCategory() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         {/* Left Panel - Add Header Category */}
         <div className="bg-white rounded-lg shadow-sm border border-neutral-200 overflow-hidden">
-          <div className="bg-primary border-primary text-neutral-900 px-4 sm:px-6 py-3">
-            <h2 className="text-base sm:text-lg font-semibold">
+          <div className="bg-neutral-50 border-b border-neutral-200 px-4 sm:px-6 py-3">
+            <h2 className="text-base sm:text-lg font-semibold text-neutral-800">
               {editingId ? "Edit Header Category" : "Add Header Category"}
             </h2>
           </div>
@@ -264,7 +266,10 @@ export default function AdminHeaderCategory() {
               <input
                 type="text"
                 value={headerCategoryName}
-                onChange={(e) => setHeaderCategoryName(e.target.value)}
+                onChange={(e) => {
+                  const val = e.target.value.replace(/[^a-zA-Z\s]/g, "");
+                  setHeaderCategoryName(val);
+                }}
                 placeholder="Enter Category Name (e.g. Dairy, Books)"
                 className="w-full px-3 py-2 border border-neutral-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
               />
@@ -379,7 +384,7 @@ export default function AdminHeaderCategory() {
             <div className="flex gap-3 pt-2">
               <button
                 onClick={handleAddOrUpdate}
-                className="flex-1 bg-primary border-primary text-neutral-900 py-2 rounded text-sm font-medium hover:bg-neutral-900 transition">
+                className="flex-1 bg-white border-2 border-primary text-primary py-2 rounded text-sm font-medium hover:bg-primary hover:text-white transition-all active:scale-95">
                 {editingId ? "Update Category" : "Add Category"}
               </button>
               {editingId && (

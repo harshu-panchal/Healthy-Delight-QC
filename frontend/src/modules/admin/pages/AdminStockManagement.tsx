@@ -355,8 +355,8 @@ export default function AdminStockManagement() {
         {/* Main Panel */}
         <div className="bg-white rounded-lg shadow-sm border border-neutral-200">
           {/* Header */}
-          <div className="bg-primary border-primary text-neutral-900 px-6 py-4 rounded-t-lg">
-            <h2 className="text-lg font-semibold">View Stock Management</h2>
+          <div className="bg-neutral-50 border-b border-neutral-200 px-6 py-4 rounded-t-lg">
+            <h2 className="text-lg font-semibold text-neutral-800">View Stock Management</h2>
           </div>
 
           {/* Filters and Controls */}
@@ -458,7 +458,7 @@ export default function AdminStockManagement() {
               <div className="flex items-center gap-2">
                 <button
                   onClick={handleExport}
-                  className="bg-primary border-primary text-neutral-900 hover:bg-neutral-900 hover:text-white px-3 py-1.5 rounded text-sm font-medium flex items-center gap-1 transition-colors">
+                  className="bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white px-3 py-1.5 rounded text-sm font-medium flex items-center gap-1 transition-all active:scale-95">
                   Export
                   <svg
                     width="10"
@@ -683,7 +683,7 @@ export default function AdminStockManagement() {
                   />
                 </svg>
               </button>
-              <button className="px-3 py-1.5 border border-neutral-800 bg-primary border-primary text-neutral-900 rounded font-medium text-sm">
+              <button className="px-3 py-1.5 border border-neutral-800 bg-primary border-primary text-white rounded font-medium text-sm transition-all active:scale-95">
                 {currentPage}
               </button>
               <button

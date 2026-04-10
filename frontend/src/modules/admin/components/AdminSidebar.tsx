@@ -983,7 +983,7 @@ export default function AdminSidebar({ onClose }: AdminSidebarProps) {
         <button
           onClick={() => handleNavigation("/admin")}
           className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left transition-colors ${isActive("/admin")
-            ? "bg-primary border-primary text-neutral-900"
+            ? "bg-primary border-primary text-white"
             : "text-neutral-400 hover:bg-neutral-800 hover:text-white"
             }`}>
           <svg
@@ -1037,7 +1037,7 @@ export default function AdminSidebar({ onClose }: AdminSidebarProps) {
                         }
                       }}
                       className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-left transition-colors ${active
-                        ? "bg-primary border-primary text-neutral-900"
+                        ? "bg-primary border-primary text-white"
                         : "text-neutral-400 hover:bg-neutral-800 hover:text-white"
                         }`}>
                       <div className="flex items-center gap-2 flex-1 min-w-0">
@@ -1055,7 +1055,7 @@ export default function AdminSidebar({ onClose }: AdminSidebarProps) {
                           stroke="currentColor"
                           strokeWidth="2"
                           className={`transition-transform flex-shrink-0 ml-2 ${expanded ? "rotate-90" : ""
-                            } ${active ? "text-neutral-900" : "text-neutral-500"}`}>
+                            } ${active ? "text-white" : "text-neutral-500"}`}>
                           <path
                             d="M9 18L15 12L9 6"
                             strokeLinecap="round"
@@ -1068,14 +1068,23 @@ export default function AdminSidebar({ onClose }: AdminSidebarProps) {
                         {item.submenuItems &&
                           item.submenuItems.map((subItem) => {
                             const subActive =
-                              location.pathname === subItem.path ||
-                              location.pathname.startsWith(subItem.path + "/");
+                              (location.pathname === subItem.path ||
+                                location.pathname.startsWith(subItem.path + "/")) &&
+                              !item.submenuItems?.some(
+                                (sibling) =>
+                                  sibling !== subItem &&
+                                  (location.pathname === sibling.path ||
+                                    location.pathname.startsWith(
+                                      sibling.path + "/"
+                                    )) &&
+                                  sibling.path.length > subItem.path.length
+                              );
                             return (
                               <li key={subItem.path}>
                                 <button
                                   onClick={() => handleNavigation(subItem.path)}
                                   className={`w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-left transition-colors ${subActive
-                                    ? "bg-primary text-neutral-900"
+                                    ? "bg-primary text-white"
                                     : "text-neutral-400 hover:bg-neutral-800 hover:text-white"
                                     }`}>
                                   <div className="flex items-center gap-2 flex-1 min-w-0">

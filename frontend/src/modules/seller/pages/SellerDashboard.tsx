@@ -265,7 +265,7 @@ export default function SellerDashboard() {
             onClick={handleToggleShop}
             disabled={statusLoading}
             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
-              isShopOpen ? 'bg-primary border-primary text-neutral-900' : 'bg-gray-200'
+              isShopOpen ? 'bg-primary' : 'bg-neutral-200'
             } ${statusLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
           >
             <span
@@ -290,8 +290,8 @@ export default function SellerDashboard() {
 
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-        <OrderChart title={`Order - ${new Date().toLocaleString('default', { month: 'short' })} ${new Date().getFullYear()}`} data={stats.dailyOrderData} maxValue={Math.max(...stats.dailyOrderData.map(d => d.value), 5)} height={400} />
-        <OrderChart title={`Order - ${new Date().getFullYear()}`} data={stats.yearlyOrderData} maxValue={Math.max(...stats.yearlyOrderData.map(d => d.value), 20)} height={400} />
+        <OrderChart title={`Order - ${new Date().toLocaleString('default', { month: 'short' })} ${new Date().getFullYear()}`} data={stats.dailyOrderData} maxValue={Math.max(...stats.dailyOrderData.map(d => d.value), 5)} height={300} />
+        <OrderChart title={`Order - ${new Date().getFullYear()}`} data={stats.yearlyOrderData} maxValue={Math.max(...stats.yearlyOrderData.map(d => d.value), 20)} height={300} />
       </div>
 
       {/* Alerts and Button Row */}
@@ -304,8 +304,10 @@ export default function SellerDashboard() {
       {/* View New Orders Table Section */}
       <div className="bg-white rounded-lg shadow-sm border border-neutral-200 overflow-hidden">
         {/* primary Header Bar */}
-        <div className="bg-primary border-primary text-neutral-900 px-4 sm:px-6 py-3">
-          <h2 className="text-base sm:text-lg font-semibold">View New Orders</h2>
+        <div className="bg-neutral-50 border-b border-neutral-200 px-4 sm:px-6 py-3">
+          <h2 className="text-base sm:text-lg font-semibold text-neutral-800">
+            View New Orders
+          </h2>
         </div>
 
         {/* Show Entries Control */}
@@ -425,7 +427,7 @@ export default function SellerDashboard() {
             <tbody className="bg-white divide-y divide-neutral-200">
               {displayedOrders.map((order) => (
                 <tr key={order.id} className="hover:bg-neutral-50">
-                  <td className="px-4 sm:px-6 py-3 text-sm text-neutral-900">{order.id}</td>
+                  <td className="px-4 sm:px-6 py-3 text-sm text-neutral-900">{order.orderId}</td>
                   <td className="px-4 sm:px-6 py-3 text-sm text-neutral-600">{order.orderDate}</td>
                   <td className="px-4 sm:px-6 py-3">
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadgeClass(order.status)}`}>
@@ -436,7 +438,7 @@ export default function SellerDashboard() {
                   <td className="px-4 sm:px-6 py-3">
                     <button
                       onClick={() => navigate(`/seller/orders/${order.id}`)}
-                      className="bg-primary border-primary text-neutral-900 hover:bg-primary-dark p-2 rounded transition-colors"
+                      className="text-primary hover:bg-neutral-100 p-2 rounded-full transition-colors"
                       aria-label="View order details"
                     >
                       <svg

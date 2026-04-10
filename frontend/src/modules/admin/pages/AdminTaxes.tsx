@@ -241,8 +241,8 @@ export default function AdminTaxes() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full">
           {/* Left Panel: Add Tax */}
           <div className="bg-white rounded-lg shadow-sm border border-neutral-200 flex flex-col">
-            <div className="bg-primary border-primary text-neutral-900 px-6 py-4 rounded-t-lg">
-              <h2 className="text-lg font-semibold">Add Tax</h2>
+            <div className="bg-neutral-50 border-b border-neutral-200 px-6 py-4 rounded-t-lg">
+              <h2 className="text-lg font-semibold text-neutral-800">Add Tax</h2>
             </div>
             <div className="p-6 flex-1 flex flex-col">
               <div className="space-y-4 flex-1">
@@ -278,10 +278,10 @@ export default function AdminTaxes() {
                 <button
                   onClick={handleAddTax}
                   disabled={submitting}
-                  className="w-full bg-primary border-primary text-neutral-900 hover:bg-neutral-900 hover:text-white disabled:bg-neutral-400 disabled:cursor-not-allowed px-4 py-2 rounded font-medium transition-colors flex items-center justify-center">
+                  className="w-full bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white disabled:bg-neutral-100 disabled:text-neutral-400 disabled:border-neutral-200 disabled:cursor-not-allowed px-4 py-2 rounded font-medium transition-all active:scale-95 flex items-center justify-center">
                   {submitting ? (
                     <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2"></div>
                       {editingTax ? "Updating..." : "Adding..."}
                     </>
                   ) : editingTax ? (
@@ -307,8 +307,8 @@ export default function AdminTaxes() {
 
           {/* Right Panel: View Tax */}
           <div className="bg-white rounded-lg shadow-sm border border-neutral-200 flex flex-col">
-            <div className="bg-primary border-primary text-neutral-900 px-6 py-4 rounded-t-lg">
-              <h2 className="text-lg font-semibold">View Tax</h2>
+            <div className="bg-neutral-50 border-b border-neutral-200 px-6 py-4 rounded-t-lg">
+              <h2 className="text-lg font-semibold text-neutral-800">View Tax</h2>
             </div>
 
             {/* Controls */}
@@ -332,7 +332,7 @@ export default function AdminTaxes() {
                 <div className="relative">
                   <button
                     onClick={handleExport}
-                    className="bg-primary border-primary text-neutral-900 hover:bg-neutral-900 hover:text-white px-3 py-1.5 rounded text-sm font-medium flex items-center gap-1 transition-colors">
+                    className="bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white px-3 py-1.5 rounded text-sm font-medium flex items-center gap-1 transition-all active:scale-95">
                     Export
                     <svg
                       width="10"
@@ -538,7 +538,7 @@ export default function AdminTaxes() {
                     />
                   </svg>
                 </button>
-                <button className="px-3 py-1.5 border border-neutral-800 bg-primary border-primary text-neutral-900 rounded font-medium text-sm">
+                <button className="px-3 py-1.5 border-2 border-primary bg-primary text-white rounded font-medium text-sm">
                   {currentPage}
                 </button>
                 <button

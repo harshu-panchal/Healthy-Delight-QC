@@ -100,17 +100,17 @@ export default function AdminLogin() {
             backgroundColor: "#FFF5E6", // warm cream
             borderColor: "#F2D4A3",    // soft biscuit border
           }}>
-          <div className="mb-0 -mt-4">
+          <div className="py-2">
             <img
-              src="/assets/kosil1.png"
+              src="/assets/logo.png"
               alt="Healthy Delight"
-              className="h-44 w-full max-w-xs mx-auto object-fill object-bottom"
+              className="h-14 sm:h-16 w-auto mx-auto object-contain"
             />
           </div>
-          <h1 className="text-2xl font-bold text-[#4A3428] mb-1 -mt-12">
+          <h1 className="text-xl sm:text-2xl font-bold text-[#4A3428] mb-1">
             Admin Login
           </h1>
-          <p className="text-[#8B5E34] text-sm -mt-2">
+          <p className="text-[#8B5E34] text-sm">
             Access your admin dashboard
           </p>
         </div>
@@ -153,9 +153,9 @@ export default function AdminLogin() {
               <button
                 onClick={handleMobileLogin}
                 disabled={mobileNumber.length !== 10 || loading}
-                className={`w-full py-2.5 rounded-lg font-semibold text-sm transition-colors ${mobileNumber.length === 10 && !loading
-                  ? "bg-primary border-primary text-neutral-900 hover:bg-neutral-900 shadow-md"
-                  : "bg-neutral-300 text-neutral-500 cursor-not-allowed"
+                className={`w-full py-2.5 rounded-lg font-semibold text-sm transition-all ${mobileNumber.length === 10 && !loading
+                  ? "bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white shadow-md active:scale-95"
+                  : "bg-neutral-100 text-neutral-400 border border-neutral-200 cursor-not-allowed"
                   }`}>
                 {loading ? "Sending..." : "Continue"}
               </button>
@@ -193,7 +193,7 @@ export default function AdminLogin() {
                 <button
                   onClick={handleMobileLogin}
                   disabled={loading}
-                  className="flex-1 py-2.5 rounded-lg font-semibold text-sm bg-primary border-primary text-neutral-900 hover:bg-neutral-900 transition-colors">
+                  className="flex-1 py-2.5 rounded-lg font-semibold text-sm bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white transition-all active:scale-95 shadow-sm">
                   {loading ? "Verifying..." : "Resend OTP"}
                 </button>
               </div>

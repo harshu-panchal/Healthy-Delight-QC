@@ -392,7 +392,7 @@ export default function SellerProductList() {
                 link.click();
                 document.body.removeChild(link);
               }}
-              className="bg-primary border-primary text-neutral-900 hover:bg-primary-dark px-3 py-1.5 rounded text-sm font-medium flex items-center gap-1 transition-colors">
+              className="text-primary border border-neutral-200 hover:bg-neutral-50 px-3 py-1.5 rounded text-sm font-medium flex items-center gap-1 transition-colors">
               <svg
                 width="16"
                 height="16"
@@ -449,7 +449,7 @@ export default function SellerProductList() {
             <p>{error}</p>
             <button
               onClick={fetchProducts}
-              className="mt-4 px-4 py-2 bg-primary border-primary text-neutral-900 rounded hover:bg-primary-dark">
+              className="mt-4 px-6 py-2 bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white rounded-lg transition-all active:scale-95 shadow-sm font-medium">
               Retry
             </button>
           </div>
@@ -723,10 +723,10 @@ export default function SellerProductList() {
                 <button
                   key={page}
                   onClick={() => setCurrentPage(page)}
-                  className={`px-3 py-1.5 border border-neutral-800 rounded font-medium text-sm ${
+                  className={`px-3 py-1.5 border-2 rounded font-bold text-sm transition-all active:scale-95 ${
                     currentPage === page
-                      ? "bg-primary border-primary text-neutral-900"
-                      : "text-primary hover:bg-cream"
+                      ? "bg-white border-primary text-primary shadow-sm"
+                      : "border-neutral-200 text-neutral-500 hover:bg-neutral-50"
                   }`}>
                   {page}
                 </button>

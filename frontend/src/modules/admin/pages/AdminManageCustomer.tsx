@@ -299,7 +299,7 @@ export default function AdminManageCustomer() {
               <div className="flex items-end">
                 <button
                   onClick={handleExport}
-                  className="w-full bg-primary border-primary text-neutral-900 hover:bg-neutral-900 text-white px-4 py-2 rounded text-sm font-medium transition-colors flex items-center justify-center gap-2">
+                  className="w-full bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white px-4 py-2 rounded text-sm font-medium transition-all active:scale-95 flex items-center justify-center gap-2">
                   Export
                   <svg
                     width="14"
@@ -528,7 +528,7 @@ export default function AdminManageCustomer() {
                   <path d="M15 18L9 12L15 6"></path>
                 </svg>
               </button>
-              <button className="px-3 py-1.5 border border-neutral-800 bg-primary border-primary text-neutral-900 rounded font-medium text-sm">
+              <button className="px-3 py-1.5 border border-neutral-800 bg-primary border-primary text-white rounded font-medium text-sm transition-all active:scale-95">
                 {currentPage}
               </button>
               <button

@@ -72,9 +72,9 @@ export default function AdminFundTransfer() {
   return (
     <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="bg-primary border-primary text-neutral-900 px-4 sm:px-6 py-4 rounded-t-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
-        <h1 className="text-neutral-900 text-xl sm:text-2xl font-semibold">View Fund Transfer</h1>
-        <button className="bg-neutral-900 hover:bg-neutral-800 text-white px-4 py-2 rounded text-sm font-medium flex items-center gap-2 transition-colors">
+      <div className="bg-neutral-50 border border-neutral-200 px-4 sm:px-6 py-4 rounded-t-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
+        <h1 className="text-neutral-800 text-xl sm:text-2xl font-semibold">View Fund Transfer</h1>
+        <button className="bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white px-4 py-2 rounded text-sm font-semibold flex items-center gap-2 transition-all active:scale-95 shadow-sm">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <line x1="12" y1="5" x2="12" y2="19"></line>
             <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -127,7 +127,7 @@ export default function AdminFundTransfer() {
                   </div>
                   <button
                     onClick={handleClearDate}
-                    className="px-3 py-2 bg-neutral-700 hover:bg-neutral-800 text-white rounded text-sm transition-colors"
+                    className="px-3 py-2 bg-neutral-200 hover:bg-neutral-300 text-neutral-700 rounded text-sm transition-all active:scale-95 shadow-sm"
                   >
                     Clear
                   </button>
@@ -196,7 +196,7 @@ export default function AdminFundTransfer() {
               {/* Export Button */}
               <button
                 onClick={handleExport}
-                className="bg-neutral-900 hover:bg-neutral-800 text-white px-4 py-2 rounded text-sm font-medium flex items-center gap-2 transition-colors"
+                className="bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white px-4 py-2 rounded text-sm font-semibold flex items-center gap-2 transition-all active:scale-95 shadow-sm"
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>

@@ -363,33 +363,23 @@ export default function CategoryPage() {
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col overflow-hidden bg-transparent">
-        {/* Header */}
-        <div className="sticky top-0 z-40 bg-transparent border-b border-neutral-200 flex-shrink-0">
-          <div className="px-4 md:px-6 lg:px-8 py-3 md:py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => navigate(-1)}
-                  className="w-8 h-8 md:w-10 md:h-10 flex items-center justify-center text-neutral-700 hover:bg-neutral-100 rounded-full transition-colors"
-                  aria-label="Go back">
-                  <svg
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg">
-                    <path
-                      d="M15 18L9 12L15 6"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </button>
-                <h1 className="text-base md:text-xl font-bold text-neutral-900">
+        <div className="sticky top-0 z-40 bg-transparent flex-shrink-0 pt-0 pb-1">
+          <div className="flex items-center gap-3 px-4 md:px-6 lg:px-8 py-4">
+            <button
+              onClick={() => navigate(-1)}
+              className="w-10 h-10 flex items-center justify-center text-neutral-800 bg-white shadow-md hover:bg-neutral-50 rounded-full transition-all border border-neutral-100"
+              aria-label="Go back">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M15 18L9 12L15 6" />
+              </svg>
+            </button>
+            <div className="relative flex items-center">
+              <div className="absolute -left-0.5 top-full -mt-1.5 w-3 h-3 bg-[#8A6642] origin-top-right -rotate-45 -z-10 opacity-60"></div>
+              <div className="bg-gradient-to-r from-[#8A6642] to-[#A88A68] pl-5 md:pl-7 lg:pl-10 pr-6 py-2.5 md:py-3 rounded-r-lg shadow-md relative flex items-center border-y border-white/10">
+                <h1 className="text-xs md:text-sm font-bold text-white uppercase tracking-[0.2em] drop-shadow-sm leading-tight">
                   {category?.name}
                 </h1>
+                <div className="absolute -right-2 top-0 bottom-0 w-4 bg-[#A88A68]" style={{ clipPath: 'polygon(0 0, 100% 50%, 0 100%)' }}></div>
               </div>
             </div>
           </div>

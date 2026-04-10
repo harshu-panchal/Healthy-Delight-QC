@@ -97,7 +97,7 @@ export default function Login() {
         {/* Header with logo + animation */}
         <div className="px-5 py-3 sm:px-6 sm:py-4 border-b bg-gradient-to-b from-amber-50 to-white border-amber-200 text-center flex flex-col items-center">
           <img
-            src="/assets/kosil1.png"
+            src="/assets/logo.png"
             alt="Healthy Delight"
             className="h-20 sm:h-24 w-auto object-contain mb-2"
           />

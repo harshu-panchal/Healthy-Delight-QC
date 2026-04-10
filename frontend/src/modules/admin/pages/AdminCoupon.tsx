@@ -281,8 +281,8 @@ export default function AdminCoupon() {
 
         {/* Add Coupon Section */}
         <div className="bg-white rounded-lg shadow-sm border border-neutral-200 mb-6">
-          <div className="bg-primary border-primary text-neutral-900 px-6 py-4 rounded-t-lg">
-            <h2 className="text-lg font-semibold">Add Coupon</h2>
+          <div className="bg-neutral-50 border-b border-neutral-200 px-6 py-4 rounded-t-lg">
+            <h2 className="text-lg font-semibold text-neutral-800">Add Coupon</h2>
           </div>
 
           <form onSubmit={handleAddCoupon} className="p-6">
@@ -539,10 +539,10 @@ export default function AdminCoupon() {
             <button
               type="submit"
               disabled={uploading}
-              className={`w-full px-6 py-3 rounded font-medium transition-colors ${
+              className={`w-full px-6 py-3 rounded font-semibold transition-all active:scale-95 shadow-md ${
                 uploading
-                  ? "bg-neutral-400 cursor-not-allowed text-white"
-                  : "bg-neutral-900 hover:bg-neutral-800 text-white"
+                  ? "bg-neutral-100 text-neutral-400 border border-neutral-200 cursor-not-allowed"
+                  : "bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white"
               }`}>
               {uploading ? "Creating Coupon..." : "Add Coupon"}
             </button>
@@ -551,7 +551,7 @@ export default function AdminCoupon() {
 
         {/* View Coupon Section */}
         <div className="bg-white rounded-lg shadow-sm border border-neutral-200">
-          <div className="px-6 py-4 border-b border-neutral-200">
+          <div className="bg-neutral-50 border-b border-neutral-200 px-6 py-4">
             <h2 className="text-lg font-semibold text-neutral-800">
               View Coupon
             </h2>
@@ -719,10 +719,10 @@ export default function AdminCoupon() {
               <button
                 onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
                 disabled={currentPage === 1}
-                className={`p-2 border border-neutral-800 rounded ${
+                className={`p-2 border-2 rounded transition-all active:scale-95 ${
                   currentPage === 1
-                    ? "text-neutral-400 cursor-not-allowed bg-neutral-50"
-                    : "text-primary hover:bg-cream"
+                    ? "text-neutral-400 cursor-not-allowed bg-neutral-50 border-neutral-200"
+                    : "text-primary border-primary hover:bg-primary hover:text-white"
                 }`}
                 aria-label="Previous page">
                 <svg
@@ -740,7 +740,7 @@ export default function AdminCoupon() {
                   />
                 </svg>
               </button>
-              <button className="px-3 py-1.5 border border-neutral-800 bg-primary border-primary text-neutral-900 rounded font-medium text-sm">
+              <button className="px-3 py-1.5 border-2 border-primary bg-primary text-white rounded font-medium text-sm">
                 {currentPage}
               </button>
               <button
@@ -748,10 +748,10 @@ export default function AdminCoupon() {
                   setCurrentPage((prev) => Math.min(totalPages, prev + 1))
                 }
                 disabled={currentPage === totalPages || totalPages === 0}
-                className={`p-2 border border-neutral-800 rounded ${
+                className={`p-2 border-2 rounded transition-all active:scale-95 ${
                   currentPage === totalPages || totalPages === 0
-                    ? "text-neutral-400 cursor-not-allowed bg-neutral-50"
-                    : "text-primary hover:bg-cream"
+                    ? "text-neutral-400 border-neutral-200 cursor-not-allowed bg-neutral-50"
+                    : "text-primary border-primary hover:bg-primary hover:text-white"
                 }`}
                 aria-label="Next page">
                 <svg

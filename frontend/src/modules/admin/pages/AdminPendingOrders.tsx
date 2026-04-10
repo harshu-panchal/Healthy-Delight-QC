@@ -296,7 +296,7 @@ export default function AdminPendingOrders() {
         {/* White Card Container */}
         <div className="bg-white rounded-lg shadow-sm border border-neutral-200 overflow-hidden">
           {/* Banner */}
-          <div className="bg-primary text-neutral-900 px-4 sm:px-6 py-2 sm:py-3">
+          <div className="bg-neutral-50 border-b border-neutral-200 px-4 sm:px-6 py-2 sm:py-3 font-semibold text-neutral-800">
             <h2 className="text-base sm:text-lg font-semibold">
               View Order List
             </h2>
@@ -409,7 +409,7 @@ export default function AdminPendingOrders() {
                 <div className="relative">
                   <button
                     onClick={handleExport}
-                    className="flex items-center justify-center gap-2 bg-primary hover:bg-primary-dark text-neutral-900 px-3 sm:px-4 py-2 rounded text-xs sm:text-sm font-medium transition-colors w-full sm:w-auto">
+                    className="flex items-center justify-center gap-2 bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white px-3 sm:px-4 py-2 rounded text-xs sm:text-sm font-semibold transition-all active:scale-95 shadow-sm w-full sm:w-auto">
                     <svg
                       width="16"
                       height="16"
@@ -815,10 +815,10 @@ export default function AdminPendingOrders() {
                               setSelectedOrder(order);
                               setAssignModalOpen(true);
                             }}
-                            className={`px-2 py-1.5 text-xs font-medium rounded transition-colors ${
+                            className={`px-3 py-1.5 text-xs font-semibold rounded shadow-sm transition-all active:scale-95 ${
                               order.deliveryBoyStatus === "Assigned"
-                                ? "bg-cream text-neutral-800 hover:bg-primary/40"
-                                : "bg-neutral-900 text-white hover:bg-neutral-800"
+                                ? "bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white"
+                                : "bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white"
                             }`}
                             title={
                               order.deliveryBoyStatus === "Assigned"
@@ -831,7 +831,7 @@ export default function AdminPendingOrders() {
                           </button>
                           <Link to={`/admin/orders/${order._id}`}>
                             <button
-                              className="bg-primary border-primary text-neutral-900 hover:bg-neutral-900 hover:text-white p-2 rounded transition-colors"
+                              className="bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white p-1.5 rounded transition-all active:scale-95 shadow-sm"
                               aria-label="View order">
                               <svg
                                 width="16"
@@ -879,7 +879,7 @@ export default function AdminPendingOrders() {
               <button
                 onClick={handlePreviousPage}
                 disabled={currentPage === 1}
-                className="px-2 py-1 border border-neutral-300 rounded text-xs sm:text-sm text-neutral-700 bg-white hover:bg-neutral-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="px-2 py-1 border-2 border-primary rounded text-xs sm:text-sm text-primary bg-white hover:bg-primary hover:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:border-neutral-200 disabled:text-neutral-400 transition-all active:scale-95 shadow-sm"
                 aria-label="Previous page">
                 <svg
                   width="16"
@@ -896,10 +896,13 @@ export default function AdminPendingOrders() {
                   />
                 </svg>
               </button>
+              <button className="px-3 py-1 border-2 border-primary bg-primary text-white rounded font-semibold text-xs sm:text-sm transition-all shadow-sm">
+                {currentPage}
+              </button>
               <button
                 onClick={handleNextPage}
                 disabled={currentPage === totalPages || totalPages === 0}
-                className="px-2 py-1 border border-neutral-300 rounded text-xs sm:text-sm text-neutral-700 bg-white hover:bg-neutral-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="px-2 py-1 border-2 border-primary rounded text-xs sm:text-sm text-primary bg-white hover:bg-primary hover:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:border-neutral-200 disabled:text-neutral-400 transition-all active:scale-95 shadow-sm"
                 aria-label="Next page">
                 <svg
                   width="16"

@@ -198,8 +198,8 @@ export default function AdminReturnRequest() {
       {/* Main Content Card */}
       <div className="bg-white rounded-lg shadow-sm border border-neutral-200 overflow-hidden">
         {/* Header Bar */}
-        <div className="bg-primary px-4 sm:px-6 py-3">
-          <h2 className="text-neutral-900 text-lg font-semibold">
+        <div className="bg-neutral-50 border-b border-neutral-200 px-4 sm:px-6 py-3 font-semibold text-neutral-800">
+          <h2 className="text-base sm:text-lg font-semibold">
             View Return Request
           </h2>
         </div>
@@ -278,7 +278,7 @@ export default function AdminReturnRequest() {
                   </div>
                   <button
                     onClick={handleClearDate}
-                    className="px-3 py-2 bg-neutral-700 hover:bg-neutral-800 text-white rounded text-sm transition-colors">
+                    className="px-3 py-2 bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white rounded text-sm font-semibold transition-all active:scale-95 shadow-sm">
                     Clear
                   </button>
                 </div>
@@ -351,7 +351,7 @@ export default function AdminReturnRequest() {
               {/* Export Button */}
               <button
                 onClick={handleExport}
-                className="bg-neutral-900 hover:bg-neutral-800 text-white px-4 py-2 rounded text-sm font-medium flex items-center gap-2 transition-colors">
+                className="bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white px-4 py-2 rounded text-sm font-semibold flex items-center gap-2 transition-all active:scale-95 shadow-sm">
                 <svg
                   width="16"
                   height="16"
@@ -753,10 +753,7 @@ export default function AdminReturnRequest() {
             <button
               onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
               disabled={currentPage === 1 || totalPages === 0}
-              className={`p-2 border border-neutral-300 rounded bg-white ${currentPage === 1 || totalPages === 0
-                ? "text-neutral-400 cursor-not-allowed"
-                : "text-neutral-700 hover:bg-cream"
-                }`}
+              className="p-2 border-2 border-primary rounded bg-white text-primary hover:bg-primary hover:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:border-neutral-200 disabled:text-neutral-400 transition-all active:scale-95 shadow-sm"
               aria-label="Previous page">
               <svg
                 width="16"
@@ -773,15 +770,15 @@ export default function AdminReturnRequest() {
                 />
               </svg>
             </button>
+            <button className="px-3 py-1 border-2 border-primary bg-primary text-white rounded font-semibold text-xs sm:text-sm transition-all shadow-sm">
+              {currentPage}
+            </button>
             <button
               onClick={() =>
                 setCurrentPage((prev) => Math.min(totalPages, prev + 1))
               }
               disabled={currentPage === totalPages || totalPages === 0}
-              className={`p-2 border border-neutral-300 rounded bg-white ${currentPage === totalPages || totalPages === 0
-                ? "text-neutral-400 cursor-not-allowed"
-                : "text-neutral-700 hover:bg-cream"
-                }`}
+              className="p-2 border-2 border-primary rounded bg-white text-primary hover:bg-primary hover:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:border-neutral-200 disabled:text-neutral-400 transition-all active:scale-95 shadow-sm"
               aria-label="Next page">
               <svg
                 width="16"

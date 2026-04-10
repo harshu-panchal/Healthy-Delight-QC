@@ -10,6 +10,7 @@ export interface IDeliveryAssignment extends Document {
 
   // Status
   status:
+    | "Pending"
     | "Assigned"
     | "Accepted"
     | "Picked Up"
@@ -61,6 +62,7 @@ const DeliveryAssignmentSchema = new Schema<IDeliveryAssignment>(
     status: {
       type: String,
       enum: [
+        "Pending",
         "Assigned",
         "Accepted",
         "Picked Up",

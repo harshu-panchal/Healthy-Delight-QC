@@ -166,481 +166,374 @@ export default function AdminCashCollection() {
   const methods = ["All", "Cash", "Card", "Online"];
 
   return (
-    <div className="space-y-4 sm:space-y-6">
-      {/* Header */}
-      <div className="bg-primary border-primary text-neutral-900 px-4 sm:px-6 py-4 rounded-t-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
-        <h1 className="text-white text-xl sm:text-2xl font-semibold">
-          Delivery Boy Cash Collection List
-        </h1>
-        <button className="bg-neutral-900 hover:bg-neutral-800 text-white px-4 py-2 rounded text-sm font-medium flex items-center gap-2 transition-colors">
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round">
-            <line x1="12" y1="5" x2="12" y2="19"></line>
-            <line x1="5" y1="12" x2="19" y2="12"></line>
-          </svg>
-          Add Cash Collection
-        </button>
+    <div className="space-y-4 sm:space-y-6 -mx-3 sm:-mx-4 md:-mx-6 -mt-3 sm:-mt-4 md:-mt-6">
+      {/* Header Section */}
+      <div className="bg-white border-b border-neutral-200 px-3 sm:px-4 md:px-6 py-3 sm:py-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0">
+          <h1 className="text-xl sm:text-2xl font-bold text-neutral-900">
+            Delivery Boy Cash Collection
+          </h1>
+          <div className="flex items-center gap-2 text-xs sm:text-sm">
+            <span className="text-neutral-500">Dashboard</span>
+            <span className="text-neutral-400">/</span>
+            <span className="text-neutral-700">Cash Collection</span>
+          </div>
+        </div>
       </div>
 
-      {/* Main Content Card */}
-      <div className="bg-white rounded-lg shadow-sm border border-neutral-200 overflow-hidden">
-        {/* Filters */}
-        <div className="p-4 sm:p-6 border-b border-neutral-200">
-          <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
-            {/* Left Side Filters */}
-            <div className="flex flex-col sm:flex-row gap-3 flex-1 flex-wrap">
-              {/* From - To Date */}
-              <div className="flex items-center gap-2">
-                <label className="text-sm text-neutral-700 whitespace-nowrap">
-                  From - To Date:
-                </label>
-                <div className="flex items-center gap-2">
-                  <div className="relative">
-                    <svg
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400">
-                      <rect
-                        x="3"
-                        y="4"
-                        width="18"
-                        height="18"
-                        rx="2"
-                        ry="2"></rect>
-                      <line x1="16" y1="2" x2="16" y2="6"></line>
-                      <line x1="8" y1="2" x2="8" y2="6"></line>
-                      <line x1="3" y1="10" x2="21" y2="10"></line>
-                    </svg>
-                    <input
-                      type="text"
-                      value={fromDate}
-                      onChange={(e) => setFromDate(e.target.value)}
-                      placeholder="MM/DD/YYYY"
-                      className="pl-10 pr-3 py-2 border border-neutral-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary min-w-[140px]"
-                    />
+      {/* Main Content */}
+      <div className="px-3 sm:px-4 md:px-6">
+        <div className="bg-white rounded-lg shadow-sm border border-neutral-200 overflow-hidden">
+          {/* Banner */}
+          <div className="bg-neutral-50 border-b border-neutral-200 px-4 sm:px-6 py-2 sm:py-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <h2 className="text-base sm:text-lg font-semibold text-neutral-800">
+              Cash Collection List
+            </h2>
+            <button
+              onClick={handleAddCollection}
+              className="bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white px-4 py-2 rounded text-sm font-medium flex items-center gap-2 transition-all active:scale-95 shadow-sm w-full sm:w-auto">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+              Add Cash Collection
+            </button>
+          </div>
+
+          {/* Filters and Search Bar */}
+          <div className="p-4 sm:p-6 border-b border-neutral-200 bg-neutral-50">
+            <div className="flex flex-col gap-4">
+              {/* Filter Row 1 */}
+              <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center">
+                <div className="flex flex-col sm:flex-row gap-3 flex-1 w-full">
+                  {/* From - To Date */}
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+                    <label className="text-sm font-medium text-neutral-700 whitespace-nowrap">
+                      Date Range:
+                    </label>
+                    <div className="flex items-center gap-2 w-full sm:w-auto">
+                      <input
+                        type="date"
+                        value={fromDate}
+                        onChange={(e) => setFromDate(e.target.value)}
+                        className="flex-1 sm:flex-none px-3 py-2 border border-neutral-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary min-w-[140px] bg-white"
+                      />
+                      <span className="text-neutral-500">to</span>
+                      <input
+                        type="date"
+                        value={toDate}
+                        onChange={(e) => setToDate(e.target.value)}
+                        className="flex-1 sm:flex-none px-3 py-2 border border-neutral-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary min-w-[140px] bg-white"
+                      />
+                      <button
+                        onClick={handleClearDate}
+                        className="p-2 text-neutral-500 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                        title="Clear dates">
+                        <svg
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2">
+                          <polyline points="3 6 5 6 21 6"></polyline>
+                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                        </svg>
+                      </button>
+                    </div>
                   </div>
-                  <span className="text-neutral-500">-</span>
-                  <div className="relative">
-                    <svg
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400">
-                      <rect
-                        x="3"
-                        y="4"
-                        width="18"
-                        height="18"
-                        rx="2"
-                        ry="2"></rect>
-                      <line x1="16" y1="2" x2="16" y2="6"></line>
-                      <line x1="8" y1="2" x2="8" y2="6"></line>
-                      <line x1="3" y1="10" x2="21" y2="10"></line>
-                    </svg>
-                    <input
-                      type="text"
-                      value={toDate}
-                      onChange={(e) => setToDate(e.target.value)}
-                      placeholder="MM/DD/YYYY"
-                      className="pl-10 pr-3 py-2 border border-neutral-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary min-w-[140px]"
-                    />
+
+                  {/* Filter by Delivery Boy */}
+                  <div className="flex items-center gap-2 flex-1">
+                    <label className="text-sm font-medium text-neutral-700 whitespace-nowrap">
+                      Delivery Boy:
+                    </label>
+                    <select
+                      value={selectedDeliveryBoy}
+                      onChange={(e) => {
+                        setSelectedDeliveryBoy(e.target.value);
+                        setCurrentPage(1);
+                      }}
+                      className="flex-1 px-3 py-2 border border-neutral-300 rounded text-sm bg-white focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary">
+                      <option value="all">All Delivery Boys</option>
+                      {deliveryBoys.map((boy) => (
+                        <option key={boy._id} value={boy._id}>
+                          {boy.name}
+                        </option>
+                      ))}
+                    </select>
                   </div>
-                  <button
-                    onClick={handleClearDate}
-                    className="px-3 py-2 bg-neutral-700 hover:bg-neutral-800 text-white rounded text-sm transition-colors">
-                    Clear
-                  </button>
                 </div>
               </div>
 
-              {/* Filter by Delivery Boy */}
-              <div className="flex items-center gap-2">
-                <label className="text-sm text-neutral-700 whitespace-nowrap">
-                  Filter by Delivery Boy:
-                </label>
-                <select
-                  value={selectedDeliveryBoy}
-                  onChange={(e) => {
-                    setSelectedDeliveryBoy(e.target.value);
-                    setCurrentPage(1);
-                  }}
-                  className="px-3 py-2 border border-neutral-300 rounded text-sm bg-white focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary min-w-[150px]">
-                  <option value="all">All Delivery Boys</option>
-                  {deliveryBoys.map((boy) => (
-                    <option key={boy._id} value={boy._id}>
-                      {boy.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              {/* Filter Row 2 */}
+              <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+                <div className="flex flex-wrap items-center gap-4 w-full sm:w-auto">
+                  {/* Filter by Method */}
+                  <div className="flex items-center gap-2">
+                    <label className="text-sm font-medium text-neutral-700 whitespace-nowrap">
+                      Method:
+                    </label>
+                    <select
+                      value={selectedMethod}
+                      onChange={(e) => {
+                        setSelectedMethod(e.target.value);
+                        setCurrentPage(1);
+                      }}
+                      className="px-3 py-2 border border-neutral-300 rounded text-sm bg-white focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary min-w-[120px]">
+                      {methods.map((method) => (
+                        <option
+                          key={method}
+                          value={method === "All" ? "all" : method}>
+                          {method}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
 
-              {/* Filter by Method */}
-              <div className="flex items-center gap-2">
-                <label className="text-sm text-neutral-700 whitespace-nowrap">
-                  Filter by Method:
-                </label>
-                <select
-                  value={selectedMethod}
-                  onChange={(e) => {
-                    setSelectedMethod(e.target.value);
-                    setCurrentPage(1);
-                  }}
-                  className="px-3 py-2 border border-neutral-300 rounded text-sm bg-white focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary min-w-[100px]">
-                  {methods.map((method) => (
-                    <option
-                      key={method}
-                      value={method === "All" ? "all" : method}>
-                      {method}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
+                  {/* Per Page */}
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-neutral-700">
+                      Show:
+                    </span>
+                    <select
+                      value={entriesPerPage}
+                      onChange={(e) => {
+                        setEntriesPerPage(Number(e.target.value));
+                        setCurrentPage(1);
+                      }}
+                      className="px-2 py-1.5 border border-neutral-300 rounded text-sm bg-white focus:outline-none focus:ring-1 focus:ring-primary">
+                      <option value={10}>10</option>
+                      <option value={25}>25</option>
+                      <option value={50}>50</option>
+                      <option value={100}>100</option>
+                    </select>
+                  </div>
+                </div>
 
-            {/* Right Side Controls */}
-            <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
-              {/* Per Page */}
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-neutral-700">Per Page:</span>
-                <select
-                  value={entriesPerPage}
-                  onChange={(e) => {
-                    setEntriesPerPage(Number(e.target.value));
-                    setCurrentPage(1);
-                  }}
-                  className="px-2 py-1 border border-neutral-300 rounded text-sm bg-white focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary">
-                  <option value={10}>10</option>
-                  <option value={25}>25</option>
-                  <option value={50}>50</option>
-                  <option value={100}>100</option>
-                </select>
-              </div>
+                <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+                  {/* Search */}
+                  <div className="relative flex-1 sm:min-w-[250px]">
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400">
+                      <circle cx="11" cy="11" r="8"></circle>
+                      <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                    <input
+                      type="text"
+                      value={searchTerm}
+                      onChange={(e) => {
+                        setSearchTerm(e.target.value);
+                        setCurrentPage(1);
+                      }}
+                      placeholder="Search collection info..."
+                      className="w-full pl-10 pr-3 py-2 border border-neutral-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-primary bg-white"
+                    />
+                  </div>
 
-              {/* Export Button */}
-              <button
-                onClick={handleExport}
-                className="bg-neutral-900 hover:bg-neutral-800 text-white px-4 py-2 rounded text-sm font-medium flex items-center gap-2 transition-colors">
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                  <polyline points="7 10 12 15 17 10"></polyline>
-                  <line x1="12" y1="15" x2="12" y2="3"></line>
-                </svg>
-                Export
-                <svg
-                  width="10"
-                  height="10"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round">
-                  <polyline points="6 9 12 15 18 9"></polyline>
-                </svg>
-              </button>
-
-              {/* Search */}
-              <div className="flex items-center gap-2">
-                <label className="text-sm text-neutral-700">Search:</label>
-                <input
-                  type="text"
-                  value={searchTerm}
-                  onChange={(e) => {
-                    setSearchTerm(e.target.value);
-                    setCurrentPage(1);
-                  }}
-                  placeholder="Search:"
-                  className="px-3 py-2 border border-neutral-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary min-w-[150px]"
-                />
+                  {/* Export Button */}
+                  <button
+                    onClick={handleExport}
+                    className="bg-neutral-900 hover:bg-neutral-800 text-white px-4 py-2 rounded text-sm font-medium flex items-center gap-2 transition-all active:scale-95 shadow-sm">
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                      <polyline points="7 10 12 15 17 10"></polyline>
+                      <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                    Export CSV
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Table */}
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[1000px]">
-            <thead className="bg-neutral-50 border-b border-neutral-200">
-              <tr>
-                <th
-                  className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider cursor-pointer hover:bg-neutral-100"
-                  onClick={() => handleSort("id")}>
-                  <div className="flex items-center gap-2">
-                    Id
-                    <svg
-                      width="12"
-                      height="12"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      className="text-neutral-400">
-                      <path
-                        d="M7 10L12 5L17 10M7 14L12 19L17 14"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </div>
-                </th>
-                <th
-                  className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider cursor-pointer hover:bg-neutral-100"
-                  onClick={() => handleSort("name")}>
-                  <div className="flex items-center gap-2">
-                    Name
-                    <svg
-                      width="12"
-                      height="12"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      className="text-neutral-400">
-                      <path
-                        d="M7 10L12 5L17 10M7 14L12 19L17 14"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </div>
-                </th>
-                <th
-                  className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider cursor-pointer hover:bg-neutral-100"
-                  onClick={() => handleSort("orderId")}>
-                  <div className="flex items-center gap-2">
-                    O. Id
-                    <svg
-                      width="12"
-                      height="12"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      className="text-neutral-400">
-                      <path
-                        d="M7 10L12 5L17 10M7 14L12 19L17 14"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </div>
-                </th>
-                <th
-                  className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider cursor-pointer hover:bg-neutral-100"
-                  onClick={() => handleSort("total")}>
-                  <div className="flex items-center gap-2">
-                    Total
-                    <svg
-                      width="12"
-                      height="12"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      className="text-neutral-400">
-                      <path
-                        d="M7 10L12 5L17 10M7 14L12 19L17 14"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </div>
-                </th>
-                <th
-                  className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider cursor-pointer hover:bg-neutral-100"
-                  onClick={() => handleSort("amount")}>
-                  <div className="flex items-center gap-2">
-                    Amount
-                    <svg
-                      width="12"
-                      height="12"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      className="text-neutral-400">
-                      <path
-                        d="M7 10L12 5L17 10M7 14L12 19L17 14"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </div>
-                </th>
-                <th
-                  className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider cursor-pointer hover:bg-neutral-100"
-                  onClick={() => handleSort("remark")}>
-                  <div className="flex items-center gap-2">
-                    Remark
-                    <svg
-                      width="12"
-                      height="12"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      className="text-neutral-400">
-                      <path
-                        d="M7 10L12 5L17 10M7 14L12 19L17 14"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </div>
-                </th>
-                <th
-                  className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider cursor-pointer hover:bg-neutral-100"
-                  onClick={() => handleSort("dateTime")}>
-                  <div className="flex items-center gap-2">
-                    Date Time
-                    <svg
-                      width="12"
-                      height="12"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      className="text-neutral-400">
-                      <path
-                        d="M7 10L12 5L17 10M7 14L12 19L17 14"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </div>
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-neutral-200">
-              {displayedCollections.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={7}
-                    className="px-4 sm:px-6 py-8 text-center text-sm text-neutral-500">
-                    No data available in table
-                  </td>
+          {/* Table Container */}
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[1000px] border-collapse">
+              <thead>
+                <tr className="bg-neutral-100 border-b border-neutral-200">
+                  <th
+                    className="px-6 py-4 text-left text-xs font-bold text-neutral-600 uppercase tracking-wider cursor-pointer hover:bg-neutral-200 transition-colors"
+                    onClick={() => handleSort("id")}>
+                    <div className="flex items-center gap-2">Id</div>
+                  </th>
+                  <th
+                    className="px-6 py-4 text-left text-xs font-bold text-neutral-600 uppercase tracking-wider cursor-pointer hover:bg-neutral-200 transition-colors"
+                    onClick={() => handleSort("name")}>
+                    <div className="flex items-center gap-2">Delivery Boy</div>
+                  </th>
+                  <th
+                    className="px-6 py-4 text-left text-xs font-bold text-neutral-600 uppercase tracking-wider cursor-pointer hover:bg-neutral-200 transition-colors"
+                    onClick={() => handleSort("orderId")}>
+                    <div className="flex items-center gap-2">Order ID</div>
+                  </th>
+                  <th
+                    className="px-6 py-4 text-left text-xs font-bold text-neutral-600 uppercase tracking-wider cursor-pointer hover:bg-neutral-200 transition-colors"
+                    onClick={() => handleSort("total")}>
+                    <div className="flex items-center gap-2">Order Total</div>
+                  </th>
+                  <th
+                    className="px-6 py-4 text-left text-xs font-bold text-neutral-600 uppercase tracking-wider cursor-pointer hover:bg-neutral-200 transition-colors"
+                    onClick={() => handleSort("amount")}>
+                    <div className="flex items-center gap-2">Collected</div>
+                  </th>
+                  <th
+                    className="px-6 py-4 text-left text-xs font-bold text-neutral-600 uppercase tracking-wider cursor-pointer hover:bg-neutral-200 transition-colors"
+                    onClick={() => handleSort("remark")}>
+                    <div className="flex items-center gap-2">Remark</div>
+                  </th>
+                  <th
+                    className="px-6 py-4 text-left text-xs font-bold text-neutral-600 uppercase tracking-wider cursor-pointer hover:bg-neutral-200 transition-colors"
+                    onClick={() => handleSort("dateTime")}>
+                    <div className="flex items-center gap-2">Date & Time</div>
+                  </th>
                 </tr>
-              ) : (
-                displayedCollections.map((collection) => (
-                  <tr key={collection._id} className="hover:bg-neutral-50">
-                    <td className="px-4 sm:px-6 py-3 text-sm text-neutral-900">
-                      {collection._id.slice(-6)}
-                    </td>
-                    <td className="px-4 sm:px-6 py-3 text-sm text-neutral-900 font-medium">
-                      {collection.deliveryBoyName}
-                    </td>
-                    <td className="px-4 sm:px-6 py-3 text-sm text-neutral-600">
-                      {collection.orderId}
-                    </td>
-                    <td className="px-4 sm:px-6 py-3 text-sm text-neutral-900">
-                      ₹{collection.total.toFixed(2)}
-                    </td>
-                    <td className="px-4 sm:px-6 py-3 text-sm text-neutral-900 font-medium">
-                      ₹{collection.amount.toFixed(2)}
-                    </td>
-                    <td className="px-4 sm:px-6 py-3 text-sm text-neutral-600">
-                      {collection.remark || '-'}
-                    </td>
-                    <td className="px-4 sm:px-6 py-3 text-sm text-neutral-600">
-                      {new Date(collection.collectedAt).toLocaleString()}
+              </thead>
+              <tbody className="bg-white divide-y divide-neutral-200">
+                {loading ? (
+                  <tr>
+                    <td colSpan={7} className="px-6 py-12 text-center">
+                      <div className="flex flex-col items-center gap-3">
+                        <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+                        <span className="text-sm font-medium text-neutral-500">
+                          Loading collections...
+                        </span>
+                      </div>
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Pagination Footer */}
-        <div className="px-4 sm:px-6 py-3 border-t border-neutral-200 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-0">
-          <div className="text-xs sm:text-sm text-neutral-700">
-            Showing {startIndex + 1} to{" "}
-            {Math.min(endIndex, cashCollections.length)} of{" "}
-            {cashCollections.length} entries
+                ) : displayedCollections.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan={7}
+                      className="px-6 py-12 text-center text-sm text-neutral-500 italic">
+                      No cash collections found for the current selection
+                    </td>
+                  </tr>
+                ) : (
+                  displayedCollections.map((collection) => (
+                    <tr
+                      key={collection._id}
+                      className="hover:bg-neutral-50 transition-colors">
+                      <td className="px-6 py-4 text-sm font-mono text-neutral-600">
+                        #{collection._id.slice(-6).toUpperCase()}
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="text-sm font-semibold text-neutral-900 border-b border-transparent hover:border-primary inline-block transition-colors cursor-default">
+                          {collection.deliveryBoyName}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-neutral-700">
+                        {collection.orderId}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-neutral-500">
+                        ₹{collection.total.toFixed(2)}
+                      </td>
+                      <td className="px-6 py-4 text-sm font-bold text-primary">
+                        ₹{collection.amount.toFixed(2)}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-neutral-600 italic">
+                        {collection.remark || "No remark provided"}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-neutral-600">
+                        <div className="flex flex-col">
+                          <span className="font-medium">
+                            {new Date(collection.collectedAt).toLocaleDateString()}
+                          </span>
+                          <span className="text-xs text-neutral-400">
+                            {new Date(collection.collectedAt).toLocaleTimeString()}
+                          </span>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
           </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-              disabled={currentPage === 1 || totalPages === 0}
-              className={`p-2 border border-neutral-300 rounded ${currentPage === 1 || totalPages === 0
-                ? "text-neutral-400 cursor-not-allowed bg-neutral-50"
-                : "text-neutral-700 hover:bg-neutral-50"
-                }`}
-              aria-label="Previous page">
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg">
-                <path
-                  d="M15 18L9 12L15 6"
+
+          {/* Pagination Footer */}
+          <div className="px-4 sm:px-6 py-4 bg-white border-t border-neutral-200 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="text-sm text-neutral-600 font-medium">
+              Showing{" "}
+              <span className="text-neutral-900 font-bold">{startIndex + 1}</span>{" "}
+              to{" "}
+              <span className="text-neutral-900 font-bold">
+                {Math.min(endIndex, cashCollections.length)}
+              </span>{" "}
+              of{" "}
+              <span className="text-neutral-900 font-bold">
+                {cashCollections.length}
+              </span>{" "}
+              entries
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                disabled={currentPage === 1 || totalPages === 0}
+                className={`flex items-center gap-2 px-4 py-2 border-2 rounded transition-all active:scale-95 text-sm font-medium ${
+                  currentPage === 1 || totalPages === 0
+                    ? "border-neutral-200 text-neutral-400 cursor-not-allowed bg-neutral-50"
+                    : "border-primary text-primary hover:bg-primary hover:text-white"
+                }`}>
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
                   stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </button>
-            <button
-              onClick={() =>
-                setCurrentPage((prev) => Math.min(totalPages, prev + 1))
-              }
-              disabled={currentPage === totalPages || totalPages === 0}
-              className={`p-2 border border-neutral-300 rounded ${currentPage === totalPages || totalPages === 0
-                ? "text-neutral-400 cursor-not-allowed bg-neutral-50"
-                : "text-neutral-700 hover:bg-neutral-50"
-                }`}
-              aria-label="Next page">
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg">
-                <path
-                  d="M9 18L15 12L9 6"
+                  strokeWidth="2.5">
+                  <path d="M15 18L9 12L15 6" />
+                </svg>
+                Previous
+              </button>
+              <button
+                onClick={() =>
+                  setCurrentPage((prev) => Math.min(totalPages, prev + 1))
+                }
+                disabled={currentPage === totalPages || totalPages === 0}
+                className={`flex items-center gap-2 px-4 py-2 border-2 rounded transition-all active:scale-95 text-sm font-medium ${
+                  currentPage === totalPages || totalPages === 0
+                    ? "border-neutral-200 text-neutral-400 cursor-not-allowed bg-neutral-50"
+                    : "border-primary text-primary hover:bg-primary hover:text-white"
+                }`}>
+                Next
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
                   stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </button>
+                  strokeWidth="2.5">
+                  <path d="M9 18L15 12L9 6" />
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Footer */}
-      <div className="bg-neutral-800 text-white text-center text-sm py-4">
+      <div className="text-center py-6 text-xs sm:text-sm text-neutral-600">
         Copyright © 2025. Developed By{" "}
-        <a href="#" className="text-primary hover:text-primary-dark">
+        <a href="#" className="font-semibold text-primary hover:text-neutral-900 transition-colors">
           Healthy Delight
         </a>
       </div>

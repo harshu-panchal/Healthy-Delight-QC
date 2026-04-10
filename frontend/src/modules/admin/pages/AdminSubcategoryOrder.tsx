@@ -147,8 +147,8 @@ export default function AdminSubcategoryOrder() {
                     {/* Main Panel */}
                     <div className="bg-white rounded-lg shadow-sm border border-neutral-200">
                         {/* Header */}
-                        <div className="bg-primary border-primary text-neutral-900 px-6 py-4 rounded-t-lg">
-                            <h2 className="text-lg font-semibold">Update Subcategory Order</h2>
+                        <div className="bg-neutral-50 border-b border-neutral-200 px-6 py-4 rounded-t-lg">
+                            <h2 className="text-lg font-semibold text-neutral-800">Update Subcategory Order</h2>
                         </div>
 
                         {/* Form Content */}
@@ -229,7 +229,7 @@ export default function AdminSubcategoryOrder() {
                             <div className="bg-cream px-4 py-3 rounded-lg flex gap-3">
                                 <button
                                     onClick={handleUpdateOrder}
-                                    className="flex-1 bg-primary border-primary text-neutral-900 hover:bg-neutral-900 text-white px-4 py-2 rounded font-medium transition-colors"
+                                    className="flex-1 bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white px-4 py-2 rounded font-medium transition-all active:scale-95 shadow-sm"
                                 >
                                     Update Subcategory Order
                                 </button>

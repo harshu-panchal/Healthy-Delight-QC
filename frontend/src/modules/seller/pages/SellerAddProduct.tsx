@@ -41,7 +41,6 @@ export default function SellerAddProduct() {
     popular: "No",
     dealOfDay: "No",
     brand: "",
-    tags: "",
     smallDescription: "",
     seoTitle: "",
     seoKeywords: "",
@@ -175,7 +174,6 @@ export default function SellerAddProduct() {
               popular: product.popular ? "Yes" : "No",
               dealOfDay: product.dealOfDay ? "Yes" : "No",
               brand: (product.brand as any)?._id || product.brandId || "",
-              tags: product.tags.join(", "),
               smallDescription: product.smallDescription || "",
               seoTitle: product.seoTitle || "",
               seoKeywords: product.seoKeywords || "",
@@ -298,7 +296,13 @@ export default function SellerAddProduct() {
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
     >
   ) => {
-    const { name, value } = e.target;
+    let { name, value } = e.target;
+
+    // Validation: Product Name should not allow numbers or special characters
+    if (name === "productName") {
+      value = value.replace(/[^a-zA-Z\s]/g, "");
+    }
+
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
@@ -359,8 +363,8 @@ export default function SellerAddProduct() {
   };
 
   const addVariation = () => {
-    if (!variationForm.title || !variationForm.price) {
-      setUploadError("Please fill in variation title and price");
+    if (!variationForm.title || !variationForm.price || !variationForm.stock) {
+      setUploadError("Please fill in variation title, price and stock");
       return;
     }
 
@@ -403,6 +407,11 @@ export default function SellerAddProduct() {
     // Basic validation
     if (!formData.productName.trim()) {
       setUploadError("Please enter a product name.");
+      return;
+    }
+
+    if (!formData.variationType) {
+      setUploadError("Please select a product variation type.");
       return;
     }
 
@@ -456,12 +465,6 @@ export default function SellerAddProduct() {
       }
 
       // Prepare product data for API
-      const tagsArray = formData.tags
-        ? formData.tags
-            .split(",")
-            .map((tag) => tag.trim())
-            .filter(Boolean)
-        : [];
 
       const productData = {
         productName: formData.productName,
@@ -478,7 +481,6 @@ export default function SellerAddProduct() {
         seoImageAlt: formData.seoImageAlt || undefined,
         seoDescription: formData.seoDescription || undefined,
         smallDescription: formData.smallDescription || undefined,
-        tags: tagsArray,
         manufacturer: formData.manufacturer || undefined,
         madeIn: formData.madeIn || undefined,
         taxId: formData.tax || undefined,
@@ -524,7 +526,6 @@ export default function SellerAddProduct() {
               popular: "No",
               dealOfDay: "No",
               brand: "",
-              tags: "",
               smallDescription: "",
               seoTitle: "",
               seoKeywords: "",
@@ -559,8 +560,8 @@ export default function SellerAddProduct() {
     } catch (error: any) {
       setUploadError(
         error.response?.data?.message ||
-          error.message ||
-          "Failed to upload images. Please try again."
+        error.message ||
+        "Failed to upload images. Please try again."
       );
     } finally {
       setUploading(false);
@@ -574,14 +575,14 @@ export default function SellerAddProduct() {
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Product Section */}
           <div className="bg-white rounded-lg shadow-sm border border-neutral-200 overflow-hidden">
-            <div className="bg-primary border-primary text-neutral-900 px-4 sm:px-6 py-3">
-              <h2 className="text-lg font-semibold">Product</h2>
+            <div className="bg-neutral-50 border-b border-neutral-200 px-4 sm:px-6 py-3">
+              <h2 className="text-lg font-semibold text-neutral-800">Product</h2>
             </div>
             <div className="p-4 sm:p-6 space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-neutral-700 mb-2">
-                    Product Name
+                    Product Name <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -612,7 +613,7 @@ export default function SellerAddProduct() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-neutral-700 mb-2">
-                    Select Category
+                    Select Category <span className="text-red-500">*</span>
                     {!formData.headerCategory && (
                       <span className="text-xs text-neutral-500 ml-1">
                         (Select header category first)
@@ -624,11 +625,10 @@ export default function SellerAddProduct() {
                     value={formData.category}
                     onChange={handleChange}
                     disabled={!formData.headerCategory}
-                    className={`w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary ${
-                      !formData.headerCategory
-                        ? "bg-neutral-100 cursor-not-allowed text-neutral-500"
-                        : "bg-white"
-                    }`}>
+                    className={`w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary ${!formData.headerCategory
+                      ? "bg-neutral-100 cursor-not-allowed text-neutral-500"
+                      : "bg-white"
+                      }`}>
                     <option value="">
                       {formData.headerCategory
                         ? "Select Category"
@@ -669,11 +669,10 @@ export default function SellerAddProduct() {
                     value={formData.subcategory}
                     onChange={handleChange}
                     disabled={!formData.category}
-                    className={`w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary ${
-                      !formData.category
-                        ? "bg-neutral-100 cursor-not-allowed text-neutral-500"
-                        : "bg-white"
-                    }`}>
+                    className={`w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary ${!formData.category
+                      ? "bg-neutral-100 cursor-not-allowed text-neutral-500"
+                      : "bg-white"
+                      }`}>
                     <option value="">
                       {formData.category
                         ? "Select Subcategory"
@@ -700,11 +699,10 @@ export default function SellerAddProduct() {
                     value={formData.subSubCategory}
                     onChange={handleChange}
                     disabled={!formData.subcategory}
-                    className={`w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary ${
-                      !formData.subcategory
-                        ? "bg-neutral-100 cursor-not-allowed text-neutral-500"
-                        : "bg-white"
-                    }`}>
+                    className={`w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary ${!formData.subcategory
+                      ? "bg-neutral-100 cursor-not-allowed text-neutral-500"
+                      : "bg-white"
+                      }`}>
                     <option value="">Select Sub-SubCategory</option>
                     {subSubCategories.map((subSub) => (
                       <option key={subSub._id} value={subSub._id}>
@@ -715,7 +713,7 @@ export default function SellerAddProduct() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-neutral-700 mb-2">
-                    Product Publish Or Unpublish?
+                    Publish Product?
                   </label>
                   <select
                     name="publish"
@@ -769,26 +767,11 @@ export default function SellerAddProduct() {
                     ))}
                   </select>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-neutral-700 mb-2">
-                    Select Tags
-                  </label>
-                  <input
-                    type="text"
-                    name="tags"
-                    value={formData.tags}
-                    onChange={handleChange}
-                    placeholder="Select or create tags"
-                    className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
-                  />
-                  <p className="text-xs text-red-500 mt-1">
-                    This will help for search
-                  </p>
-                </div>
+
               </div>
               <div>
                 <label className="block text-sm font-medium text-neutral-700 mb-2">
-                  Product Small Description
+                  Product Description (Brief)
                 </label>
                 <textarea
                   name="smallDescription"
@@ -804,8 +787,8 @@ export default function SellerAddProduct() {
 
           {/* SEO Content Section */}
           <div className="bg-white rounded-lg shadow-sm border border-neutral-200 overflow-hidden">
-            <div className="bg-primary border-primary text-neutral-900 px-4 sm:px-6 py-3">
-              <h2 className="text-lg font-semibold">SEO Content</h2>
+            <div className="bg-neutral-50 border-b border-neutral-200 px-4 sm:px-6 py-3">
+              <h2 className="text-lg font-semibold text-neutral-800">SEO Content</h2>
             </div>
             <div className="p-4 sm:p-6 space-y-4">
               <div>
@@ -865,13 +848,13 @@ export default function SellerAddProduct() {
 
           {/* Add Variation Section */}
           <div className="bg-white rounded-lg shadow-sm border border-neutral-200 overflow-hidden">
-            <div className="bg-primary border-primary text-neutral-900 px-4 sm:px-6 py-3">
-              <h2 className="text-lg font-semibold">Add Variation</h2>
+            <div className="bg-neutral-50 border-b border-neutral-200 px-4 sm:px-6 py-3">
+              <h2 className="text-lg font-semibold text-neutral-800">Add Variation</h2>
             </div>
             <div className="p-4 sm:p-6 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-neutral-700 mb-2">
-                  Select Product Variation Type
+                  Select Product Variation Type <span className="text-red-500">*</span>
                 </label>
                 <select
                   name="variationType"
@@ -890,7 +873,7 @@ export default function SellerAddProduct() {
               <div className="grid grid-cols-1 md:grid-cols-5 gap-4 p-4 bg-neutral-50 rounded-lg">
                 <div>
                   <label className="block text-sm font-medium text-neutral-700 mb-2">
-                    Title (e.g., 100g)
+                    Title (e.g., 100g) <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -907,7 +890,7 @@ export default function SellerAddProduct() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-neutral-700 mb-2">
-                    Price *
+                    Price <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="number"
@@ -941,7 +924,7 @@ export default function SellerAddProduct() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-neutral-700 mb-2">
-                    Stock (0 = Unlimited)
+                    Stock <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="number"
@@ -960,7 +943,7 @@ export default function SellerAddProduct() {
                   <button
                     type="button"
                     onClick={addVariation}
-                    className="w-full px-4 py-2 bg-primary border-primary text-neutral-900 hover:bg-primary-dark rounded-lg font-medium">
+                    className="w-full px-4 py-2 bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white transition-all active:scale-95 shadow-sm rounded-lg font-medium">
                     Add Variation
                   </button>
                 </div>
@@ -1009,8 +992,8 @@ export default function SellerAddProduct() {
 
           {/* Add Other Details Section */}
           <div className="bg-white rounded-lg shadow-sm border border-neutral-200 overflow-hidden">
-            <div className="bg-primary border-primary text-neutral-900 px-4 sm:px-6 py-3">
-              <h2 className="text-lg font-semibold">Add Other Details</h2>
+            <div className="bg-neutral-50 border-b border-neutral-200 px-4 sm:px-6 py-3">
+              <h2 className="text-lg font-semibold text-neutral-800">Add Other Details</h2>
             </div>
             <div className="p-4 sm:p-6 space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1118,8 +1101,8 @@ export default function SellerAddProduct() {
 
           {/* Add Images Section */}
           <div className="bg-white rounded-lg shadow-sm border border-neutral-200 overflow-hidden">
-            <div className="bg-primary border-primary text-neutral-900 px-4 sm:px-6 py-3">
-              <h2 className="text-lg font-semibold">Add Images</h2>
+            <div className="bg-neutral-50 border-b border-neutral-200 px-4 sm:px-6 py-3">
+              <h2 className="text-lg font-semibold text-neutral-800">Add Images</h2>
             </div>
             <div className="p-4 sm:p-6 space-y-6">
               {uploadError && (
@@ -1270,8 +1253,8 @@ export default function SellerAddProduct() {
 
           {/* Shop by Store Section */}
           <div className="bg-white rounded-lg shadow-sm border border-neutral-200 overflow-hidden">
-            <div className="bg-primary border-primary text-neutral-900 px-4 sm:px-6 py-3">
-              <h2 className="text-lg font-semibold">Shop by Store</h2>
+            <div className="bg-neutral-50 border-b border-neutral-200 px-4 sm:px-6 py-3">
+              <h2 className="text-lg font-semibold text-neutral-800">Shop by Store</h2>
             </div>
             <div className="p-4 sm:p-6 space-y-4">
               <div className="bg-cream border border-primary/40 rounded-lg p-4">
@@ -1331,11 +1314,10 @@ export default function SellerAddProduct() {
             <button
               type="submit"
               disabled={uploading}
-              className={`px-8 py-3 rounded-lg font-medium text-lg transition-colors shadow-sm ${
-                uploading
-                  ? "bg-neutral-400 cursor-not-allowed text-white"
-                  : "bg-primary border-primary text-neutral-900 hover:bg-primary-dark"
-              }`}>
+              className={`px-8 py-3 rounded-lg font-medium text-lg transition-all active:scale-95 shadow-sm ${uploading
+                ? "bg-neutral-100 text-neutral-400 border border-neutral-200 cursor-not-allowed"
+                : "bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white"
+                }`}>
               {uploading ? "Uploading Images..." : "Add Product"}
             </button>
           </div>

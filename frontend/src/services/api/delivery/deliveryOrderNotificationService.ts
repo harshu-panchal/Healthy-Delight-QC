@@ -1,4 +1,5 @@
 import { Socket } from 'socket.io-client';
+import api from '../config';
 
 export interface OrderNotificationData {
     orderId: string;
@@ -16,6 +17,7 @@ export interface OrderNotificationData {
     subtotal: number;
     shipping: number;
     createdAt: string;
+    type?: string;
 }
 
 export interface AcceptOrderResponse {
@@ -78,5 +80,29 @@ export const rejectOrder = (
             resolve(response);
         });
     });
+};
+
+/**
+ * Accept a targeted assignment via REST API
+ */
+export const acceptAssignmentRest = async (orderId: string): Promise<AcceptOrderResponse> => {
+    try {
+        const response = await api.post(`/delivery/orders/${orderId}/accept-assignment`);
+        return response.data;
+    } catch (error: any) {
+        throw new Error(error.response?.data?.message || 'Failed to accept assignment');
+    }
+};
+
+/**
+ * Reject a targeted assignment via REST API
+ */
+export const rejectAssignmentRest = async (orderId: string): Promise<RejectOrderResponse> => {
+    try {
+        const response = await api.post(`/delivery/orders/${orderId}/reject-assignment`);
+        return response.data;
+    } catch (error: any) {
+        throw new Error(error.response?.data?.message || 'Failed to reject assignment');
+    }
 };
 

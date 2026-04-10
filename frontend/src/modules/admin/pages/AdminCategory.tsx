@@ -434,8 +434,8 @@ export default function AdminCategory() {
       <div className="px-3 sm:px-4 md:px-6">
         <div className="bg-white rounded-lg shadow-sm border border-neutral-200 overflow-hidden">
           {/* Banner */}
-          <div className="bg-primary text-neutral-900 px-4 sm:px-6 py-2 sm:py-3">
-            <h2 className="text-base sm:text-lg font-semibold">
+          <div className="bg-neutral-50 border-b border-neutral-200 px-4 sm:px-6 py-2 sm:py-3">
+            <h2 className="text-base sm:text-lg font-semibold text-neutral-800">
               Category Management
             </h2>
           </div>
@@ -446,7 +446,7 @@ export default function AdminCategory() {
               {/* Add Category Button */}
               <button
                 onClick={handleCreateCategory}
-                className="bg-primary border-primary text-neutral-900 hover:bg-neutral-900 hover:text-white px-4 py-2 rounded text-sm font-medium flex items-center gap-2 transition-colors w-full sm:w-auto">
+                className="bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white px-4 py-2 rounded text-sm font-medium flex items-center gap-2 transition-all active:scale-95 w-full sm:w-auto">
                 <svg
                   width="16"
                   height="16"
@@ -464,19 +464,19 @@ export default function AdminCategory() {
               <div className="flex items-center gap-2 bg-white border border-neutral-300 rounded p-1">
                 <button
                   onClick={() => setViewMode("tree")}
-                  className={`px-3 py-1.5 text-sm font-medium rounded transition-colors ${
+                  className={`px-3 py-1.5 text-sm font-medium rounded transition-all active:scale-95 ${
                     viewMode === "tree"
-                      ? "bg-primary border-primary text-neutral-900"
-                      : "text-neutral-700 hover:bg-neutral-100"
+                      ? "bg-primary border-primary text-white"
+                      : "text-neutral-700 hover:bg-neutral-100 border border-neutral-300"
                   }`}>
                   Tree View
                 </button>
                 <button
                   onClick={() => setViewMode("list")}
-                  className={`px-3 py-1.5 text-sm font-medium rounded transition-colors ${
+                  className={`px-3 py-1.5 text-sm font-medium rounded transition-all active:scale-95 ${
                     viewMode === "list"
-                      ? "bg-primary border-primary text-neutral-900"
-                      : "text-neutral-700 hover:bg-neutral-100"
+                      ? "bg-primary border-primary text-white"
+                      : "text-neutral-700 hover:bg-neutral-100 border border-neutral-300"
                   }`}>
                   List View
                 </button>

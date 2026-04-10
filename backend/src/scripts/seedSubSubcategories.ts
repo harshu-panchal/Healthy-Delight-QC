@@ -25,7 +25,7 @@ const PRODUCT_IMAGES_PATH = path.join(
   "product",
   "product"
 );
-const DEFAULT_IMAGE_PATH = path.join(FRONTEND_ASSETS_PATH, "kosil1.png");
+const DEFAULT_IMAGE_PATH = path.join(FRONTEND_ASSETS_PATH, "logo.png");
 
 log("Starting Sub-Subcategories Seed Script");
 log(`MONGO_URI: ${MONGO_URI}`);
@@ -371,7 +371,7 @@ async function getDefaultImage(): Promise<string> {
   }
 
   const uploadedUrl = await uploadToCloudinary(DEFAULT_IMAGE_PATH, "default");
-  return uploadedUrl || `/assets/kosil1.png`;
+  return uploadedUrl || `/assets/logo.png`;
 }
 
 // Helper to generate slug from name

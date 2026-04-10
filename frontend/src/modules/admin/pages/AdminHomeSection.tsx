@@ -606,9 +606,9 @@ export default function AdminHomeSection() {
                             <button
                                 onClick={handleSubmit}
                                 disabled={loading}
-                                className={`w-full px-4 py-2 rounded font-medium transition-colors ${loading
-                                    ? "bg-gray-400 cursor-not-allowed text-white"
-                                    : "bg-primary border-primary text-neutral-900 hover:bg-neutral-900 text-white"
+                                className={`w-full px-4 py-2 rounded font-medium transition-all active:scale-95 ${loading
+                                    ? "bg-neutral-300 cursor-not-allowed text-white border-neutral-300"
+                                    : "bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white"
                                     }`}
                             >
                                 {loading
@@ -630,8 +630,8 @@ export default function AdminHomeSection() {
 
                     {/* Right Section: View Sections Table */}
                     <div className="lg:col-span-2 bg-white rounded-lg shadow-sm border border-neutral-200 flex flex-col">
-                        <div className="bg-primary border-primary text-neutral-900 px-6 py-4 rounded-t-lg">
-                            <h2 className="text-lg font-semibold">View Sections</h2>
+                        <div className="bg-neutral-50 border-b border-neutral-200 px-6 py-4 rounded-t-lg">
+                            <h2 className="text-lg font-semibold text-neutral-800">View Sections</h2>
                         </div>
 
                         {/* Controls */}
@@ -806,7 +806,7 @@ export default function AdminHomeSection() {
                                         />
                                     </svg>
                                 </button>
-                                <button className="px-3 py-1.5 border border-neutral-800 bg-primary border-primary text-neutral-900 rounded font-medium text-sm">
+                                <button className="px-3 py-1.5 border-2 border-primary bg-primary text-white rounded font-medium text-sm">
                                     {currentPage}
                                 </button>
                                 <button

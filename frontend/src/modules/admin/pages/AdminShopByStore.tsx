@@ -294,8 +294,8 @@ export default function AdminShopByStore() {
     } catch (error: any) {
       setUploadError(
         error.response?.data?.message ||
-          error.message ||
-          "Failed to save store. Please try again."
+        error.message ||
+        "Failed to save store. Please try again."
       );
     } finally {
       setUploading(false);
@@ -339,7 +339,7 @@ export default function AdminShopByStore() {
       } catch (error: any) {
         setUploadError(
           error.response?.data?.message ||
-            "Failed to delete store. Please try again."
+          "Failed to delete store. Please try again."
         );
       }
     }
@@ -486,7 +486,7 @@ export default function AdminShopByStore() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         {/* Left Panel - Add Store */}
         <div className="bg-white rounded-lg shadow-sm border border-neutral-200 overflow-hidden">
-          <div className="bg-primary border-primary text-neutral-900 px-4 sm:px-6 py-3">
+          <div className="bg-neutral-50 border-b border-neutral-200 px-4 sm:px-6 py-3 font-semibold text-neutral-800">
             <h2 className="text-base sm:text-lg font-semibold">
               {editingId ? "Edit Store" : "Add Store"}
             </h2>
@@ -626,21 +626,21 @@ export default function AdminShopByStore() {
                   filterStatus !== "Active" ||
                   filterMinPrice ||
                   filterMaxPrice) && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setFilterCategory("");
-                      setFilterSubcategory("");
-                      setFilterBrand("");
-                      setFilterSeller("");
-                      setFilterStatus("Active");
-                      setFilterMinPrice("");
-                      setFilterMaxPrice("");
-                    }}
-                    className="w-full px-3 py-1.5 text-xs bg-neutral-200 hover:bg-neutral-300 text-neutral-700 rounded transition-colors">
-                    Clear Filters
-                  </button>
-                )}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setFilterCategory("");
+                        setFilterSubcategory("");
+                        setFilterBrand("");
+                        setFilterSeller("");
+                        setFilterStatus("Active");
+                        setFilterMinPrice("");
+                        setFilterMaxPrice("");
+                      }}
+                      className="w-full px-3 py-1.5 text-xs bg-neutral-200 hover:bg-neutral-300 text-neutral-700 rounded transition-colors">
+                      Clear Filters
+                    </button>
+                  )}
               </div>
 
               <div className="border border-neutral-300 rounded-md max-h-60 overflow-y-auto p-2 bg-neutral-50">
@@ -760,16 +760,15 @@ export default function AdminShopByStore() {
               <button
                 onClick={handleAddStore}
                 disabled={uploading}
-                className={`flex-1 py-2.5 rounded text-sm font-medium transition-colors ${
-                  uploading
-                    ? "bg-neutral-400 cursor-not-allowed text-white"
-                    : "bg-primary border-primary text-neutral-900 hover:bg-neutral-900 text-white"
-                }`}>
+                className={`flex-1 py-2.5 rounded text-sm font-semibold transition-all shadow-sm ${uploading
+                    ? "bg-neutral-100 border-2 border-neutral-200 text-neutral-400 cursor-not-allowed"
+                    : "bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white active:scale-95"
+                  }`}>
                 {uploading
                   ? "Uploading..."
                   : editingId
-                  ? "Update Store"
-                  : "Create Store"}
+                    ? "Update Store"
+                    : "Create Store"}
               </button>
               {editingId && (
                 <button
@@ -784,7 +783,7 @@ export default function AdminShopByStore() {
 
         {/* Right Panel - View Stores */}
         <div className="bg-white rounded-lg shadow-sm border border-neutral-200 overflow-hidden">
-          <div className="bg-primary border-primary text-neutral-900 px-4 sm:px-6 py-3">
+          <div className="bg-neutral-50 border-b border-neutral-200 px-4 sm:px-6 py-3 font-semibold text-neutral-800">
             <h2 className="text-base sm:text-lg font-semibold">View Stores</h2>
           </div>
 
@@ -812,7 +811,7 @@ export default function AdminShopByStore() {
               {/* Export Button */}
               <button
                 onClick={handleExport}
-                className="bg-primary border-primary text-neutral-900 hover:bg-neutral-900 text-white px-4 py-2 rounded text-sm font-medium flex items-center gap-2 transition-colors">
+                className="bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white px-4 py-2 rounded text-sm font-semibold flex items-center gap-2 transition-all active:scale-95 shadow-sm">
                 <svg
                   width="16"
                   height="16"
@@ -956,7 +955,7 @@ export default function AdminShopByStore() {
                         <div className="flex items-center gap-2">
                           <button
                             onClick={() => handleEdit(store._id)}
-                            className="p-1.5 bg-cream hover:bg-primary/20 text-neutral-800 rounded transition-colors"
+                            className="p-1.5 bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white rounded transition-all active:scale-95 shadow-sm"
                             title="Edit">
                             <svg
                               width="16"
@@ -973,7 +972,7 @@ export default function AdminShopByStore() {
                           </button>
                           <button
                             onClick={() => handleDelete(store._id)}
-                            className="p-1.5 bg-red-100 hover:bg-red-200 text-red-700 rounded transition-colors"
+                            className="p-1.5 bg-white border-2 border-red-500 text-red-500 hover:bg-red-500 hover:text-white rounded transition-all active:scale-95 shadow-sm"
                             title="Delete">
                             <svg
                               width="16"
@@ -1008,11 +1007,7 @@ export default function AdminShopByStore() {
               <button
                 onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
                 disabled={currentPage === 1}
-                className={`p-2 border border-neutral-300 rounded ${
-                  currentPage === 1
-                    ? "text-neutral-400 cursor-not-allowed bg-neutral-50"
-                    : "text-neutral-700 hover:bg-neutral-50"
-                }`}
+                className="p-2 border-2 border-primary rounded bg-white text-primary hover:bg-primary hover:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:border-neutral-200 disabled:text-neutral-400 transition-all active:scale-95 shadow-sm"
                 aria-label="Previous page">
                 <svg
                   width="16"
@@ -1029,37 +1024,31 @@ export default function AdminShopByStore() {
                   />
                 </svg>
               </button>
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                (page) => (
-                  <button
-                    key={page}
-                    onClick={() => setCurrentPage(page)}
-                    className={`px-3 py-1 border border-neutral-300 rounded text-sm ${
-                      currentPage === page
-                        ? "bg-primary border-primary text-neutral-900 border-neutral-800"
-                        : "text-neutral-700 hover:bg-neutral-50"
-                    }`}>
-                    {page}
-                  </button>
-                )
-              )}
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                <button
+                  key={page}
+                  onClick={() => setCurrentPage(page)}
+                  className={`px-3 py-1 border-2 rounded text-sm font-semibold transition-all shadow-sm ${currentPage === page
+                      ? "border-primary bg-primary text-white"
+                      : "border-primary text-primary bg-white hover:bg-primary hover:text-white"
+                    }`}
+                >
+                  {page}
+                </button>
+              ))}
               <button
-                onClick={() =>
-                  setCurrentPage((prev) => Math.min(totalPages, prev + 1))
-                }
+                onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
                 disabled={currentPage === totalPages || totalPages === 0}
-                className={`p-2 border border-neutral-300 rounded ${
-                  currentPage === totalPages || totalPages === 0
-                    ? "text-neutral-400 cursor-not-allowed bg-neutral-50"
-                    : "text-neutral-700 hover:bg-neutral-50"
-                }`}
-                aria-label="Next page">
+                className="p-2 border-2 border-primary rounded bg-white text-primary hover:bg-primary hover:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:border-neutral-200 disabled:text-neutral-400 transition-all active:scale-95 shadow-sm"
+                aria-label="Next page"
+              >
                 <svg
                   width="16"
                   height="16"
                   viewBox="0 0 24 24"
                   fill="none"
-                  xmlns="http://www.w3.org/2000/svg">
+                  xmlns="http://www.w3.org/2000/svg"
+                >
                   <path
                     d="M9 18L15 12L9 6"
                     stroke="currentColor"
@@ -1074,9 +1063,8 @@ export default function AdminShopByStore() {
         </div>
       </div>
 
-      {/* Footer */}
       <div className="text-center text-sm text-neutral-500 py-4">
-        Copyright © 2025. Developed By{" "}
+        Copyright &copy; 2025. Developed By{" "}
         <a href="#" className="text-primary hover:text-primary-dark">
           Healthy Delight
         </a>

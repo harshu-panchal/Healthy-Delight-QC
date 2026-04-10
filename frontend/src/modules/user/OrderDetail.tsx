@@ -1,4 +1,4 @@
-import { useParams, Link, useSearchParams } from "react-router-dom";
+import { useParams, Link, useSearchParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Button from "../../components/ui/button";
@@ -337,9 +337,8 @@ const PromoCarousel = () => {
           <button
             key={index}
             onClick={() => setCurrentSlide(index)}
-            className={`w-2 h-2 rounded-full transition-all duration-300 ${
-              index === currentSlide ? "bg-green-600 w-4" : "bg-gray-300"
-            }`}
+            className={`w-2 h-2 rounded-full transition-all duration-300 ${index === currentSlide ? "bg-green-600 w-4" : "bg-gray-300"
+              }`}
           />
         ))}
       </div>
@@ -371,11 +370,10 @@ const TipSection = () => {
               setSelectedTip(tip);
               setCustomTip("");
             }}
-            className={`flex-1 py-2 px-3 rounded-lg border-2 text-sm font-medium transition-all ${
-              selectedTip === tip
+            className={`flex-1 py-2 px-3 rounded-lg border-2 text-sm font-medium transition-all ${selectedTip === tip
                 ? "border-green-600 bg-green-50 text-green-700"
                 : "border-gray-200 text-gray-700 hover:border-gray-300"
-            }`}
+              }`}
             whileTap={{ scale: 0.95 }}>
             ₹{tip}
           </motion.button>
@@ -384,11 +382,10 @@ const TipSection = () => {
           onClick={() => {
             setSelectedTip("other");
           }}
-          className={`flex-1 py-2 px-3 rounded-lg border-2 text-sm font-medium transition-all ${
-            selectedTip === "other"
+          className={`flex-1 py-2 px-3 rounded-lg border-2 text-sm font-medium transition-all ${selectedTip === "other"
               ? "border-green-600 bg-green-50 text-green-700"
               : "border-gray-200 text-gray-700 hover:border-gray-300"
-          }`}
+            }`}
           whileTap={{ scale: 0.95 }}>
           Other
         </motion.button>
@@ -448,6 +445,7 @@ const SectionItem = ({
 );
 
 export default function OrderDetail() {
+  const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const [searchParams] = useSearchParams();
   const confirmed = searchParams.get("confirmed") === "true";
@@ -635,9 +633,8 @@ export default function OrderDetail() {
   const handleShare = async () => {
     const shareData = {
       title: `Order #${order?.id?.split("-").slice(-1)[0]}`,
-      text: `Track my Healthy Delight order: Order #${
-        order?.id?.split("-").slice(-1)[0]
-      }`,
+      text: `Track my Healthy Delight order: Order #${order?.id?.split("-").slice(-1)[0]
+        }`,
       url: window.location.href,
     };
 
@@ -726,9 +723,9 @@ export default function OrderDetail() {
           <h1 className="text-lg sm:text-xl md:text-2xl font-bold mb-4">
             Order Not Found
           </h1>
-          <Link to="/orders">
-            <Button>Back to Orders</Button>
-          </Link>
+          <button onClick={() => navigate(-1)}>
+            <Button>Back</Button>
+          </button>
         </div>
       </div>
     );
@@ -850,13 +847,12 @@ export default function OrderDetail() {
         animate={{ opacity: 1 }}>
         {/* Navigation bar */}
         <div className="flex items-center justify-between px-4 py-3">
-          <Link to="/orders">
-            <motion.button
-              className="w-10 h-10 flex items-center justify-center"
-              whileTap={{ scale: 0.9 }}>
-              <ArrowLeftIcon className="w-6 h-6" />
-            </motion.button>
-          </Link>
+          <motion.button
+            onClick={() => navigate(-1)}
+            className="w-10 h-10 flex items-center justify-center cursor-pointer"
+            whileTap={{ scale: 0.9 }}>
+            <ArrowLeftIcon className="w-6 h-6" />
+          </motion.button>
           <h2 className="font-semibold text-lg">Healthy Delight</h2>
           <motion.button
             className="w-10 h-10 flex items-center justify-center"
@@ -941,22 +937,22 @@ export default function OrderDetail() {
             }}
             routeWaypoints={
               order?.status === "Picked up" ||
-              order?.status === "Out for Delivery"
+                order?.status === "Out for Delivery"
                 ? []
                 : sellerLocations.map((s) => ({
-                    lat: s.latitude,
-                    lng: s.longitude,
-                  }))
+                  lat: s.latitude,
+                  lng: s.longitude,
+                }))
             }
             destinationName={
               order?.status === "Picked up" ||
-              order?.status === "Out for Delivery"
+                order?.status === "Out for Delivery"
                 ? order?.deliveryAddress?.address?.split(",")[0] ||
-                  order?.address?.split(",")[0] ||
-                  "Delivery Address"
+                order?.address?.split(",")[0] ||
+                "Delivery Address"
                 : sellerLocations.length > 0
-                ? "Sellers & Delivery Address"
-                : "Delivery Address"
+                  ? "Sellers & Delivery Address"
+                  : "Delivery Address"
             }
             onRouteInfoUpdate={setRouteInfo}
             lastUpdate={lastUpdate}
@@ -1073,9 +1069,8 @@ export default function OrderDetail() {
           transition={{ delay: 0.7 }}>
           <SectionItem
             icon={PhoneIcon}
-            title={`${order.address?.name || "Customer"}, ${
-              order.address?.phone || "9XXXXXXXX"
-            }`}
+            title={`${order.address?.name || "Customer"}, ${order.address?.phone || "9XXXXXXXX"
+              }`}
             subtitle="Delivery partner may call this number"
           />
           <SectionItem
@@ -1194,7 +1189,7 @@ export default function OrderDetail() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.85 }}>
           {order?.invoiceEnabled ? (
-            <Link to={`/orders/${id}/invoice`} className="flex-1">
+            <Link to={`/invoice/${id}`} className="flex-1">
               <Button className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white">
                 View Invoice
               </Button>

@@ -366,9 +366,8 @@ export default function AdminManageSellerList() {
             <div className="flex-1 p-6">
                 {/* Main Panel */}
                 <div className="bg-white rounded-lg shadow-sm border border-neutral-200">
-                    {/* Header */}
-                    <div className="bg-primary border-primary text-neutral-900 px-6 py-4 rounded-t-lg">
-                        <h2 className="text-lg font-semibold">View Seller List</h2>
+                    <div className="bg-neutral-50 border-b border-neutral-200 px-6 py-4 rounded-t-lg">
+                        <h2 className="text-lg font-semibold text-neutral-800">View Seller List</h2>
                     </div>
 
                     {/* Error Message */}
@@ -426,7 +425,7 @@ export default function AdminManageSellerList() {
                         <div className="flex items-center gap-2">
                             <button
                                 onClick={handleExport}
-                                className="bg-primary border-primary text-neutral-900 hover:bg-neutral-900 hover:text-white px-3 py-1.5 rounded text-sm font-medium flex items-center gap-1 transition-colors"
+                                className="bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white px-3 py-1.5 rounded text-sm font-medium flex items-center gap-1 transition-all active:scale-95"
                             >
                                 Export
                                 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -551,7 +550,7 @@ export default function AdminManageSellerList() {
                                             <td className="p-4 align-middle">
                                                 <button
                                                     onClick={() => handleViewCategories(seller)}
-                                                    className="px-3 py-1.5 bg-primary border-primary text-neutral-900 hover:bg-neutral-900 text-white text-xs font-medium rounded transition-colors flex items-center gap-1"
+                                                    className="px-3 py-1.5 bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white text-xs font-medium rounded transition-all active:scale-95 flex items-center gap-1"
                                                 >
                                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                                         <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
@@ -649,7 +648,7 @@ export default function AdminManageSellerList() {
                                     </svg>
                                 </button>
                                 <button
-                                    className="px-3 py-1.5 border border-neutral-800 bg-primary border-primary text-neutral-900 rounded font-medium text-sm"
+                                    className="px-3 py-1.5 border border-neutral-800 bg-primary border-primary text-white rounded font-medium text-sm transition-all active:scale-95"
                                 >
                                     {currentPage}
                                 </button>
@@ -695,14 +694,14 @@ export default function AdminManageSellerList() {
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50" onClick={handleCloseModal}>
                     <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[80vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
                         {/* Modal Header */}
-                        <div className="bg-primary border-primary text-neutral-900 px-6 py-4 rounded-t-lg flex items-center justify-between">
+                        <div className="bg-neutral-50 border-b border-neutral-200 px-6 py-4 rounded-t-lg flex items-center justify-between">
                             <div>
-                                <h3 className="text-lg font-semibold">Categories</h3>
-                                <p className="text-sm text-neutral-400 mt-1">{selectedSeller.storeName} - {selectedSeller.name}</p>
+                                <h3 className="text-lg font-semibold text-neutral-800">Categories</h3>
+                                <p className="text-sm text-neutral-500 mt-1">{selectedSeller.storeName} - {selectedSeller.name}</p>
                             </div>
                             <button
                                 onClick={handleCloseModal}
-                                className="text-white hover:text-neutral-500 transition-colors p-1"
+                                className="text-neutral-400 hover:text-neutral-600 transition-colors p-1"
                                 aria-label="Close modal"
                             >
                                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -738,12 +737,12 @@ export default function AdminManageSellerList() {
 
                         {/* Modal Footer */}
                         <div className="px-6 py-4 border-t border-neutral-200 flex justify-end">
-                            <button
-                                onClick={handleCloseModal}
-                                className="px-4 py-2 bg-primary border-primary text-neutral-900 hover:bg-neutral-900 text-white rounded text-sm font-medium transition-colors"
-                            >
-                                Close
-                            </button>
+                                <button
+                                    onClick={handleCloseModal}
+                                    className="px-4 py-2 bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white rounded text-sm font-medium transition-all active:scale-95"
+                                >
+                                    Close
+                                </button>
                         </div>
                     </div>
                 </div>
@@ -754,14 +753,14 @@ export default function AdminManageSellerList() {
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50" onClick={handleCloseEditModal}>
                     <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
                         {/* Modal Header */}
-                        <div className="bg-primary border-primary text-neutral-900 px-6 py-4 rounded-t-lg flex items-center justify-between">
+                        <div className="bg-neutral-50 border-b border-neutral-200 px-6 py-4 rounded-t-lg flex items-center justify-between">
                             <div>
-                                <h3 className="text-lg font-semibold">Edit Seller - {editingSeller.name}</h3>
-                                <p className="text-sm text-neutral-400 mt-1">View and manage seller details</p>
+                                <h3 className="text-lg font-semibold text-neutral-800">Edit Seller - {editingSeller.name}</h3>
+                                <p className="text-sm text-neutral-500 mt-1">View and manage seller details</p>
                             </div>
                             <button
                                 onClick={handleCloseEditModal}
-                                className="text-white hover:text-neutral-500 transition-colors p-1"
+                                className="text-neutral-400 hover:text-neutral-600 transition-colors p-1"
                                 aria-label="Close modal"
                             >
                                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -906,7 +905,7 @@ export default function AdminManageSellerList() {
                                                         <button
                                                             onClick={handleUpdateRadius}
                                                             disabled={isUpdatingRadius || newRadius === editingSeller.serviceRadiusKm}
-                                                            className="px-4 py-2 bg-primary border-primary text-neutral-900 rounded text-sm font-medium hover:bg-neutral-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors whitespace-nowrap"
+                                                            className="px-4 py-2 bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white rounded text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-95 whitespace-nowrap"
                                                         >
                                                             {isUpdatingRadius ? 'Updating...' : 'Update Radius'}
                                                         </button>
@@ -1049,7 +1048,7 @@ export default function AdminManageSellerList() {
                         <div className="px-6 py-4 border-t border-neutral-200 flex justify-end gap-2">
                             <button
                                 onClick={handleCloseEditModal}
-                                className="px-4 py-2 bg-neutral-200 hover:bg-neutral-300 text-neutral-700 rounded text-sm font-medium transition-colors"
+                                className="px-4 py-2 bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white rounded text-sm font-medium transition-all active:scale-95"
                             >
                                 Close
                             </button>

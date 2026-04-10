@@ -4,6 +4,7 @@ import Order from "../../../models/Order";
 import { notifySellersOfOrderUpdate } from "../../../services/sellerNotificationService";
 import OrderItem from "../../../models/OrderItem";
 import Seller from "../../../models/Seller";
+import DeliveryAssignment from "../../../models/DeliveryAssignment";
 import { generateDeliveryOtp, verifyDeliveryOtp } from "../../../services/deliveryOtpService";
 import { processOrderStatusTransition } from "../../../services/orderService";
 
@@ -117,9 +118,13 @@ export const getPendingOrders = asyncHandler(async (req: Request, res: Response)
     const deliveryId = req.user?.userId;
 
     // Pending statuses: Ready for pickup, Out for delivery, Picked Up, Assigned, In Transit
+    // OR if it's a new assignment offer (deliveryBoyStatus: Pending)
     const orders = await Order.find({
         deliveryBoy: deliveryId,
-        status: { $in: ["Ready for pickup", "Out for Delivery", "Picked Up", "Assigned", "In Transit"] }
+        $or: [
+            { status: { $in: ["Ready for pickup", "Out for Delivery", "Picked Up", "Assigned", "In Transit"] } },
+            { deliveryBoyStatus: "Pending" }
+        ]
     })
         .populate("items")
         .sort({ createdAt: -1 });
@@ -130,6 +135,7 @@ export const getPendingOrders = asyncHandler(async (req: Request, res: Response)
         customerName: order.customerName,
         customerPhone: order.customerPhone,
         status: order.status,
+        deliveryBoyStatus: order.deliveryBoyStatus,
         address: `${order.deliveryAddress?.address || ''}, ${order.deliveryAddress?.city || ''}`,
         items: mapOrderItems(order.items), // Real items
         totalAmount: order.total,
@@ -164,6 +170,7 @@ export const getOrderDetails = asyncHandler(async (req: Request, res: Response) 
         address: `${order.deliveryAddress?.address || ''}, ${order.deliveryAddress?.city || ''}`,
         deliveryAddress: order.deliveryAddress,
         status: order.status,
+        deliveryBoyStatus: order.deliveryBoyStatus,
         items: mapOrderItems(order.items), // Real populated items
         totalAmount: order.total,
         createdAt: order.createdAt,
@@ -698,5 +705,121 @@ export const checkCustomerProximity = asyncHandler(async (req: Request, res: Res
             distanceMeters: Math.round(distance * 1000), // in meters
             customerName: order.customerName
         }
+    });
+});
+/**
+ * Accept delivery assignment
+ */
+export const acceptAssignment = asyncHandler(async (req: Request, res: Response) => {
+    const { id } = req.params; // orderId
+    const deliveryId = req.user?.userId;
+
+    const order = await Order.findById(id).populate('customer');
+    if (!order) {
+        return res.status(404).json({ success: false, message: "Order not found" });
+    }
+
+    if (order.deliveryBoy?.toString() !== deliveryId) {
+        return res.status(403).json({ success: false, message: "This assignment is not for you" });
+    }
+
+    if (order.deliveryBoyStatus !== "Pending") {
+        return res.status(400).json({ success: false, message: "Assignment is not in pending state" });
+    }
+
+    // Update order status
+    // Update order status and sync customer's permanent OTP
+    order.deliveryBoyStatus = "Accepted";
+    
+    // Ensure order has the customer's permanent OTP for easy access
+    if (order.customer && typeof order.customer === 'object' && 'deliveryOtp' in order.customer) {
+        order.deliveryOtp = (order.customer as any).deliveryOtp;
+    }
+
+    await order.save();
+
+    // Update delivery assignment record
+    await DeliveryAssignment.findOneAndUpdate(
+        { order: id, deliveryBoy: deliveryId },
+        { 
+            status: "Accepted",
+            acceptedAt: new Date()
+        }
+    );
+
+    // Notify seller via Socket.io
+    const io = (req.app as any).get("io");
+    if (io) {
+        // Find seller(s) associated with this order items
+        const orderItems = await OrderItem.find({ order: id }).distinct("seller");
+        orderItems.forEach(sellerId => {
+            io.to(`seller-${sellerId}`).emit("assignment-accepted", {
+                orderId: id,
+                orderNumber: order.orderNumber,
+                deliveryBoyName: (req as any).user.name // Assuming name is in token or fetch it
+            });
+        });
+
+        // Also notify the general order tracking room
+        io.to(`order-${id}`).emit("delivery-status-update", {
+            status: "Accepted",
+            message: "Delivery rider has accepted the assignment"
+        });
+    }
+
+    return res.status(200).json({
+        success: true,
+        message: "Assignment accepted successfully",
+        data: order
+    });
+});
+
+/**
+ * Reject delivery assignment
+ */
+export const rejectAssignment = asyncHandler(async (req: Request, res: Response) => {
+    const { id } = req.params; // orderId
+    const deliveryId = req.user?.userId;
+
+    const order = await Order.findById(id);
+    if (!order) {
+        return res.status(404).json({ success: false, message: "Order not found" });
+    }
+
+    if (order.deliveryBoy?.toString() !== deliveryId) {
+        return res.status(403).json({ success: false, message: "This assignment is not for you" });
+    }
+
+    // Remove rider from order and reset status
+    order.deliveryBoy = undefined;
+    order.deliveryBoyStatus = undefined;
+    order.assignedAt = undefined;
+    await order.save();
+
+    // Update delivery assignment record
+    await DeliveryAssignment.findOneAndUpdate(
+        { order: id, deliveryBoy: deliveryId },
+        { 
+            status: "Cancelled",
+            failureReason: "Rejected by delivery boy"
+        }
+    );
+
+    // Notify seller via Socket.io
+    const io = (req.app as any).get("io");
+    if (io) {
+        const orderItems = await OrderItem.find({ order: id }).distinct("seller");
+        orderItems.forEach(sellerId => {
+            io.to(`seller-${sellerId}`).emit("assignment-rejected", {
+                orderId: id,
+                orderNumber: order.orderNumber,
+                message: "Delivery rider rejected the assignment. Please assign another rider."
+            });
+        });
+    }
+
+    return res.status(200).json({
+        success: true,
+        message: "Assignment rejected successfully"
     });
 });

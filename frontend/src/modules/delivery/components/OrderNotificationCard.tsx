@@ -254,7 +254,9 @@ export default function OrderNotificationCard({
                             <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
                             <div className="absolute inset-0 w-3 h-3 bg-red-500 rounded-full animate-ping opacity-75"></div>
                         </div>
-                        <h3 className="text-base sm:text-lg font-bold text-neutral-900">New Order!</h3>
+                        <h3 className="text-base sm:text-lg font-bold text-neutral-900">
+                            {notification.type === 'ASSIGNMENT_OFFER' ? 'Assignment Offer!' : 'New Order!'}
+                        </h3>
                     </div>
                     {(audioError || !hasUserInteracted) && (
                         <div className="text-xs text-neutral-500 bg-neutral-100 px-2 py-1 rounded whitespace-nowrap">

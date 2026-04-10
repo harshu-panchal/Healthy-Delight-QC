@@ -5,6 +5,10 @@ import {
   updateOrderStatus,
   OrderDetail,
 } from "../../../services/api/orderService";
+import { getSellerDeliveryBoys, sellerAssignDeliveryBoy } from "../../../services/api/seller/sellerDeliveryService";
+import { DeliveryBoy } from "../../../services/api/admin/adminDeliveryService";
+import { useSellerSocket } from "../hooks/useSellerSocket";
+import { useToast } from "../../../context/ToastContext";
 import jsPDF from "jspdf";
 
 export default function SellerOrderDetail() {
@@ -14,6 +18,9 @@ export default function SellerOrderDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>("");
   const [orderStatus, setOrderStatus] = useState<string>("Out For Delivery");
+  const [deliveryBoys, setDeliveryBoys] = useState<DeliveryBoy[]>([]);
+  const [assigning, setAssigning] = useState(false);
+  const [selectedRiderId, setSelectedRiderId] = useState("");
 
   // Fetch order detail from API
   useEffect(() => {
@@ -33,8 +40,8 @@ export default function SellerOrderDetail() {
       } catch (err: any) {
         setError(
           err.response?.data?.message ||
-            err.message ||
-            "Failed to fetch order details"
+          err.message ||
+          "Failed to fetch order details"
         );
       } finally {
         setLoading(false);
@@ -43,6 +50,67 @@ export default function SellerOrderDetail() {
 
     fetchOrderDetail();
   }, [id]);
+
+  // Fetch delivery boys
+  useEffect(() => {
+    const fetchDeliveryBoys = async () => {
+      try {
+        const response = await getSellerDeliveryBoys();
+        if (response.success) {
+          setDeliveryBoys(response.data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch delivery boys:", err);
+      }
+    };
+
+    fetchDeliveryBoys();
+  }, []);
+
+  // Socket listener for real-time assignment updates
+  const { socket } = useSellerSocket();
+  const { showToast } = useToast();
+
+  useEffect(() => {
+    if (!socket || !id) return;
+
+    const handleAssignmentAccepted = (data: { orderId: string; deliveryBoyName: string }) => {
+      if (data.orderId === id && orderDetail) {
+        setOrderDetail(prev => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            deliveryBoyStatus: "Accepted",
+            deliveryBoyName: data.deliveryBoyName
+          };
+        });
+        // Layout already shows toast
+      }
+    };
+
+    const handleAssignmentRejected = (data: { orderId: string; message: string }) => {
+      if (data.orderId === id && orderDetail) {
+        setOrderDetail(prev => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            deliveryBoyStatus: undefined as any,
+            deliveryBoyName: "",
+            deliveryBoyPhone: ""
+          };
+        });
+        // Layout already shows toast
+      }
+    };
+
+    socket.on("assignment-accepted", handleAssignmentAccepted);
+    socket.on("assignment-rejected", handleAssignmentRejected);
+
+    return () => {
+      socket.off("assignment-accepted", handleAssignmentAccepted);
+      socket.off("assignment-rejected", handleAssignmentRejected);
+    };
+  }, [socket, id, orderDetail]);
 
   // Handle status update
   const handleStatusUpdate = async (newStatus: string) => {
@@ -60,6 +128,34 @@ export default function SellerOrderDetail() {
       }
     } catch (err: any) {
       alert(err.response?.data?.message || "Failed to update order status");
+    }
+  };
+
+  const handleAssignDeliveryBoy = async () => {
+    if (!id || !selectedRiderId) return;
+
+    setAssigning(true);
+    try {
+      const response = await sellerAssignDeliveryBoy(id, { deliveryBoyId: selectedRiderId });
+      if (response.success) {
+        // Refresh order detail to show the assigned rider
+        const rider = deliveryBoys.find(b => b._id === selectedRiderId);
+        if (rider && orderDetail) {
+          setOrderDetail({
+            ...orderDetail,
+            deliveryBoyName: rider.name,
+            deliveryBoyPhone: rider.mobile,
+            deliveryBoyStatus: "Pending"
+          });
+        }
+        showToast("Assignment offer sent to delivery rider. Waiting for their acceptance.", "info");
+      } else {
+        showToast(response.message || "Failed to assign delivery rider", "error");
+      }
+    } catch (err: any) {
+      showToast(err.response?.data?.message || "Failed to assign delivery rider", "error");
+    } finally {
+      setAssigning(false);
     }
   };
 
@@ -81,7 +177,7 @@ export default function SellerOrderDetail() {
           <p className="text-red-600 mb-4">{error}</p>
           <button
             onClick={() => navigate("/seller/orders")}
-            className="bg-primary border-primary text-neutral-900 hover:bg-primary-dark px-6 py-2 rounded-lg transition-colors">
+            className="bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white px-6 py-2 rounded-lg transition-all active:scale-95 shadow-sm">
             Back to Orders
           </button>
         </div>
@@ -98,7 +194,7 @@ export default function SellerOrderDetail() {
           </h2>
           <button
             onClick={() => navigate("/seller/orders")}
-            className="bg-primary border-primary text-neutral-900 hover:bg-primary-dark px-6 py-2 rounded-lg transition-colors">
+            className="bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white px-6 py-2 rounded-lg transition-all active:scale-95 shadow-sm">
             Back to Orders
           </button>
         </div>
@@ -383,7 +479,7 @@ export default function SellerOrderDetail() {
       case "Cancelled":
         return "bg-red-100 text-red-800 border border-red-400";
       case "Out For Delivery":
-        return "bg-primary text-neutral-900 border border-primary/50";
+        return "bg-cream text-neutral-900 border border-primary/40";
       case "Received":
         return "bg-cream text-neutral-900 border border-primary/40";
       case "Payment Pending":
@@ -415,8 +511,8 @@ export default function SellerOrderDetail() {
     <div className="min-h-screen bg-neutral-50 pb-8">
       {/* Order Action Section */}
       <div className="bg-white mb-6 rounded-lg shadow-sm border border-neutral-200 overflow-hidden">
-        <div className="bg-primary border-primary text-neutral-900 px-4 sm:px-6 py-3">
-          <h2 className="text-base sm:text-lg font-semibold">
+        <div className="bg-neutral-50 border-b border-neutral-200 px-4 sm:px-6 py-3">
+          <h2 className="text-base sm:text-lg font-semibold text-neutral-800">
             Order Action Section
           </h2>
         </div>
@@ -427,7 +523,7 @@ export default function SellerOrderDetail() {
                 <div className="flex gap-3">
                   <button
                     onClick={() => handleStatusUpdate("Accepted")}
-                    className="flex-1 bg-primary hover:bg-primary-dark text-neutral-900 px-6 py-2 rounded-lg transition-colors font-medium shadow-sm">
+                    className="flex-1 bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white px-6 py-2 rounded-lg transition-all active:scale-95 font-medium shadow-sm">
                     Accept Order
                   </button>
                   <button
@@ -464,9 +560,81 @@ export default function SellerOrderDetail() {
                 </select>
               )}
             </div>
+
+            {/* Rider Assignment Section */}
+            {orderStatus === "Accepted" && !orderDetail.deliveryBoyName && (
+              <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto items-stretch sm:items-center bg-white p-3 rounded-lg border-2 border-primary/20 shadow-sm animate-in slide-in-from-top-2 duration-300">
+                <div className="flex items-center gap-2">
+                  <div className="bg-primary/10 p-2 rounded-lg text-primary">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <circle cx="9" cy="7" r="4" />
+                      <path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4-4v2" />
+                      <path d="M16 11l2 2 4-4" />
+                    </svg>
+                  </div>
+                  <span className="text-sm font-bold text-neutral-800 whitespace-nowrap">Assign Rider:</span>
+                </div>
+                <select
+                  value={selectedRiderId}
+                  onChange={(e) => setSelectedRiderId(e.target.value)}
+                  className="flex-1 min-w-[200px] px-3 py-2 border border-neutral-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary">
+                  <option value="">Select Delivery Rider</option>
+                  {deliveryBoys.map((boy) => (
+                    <option key={boy._id} value={boy._id}>
+                      {boy.name} ({boy.available === 'Available' ? 'Available' : 'Busy'})
+                    </option>
+                  ))}
+                </select>
+                <button
+                  onClick={handleAssignDeliveryBoy}
+                  disabled={assigning || !selectedRiderId}
+                  className="bg-primary hover:bg-neutral-900 text-white px-5 py-2 rounded-lg transition-all active:scale-95 text-sm font-black uppercase tracking-wider disabled:opacity-50 disabled:cursor-not-allowed shadow-md">
+                  {assigning ? "Sending..." : "Request Rider"}
+                </button>
+              </div>
+            )}
+
+            {orderDetail.deliveryBoyName && orderDetail.deliveryBoyStatus === "Pending" && (
+              <div className="flex items-center gap-3 bg-amber-50 px-4 py-2 rounded-lg border border-amber-200 animate-pulse">
+                <div className="bg-amber-100 p-1.5 rounded-full text-amber-600">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="8" x2="12" y2="12" />
+                    <line x1="12" y1="16" x2="12.01" y2="16" />
+                  </svg>
+                </div>
+                <div>
+                  <div className="text-[10px] uppercase font-black text-amber-600 tracking-widest leading-none mb-1">Waiting for Acceptance</div>
+                  <div className="text-sm font-bold text-neutral-900 leading-none">{orderDetail.deliveryBoyName}</div>
+                </div>
+                <button
+                  onClick={() => {
+                    // Reset assignment state to allow re-assigning if needed
+                    setOrderDetail({ ...orderDetail, deliveryBoyName: "", deliveryBoyPhone: "", deliveryBoyStatus: undefined as any });
+                  }}
+                  className="ml-2 text-amber-600 hover:text-amber-800 underline text-xs font-bold">
+                  Cancel
+                </button>
+              </div>
+            )}
+
+            {orderDetail.deliveryBoyName && orderDetail.deliveryBoyStatus !== "Pending" && (
+              <div className="flex items-center gap-3 bg-green-50 px-4 py-2 rounded-lg border border-green-200 shadow-sm">
+                <div className="bg-green-100 p-1.5 rounded-full text-green-600">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                </div>
+                <div>
+                  <div className="text-[10px] uppercase font-black text-green-600 tracking-widest leading-none mb-1">Rider Accepted</div>
+                  <div className="text-sm font-bold text-neutral-900 leading-none">{orderDetail.deliveryBoyName}</div>
+                </div>
+              </div>
+            )}
+
             <button
               onClick={handleExportPDF}
-              className="flex items-center gap-2 bg-primary hover:bg-primary-dark text-neutral-900 px-4 py-2 rounded-lg transition-colors text-sm font-medium">
+              className="flex items-center gap-2 bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white px-4 py-2 rounded-lg transition-all active:scale-95 text-sm font-medium shadow-sm">
               <svg
                 width="16"
                 height="16"
@@ -484,7 +652,7 @@ export default function SellerOrderDetail() {
             </button>
             <button
               onClick={handlePrint}
-              className="flex items-center gap-2 bg-primary hover:bg-primary-dark text-neutral-900 px-4 py-2 rounded-lg transition-colors text-sm font-medium">
+              className="flex items-center gap-2 bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white px-4 py-2 rounded-lg transition-all active:scale-95 text-sm font-medium shadow-sm">
               <svg
                 width="16"
                 height="16"
@@ -504,8 +672,8 @@ export default function SellerOrderDetail() {
 
       {/* View Order Details Section */}
       <div className="bg-white rounded-lg shadow-sm border border-neutral-200 overflow-hidden">
-        <div className="bg-primary border-primary text-neutral-900 px-4 sm:px-6 py-3">
-          <h2 className="text-base sm:text-lg font-semibold">
+        <div className="bg-neutral-50 border-b border-neutral-200 px-4 sm:px-6 py-3">
+          <h2 className="text-base sm:text-lg font-semibold text-neutral-800">
             View Order Details
           </h2>
         </div>
@@ -515,7 +683,7 @@ export default function SellerOrderDetail() {
             {/* Left: Company Info */}
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-2">
-                <div className="w-8 h-8 bg-primary rounded flex items-center justify-center">
+                <div className="w-8 h-8 bg-neutral-100 border border-neutral-200 rounded flex items-center justify-center">
                   <span className="text-neutral-900 text-xs font-bold">A</span>
                 </div>
                 <div>

@@ -26,10 +26,8 @@ const IconLoader: React.FC<IconLoaderProps> = ({ forceShow = false }) => {
     path.startsWith('/admin') ||
     path.startsWith('/delivery');
 
-  // Completely disable loader for seller/admin/delivery (no overlay, no animation)
-  if (isRestrictedApp) {
-    return null;
-  }
+  // TEMPORARILY DISABLED: Returning null to hide all loader animations for now.
+  return null;
 
   const animationData = VARIANT_ANIMATIONS[loadingVariant];
 

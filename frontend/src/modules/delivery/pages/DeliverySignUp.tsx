@@ -61,6 +61,26 @@ export default function DeliverySignUp() {
         ...prev,
         [name]: value.replace(/\D/g, "").slice(0, 10),
       }));
+    } else if (name === "name" || name === "city") {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value.replace(/[^a-zA-Z\s]/g, ""),
+      }));
+    } else if (name === "ifscCode") {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value.replace(/[^a-zA-Z0-9]/g, "").toUpperCase().slice(0, 11),
+      }));
+    } else if (name === "pincode") {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value.replace(/\D/g, "").slice(0, 6),
+      }));
+    } else if (name === "accountName" || name === "bankName") {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value.replace(/[^a-zA-Z\s]/g, ""),
+      }));
     } else {
       setFormData((prev) => ({
         ...prev,
@@ -151,6 +171,13 @@ export default function DeliverySignUp() {
       !formData.city
     ) {
       setError("Please fill all required fields");
+      return;
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      setError("Please enter a valid email address (e.g., username@domain.com)");
       return;
     }
 
@@ -288,17 +315,10 @@ export default function DeliverySignUp() {
           style={{
             borderColor: "#a7f3d0",
           }}>
-          <div className="mb-0 -mt-6 sm:-mt-4">
-            <img
-              src="/assets/kosil1.png"
-              alt="Healthy Delight"
-              className="h-28 sm:h-36 w-full max-w-[180px] sm:max-w-xs mx-auto object-contain object-bottom"
-            />
-          </div>
-          <h1 className="text-xl sm:text-2xl font-bold text-emerald-900 mb-1 -mt-6 sm:-mt-10">
+          <h1 className="text-xl sm:text-2xl font-bold text-emerald-900 mb-1">
             Delivery Sign Up
           </h1>
-          <p className="text-emerald-700 text-xs sm:text-sm -mt-1 sm:-mt-2">
+          <p className="text-emerald-700 text-xs sm:text-sm">
             Create your delivery partner account
           </p>
         </div>
@@ -404,7 +424,7 @@ export default function DeliverySignUp() {
                     onChange={handleInputChange}
                     placeholder="Enter password (min 6 characters)"
                     required
-                    minLength={4}
+                    minLength={6}
                     className="w-full px-3 py-2.5 text-sm border border-neutral-300 rounded-lg focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-200"
                     disabled={loading}
                   />
@@ -475,6 +495,7 @@ export default function DeliverySignUp() {
                     value={formData.pincode}
                     onChange={handleInputChange}
                     placeholder="Enter pincode"
+                    maxLength={6}
                     className="w-full px-3 py-2.5 text-sm border border-neutral-300 rounded-lg focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-200"
                     disabled={loading}
                   />
@@ -542,6 +563,7 @@ export default function DeliverySignUp() {
                     value={formData.ifscCode}
                     onChange={handleInputChange}
                     placeholder="IFSC code"
+                    maxLength={11}
                     className="w-full px-3 py-2.5 text-sm border border-neutral-300 rounded-lg focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-200"
                     disabled={loading}
                   />
@@ -627,8 +649,8 @@ export default function DeliverySignUp() {
                 type="submit"
                 disabled={loading || uploadingDocs}
                 className={`w-full py-2.5 rounded-lg font-semibold text-sm transition-colors ${!loading && !uploadingDocs
-                  ? "bg-teal-600 text-white hover:bg-teal-700 shadow-md"
-                  : "bg-neutral-300 text-neutral-500 cursor-not-allowed"
+                  ? "bg-white border-2 border-teal-600 text-teal-600 hover:bg-teal-600 hover:text-white shadow-md active:scale-95"
+                  : "bg-neutral-100 text-neutral-400 border border-neutral-200 cursor-not-allowed"
                   }`}>
                 {uploadingDocs
                   ? "Uploading Documents..."
@@ -694,7 +716,7 @@ export default function DeliverySignUp() {
                     }
                   }}
                   disabled={loading}
-                  className="flex-1 py-2.5 rounded-lg font-semibold text-sm bg-teal-600 text-white hover:bg-teal-700 transition-colors">
+                  className="flex-1 py-2.5 rounded-lg font-semibold text-sm bg-white border border-teal-600 text-teal-600 hover:bg-teal-50 transition-colors">
                   {loading ? "Calling..." : "Resend OTP"}
                 </button>
               </div>

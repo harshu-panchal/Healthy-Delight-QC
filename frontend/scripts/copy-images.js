@@ -299,12 +299,12 @@ function copyShopByStoreImages() {
 
 // Copy kosil logo
 function copyKosilLogo() {
-  const kosilPath = path.join(assetsDir, "kosil1.png");
+  const kosilPath = path.join(assetsDir, "logo.png");
   if (fs.existsSync(kosilPath)) {
-    const destPath = path.join(publicAssetsDir, "kosil1.png");
+    const destPath = path.join(publicAssetsDir, "logo.png");
     if (!fs.existsSync(destPath)) {
       fs.copyFileSync(kosilPath, destPath);
-      console.log("Copied kosil logo: kosil1.png");
+      console.log("Copied logo: logo.png");
     }
   }
 }

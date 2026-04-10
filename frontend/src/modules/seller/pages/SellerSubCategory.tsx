@@ -143,10 +143,10 @@ export default function SellerSubCategory() {
                                 <button
                                     key={page}
                                     onClick={() => setCurrentPage(page)}
-                                    className={`px-3 py-1.5 border border-neutral-800 rounded font-medium text-sm ${
+                                    className={`px-3 py-1.5 border-2 rounded font-bold text-sm transition-all active:scale-95 ${
                                         currentPage === page
-                                            ? 'bg-primary border-primary text-neutral-900'
-                                            : 'text-primary hover:bg-cream'
+                                            ? 'bg-white border-primary text-primary shadow-sm'
+                                            : 'border-neutral-200 text-neutral-500 hover:bg-neutral-50'
                                     }`}
                                 >
                                     {page}

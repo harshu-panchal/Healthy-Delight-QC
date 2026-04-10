@@ -249,8 +249,8 @@ export default function AdminNotification() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full">
           {/* Left Panel: Send Notification */}
           <div className="bg-white rounded-lg shadow-sm border border-neutral-200 flex flex-col">
-            <div className="bg-primary text-neutral-900 px-6 py-4 rounded-t-lg">
-              <h2 className="text-lg font-semibold">Send Notification</h2>
+            <div className="bg-neutral-50 border-b border-neutral-200 px-6 py-4 rounded-t-lg">
+              <h2 className="text-lg font-semibold text-neutral-800">Send Notification</h2>
             </div>
 
             {/* Error Message */}
@@ -338,7 +338,7 @@ export default function AdminNotification() {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full bg-neutral-900 hover:bg-neutral-800 disabled:opacity-50 disabled:cursor-not-allowed text-white px-4 py-2 rounded font-medium transition-colors"
+                    className="w-full bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white disabled:opacity-50 disabled:cursor-not-allowed px-4 py-2 rounded font-semibold transition-all active:scale-95 shadow-md"
                   >
                     {loading ? 'Sending...' : 'Send Notification'}
                   </button>
@@ -349,7 +349,7 @@ export default function AdminNotification() {
 
           {/* Right Panel: View Notification */}
           <div className="bg-white rounded-lg shadow-sm border border-neutral-200 flex flex-col">
-            <div className="px-6 py-4 border-b border-neutral-200">
+            <div className="px-6 py-4 border-b border-neutral-200 bg-neutral-50">
               <h2 className="text-lg font-semibold text-neutral-800">View Notification</h2>
             </div>
 
@@ -515,10 +515,10 @@ export default function AdminNotification() {
                   <button
                     onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
                     disabled={currentPage === 1 || loading}
-                    className={`p-2 border border-neutral-300 rounded ${
+                    className={`p-2 border-2 rounded transition-all active:scale-95 ${
                       currentPage === 1
-                        ? 'text-neutral-400 cursor-not-allowed bg-neutral-50'
-                        : 'text-neutral-700 hover:bg-cream'
+                        ? 'text-neutral-400 cursor-not-allowed bg-neutral-50 border-neutral-200'
+                        : 'text-primary border-primary hover:bg-primary hover:text-white'
                     }`}
                     aria-label="Previous page"
                   >
@@ -554,10 +554,10 @@ export default function AdminNotification() {
                         key={pageNum}
                         onClick={() => setCurrentPage(pageNum)}
                         disabled={loading}
-                        className={`px-3 py-1.5 border border-neutral-300 rounded font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed ${
+                        className={`px-3 py-1.5 border-2 rounded font-semibold text-sm transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed ${
                           currentPage === pageNum
-                            ? 'bg-neutral-900 text-white'
-                            : 'text-neutral-700 hover:bg-cream'
+                            ? 'bg-primary border-primary text-white'
+                            : 'bg-white border-neutral-300 text-neutral-700 hover:bg-neutral-50'
                         }`}
                       >
                         {pageNum}
@@ -570,10 +570,10 @@ export default function AdminNotification() {
                   <button
                     onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
                     disabled={currentPage === totalPages || loading}
-                    className={`p-2 border border-neutral-300 rounded ${
+                    className={`p-2 border-2 rounded transition-all active:scale-95 ${
                       currentPage === totalPages
-                        ? 'text-neutral-400 cursor-not-allowed bg-neutral-50'
-                        : 'text-neutral-700 hover:bg-cream'
+                        ? 'text-neutral-400 border-neutral-200 cursor-not-allowed bg-neutral-50'
+                        : 'text-primary border-primary hover:bg-primary hover:text-white'
                     }`}
                     aria-label="Next page"
                   >

@@ -17,13 +17,12 @@ export default function AppLayout({ children }: AppLayoutProps) {
   const [searchParams, setSearchParams] = useSearchParams();
   const mainRef = useRef<HTMLElement>(null);
   const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '');
-  const [categoriesRotation, setCategoriesRotation] = useState(0);
-  const [prevCategoriesActive, setPrevCategoriesActive] = useState(false);
   const { isLocationEnabled, isLocationLoading, location: userLocation } = useLocationContext();
   const [showLocationRequest, setShowLocationRequest] = useState(false);
   const [showLocationChangeModal, setShowLocationChangeModal] = useState(false);
   const { currentTheme } = useThemeContext();
   const [isListening, setIsListening] = useState(false);
+  const [isHeaderOpaque, setIsHeaderOpaque] = useState(false);
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -126,6 +125,26 @@ export default function AppLayout({ children }: AppLayoutProps) {
     return () => clearTimeout(timer);
   }, [searchQuery, location.pathname, navigate, setSearchParams, searchParams]);
 
+  useEffect(() => {
+    const mainElement = mainRef.current;
+
+    const handleScroll = () => {
+      const mainScrolled = (mainElement?.scrollTop || 0) > 6;
+      const windowScrolled = window.scrollY > 6;
+      setIsHeaderOpaque(mainScrolled || windowScrolled);
+    };
+
+    handleScroll();
+
+    mainElement?.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener('scroll', handleScroll, { passive: true });
+
+    return () => {
+      mainElement?.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, [location.pathname]);
+
 
 
 
@@ -140,21 +159,6 @@ export default function AppLayout({ children }: AppLayoutProps) {
       window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
     });
   }, [location.pathname]);
-
-  // Track categories active state for rotation
-  const isCategoriesActive = isActive('/categories') || location.pathname.startsWith('/category/');
-
-  useEffect(() => {
-    if (isCategoriesActive && !prevCategoriesActive) {
-      // Rotate clockwise when clicked (becoming active)
-      setCategoriesRotation(prev => prev + 360);
-      setPrevCategoriesActive(true);
-    } else if (!isCategoriesActive && prevCategoriesActive) {
-      // Rotate counter-clockwise when unclicked (becoming inactive)
-      setCategoriesRotation(prev => prev - 360);
-      setPrevCategoriesActive(false);
-    }
-  }, [isCategoriesActive, prevCategoriesActive]);
 
   const isProductDetailPage = location.pathname.startsWith('/product/');
   const isSearchPage = location.pathname === '/search';
@@ -314,65 +318,80 @@ export default function AppLayout({ children }: AppLayoutProps) {
             </nav>
           )}
 
-          {/* Sticky Header - Show on search page and other non-home pages, excluding account page */}
+          {/* Premium Sticky Header - Secondary Pages */}
           {(showHeader || isSearchPage) && (
-            <header className="sticky top-0 z-50 bg-white shadow-sm md:shadow-md md:top-[60px]">
-              {/* Location line - only show if user has provided location */}
+            <header
+              className="sticky top-0 z-50 md:top-[60px] transition-all duration-300"
+              style={{
+                background: isHeaderOpaque
+                  ? '#0a193b'
+                  : 'linear-gradient(180deg, rgba(10, 25, 59, 0.85) 0%, rgba(15, 37, 82, 0.7) 100%)',
+                boxShadow: isHeaderOpaque
+                  ? "0 4px 12px rgba(0,0,0,0.08)"
+                  : "0 2px 8px rgba(0,0,0,0.04)",
+                backdropFilter: isHeaderOpaque ? "none" : "blur(12px)"
+              }}
+            >
+              {/* Location line with elevated feel */}
               {userLocation && (userLocation.address || userLocation.city) && (
-                <div className="px-4 md:px-6 lg:px-8 py-2 flex items-center justify-between text-sm">
-                  <span className="text-neutral-700 line-clamp-1" title={userLocation?.address || ''}>
-                    {userLocation?.address
-                      ? userLocation.address.length > 50
-                        ? `${userLocation.address.substring(0, 50)}...`
-                        : userLocation.address
-                      : userLocation?.city && userLocation?.state
-                        ? `${userLocation.city}, ${userLocation.state}`
-                        : userLocation?.city || ''}
-                  </span>
+                <div className="px-5 md:px-10 py-2.5 flex items-center justify-between gap-4 border-b border-white/10 shadow-inner">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="text-white/60 flex-shrink-0 drop-shadow-[0_1px_1px_rgba(0,0,0,0.3)]">
+                      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                      <circle cx="12" cy="10" r="3" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                    <span className="text-white/80 text-[13px] font-bold truncate drop-shadow-[0_1px_1px_rgba(0,0,0,0.2)]" title={userLocation?.address || ''}>
+                      {userLocation?.address || `${userLocation.city}, ${userLocation.state}`}
+                    </span>
+                  </div>
                   <button
                     onClick={() => setShowLocationChangeModal(true)}
-                    className="text-blue-600 font-medium hover:text-blue-700 transition-colors flex-shrink-0 ml-2"
+                    className="text-white/60 text-[11px] font-black uppercase tracking-[0.2em] hover:text-white transition-colors flex-shrink-0 drop-shadow-[0_1px_1px_rgba(0,0,0,0.2)]"
                   >
                     Change
                   </button>
                 </div>
               )}
 
-              {/* Search bar - Hidden on Order Again page */}
+              {/* Search bar area with depth */}
               {showSearchBar && (
-                <div className="px-4 md:px-6 lg:px-8 pb-3 flex items-center gap-2">
-                  <div className="max-w-2xl md:mx-auto flex items-center gap-2 flex-1 min-w-0">
+                <div className="px-5 md:px-10 py-3 flex items-center gap-4">
+                  <div className="max-w-3xl md:mx-auto flex items-center gap-3 flex-1 min-w-0">
+                    {/* Back button */}
                     {isSearchPage && (
                       <button
                         onClick={() => navigate(-1)}
-                        className="p-2 -ml-2 text-neutral-600 hover:text-emerald-600 transition-colors flex-shrink-0"
+                        className="p-2 -ml-2 text-white/80 hover:text-white transition-all bg-white/10 rounded-xl border border-white/20 shadow-lg hover:bg-white/20"
                         title="Back"
                       >
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.2)]">
                           <path d="M19 12H5M12 19l-7-7 7-7" />
                         </svg>
                       </button>
                     )}
-                    <div className="relative flex-1 min-w-0">
+
+                    {/* Search Input Unit with layered shadow */}
+                    <div className="relative flex-1 min-w-0 group">
                       <input
                         type="text"
                         value={searchQuery}
                         onChange={(e) => handleSearchChange(e.target.value)}
-                        placeholder={isListening ? "Listening..." : "Search for products..."}
-                        className="w-full px-4 py-2.5 pl-10 pr-10 bg-neutral-50 border border-neutral-200 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent md:py-3 transition-all"
+                        placeholder={isListening ? "Listening..." : "Search for healthy delights..."}
+                        onKeyDown={(e) => e.key === 'Enter' && navigate(`/search?q=${encodeURIComponent(searchQuery)}`)}
+                        className="w-full h-11 md:h-12 bg-white rounded-2xl px-11 py-2 text-[15px] font-bold text-neutral-high placeholder-slate-400 focus:ring-4 focus:ring-primary-500/20 transition-all shadow-[0_8px_30px_rgb(0,0,0,0.12)] focus:shadow-[0_12px_40px_rgb(0,0,0,0.16)]"
                       />
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="opacity-70">
                           <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
                         </svg>
                       </span>
-                      {/* Voice Search Icon */}
+                      {/* Voice Search */}
                       <button
                         onClick={startVoiceSearch}
-                        className={`absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-full transition-colors ${isListening ? 'bg-red-100 text-red-500' : 'text-neutral-500 hover:bg-neutral-200'}`}
+                        className={`absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-full transition-all ${isListening ? 'bg-red-50 text-red-500 shadow-inner' : 'text-slate-400 hover:text-primary-500 hover:bg-slate-50'}`}
                         aria-label="Voice search"
                       >
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                           <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"></path>
                           <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
                           <line x1="12" y1="19" x2="12" y2="22"></line>
@@ -381,15 +400,15 @@ export default function AppLayout({ children }: AppLayoutProps) {
                       </button>
                     </div>
                   </div>
-                  {/* Profile - right side of header */}
+
+                  {/* Profile Link with elevated style */}
                   <Link
                     to="/account"
-                    className="p-2 rounded-lg text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900 transition-colors flex-shrink-0"
+                    className="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 text-white border border-white/20 hover:bg-white/20 transition-all shadow-[0_4px_12px_rgba(0,0,0,0.1)] hover:border-white/40 group"
                     aria-label="Profile"
                   >
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <circle cx="12" cy="8" r="4" />
-                      <path d="M4 20c0-4 3.5-7 8-7s8 3 8 7" />
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.2)] group-hover:scale-110 transition-transform">
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
                     </svg>
                   </Link>
                 </div>
@@ -398,7 +417,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
           )}
 
           {/* Scrollable Main Content */}
-          <main ref={mainRef} className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide pb-24 md:pb-8 bg-transparent" style={{ background: 'transparent' }}>
+          <main id="app-main-scroll" ref={mainRef} className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide pb-24 md:pb-8 bg-transparent" style={{ background: 'transparent' }}>
             <AnimatePresence mode="wait" initial={false}>
               <motion.div
                 key={location.pathname}
@@ -449,239 +468,99 @@ export default function AppLayout({ children }: AppLayoutProps) {
           {/* Fixed Bottom Navigation - Mobile Only, Hidden on checkout pages */}
           {showFooter && (
             <nav
-              className="fixed bottom-0 left-0 right-0 bg-white border-t border-neutral-200/10 shadow-[0_-2px_4px_rgba(0,0,0,0.05)] z-50 md:hidden"
+              className="fixed bottom-0 left-0 right-0 z-50 md:hidden"
+              style={{
+                background: '#ffffff',
+                borderTop: '1px solid rgba(0,0,0,0.06)',
+                boxShadow: '0 -4px 12px rgba(0,0,0,0.06)',
+                backdropFilter: 'blur(10px)'
+              }}
             >
-              <div className="flex justify-around items-center h-16">
-                {/* Home */}
+              <div className="grid grid-cols-4 items-center px-1.5 py-2">
                 <motion.div
+                  animate={{ scale: isActive('/') ? 1.05 : 1 }}
                   whileTap={{ scale: 0.95 }}
-                  transition={{ duration: 0.1 }}
-                  className="flex-1 h-full"
+                  transition={{ type: "spring", stiffness: 400, damping: 17 }}
                 >
                   <Link
                     to="/"
-                    className="flex flex-col items-center justify-center h-full relative"
+                    className={`flex min-h-[44px] flex-col items-center justify-center gap-1 rounded-xl py-1.5 transition-all duration-200 ease-out ${isActive('/') ? 'text-[#0a193b]' : 'text-[#64748b]'}`}
                   >
-                    <div className="flex flex-col items-center justify-center relative z-10">
-                      <motion.svg
-                        width="24"
-                        height="24"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                        animate={isActive('/') ? {
-                          scale: [1, 1.1, 1],
-                          y: [0, -2, 0]
-                        } : {}}
-                        transition={{
-                          duration: 0.4,
-                          ease: "easeInOut",
-                          repeat: isActive('/') ? Infinity : 0,
-                          repeatDelay: 2
-                        }}
-                      >
-                        {isActive('/') ? (
-                          <>
-                            {/* Roof */}
-                            <path d="M2 12L12 4L22 12" stroke="#1f2937" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="#22c55e" />
-                            {/* House body */}
-                            <rect x="4" y="12" width="16" height="8" fill="#22c55e" stroke="#1f2937" strokeWidth="2" strokeLinejoin="round" />
-                            {/* Chimney */}
-                            <rect x="15" y="5" width="4" height="5" fill="#1f2937" stroke="#1f2937" strokeWidth="2" />
-                            {/* Door */}
-                            <rect x="8" y="15" width="4" height="5" fill="#1f2937" />
-                          </>
-                        ) : (
-                          <>
-                            {/* Roof */}
-                            <path d="M2 12L12 4L22 12" stroke="#4b5563" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-                            {/* House body */}
-                            <rect x="4" y="12" width="16" height="8" stroke="#4b5563" strokeWidth="2" strokeLinejoin="round" fill="none" />
-                            {/* Chimney */}
-                            <rect x="15" y="5" width="4" height="5" stroke="#4b5563" strokeWidth="2" fill="none" />
-                            {/* Door */}
-                            <rect x="8" y="15" width="4" height="5" stroke="#4b5563" strokeWidth="2" fill="none" />
-                          </>
-                        )}
-                      </motion.svg>
+                    <div className={`rounded-[10px] p-1.5 transition-all duration-200 ease-out ${isActive('/') ? 'bg-[rgba(10,25,59,0.08)]' : 'bg-transparent'}`}>
+                      <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M3 10.5L12 3l9 7.5" />
+                        <path d="M5 9.8V20h14V9.8" />
+                        <path d="M10 20v-5h4v5" />
+                      </svg>
                     </div>
-                    <span className={`text-xs mt-0.5 relative z-10 ${isActive('/') ? 'font-medium text-neutral-700' : 'font-medium text-neutral-600'}`}>
+                    <span className={`text-[11px] leading-none transition-colors duration-200 ${isActive('/') ? 'font-medium text-[#0a193b]' : 'font-normal text-[#64748b]'}`}>
                       Home
                     </span>
                   </Link>
                 </motion.div>
 
-                {/* Order Again */}
                 <motion.div
+                  animate={{ scale: isActive('/order-again') ? 1.05 : 1 }}
                   whileTap={{ scale: 0.95 }}
-                  transition={{ duration: 0.1 }}
-                  className="flex-1 h-full"
+                  transition={{ type: "spring", stiffness: 400, damping: 17 }}
                 >
                   <Link
                     to="/order-again"
-                    className="flex flex-col items-center justify-center h-full relative"
+                    className={`flex min-h-[44px] flex-col items-center justify-center gap-1 rounded-xl py-1.5 transition-all duration-200 ease-out ${isActive('/order-again') ? 'text-[#0a193b]' : 'text-[#64748b]'}`}
                   >
-                    <div className="flex flex-col items-center justify-center relative z-10">
-                      <motion.svg
-                        width="24"
-                        height="24"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                        animate={isActive('/order-again') ? {
-                          scale: [1, 1.1, 1],
-                          y: [0, -2, 0]
-                        } : {}}
-                        transition={{
-                          duration: 0.4,
-                          ease: "easeInOut",
-                          repeat: isActive('/order-again') ? Infinity : 0,
-                          repeatDelay: 2
-                        }}
-                      >
-                        {isActive('/order-again') ? (
-                          <>
-                            {/* Shopping bag body */}
-                            <path d="M5 8V6C5 4.34315 6.34315 3 8 3H16C17.6569 3 19 4.34315 19 6V8H21C21.5523 8 22 8.44772 22 9V20C22 20.5523 21.5523 21 21 21H3C2.44772 21 2 20.5523 2 20V9C2 8.44772 2.44772 8 3 8H5Z" fill="#22c55e" stroke="#1f2937" strokeWidth="2" strokeLinejoin="round" />
-                            {/* Handles */}
-                            <path d="M7 8V6C7 5.44772 7.44772 5 8 5H16C16.5523 5 17 5.44772 17 6V8" stroke="#1f2937" strokeWidth="2" strokeLinecap="round" fill="none" />
-                          </>
-                        ) : (
-                          <>
-                            {/* Shopping bag body */}
-                            <path d="M5 8V6C5 4.34315 6.34315 3 8 3H16C17.6569 3 19 4.34315 19 6V8H21C21.5523 8 22 8.44772 22 9V20C22 20.5523 21.5523 21 21 21H3C2.44772 21 2 20.5523 2 20V9C2 8.44772 2.44772 8 3 8H5Z" stroke="#4b5563" strokeWidth="2" strokeLinejoin="round" fill="none" />
-                            {/* Handles */}
-                            <path d="M7 8V6C7 5.44772 7.44772 5 8 5H16C16.5523 5 17 5.44772 17 6V8" stroke="#4b5563" strokeWidth="2" strokeLinecap="round" fill="none" />
-                          </>
-                        )}
-                        {/* Heart inside basket - grows when active, shrinks when inactive */}
-                        <AnimatePresence>
-                          {isActive('/order-again') && (
-                            <motion.path
-                              key="heart"
-                              d="M12 17C11.5 16.5 8 13.5 8 11.5C8 10 9 9 10.5 9C11.2 9 11.8 9.3 12 9.7C12.2 9.3 12.8 9 13.5 9C15 9 16 10 16 11.5C16 13.5 12.5 16.5 12 17Z"
-                              fill="#1f2937"
-                              initial={{ scale: 0, opacity: 0 }}
-                              animate={{ scale: 1, opacity: 1 }}
-                              exit={{ scale: 0, opacity: 0 }}
-                              transition={{ duration: 0.3, ease: "easeOut" }}
-                            />
-                          )}
-                        </AnimatePresence>
-                      </motion.svg>
+                    <div className={`rounded-[10px] p-1.5 transition-all duration-200 ease-out ${isActive('/order-again') ? 'bg-[rgba(10,25,59,0.08)]' : 'bg-transparent'}`}>
+                      <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M6 8h12l-1 11H7L6 8Z" />
+                        <path d="M9 8V6a3 3 0 0 1 6 0v2" />
+                      </svg>
                     </div>
-                    <span className={`text-xs mt-0.5 relative z-10 ${isActive('/order-again') ? 'font-medium text-neutral-700' : 'font-medium text-neutral-600'}`}>
+                    <span className={`text-[11px] leading-none transition-colors duration-200 ${isActive('/order-again') ? 'font-medium text-[#0a193b]' : 'font-normal text-[#64748b]'}`}>
                       Order Again
                     </span>
                   </Link>
                 </motion.div>
 
-                {/* Categories */}
                 <motion.div
+                  animate={{ scale: (isActive('/categories') || location.pathname.startsWith('/category/')) ? 1.05 : 1 }}
                   whileTap={{ scale: 0.95 }}
-                  transition={{ duration: 0.1 }}
-                  className="flex-1 h-full"
+                  transition={{ type: "spring", stiffness: 400, damping: 17 }}
                 >
                   <Link
                     to="/categories"
-                    className="flex flex-col items-center justify-center h-full relative"
+                    className={`flex min-h-[44px] flex-col items-center justify-center gap-1 rounded-xl py-1.5 transition-all duration-200 ease-out ${(isActive('/categories') || location.pathname.startsWith('/category/')) ? 'text-[#0a193b]' : 'text-[#64748b]'}`}
                   >
-                    <div className="flex flex-col items-center justify-center relative z-10">
-                      <motion.svg
-                        width="24"
-                        height="24"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                        animate={{
-                          rotate: categoriesRotation
-                        }}
-                        transition={{
-                          duration: 0.5,
-                          ease: "easeInOut"
-                        }}
-                        style={{ transformOrigin: 'center' }}
-                      >
-                        {(isActive('/categories') || location.pathname.startsWith('/category/')) ? (
-                          <>
-                            {/* Top-left and bottom-right are black when active */}
-                            <circle cx="7" cy="7" r="2.5" fill="#1f2937" stroke="#1f2937" strokeWidth="2" />
-                            <circle cx="17" cy="7" r="2.5" fill="#22c55e" stroke="#1f2937" strokeWidth="2" />
-                            <circle cx="7" cy="17" r="2.5" fill="#22c55e" stroke="#1f2937" strokeWidth="2" />
-                            <circle cx="17" cy="17" r="2.5" fill="#1f2937" stroke="#1f2937" strokeWidth="2" />
-                          </>
-                        ) : (
-                          <>
-                            <circle cx="7" cy="7" r="2.5" stroke="#4b5563" strokeWidth="2" fill="none" />
-                            <circle cx="17" cy="7" r="2.5" stroke="#4b5563" strokeWidth="2" fill="none" />
-                            <circle cx="7" cy="17" r="2.5" stroke="#4b5563" strokeWidth="2" fill="none" />
-                            <circle cx="17" cy="17" r="2.5" stroke="#4b5563" strokeWidth="2" fill="none" />
-                          </>
-                        )}
-                      </motion.svg>
+                    <div className={`rounded-[10px] p-1.5 transition-all duration-200 ease-out ${(isActive('/categories') || location.pathname.startsWith('/category/')) ? 'bg-[rgba(10,25,59,0.08)]' : 'bg-transparent'}`}>
+                      <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="4" y="4" width="6" height="6" rx="1.5" />
+                        <rect x="14" y="4" width="6" height="6" rx="1.5" />
+                        <rect x="4" y="14" width="6" height="6" rx="1.5" />
+                        <rect x="14" y="14" width="6" height="6" rx="1.5" />
+                      </svg>
                     </div>
-                    <span className={`text-xs mt-0.5 relative z-10 ${(isActive('/categories') || location.pathname.startsWith('/category/')) ? 'font-medium text-neutral-700' : 'font-medium text-neutral-600'}`}>
+                    <span className={`text-[11px] leading-none transition-colors duration-200 ${(isActive('/categories') || location.pathname.startsWith('/category/')) ? 'font-medium text-[#0a193b]' : 'font-normal text-[#64748b]'}`}>
                       Categories
                     </span>
                   </Link>
                 </motion.div>
 
-                {/* Subscription - last (niche) */}
                 <motion.div
+                  animate={{ scale: isActive('/subscription') ? 1.05 : 1 }}
                   whileTap={{ scale: 0.95 }}
-                  transition={{ duration: 0.1 }}
-                  className="flex-1 h-full"
+                  transition={{ type: "spring", stiffness: 400, damping: 17 }}
                 >
                   <Link
                     to="/subscription"
-                    className="flex flex-col items-center justify-center h-full relative"
+                    className={`flex min-h-[44px] flex-col items-center justify-center gap-1 rounded-xl py-1.5 transition-all duration-200 ease-out ${isActive('/subscription') ? 'text-[#0a193b]' : 'text-[#64748b]'}`}
                   >
-                    <div className="flex flex-col items-center justify-center relative z-10">
-                      <motion.svg
-                        width="24"
-                        height="24"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                        animate={isActive('/subscription') ? {
-                          scale: [1, 1.05, 1]
-                        } : {}}
-                        transition={{
-                          duration: 0.5,
-                          ease: "easeInOut",
-                          repeat: isActive('/subscription') ? Infinity : 0,
-                          repeatDelay: 1.5
-                        }}
-                      >
-                        {isActive('/subscription') ? (
-                          <>
-                            <path
-                              d="M19 8H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V10a2 2 0 0 0-2-2z"
-                              fill="#059669"
-                              stroke="#1f2937"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                            <polyline points="8 2 12 6 8 10" stroke="#1f2937" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-                            <line x1="12" y1="6" x2="16" y2="6" stroke="#1f2937" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                          </>
-                        ) : (
-                          <>
-                            <path
-                              d="M19 8H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V10a2 2 0 0 0-2-2z"
-                              stroke="#4b5563"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                            <polyline points="8 2 12 6 8 10" stroke="#4b5563" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                            <line x1="12" y1="6" x2="16" y2="6" stroke="#4b5563" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                          </>
-                        )}
-                      </motion.svg>
+                    <div className={`rounded-[10px] p-1.5 transition-all duration-200 ease-out ${isActive('/subscription') ? 'bg-[rgba(10,25,59,0.08)]' : 'bg-transparent'}`}>
+                      <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="3.5" y="6.5" width="17" height="13.5" rx="2.5" />
+                        <path d="M8.5 4v5" />
+                        <path d="M15.5 4v5" />
+                        <path d="M3.5 10.5h17" />
+                      </svg>
                     </div>
-                    <span className={`text-xs mt-0.5 relative z-10 ${isActive('/subscription') ? 'font-medium text-neutral-700' : 'font-medium text-neutral-600'}`}>
+                    <span className={`text-[11px] leading-none transition-colors duration-200 ${isActive('/subscription') ? 'font-medium text-[#0a193b]' : 'font-normal text-[#64748b]'}`}>
                       Subscription
                     </span>
                   </Link>
@@ -694,4 +573,6 @@ export default function AppLayout({ children }: AppLayoutProps) {
     </HomeBackground>
   );
 }
+
+
 

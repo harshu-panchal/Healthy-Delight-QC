@@ -316,8 +316,8 @@ export default function AdminSystemUser() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full">
           {/* Left Panel: Add System User */}
           <div className="bg-white rounded-lg shadow-sm border border-neutral-200 flex flex-col">
-            <div className="bg-primary border-primary text-neutral-900 px-6 py-4 rounded-t-lg">
-              <h2 className="text-lg font-semibold">Add System User</h2>
+            <div className="bg-neutral-50 border-b border-neutral-200 px-6 py-4 rounded-t-lg">
+              <h2 className="text-lg font-semibold text-neutral-800">Add System User</h2>
             </div>
             
             {/* Error Message */}
@@ -470,7 +470,7 @@ export default function AdminSystemUser() {
                     <button
                       onClick={handleAddSystemUser}
                       disabled={loading}
-                      className="flex-1 bg-primary border-primary text-neutral-900 hover:bg-neutral-900 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed py-2.5 rounded text-sm font-medium transition-colors"
+                      className="flex-1 bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white disabled:opacity-50 disabled:cursor-not-allowed py-2.5 rounded text-sm font-medium transition-all active:scale-95"
                     >
                       {loading ? 'Updating...' : 'Update System User'}
                     </button>
@@ -486,7 +486,7 @@ export default function AdminSystemUser() {
                   <button
                     onClick={handleAddSystemUser}
                     disabled={loading}
-                    className="w-full bg-primary border-primary text-neutral-900 hover:bg-neutral-900 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed py-2.5 rounded text-sm font-medium transition-colors"
+                    className="w-full bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white disabled:opacity-50 disabled:cursor-not-allowed py-2.5 rounded text-sm font-medium transition-all active:scale-95"
                   >
                     {loading ? 'Adding...' : 'Add System User'}
                   </button>
@@ -497,8 +497,8 @@ export default function AdminSystemUser() {
 
           {/* Right Panel: View System User */}
           <div className="bg-white rounded-lg shadow-sm border border-neutral-200 flex flex-col">
-            <div className="bg-primary border-primary text-neutral-900 px-6 py-4 rounded-t-lg">
-              <h2 className="text-lg font-semibold">View System User</h2>
+            <div className="bg-neutral-50 border-b border-neutral-200 px-6 py-4 rounded-t-lg">
+              <h2 className="text-lg font-semibold text-neutral-800">View System User</h2>
             </div>
             <div className="p-6 flex-1 flex flex-col">
               {/* Search and Entries Per Page */}

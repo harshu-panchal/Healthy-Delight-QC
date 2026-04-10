@@ -201,17 +201,17 @@ export default function AdminUsers() {
                 {/* Main Panel */}
                 <div className="bg-white rounded-lg shadow-sm border border-neutral-200">
                     {/* Header */}
-                    <div className="bg-primary border-primary text-neutral-900 px-6 py-4 rounded-t-lg flex justify-between items-center">
-                        <h2 className="text-lg font-semibold">View Users</h2>
+                    <div className="bg-neutral-50 border-b border-neutral-200 px-6 py-4 rounded-t-lg flex justify-between items-center">
+                        <h2 className="text-lg font-semibold text-neutral-800">View Users</h2>
                         <div className="flex items-center gap-2">
-                            <span className="text-sm">Show</span>
+                            <span className="text-sm text-neutral-600">Show</span>
                             <select
                                 value={entriesPerPage}
                                 onChange={(e) => {
                                     setEntriesPerPage(Number(e.target.value));
                                     setCurrentPage(1);
                                 }}
-                                className="bg-white text-primary border border-primary-300 rounded py-1 px-2 text-sm focus:ring-1 focus:ring-primary focus:outline-none cursor-pointer"
+                                className="bg-white border border-neutral-300 rounded py-1 px-2 text-sm focus:ring-1 focus:ring-primary focus:outline-none cursor-pointer text-neutral-800"
                             >
                                 <option value={10}>10</option>
                                 <option value={20}>20</option>
@@ -420,8 +420,8 @@ export default function AdminUsers() {
                                     <button
                                         key={pageNum}
                                         onClick={() => setCurrentPage(pageNum)}
-                                        className={`px-3 py-1.5 border border-neutral-800 rounded font-medium text-sm ${currentPage === pageNum
-                                            ? 'bg-primary border-primary text-neutral-900'
+                                        className={`px-3 py-1.5 border border-neutral-800 rounded font-medium text-sm transition-all active:scale-95 ${currentPage === pageNum
+                                            ? 'bg-primary border-primary text-white'
                                             : 'text-primary hover:bg-cream'
                                             }`}
                                     >

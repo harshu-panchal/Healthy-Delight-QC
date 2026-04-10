@@ -183,8 +183,8 @@ export default function AdminPaymentList() {
               key={method._id}
               className="bg-white rounded-lg shadow-sm border border-neutral-200 overflow-hidden">
               {/* Header */}
-              <div className="bg-primary border-primary text-neutral-900 px-4 sm:px-6 py-3">
-                <h2 className="text-white text-lg font-semibold">
+              <div className="bg-neutral-50 border-b border-neutral-200 px-4 sm:px-6 py-3 font-semibold text-neutral-800">
+                <h2 className="text-base sm:text-lg font-semibold">
                   {method.name}
                 </h2>
               </div>
@@ -267,10 +267,14 @@ export default function AdminPaymentList() {
                 <button
                   onClick={() => handleUpdatePaymentMethod(method._id)}
                   disabled={updating === method._id}
-                  className="w-full bg-primary border-primary text-neutral-900 hover:bg-neutral-900 hover:text-white disabled:bg-neutral-400 disabled:cursor-not-allowed px-4 py-2.5 rounded text-sm font-medium transition-colors flex items-center justify-center">
+                  className={`w-full py-2.5 rounded text-sm font-semibold transition-all shadow-sm flex items-center justify-center ${
+                    updating === method._id
+                      ? "bg-neutral-100 border-2 border-neutral-200 text-neutral-400 cursor-not-allowed"
+                      : "bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white active:scale-95"
+                  }`}>
                   {updating === method._id ? (
                     <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2"></div>
                       Updating...
                     </>
                   ) : (

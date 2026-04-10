@@ -421,7 +421,7 @@ export default function AdminDashboard() {
           <p className="text-neutral-600 mb-4">{error}</p>
           <button
             onClick={() => window.location.reload()}
-            className="bg-primary border-primary text-neutral-900 hover:bg-neutral-900 hover:text-white px-4 py-2 rounded-lg transition-colors">
+            className="bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white px-4 py-2 rounded-lg transition-all active:scale-95 font-medium">
             Retry
           </button>
         </div>
@@ -603,8 +603,8 @@ export default function AdminDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         {/* View New Orders Table */}
         <div className="bg-white rounded-lg shadow-sm border border-neutral-200 overflow-hidden">
-          <div className="bg-primary border-primary text-neutral-900 px-4 sm:px-6 py-3">
-            <h2 className="text-base sm:text-lg font-semibold">
+          <div className="bg-neutral-50 border-b border-neutral-200 px-4 sm:px-6 py-3">
+            <h2 className="text-base sm:text-lg font-semibold text-neutral-800">
               View New Orders
             </h2>
           </div>
@@ -747,7 +747,7 @@ export default function AdminDashboard() {
                       </td>
                       <td className="px-4 sm:px-6 py-3">
                         <button
-                          className="bg-primary border-primary text-neutral-900 hover:bg-neutral-900 text-white p-2 rounded transition-colors"
+                          className="bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white p-1.5 rounded transition-all active:scale-95"
                           aria-label="View order">
                           <svg
                             width="16"
@@ -846,8 +846,8 @@ export default function AdminDashboard() {
 
         {/* View Top Seller Table */}
         <div className="bg-white rounded-lg shadow-sm border border-neutral-200 overflow-hidden">
-          <div className="bg-primary border-primary text-neutral-900 px-4 sm:px-6 py-3">
-            <h2 className="text-base sm:text-lg font-semibold">
+          <div className="bg-neutral-50 border-b border-neutral-200 px-4 sm:px-6 py-3">
+            <h2 className="text-base sm:text-lg font-semibold text-neutral-800">
               View Top Seller
             </h2>
           </div>
@@ -950,7 +950,7 @@ export default function AdminDashboard() {
                       </td>
                       <td className="px-4 sm:px-6 py-3">
                         <button
-                          className="bg-primary border-primary text-neutral-900 hover:bg-neutral-900 text-white p-2 rounded transition-colors"
+                          className="bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white p-1.5 rounded transition-all active:scale-95"
                           aria-label="View seller">
                           <svg
                             width="16"

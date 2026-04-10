@@ -12,104 +12,63 @@ interface Banner {
 
 interface HomeBannerCarouselProps {
   banners: Banner[];
+  loading?: boolean;
 }
 
-const HomeBannerCarousel = ({ banners }: HomeBannerCarouselProps) => {
+const SkeletonBanner = () => (
+  <div className="w-full px-4 md:px-6 lg:px-8 my-4 md:my-5">
+    <div className="relative overflow-hidden rounded-[24px] aspect-[16/9] md:aspect-[3/1] bg-neutral-100">
+      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer" />
+    </div>
+  </div>
+);
+
+const HomeBannerCarousel = ({ banners, loading = false }: HomeBannerCarouselProps) => {
   const [currentSlide, setCurrentSlide] = useState(0);
 
   useEffect(() => {
-    if (banners.length <= 1) return;
+    if (!banners || banners.length <= 1) return;
 
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % banners.length);
-    }, 5000);
+    }, 3500);
 
     return () => clearInterval(timer);
-  }, [banners.length]);
+  }, [banners?.length]);
 
+  if (loading) return <SkeletonBanner />;
   if (!banners || banners.length === 0) return null;
 
   return (
-    <div className="w-full px-4 md:px-6 lg:px-8 mt-4 md:mt-6">
-      <div className="relative overflow-hidden rounded-2xl aspect-[21/9] md:aspect-[3/1] lg:aspect-[4/1] bg-neutral-100">
-        <AnimatePresence mode="wait">
+    <div className="w-full px-4 md:px-6 lg:px-8 mt-4 md:mt-4 mb-5 md:mb-6">
+      <div className="group relative overflow-hidden rounded-[24px] aspect-[16/9] md:aspect-[3/1] bg-neutral-100 shadow-[0_8px_24px_rgba(0,0,0,0.12)] transition-all duration-300 hover:scale-[1.01] hover:shadow-[0_12px_32px_rgba(0,0,0,0.16)]">
+        <AnimatePresence initial={false}>
           <motion.div
             key={currentSlide}
-            initial={{ opacity: 0, x: 100 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -100 }}
-            transition={{ duration: 0.5, ease: "easeInOut" }}
-            className="absolute inset-0">
+            initial={{ x: "100%" }}
+            animate={{ x: 0 }}
+            exit={{ x: "-100%" }}
+            transition={{ duration: 0.5, ease: [0.4, 0, 0.2, 1] }}
+            className="absolute inset-0 z-10">
             <Link
               to={banners[currentSlide].link}
-              className="block w-full h-full">
+              className="block w-full h-full relative">
               <img
                 src={banners[currentSlide].image}
                 alt={banners[currentSlide].title}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
+              
+              {/* Premium Navy-Tinted Overlay */}
+              <div 
+                className="absolute inset-0 transition-opacity duration-300 pointer-events-none"
+                style={{ 
+                  background: 'linear-gradient(180deg, rgba(10, 25, 59, 0.15) 0%, rgba(10, 25, 59, 0.45) 100%)' 
+                }}
+              />
             </Link>
           </motion.div>
         </AnimatePresence>
-
-        {/* Navigation Dots */}
-        {banners.length > 1 && (
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
-            {banners.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => setCurrentSlide(index)}
-                className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                  index === currentSlide ? "bg-white w-6" : "bg-white/50"
-                }`}
-                aria-label={`Go to slide ${index + 1}`}
-              />
-            ))}
-          </div>
-        )}
-
-        {/* Navigation Arrows (Desktop Only) */}
-        {banners.length > 1 && (
-          <>
-            <button
-              onClick={() =>
-                setCurrentSlide(
-                  (prev) => (prev - 1 + banners.length) % banners.length,
-                )
-              }
-              className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white hover:bg-white/40 transition-colors z-10 hidden md:flex">
-              <svg
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round">
-                <path d="M15 18l-6-6 6-6" />
-              </svg>
-            </button>
-            <button
-              onClick={() =>
-                setCurrentSlide((prev) => (prev + 1) % banners.length)
-              }
-              className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white hover:bg-white/40 transition-colors z-10 hidden md:flex">
-              <svg
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round">
-                <path d="M9 18l6-6-6-6" />
-              </svg>
-            </button>
-          </>
-        )}
       </div>
     </div>
   );

@@ -117,17 +117,17 @@ export default function DeliveryLogin() {
           style={{
             borderColor: "#a7f3d0",
           }}>
-          <div className="mb-0 -mt-6 sm:-mt-4">
+          <div className="py-2">
             <img
-              src="/assets/kosil1.png"
+              src="/assets/logo.png"
               alt="Healthy Delight"
-              className="h-28 sm:h-36 w-full max-w-[180px] sm:max-w-xs mx-auto object-contain object-bottom"
+              className="h-16 sm:h-20 w-auto mx-auto object-contain"
             />
           </div>
-          <h1 className="text-xl sm:text-2xl font-bold text-emerald-900 mb-1 -mt-6 sm:-mt-10">
+          <h1 className="text-xl sm:text-2xl font-bold text-emerald-900 mb-1">
             Delivery Login
           </h1>
-          <p className="text-emerald-700 text-xs sm:text-sm -mt-1 sm:-mt-2">
+          <p className="text-emerald-700 text-xs sm:text-sm">
             Access your delivery dashboard
           </p>
         </div>

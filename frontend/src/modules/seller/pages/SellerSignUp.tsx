@@ -49,6 +49,19 @@ export default function SellerSignUp() {
         ...prev,
         [name]: value.replace(/\D/g, "").slice(0, 10),
       }));
+    } else if (name === "sellerName" || name === "city") {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value.replace(/[^a-zA-Z\s]/g, ""),
+      }));
+    } else if (name === "panCard" || name === "ifsc") {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value
+          .replace(/[^a-zA-Z0-9]/g, "")
+          .toUpperCase()
+          .slice(0, name === "ifsc" ? 11 : 10),
+      }));
     } else if (name === "serviceRadiusKm") {
       // Allow only numbers and a single decimal point
       const cleanedValue = value.replace(/[^0-9.]/g, "");
@@ -74,43 +87,54 @@ export default function SellerSignUp() {
 
     // Validate required fields (password removed - not needed during signup)
     if (!formData.sellerName) {
-      setError("Please enter your name");
+      setError("Full Name cannot be empty");
       return;
     }
     if (!formData.mobile) {
-      setError("Please enter your mobile number");
+      setError("Mobile Number cannot be empty");
       return;
     }
     if (!formData.email) {
-      setError("Please enter your email address");
+      setError("Email Address cannot be empty");
+      return;
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      setError("Please enter a valid email address (e.g., username@domain.com)");
       return;
     }
     if (!formData.storeName) {
-      setError("Please enter your store name");
+      setError("Store Name cannot be empty");
       return;
     }
     if (!formData.panCard) {
-      setError("Please enter your PAN card number");
+      setError("PAN Card cannot be empty");
       return;
     }
     if (!formData.taxName) {
-      setError("Please enter your tax name");
+      setError("Tax Name cannot be empty");
       return;
     }
     if (!formData.taxNumber) {
-      setError("Please enter your tax number");
+      setError("Tax Number cannot be empty");
       return;
     }
     if (!formData.ifsc) {
-      setError("Please enter your IFSC code");
+      setError("IFSC Code cannot be empty");
+      return;
+    }
+    if (formData.ifsc.length !== 11) {
+      setError("IFSC Code must be exactly 11 characters");
       return;
     }
     if (!formData.address && !formData.searchLocation) {
-      setError("Please select your store location");
+      setError("Store Location cannot be empty");
       return;
     }
     if (!formData.city) {
-      setError("Please enter your city");
+      setError("City cannot be empty");
       return;
     }
 
@@ -134,6 +158,10 @@ export default function SellerSignUp() {
       }
 
       // Validate service radius
+      if (!formData.serviceRadiusKm) {
+        setError("Service Radius cannot be empty");
+        return;
+      }
       const radius = parseFloat(formData.serviceRadiusKm);
       if (isNaN(radius) || radius < 0.1 || radius > 100) {
         setError("Service radius must be between 0.1 and 100 kilometers");
@@ -242,17 +270,10 @@ export default function SellerSignUp() {
             backgroundColor: "#ffffff", // clean card top
             borderColor: "#e5d4ff",    // soft lavender border
           }}>
-          <div className="mb-0 -mt-4">
-            <img
-              src="/assets/kosil1.png"
-              alt="Healthy Delight"
-              className="h-44 w-full max-w-xs mx-auto object-fill object-bottom"
-            />
-          </div>
-          <h1 className="text-2xl font-bold text-[#4b3f72] mb-1 -mt-12">
+          <h1 className="text-2xl font-bold text-[#4b3f72] mb-1">
             Seller Sign Up
           </h1>
-          <p className="text-[#7a5ea5] text-sm -mt-2">
+          <p className="text-[#7a5ea5] text-sm">
             Create your seller account
           </p>
         </div>
@@ -275,9 +296,7 @@ export default function SellerSignUp() {
             <form onSubmit={handleSubmit} className="space-y-4">
               {/* Required Fields Section */}
               <div className="space-y-4">
-                <h3 className="text-sm font-semibold text-neutral-700 border-b pb-2">
-                  Required Information
-                </h3>
+
 
                 <div>
                   <label className="block text-sm font-medium text-neutral-700 mb-2">
@@ -524,10 +543,8 @@ export default function SellerSignUp() {
               </div>
 
               {/* Optional Fields Section */}
-              <div className="space-y-4 pt-4 border-t">
-                <h3 className="text-sm font-semibold text-neutral-700 border-b pb-2">
-                  Optional Information
-                </h3>
+              <div className="space-y-4 pt-4">
+
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
@@ -541,6 +558,7 @@ export default function SellerSignUp() {
                       onChange={handleInputChange}
                       placeholder="PAN Card Number"
                       required
+                      maxLength={10}
                       className="w-full px-3 py-2.5 text-sm border border-neutral-300 rounded-lg focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary-200"
                       disabled={loading}
                     />
@@ -589,6 +607,7 @@ export default function SellerSignUp() {
                       onChange={handleInputChange}
                       placeholder="IFSC Code"
                       required
+                      maxLength={11}
                       className="w-full px-3 py-2.5 text-sm border border-neutral-300 rounded-lg focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary-200"
                       disabled={loading}
                     />
@@ -607,8 +626,8 @@ export default function SellerSignUp() {
                 disabled={loading}
                 className={`w-full py-2.5 rounded-lg font-semibold text-sm transition-colors ${
                   !loading
-                    ? "bg-primary border-primary text-neutral-900 hover:bg-neutral-900 shadow-md"
-                    : "bg-neutral-300 text-neutral-500 cursor-not-allowed"
+                    ? "bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white shadow-md active:scale-95"
+                    : "bg-neutral-100 text-neutral-400 border border-neutral-200 cursor-not-allowed"
                 }`}>
                 {loading ? "Creating Account..." : "Sign Up"}
               </button>
@@ -671,7 +690,7 @@ export default function SellerSignUp() {
                     }
                   }}
                   disabled={loading}
-                  className="flex-1 py-2.5 rounded-lg font-semibold text-sm bg-primary border-primary text-neutral-900 hover:bg-neutral-900 transition-colors">
+                  className="flex-1 py-2.5 rounded-lg font-semibold text-sm bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white transition-all active:scale-95 shadow-sm">
                   {loading ? "Sending..." : "Resend OTP"}
                 </button>
               </div>

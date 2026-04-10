@@ -85,9 +85,13 @@ const SellerAccountSettings = () => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
+    let filteredValue = value;
+    if (name === 'sellerName' || name === 'accountName') {
+      filteredValue = value.replace(/[^a-zA-Z\s]/g, "");
+    }
     setSellerData(prev => ({
       ...prev,
-      [name]: value
+      [name]: filteredValue
     }));
   };
 
@@ -210,7 +214,7 @@ const SellerAccountSettings = () => {
               onClick={() => setIsEditing(!isEditing)}
               className={`px-5 py-2.5 rounded-lg font-medium text-sm transition-all duration-200 shadow-sm flex items-center gap-2 ${isEditing
                 ? 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200'
-                : 'bg-primary border-primary text-neutral-900 hover:bg-neutral-900 hover:shadow-md'
+                : 'bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white hover:shadow-md'
                 }`}
             >
               {isEditing ? (
@@ -568,7 +572,7 @@ const SellerAccountSettings = () => {
                       <button
                         type="submit"
                         disabled={saveLoading}
-                        className={`px-6 py-2.5 rounded-lg text-sm font-bold text-neutral-900 bg-primary hover:bg-primary-dark shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed ${saveLoading ? 'cursor-not-allowed' : ''}`}
+                        className={`px-6 py-2.5 rounded-lg text-sm font-bold transition-all transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed !active:scale-95 shadow-md hover:shadow-lg ${saveLoading ? 'cursor-not-allowed bg-neutral-100 text-neutral-400 border border-neutral-200' : 'bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white'}`}
                       >
                         {saveLoading ? (
                           <span className="flex items-center gap-2">

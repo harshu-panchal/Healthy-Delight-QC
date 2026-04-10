@@ -1,16 +1,31 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { motion } from "framer-motion";
 import {
   getCategories,
   Category as CustomerCategory,
 } from "../../services/api/customerProductService";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation as useRouterLocation } from "react-router-dom";
+import { useLocation } from "../../hooks/useLocation";
+import logo from "../../../assets/logo.png";
 
 export default function Categories() {
+  const location = useLocation();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [categories, setCategories] = useState<CustomerCategory[]>([]);
+  const [isHeaderSolid, setIsHeaderSolid] = useState(false);
   const navigate = useNavigate();
+
+  // Scroll Listener for Dynamic Header
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollY = window.scrollY || document.documentElement.scrollTop;
+      setIsHeaderSolid(scrollY > 10);
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -69,115 +84,167 @@ export default function Categories() {
     return null; // global loader
   }
 
-  if (error && !categories.length) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] p-4 text-center bg-white">
-        <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mb-4">
-          <svg
-            className="w-10 h-10 text-red-500"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
-        </div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">
-          Oops! Something went wrong
-        </h3>
-        <p className="text-gray-600 mb-6 max-w-xs">{error}</p>
-        <button
-          onClick={() => window.location.reload()}
-          className="px-6 py-2 bg-green-600 text-white rounded-full font-medium hover:bg-green-700 transition-colors">
-          Try Refreshing
-        </button>
-      </div>
-    );
-  }
+  const { location: userLocation } = useLocation();
+  const locationPath = useRouterLocation();
+
+  // Format location display text
+  const locationDisplayText = userLocation?.address ||
+    (userLocation?.city && userLocation?.state ? `${userLocation.city}, ${userLocation.state}` :
+      (userLocation?.city || ""));
 
   return (
-    <div className="pb-4 md:pb-8 bg-transparent min-h-screen">
-      {/* Page Header - Ribbon Style */}
-      <div className="px-4 py-8 md:px-6 md:py-10 bg-transparent flex items-center justify-start -ml-4 md:-ml-6 lg:-ml-8 overflow-visible">
-        <div className="relative flex items-center">
-          {/* Subtle Ribbon Tail Wrap */}
-          <div className="absolute -left-0.5 top-full -mt-1.5 w-3 h-3 bg-[#8A6642] origin-top-right -rotate-45 -z-10 opacity-60"></div>
+    <div className="min-h-screen bg-transparent relative flex flex-col pt-[140px] md:pt-[160px]">
+      {/* Premium Home-Style Fixed Header */}
+      <header
+        className="fixed top-0 left-0 w-full z-50 transition-all duration-300"
+        style={{
+          background: isHeaderSolid
+            ? '#0a193b'
+            : 'linear-gradient(180deg, #0a193b 0%, rgba(10, 25, 59, 0.9) 30%, rgba(10, 25, 59, 0.7) 60%, rgba(10, 25, 59, 0.4) 85%, rgba(252, 250, 247, 0) 100%)',
+          boxShadow: isHeaderSolid ? "0 12px 24px rgba(0,0,0,0.12)" : "none",
+          paddingBottom: isHeaderSolid ? '8px' : '20px',
+          borderBottomLeftRadius: isHeaderSolid ? '20px' : '0px',
+          borderBottomRightRadius: isHeaderSolid ? '20px' : '0px',
+        }}
+      >
+        <div className="px-5 md:px-10 pt-5 pb-3">
+          <div className="flex items-center justify-between gap-6">
+            {/* Logo & Location Container */}
+            <div className="flex items-center gap-8 flex-1 min-w-0">
+              {/* Logo */}
+              <div className="flex items-center gap-2.5 flex-shrink-0 cursor-pointer group" onClick={() => navigate('/')}>
+                <img src={logo} alt="Healthy Delight" className="h-8 md:h-9 w-auto object-contain brightness-0 invert drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)] transition-transform group-hover:scale-105" />
+                <span className="hidden md:block text-xl font-bold tracking-tight text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.2)]">
+                  Healthy Delight
+                </span>
+              </div>
 
-          {/* Premium Glass-Brown Ribbon Body */}
-          <div className="bg-gradient-to-r from-[#8A6642] to-[#A88A68] pl-5 md:pl-7 lg:pl-10 pr-10 py-2 md:py-3 rounded-r-lg shadow-lg relative flex items-center border-y border-white/10">
-            <h1 className="text-xs md:text-sm font-bold text-white uppercase tracking-[0.25em] drop-shadow-sm">
-              All Categories
-            </h1>
+              {/* Location (Only if available) */}
+              {locationDisplayText && (
+                <div onClick={() => navigate('/account')} className="flex items-center gap-2 cursor-pointer max-w-[200px] md:max-w-md group">
+                  <div className="p-1.5 rounded-full bg-white/10 text-white/90 group-hover:bg-white/20 transition-all border border-white/20">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" strokeLinecap="round" strokeLinejoin="round" />
+                      <circle cx="12" cy="10" r="3" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </div>
+                  <div className="flex flex-col min-w-0">
+                    <span className="text-[10px] uppercase tracking-widest font-bold text-white/50 leading-none mb-0.5">Delivery to</span>
+                    <div className="flex items-center gap-1">
+                      <span className="text-sm font-bold text-white/95 truncate group-hover:text-white transition-colors">{locationDisplayText}</span>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" className="text-white/40 group-hover:text-white transition-colors">
+                        <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
 
-            {/* Elegant Minimal Notch */}
-            <div className="absolute -right-3 top-0 bottom-0 w-6 bg-[#A88A68]" style={{ clipPath: 'polygon(0 0, 100% 50%, 0 100%)' }}></div>
+            {/* Profile Button */}
+            <button
+              onClick={() => navigate('/account')}
+              className="flex-shrink-0 w-10 h-10 rounded-full bg-white/10 text-white flex items-center justify-center border border-white/20 hover:bg-white/20 transition-all shadow-lg"
+            >
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
+              </svg>
+            </button>
           </div>
         </div>
+
+        {/* Home-Style Search Bar */}
+        <div className="px-5 md:px-10 py-3">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              const input = e.currentTarget.querySelector('input') as HTMLInputElement;
+              if (input.value.trim()) navigate(`/search?q=${encodeURIComponent(input.value.trim())}`);
+            }}
+            className="w-full md:max-w-2xl md:mx-auto h-12 md:h-13 bg-white rounded-2xl flex items-center gap-4 px-5 transition-all shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-neutral-100 focus-within:ring-4 focus-within:ring-primary-500/10"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0a193b" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="opacity-70">
+              <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
+            </svg>
+            <input
+              type="text"
+              placeholder="Search for fresh categories..."
+              className="flex-1 bg-transparent border-none outline-none text-[15px] font-semibold text-neutral-800 placeholder-slate-400"
+              autoComplete="off"
+            />
+          </form>
+        </div>
+      </header>
+
+      {/* Premium Background Layer */}
+      <div className="fixed inset-0 bg-gradient-to-b from-[#f8f6f2] to-[#f6f1e6] -z-10" />
+
+      {/* Decorative Texture Overlay (Optional, keep it very subtle) */}
+      <div className="fixed inset-0 opacity-[0.03] pointer-events-none -z-5" style={{ backgroundImage: 'url("https://www.transparenttextures.com/patterns/natural-paper.png")' }}></div>
+
+      {/* Header Section */}
+      <div className="px-5 pt-4 pb-4 md:px-10 md:pt-6 md:pb-6 mt-4">
+        <h1 className="text-[18px] md:text-[22px] font-semibold text-[#0a193b] tracking-tight">
+          Categories
+        </h1>
+        <p className="text-[11px] md:text-[13px] text-neutral-500 mt-1 font-medium">
+          Choose from our curated fresh selections
+        </p>
       </div>
 
-      <div className="bg-transparent pb-6">
+      <div className="px-4 pb-12 md:px-8 lg:px-12">
         {allCategories.length > 0 ? (
-          <div className="px-4 md:px-6 lg:px-8">
-            <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-5 lg:gap-6">
-              {allCategories.map((cat, index) => (
-                <button
-                  key={cat._id}
-                  type="button"
-                  onClick={() => handleCategoryClick(cat)}
-                  className="group flex flex-col items-center relative active:scale-95 transition-transform duration-300 pb-2">
-                  {/* Completely Static Circular Icon */}
-                  <div
-                    className="w-20 h-20 md:w-24 md:h-24 aspect-square rounded-full bg-gradient-to-br from-[#E6D5C3] to-[#DFCBB7] flex items-center justify-center shadow-md border-[1.5px] border-[#8A6642] group-hover:border-[#6B4E31] relative overflow-hidden flex-shrink-0 mb-1 z-0">
+          <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-9 gap-5 md:gap-8 lg:gap-10">
+            {allCategories.map((cat) => (
+              <button
+                key={cat._id}
+                type="button"
+                onClick={() => handleCategoryClick(cat)}
+                className="group relative flex flex-col items-center p-1.5 md:p-2 bg-transparent transition-all duration-300 hover:scale-[1.1] active:scale-[0.94]"
+              >
+                {/* Modern Rounded Image Container - Even More Compact */}
+                <div className="w-full aspect-square bg-white rounded-full flex items-center justify-center overflow-hidden mb-2.5 shadow-[0_4px_12px_rgba(0,0,0,0.05)] border border-black/[0.01] transition-all duration-500 group-hover:shadow-[0_8px_24px_rgba(0,0,0,0.08)] group-hover:scale-105">
+                  {cat.image ? (
+                    <img
+                      src={cat.image}
+                      alt={cat.name}
+                      className="w-[75%] h-[75%] object-contain mix-blend-multiply drop-shadow-sm"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <span className="text-lg md:text-xl" aria-hidden="true">🛒</span>
+                  )}
+                </div>
 
-                    {/* Inner Glassy Highlight */}
-                    <div className="w-[82%] h-[82%] rounded-full bg-white/50 backdrop-blur-[1px] flex items-center justify-center overflow-hidden shadow-inner transform group-hover:scale-110 transition-transform duration-500">
-                      {cat.image ? (
-                        <img
-                          src={cat.image}
-                          alt={cat.name}
-                          className="w-[85%] h-[85%] object-contain drop-shadow-sm"
-                          loading="lazy"
-                        />
-                      ) : (
-                        <span className="text-2xl" aria-hidden="true">🥛</span>
-                      )}
-                    </div>
+                {/* Typography: Category Name - Enhanced Legibility */}
+                <span className="text-[12px] md:text-[14px] font-bold text-[#0a193b] text-center leading-tight tracking-tight transition-all duration-300 group-hover:scale-105 line-clamp-2">
+                  {cat.name}
+                </span>
+
+                {/* Subtle Action Indicator - Minimal */}
+                <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  <div className="w-3.5 h-3.5 bg-[#0a193b] rounded-full flex items-center justify-center text-white">
+                    <svg width="6" height="6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M5 12h14m-7-7l7 7-7 7" />
+                    </svg>
                   </div>
-
-                  {/* Ribbon Flag Label - Overlapping more of the bottom circle */}
-                  <div className="absolute bottom-1 left-1/2 -translate-x-1/2 w-[90%] z-10 pointer-events-none">
-                    <div className="relative group-hover:scale-105 transition-transform duration-300">
-                      {/* Ribbon Tail (Left Notch) */}
-                      <div className="absolute top-1 -left-1.5 w-3 h-3 bg-[#6B4E31] -z-10 origin-top-right -rotate-45" />
-                      {/* Ribbon Tail (Right Notch) */}
-                      <div className="absolute top-1 -right-1.5 w-3 h-3 bg-[#6B4E31] -z-10 origin-top-left rotate-45" />
-
-                      {/* Main Ribbon Body with Gradient */}
-                      <div className="bg-gradient-to-r from-[#8A6642] via-[#A68662] to-[#8A6642] px-2 py-0.5 rounded shadow-sm border border-white/10">
-                        <span className="block text-[9px] md:text-[11px] font-semibold text-white text-center line-clamp-1 leading-tight drop-shadow-sm">
-                          {cat.name}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </button>
-              ))}
-            </div>
+                </div>
+              </button>
+            ))}
           </div>
         ) : (
-          <div className="text-center py-12 md:py-16 text-neutral-500 px-4">
-            <p className="text-lg md:text-xl mb-2">No categories found</p>
-            <p className="text-sm md:text-base">
-              Please create categories from the admin panel
-            </p>
+          <div className="flex flex-col items-center justify-center py-24 text-neutral-400">
+            <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mb-6 text-3xl shadow-sm border border-black/[0.02]">
+              📦
+            </div>
+            <p className="text-lg font-medium text-[#0a193b]">No categories found</p>
+            <p className="text-[14px]">Please check back later</p>
           </div>
         )}
       </div>
     </div>
   );
 }
+
+
 

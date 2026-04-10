@@ -542,8 +542,8 @@ export const getOrderById = async (req: Request, res: Response) => {
             address: orderObj.deliveryAddress,
             // Include invoice enabled flag
             invoiceEnabled: orderObj.invoiceEnabled || false,
-            // Include customer's permanent delivery OTP
-            deliveryOtp,
+            // Include customer's permanent delivery OTP only after rider accepts
+            deliveryOtp: (order.deliveryBoy && order.deliveryBoyStatus !== 'Pending') ? deliveryOtp : undefined,
             // Map deliveryBoy to deliveryPartner for frontend
             deliveryPartner: orderObj.deliveryBoy
         };

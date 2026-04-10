@@ -104,7 +104,7 @@ export default function Signup() {
                 {/* Header with logo + animation */}
                 <div className="px-5 py-3 sm:px-6 sm:py-4 border-b bg-gradient-to-b from-amber-50 to-white border-amber-200 text-center flex flex-col items-center">
                     <img
-                        src="/assets/kosil1.png"
+                        src="/assets/logo.png"
                         alt="Healthy Delight"
                         className="h-20 sm:h-24 w-auto object-contain mb-2"
                     />
@@ -138,7 +138,7 @@ export default function Signup() {
                                     type="text"
                                     value={formData.name}
                                     onChange={(e) =>
-                                        setFormData({ ...formData, name: e.target.value })
+                                        setFormData({ ...formData, name: e.target.value.replace(/[^a-zA-Z\s]/g, "") })
                                     }
                                     placeholder="Enter your name"
                                     className="w-full px-4 py-2 sm:py-2.5 text-sm bg-white border border-neutral-300 rounded-xl focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 outline-none transition-all"

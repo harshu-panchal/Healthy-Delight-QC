@@ -104,7 +104,7 @@ export default function SellerWallet() {
         <h1 className="text-4xl font-bold mb-4">₹{balance.toFixed(2)}</h1>
         <button
           onClick={() => setShowWithdrawModal(true)}
-          className="bg-primary hover:bg-primary-dark text-neutral-900 px-6 py-2.5 rounded-lg font-semibold transition-all shadow-md"
+          className="bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white px-6 py-2.5 rounded-lg font-semibold transition-all shadow-md active:scale-95"
         >
           Request Withdrawal
         </button>
@@ -322,7 +322,7 @@ export default function SellerWallet() {
                 </button>
                 <button
                   onClick={handleWithdrawRequest}
-                  className="flex-1 bg-primary text-neutral-900 rounded-lg py-2.5 font-semibold hover:bg-primary-dark transition disabled:opacity-50"
+                  className="flex-1 bg-white border-2 border-primary text-primary rounded-lg py-2.5 font-semibold hover:bg-primary hover:text-white transition-all active:scale-95 disabled:opacity-50 disabled:bg-neutral-100 disabled:text-neutral-400 disabled:border-neutral-200"
                   disabled={isSubmitting}
                 >
                   {isSubmitting ? 'Submitting...' : 'Submit Request'}

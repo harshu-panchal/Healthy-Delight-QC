@@ -595,7 +595,7 @@ export default function AdminPromoStrip() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="flex-1 bg-primary border-primary text-neutral-900 px-4 py-2 rounded hover:bg-neutral-900 disabled:opacity-50"
+                  className="flex-1 bg-white border-2 border-primary text-primary px-4 py-2 rounded hover:bg-primary hover:text-white transition-all active:scale-95 disabled:opacity-50 font-medium"
                 >
                   {loading ? "Saving..." : editingId ? "Update" : "Create"}
                 </button>

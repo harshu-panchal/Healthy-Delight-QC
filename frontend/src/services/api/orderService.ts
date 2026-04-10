@@ -53,6 +53,7 @@ export interface OrderDetail {
   customerPhone: string;
   deliveryBoyName: string;
   deliveryBoyPhone: string;
+  deliveryBoyStatus: 'Pending' | 'Accepted' | 'Assigned' | 'Picked Up' | 'In Transit' | 'Delivered' | 'Failed';
   items: OrderItem[];
   subtotal: number;
   tax: number;

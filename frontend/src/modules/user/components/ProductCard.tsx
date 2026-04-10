@@ -201,67 +201,49 @@ export default function ProductCard({
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      whileHover={{ y: -2 }}
-      whileTap={{ scale: 0.97 }}
-      transition={{ duration: 0.2 }}
-      className={`rounded-xl shadow-sm overflow-hidden flex flex-col relative group transition-all duration-300 ${categoryStyle
-        ? 'bg-[#E6D5C3] border-[1px] border-[#8A6642] hover:bg-[#DFCBB7] hover:border-[#6B4E31]'
-        : 'bg-white border border-neutral-200 hover:shadow-md'
-        }`}
+      transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
+      className="bg-white rounded-[20px] shadow-card border border-black/[0.04] overflow-hidden flex flex-col relative group transition-all duration-300 hover-lift tap-scale"
     >
       <div
         onClick={handleCardClick}
         className="cursor-pointer flex-1 flex flex-col"
       >
-        <div className={`w-full ${compact ? 'h-32 md:h-40' : categoryStyle ? 'h-28 md:h-36' : 'h-40 md:h-48'} ${categoryStyle ? 'bg-white/40' : 'bg-neutral-100'} flex items-center justify-center overflow-hidden relative`}>
+        <div className={`w-full relative aspect-[4/3] bg-neutral-50 overflow-hidden`}>
           {product.imageUrl || product.mainImage ? (
             <img
               ref={imageRef}
               src={product.imageUrl || product.mainImage}
               alt={product.name || product.productName || 'Product'}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
               referrerPolicy="no-referrer"
               onError={(e) => {
-                // Hide broken image and show fallback
                 const target = e.target as HTMLImageElement;
                 target.style.display = 'none';
                 const parent = target.parentElement;
                 if (parent && !parent.querySelector('.fallback-icon')) {
                   const fallback = document.createElement('div');
-                  fallback.className = 'w-full h-full flex items-center justify-center bg-neutral-100 text-neutral-400 text-4xl fallback-icon';
+                  fallback.className = 'w-full h-full flex items-center justify-center bg-neutral-50 text-neutral-300 text-3xl font-bold fallback-icon';
                   fallback.textContent = (product.name || product.productName || '?').charAt(0).toUpperCase();
                   parent.appendChild(fallback);
                 }
               }}
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center bg-neutral-100 text-neutral-400 text-4xl">
+            <div className="w-full h-full flex items-center justify-center bg-neutral-50 text-neutral-300 text-3xl font-bold">
               {(product.name || product.productName || '?').charAt(0).toUpperCase()}
             </div>
           )}
+          
+          {/* Subtle Image Overlay for Depth */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/[0.08] via-transparent to-transparent opacity-60 pointer-events-none"></div>
 
-          {categoryStyle && showBadge && discount > 0 && (
-            <div className="absolute top-2 left-2 z-10 bg-[#E6D5C3] text-[#8A6642] text-[10px] font-bold px-2 py-0.5 rounded border border-[#8A6642]/20 shadow-sm">
-              {discount}% off
+          {/* Premium Gold Discount Badge */}
+          {(showBadge && (discount > 0 || badgeText)) && (
+            <div className="absolute top-2.5 right-2.5 z-20">
+              <div className="bg-[#c5a059] text-white text-[10.5px] md:text-[11.5px] font-bold uppercase tracking-widest px-3 py-1 rounded-full shadow-[0_4px_12px_rgba(197,160,89,0.3)] border border-white/20">
+                {badgeText || `${discount}% OFF`}
+              </div>
             </div>
-          )}
-
-          {!categoryStyle && showBadge && (badgeText || discount > 0) && (
-            <Badge
-              variant="secondary"
-              className="absolute top-2 left-2 z-10 text-xs px-2 py-1 bg-[#E6D5C3] text-[#8A6642] border-[#8A6642]/20 shadow-sm"
-            >
-              {badgeText || `${discount}% OFF`}
-            </Badge>
-          )}
-
-          {showPackBadge && (
-            <Badge
-              variant="outline"
-              className="absolute top-2 right-2 z-10 text-xs px-2 py-1 font-medium"
-            >
-              {product.variations?.[0]?.value || product.pack}
-            </Badge>
           )}
 
           {showHeartIcon && (
@@ -271,16 +253,16 @@ export default function ProductCard({
                 e.stopPropagation();
                 toggleWishlist(e);
               }}
-              className={`absolute top-2 right-2 z-30 w-8 h-8 md:w-9 md:h-9 rounded-full bg-white/95 backdrop-blur-sm flex items-center justify-center hover:bg-white transition-all shadow-md group/heart ${isWishlisted ? "opacity-100 translate-x-0" : "opacity-0 translate-x-2 group-hover:opacity-100 group-hover:translate-x-0"}`}
+              className={`absolute top-2 left-2 z-30 w-8 h-8 rounded-full bg-white/95 backdrop-blur-md flex items-center justify-center transition-all shadow-md group/heart border border-black/[0.04] active:scale-90 ${isWishlisted ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}
               aria-label={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}
             >
               <svg
-                width="20"
-                height="20"
+                width="16"
+                height="16"
                 viewBox="0 0 24 24"
                 fill={isWishlisted ? "#ef4444" : "none"}
                 xmlns="http://www.w3.org/2000/svg"
-                className={`transition-colors ${isWishlisted ? "text-red-500" : "text-neutral-400 group-hover/heart:text-red-400"}`}
+                className={`transition-colors ${isWishlisted ? "text-red-500" : "text-neutral-500 group-hover/heart:text-red-500"}`}
               >
                 <path
                   d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
@@ -295,193 +277,100 @@ export default function ProductCard({
 
           {(product.variations?.length || 0) >= 2 && (
             <div className="absolute bottom-2 left-2 z-10">
-              <span className="text-[10px] font-bold text-neutral-700 bg-white/95 backdrop-blur-sm px-2 py-1 rounded shadow-sm border border-neutral-200">
+              <span className="text-[9px] font-bold text-[#0a193b] bg-white/95 backdrop-blur-sm px-2 py-0.5 rounded-full shadow-md border border-black/[0.04]">
                 {product.variations?.length} Options
               </span>
             </div>
           )}
-        </div>
-
-        <div className={`${compact ? 'p-3 md:p-4' : categoryStyle ? 'px-2.5 md:px-3 pt-2 md:pt-3 pb-2.5 md:pb-3.5' : 'p-4 md:p-5'} flex-1 flex flex-col ${categoryStyle ? 'items-start text-left' : ''}`}>
-          {categoryStyle ? (
-            // Category Style Layout: Name, Quantity, Price, Time, Button
-            <>
-              {/* 1. Name */}
-              <h3 className="text-[11px] font-bold text-neutral-900 mb-0.5 line-clamp-2 leading-tight min-h-[1.75rem] max-h-[1.75rem] overflow-hidden">
-                {product.name || product.productName || ''}
-              </h3>
-
-              {/* 2. Quantity */}
-              {!showPackBadge && (product.pack || product.variations?.[0]?.value) && (
-                <p className="text-[10px] text-neutral-500 mb-1 leading-tight">
-                  {product.variations?.[0]?.value || product.pack}
-                </p>
-              )}
-
-              {/* 3. Price with discount */}
-              <div className="mb-1">
-                <div className="flex flex-col items-start">
-                  <span className="text-xs font-bold text-neutral-900 leading-tight">
-                    ₹{displayPrice.toLocaleString('en-IN')}
-                  </span>
-                  {mrp && mrp > displayPrice && (
-                    <span className="text-[9px] text-neutral-400 line-through leading-tight">
-                      ₹{mrp.toLocaleString('en-IN')}
-                    </span>
-                  )}
-                </div>
+          
+          {showVegetarianIcon && (
+            <div className="absolute top-2 left-2 z-10 w-5 h-5 bg-white/95 backdrop-blur-sm border border-black/[0.04] rounded-md flex items-center justify-center shadow-sm">
+              <div className="w-3 h-3 border border-green-600 flex items-center justify-center">
+                <div className="w-1.5 h-1.5 bg-green-600 rounded-full"></div>
               </div>
-
-              {/* 4. ADD button or Quantity stepper */}
-              <div className="w-full mt-auto">
-                {inCartQty === 0 ? (
-                  <Button
-                    ref={addButtonRef}
-                    variant="outline"
-                    size="sm"
-                    disabled={product.isAvailable === false}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleAdd(e);
-                    }}
-                    className={`w-full border-2 rounded-full font-bold text-[10px] h-7 px-2 flex items-center justify-center uppercase tracking-wider ${product.isAvailable === false
-                      ? 'border-neutral-300 text-neutral-400 bg-neutral-50 cursor-not-allowed'
-                      : 'border-[#8A6642] text-[#8A6642] bg-white/50 hover:bg-white/80 hover:text-[#6B4E31] hover:border-[#6B4E31] shadow-sm'
-                      }`}
-                  >
-                    {product.isAvailable === false ? 'Range' : 'ADD'}
-                  </Button>
-                ) : (
-                  <div className="flex items-center justify-center gap-2 bg-white/60 backdrop-blur-sm border-2 border-[#8A6642] rounded-full px-1.5 py-0.5 h-7 w-full shadow-sm">
-                    <Button
-                      variant="default"
-                      size="icon"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDecrease(e);
-                      }}
-                      className="w-5 h-5 p-0 bg-transparent text-[#8A6642] hover:bg-white/40 shadow-none border-none"
-                      aria-label="Decrease quantity"
-                    >
-                      −
-                    </Button>
-                    <span className="text-xs font-bold text-[#8A6642] min-w-[1rem] text-center">
-                      {inCartQty}
-                    </span>
-                    <Button
-                      variant="default"
-                      size="icon"
-                      disabled={product.isAvailable === false}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleIncrease(e);
-                      }}
-                      className={`w-5 h-5 p-0 bg-transparent text-[#8A6642] shadow-none border-none ${product.isAvailable === false ? 'text-neutral-300 cursor-not-allowed' : 'hover:bg-white/40'
-                        }`}
-                      aria-label="Increase quantity"
-                    >
-                      +
-                    </Button>
-                  </div>
-                )}
-              </div>
-            </>
-          ) : (
-            // Non-category style layout (original)
-            <>
-              {!showPackBadge && (
-                <p className={`${compact ? 'text-[10px] md:text-xs' : 'text-xs md:text-sm'} text-neutral-500 mb-1`}>
-                  {product.variations?.[0]?.value || product.pack}
-                </p>
-              )}
-
-              <h3 className={`${compact ? 'text-xs md:text-sm' : 'text-sm md:text-base'} font-semibold text-neutral-900 ${compact ? 'mb-1' : 'mb-2'} line-clamp-2 ${compact ? 'min-h-[2rem]' : 'min-h-[2.5rem]'}`}>
-                {product.name || product.productName || ''}
-              </h3>
-
-              {showStockInfo && (
-                <p className="text-xs text-green-600 mb-2 font-medium">
-                  Fast delivery
-                </p>
-              )}
-
-              {showVegetarianIcon && (
-                <div className="flex items-center gap-1 mb-2">
-                  <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
-                    <div className="w-2 h-2 bg-white rounded-full"></div>
-                  </div>
-                  <span className="text-xs text-neutral-600">Vegetarian</span>
-                </div>
-              )}
-
-              <div className="mt-auto mb-2">
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  <span className="text-base font-bold text-neutral-900">
-                    ₹{displayPrice}
-                  </span>
-                  {mrp && mrp > displayPrice && (
-                    <span className="text-xs text-neutral-500 line-through">
-                      ₹{mrp}
-                    </span>
-                  )}
-                </div>
-              </div>
-            </>
+            </div>
           )}
-        </div>
-      </div>
 
-      {!categoryStyle && (
-        <div className={`${compact ? 'px-3 pb-3' : 'px-4 pb-4'}`}>
-          <div className="mt-auto">
+          {/* ADD Button / Quantity Controls - Positioned on Image (Bottom Right) */}
+          <div className="absolute bottom-2 right-2 z-30">
             {inCartQty === 0 ? (
-              <div>
-                <Button
-                  ref={addButtonRef}
-                  variant="outline"
-                  size="sm"
-                  disabled={product.isAvailable === false}
-                  onClick={handleAdd}
-                  className={`w-full border h-8 text-xs font-semibold uppercase tracking-wide ${product.isAvailable === false
-                    ? 'border-neutral-300 text-neutral-400 bg-neutral-50 cursor-not-allowed'
-                    : 'border-emerald-600 text-emerald-600 hover:bg-emerald-50'
-                    }`}
-                >
-                  {product.isAvailable === false ? 'Out of Range' : 'Add'}
-                </Button>
-                <div className="h-4 mt-1">
-                </div>
-              </div>
+              <button
+                ref={addButtonRef}
+                disabled={product.isAvailable === false}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleAdd(e);
+                }}
+                className={`h-7 rounded-lg font-bold text-[10px] uppercase tracking-wider transition-all duration-300 flex items-center justify-center px-3.5 ${product.isAvailable === false
+                  ? 'bg-neutral-100 text-neutral-400 cursor-not-allowed shadow-none'
+                  : 'bg-white text-[#0a193b] border border-[#0a193b]/10 shadow-[0_4px_12px_rgba(0,0,0,0.1)] hover:bg-[#0a193b] hover:text-white hover:border-transparent active:scale-90'
+                  }`}
+              >
+                {product.isAvailable === false ? 'Out' : 'ADD'}
+              </button>
             ) : (
-              <div className="flex items-center justify-center gap-2 bg-white border border-emerald-600 rounded-full px-2 py-0.5 h-8">
-                <Button
-                  variant="default"
-                  size="icon"
-                  onClick={handleDecrease}
-                  className="w-6 h-6 p-0 bg-transparent text-emerald-600 hover:bg-emerald-50 shadow-none"
+              <div className="flex items-center bg-[#0a193b] text-white rounded-lg h-8 px-1 shadow-[0_4px_12px_rgba(0,0,0,0.15)] ring-1 ring-white/10">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDecrease(e);
+                  }}
+                  className="w-6 h-6 flex items-center justify-center rounded-md hover:bg-white/10 transition-colors active:scale-90"
                   aria-label="Decrease quantity"
                 >
-                  −
-                </Button>
-                <span className="text-xs font-bold text-emerald-600 min-w-[1.5rem] text-center">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M5 12h14" />
+                  </svg>
+                </button>
+                <span className="text-[11px] font-bold min-w-[1.2rem] text-center">
                   {inCartQty}
                 </span>
-                <Button
-                  variant="default"
-                  size="icon"
+                <button
                   disabled={product.isAvailable === false}
-                  onClick={handleIncrease}
-                  className={`w-6 h-6 p-0 bg-transparent text-emerald-600 shadow-none ${product.isAvailable === false ? 'text-neutral-300 cursor-not-allowed' : 'hover:bg-emerald-50'
-                    }`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleIncrease(e);
+                  }}
+                  className="w-6 h-6 flex items-center justify-center rounded-md hover:bg-white/10 transition-colors disabled:opacity-30 active:scale-90"
                   aria-label="Increase quantity"
                 >
-                  +
-                </Button>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 5v14M5 12h14" />
+                  </svg>
+                </button>
               </div>
             )}
           </div>
         </div>
-      )}
+
+        <div className="p-3 flex-1 flex flex-col">
+          {/* Real Backend Quantity/Pack Info */}
+          {(product.variations?.[0]?.value || product.pack) && (
+            <div className="mb-0.5">
+              <span className="text-[9px] font-semibold text-neutral-400 uppercase tracking-widest">
+                {product.variations?.[0]?.value || product.pack}
+              </span>
+            </div>
+          )}
+
+          {/* Product Name */}
+          <h3 className="text-[13px] font-bold text-[#0f172a] mb-1.5 line-clamp-2 leading-tight min-h-[1.5rem] group-hover:text-[#0a193b] transition-colors">
+            {product.name || product.productName || ''}
+          </h3>
+
+          {/* Bottom Row: Price Only (Clean Layout) */}
+          <div className="mt-auto flex items-baseline gap-1.5 pt-1">
+            <span className="text-base font-black text-[#0a193b] leading-tight">
+              ₹{displayPrice.toLocaleString('en-IN')}
+            </span>
+            {mrp && mrp > displayPrice && (
+              <span className="text-[10px] text-neutral-400 line-through leading-none">
+                ₹{mrp.toLocaleString('en-IN')}
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
     </motion.div>
   );
 }

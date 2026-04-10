@@ -3,6 +3,8 @@ import SellerHeader from './SellerHeader';
 import SellerSidebar from './SellerSidebar';
 import { useSellerSocket, SellerNotification } from '../hooks/useSellerSocket';
 import SellerNotificationAlert from './SellerNotificationAlert';
+import { useToast } from '../../../context/ToastContext';
+import { useEffect } from 'react';
 
 interface SellerLayoutProps {
   children: ReactNode;
@@ -16,7 +18,25 @@ export default function SellerLayout({ children }: SellerLayoutProps) {
     setActiveNotification(notification);
   }, []);
 
-  useSellerSocket(handleNotificationReceived);
+  const { socket } = useSellerSocket(handleNotificationReceived);
+  const { showToast } = useToast();
+
+  useEffect(() => {
+    if (!socket) return;
+
+    socket.on("assignment-accepted", (data: { orderId: string; deliveryBoyName: string; orderNumber: string }) => {
+      showToast(`Rider ${data.deliveryBoyName} accepted order #${data.orderNumber}`, 'success');
+    });
+
+    socket.on("assignment-rejected", (data: { orderId: string; message: string; orderNumber: string }) => {
+      showToast(`Rider rejected order #${data.orderNumber}`, 'error');
+    });
+
+    return () => {
+      socket.off("assignment-accepted");
+      socket.off("assignment-rejected");
+    };
+  }, [socket, showToast]);
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
