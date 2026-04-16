@@ -330,7 +330,7 @@ export default function AddToCartAnimation({
             <Link
               ref={linkRef}
               to={linkTo}
-              className={`bg-emerald-600 hover:bg-emerald-700 text-white rounded-full shadow-xl shadow-emerald-900/30 px-3 py-2 flex items-center gap-2 transition-all duration-300 pointer-events-auto border border-emerald-800/30 backdrop-blur-sm ${pillClassName}`}
+              className={`bg-[#0a193b] hover:bg-[#122b5e] text-white rounded-full shadow-xl shadow-[#0a193b]/30 px-3 py-2 flex items-center gap-2 transition-all duration-300 pointer-events-auto border border-white/10 backdrop-blur-sm ${pillClassName}`}
             >
               {/* Left: Product thumbnails */}
               <div className="flex items-center -space-x-4">

@@ -247,7 +247,7 @@ export default function Subscription() {
                     </div>
                   </div>
 
-                  <div className="flex-1 space-y-5 mb-10">
+                  <div className="flex-1 space-y-5 mb-4">
                     {p.perks.map((perk, pIdx) => (
                       <div key={pIdx} className="flex gap-4 items-start">
                         <div className="w-5 h-5 rounded-full bg-emerald-500/10 flex items-center justify-center shrink-0 mt-0.5">
@@ -258,9 +258,6 @@ export default function Subscription() {
                         <span className="text-[14px] font-semibold text-slate-600 leading-tight">{perk}</span>
                       </div>
                     ))}
-                  </div>
-
-                  <div className={`mt-auto pt-8 border-t ${isSelected ? 'border-slate-100' : 'border-transparent'}`}>
                   </div>
                 </div>
               </motion.button>
@@ -275,23 +272,23 @@ export default function Subscription() {
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={() => alert("Payment flow not implemented in this demo.")}
-            className="w-full max-w-md h-20 bg-[#0a193b] rounded-full text-white font-bold flex items-center justify-between px-10 shadow-[0_20px_60px_rgba(10,25,59,0.3)] hover:bg-[#122b5e] transition-all"
+            className="w-full max-w-md h-16 bg-[#0a193b] rounded-full text-white font-bold flex items-center justify-between px-8 shadow-[0_20px_60px_rgba(10,25,59,0.3)] hover:bg-[#122b5e] transition-all"
           >
-            <div className="flex flex-col items-start leading-none gap-2">
-              <span className="text-[11px] uppercase font-black tracking-widest text-[#c5a059]">Continue with</span>
-              <span className="text-xl">{selected?.title} Plan</span>
+            <div className="flex flex-col items-start leading-none gap-1.5">
+              <span className="text-[10px] uppercase font-black tracking-widest text-[#c5a059]">Continue with</span>
+              <span className="text-[17px] font-bold">{selected?.title} Plan</span>
             </div>
-            <div className="flex items-center gap-4">
-              <span className="text-2xl font-black">{selected?.price}</span>
-              <div className="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+            <div className="flex items-center gap-3">
+              <span className="text-xl font-black">{selected?.price}</span>
+              <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M5 12h14M12 5l7 7-7 7"/>
                 </svg>
               </div>
             </div>
           </motion.button>
           
-          <p className="mt-8 text-xs text-slate-400 font-medium opacity-80 flex items-center gap-2">
+          <p className="mt-8 text-xs text-slate-700 font-bold flex items-center gap-2">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" />
             </svg>
