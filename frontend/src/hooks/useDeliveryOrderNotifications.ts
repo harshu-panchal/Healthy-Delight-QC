@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { useAuth } from '../context/AuthContext';
-import { OrderNotificationData, acceptOrder as acceptOrderService, rejectOrder as rejectOrderService } from '../services/api/delivery/deliveryOrderNotificationService';
+import { OrderNotificationData, acceptOrder as acceptOrderService, rejectOrder as rejectOrderService, AcceptOrderResponse, RejectOrderResponse } from '../services/api/delivery/deliveryOrderNotificationService';
 import { getSocketBaseURL, getAuthToken } from '../services/api/config';
 import { NavigateFunction } from 'react-router-dom';
 
@@ -150,8 +150,10 @@ export const useDeliveryOrderNotifications = () => {
         }));
     }, []);
 
-    const acceptOrder = useCallback(async (orderId: string, navigate?: NavigateFunction) => {
-        if (!socketRef.current || !user?.id) return;
+    const acceptOrder = useCallback(async (orderId: string, navigate?: NavigateFunction): Promise<AcceptOrderResponse> => {
+        if (!socketRef.current || !user?.id) {
+            return { success: false, message: 'Notification service not connected' };
+        }
 
         try {
             const response = await acceptOrderService(socketRef.current, orderId, user.id);
@@ -160,26 +162,32 @@ export const useDeliveryOrderNotifications = () => {
                 if (navigate) {
                     navigate(`/delivery/orders/${orderId}`);
                 }
-            } else {
-                alert(response.message || 'Failed to accept order');
             }
+            return response;
         } catch (error: any) {
-            alert(error.message || 'An error occurred while accepting the order');
+            console.error('Accept order error:', error);
+            return { success: false, message: error.message || 'An error occurred while accepting the order' };
         }
     }, [user?.id, clearCurrentNotification]);
 
-    const rejectOrder = useCallback(async (orderId: string) => {
-        if (!socketRef.current || !user?.id) return;
+    const rejectOrder = useCallback(async (orderId: string): Promise<RejectOrderResponse> => {
+        if (!socketRef.current || !user?.id) {
+            return { success: false, message: 'Notification service not connected', allRejected: false };
+        }
 
         try {
             const response = await rejectOrderService(socketRef.current, orderId, user.id);
             if (response.success) {
                 clearCurrentNotification();
-            } else {
-                alert(response.message || 'Failed to reject order');
             }
+            return response;
         } catch (error: any) {
-            alert(error.message || 'An error occurred while rejecting the order');
+            console.error('Reject order error:', error);
+            return {
+                success: false,
+                message: error.message || 'An error occurred while rejecting the order',
+                allRejected: false
+            };
         }
     }, [user?.id, clearCurrentNotification]);
 
