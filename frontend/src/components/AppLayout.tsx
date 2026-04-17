@@ -6,6 +6,7 @@ import { useLocation as useLocationContext } from '../hooks/useLocation';
 import LocationPermissionRequest from './LocationPermissionRequest';
 import { useThemeContext } from '../context/ThemeContext';
 import HomeBackground from './ui/HomeBackground';
+import ComingSoonModal from './ui/ComingSoonModal';
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -23,6 +24,8 @@ export default function AppLayout({ children }: AppLayoutProps) {
   const { currentTheme } = useThemeContext();
   const [isListening, setIsListening] = useState(false);
   const [isHeaderOpaque, setIsHeaderOpaque] = useState(false);
+  const [showComingSoon, setShowComingSoon] = useState(false);
+  const lastScrollY = useRef(0);
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -60,6 +63,14 @@ export default function AppLayout({ children }: AppLayoutProps) {
       setShowLocationRequest(false);
     }
   }, [isLocationLoading, isLocationEnabled, location.pathname]);
+
+  // Demo Trigger for Coming Soon Modal
+  useEffect(() => {
+    const isDemo = searchParams.get('demo') === 'comingsoon';
+    if (isDemo || userLocation?.address?.toLowerCase()?.includes('coming soon')) {
+      setShowComingSoon(true);
+    }
+  }, [userLocation, searchParams]);
 
   // Update search query when URL params change
   useEffect(() => {
@@ -129,9 +140,12 @@ export default function AppLayout({ children }: AppLayoutProps) {
     const mainElement = mainRef.current;
 
     const handleScroll = () => {
-      const mainScrolled = (mainElement?.scrollTop || 0) > 6;
-      const windowScrolled = window.scrollY > 6;
-      setIsHeaderOpaque(mainScrolled || windowScrolled);
+      const mainScrolledY = mainElement?.scrollTop || 0;
+      const windowScrolledY = window.scrollY || 0;
+      const currentScrollY = mainScrolledY || windowScrolledY;
+      
+      setIsHeaderOpaque(currentScrollY > 6);
+      lastScrollY.current = currentScrollY;
     };
 
     handleScroll();
@@ -468,12 +482,11 @@ export default function AppLayout({ children }: AppLayoutProps) {
           {/* Fixed Bottom Navigation - Mobile Only, Hidden on checkout pages */}
           {showFooter && (
             <nav
-              className="fixed bottom-0 left-0 right-0 z-50 md:hidden"
+              className="fixed bottom-0 left-0 right-0 z-50 md:hidden transition-all duration-300 ease-in-out"
               style={{
                 background: '#ffffff',
                 borderTop: '1px solid rgba(0,0,0,0.06)',
                 boxShadow: '0 -4px 12px rgba(0,0,0,0.06)',
-                backdropFilter: 'blur(10px)'
               }}
             >
               <div className="grid grid-cols-4 items-center px-1.5 py-2">
@@ -568,10 +581,15 @@ export default function AppLayout({ children }: AppLayoutProps) {
               </div>
             </nav>
           )}
-        </div>
+        <ComingSoonModal 
+          isOpen={showComingSoon} 
+          onClose={() => setShowComingSoon(false)} 
+          locationName={userLocation?.city || userLocation?.address}
+        />
       </div>
-    </HomeBackground>
-  );
+    </div>
+  </HomeBackground>
+);
 }
 
 

@@ -478,7 +478,7 @@ export default function Home() {
                               onClick={() => navigate(`/category/${section.categoryId || 'all'}`)}
                               className="section-see-all group flex items-center gap-1.5 transition-all hover:translate-x-1"
                             >
-                              See all 
+                              See all
                               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                                 <path d="M5 12h14m-7-7l7 7-7 7" />
                               </svg>
@@ -516,69 +516,97 @@ export default function Home() {
               </div>
             )}
 
-            {/* Shop by Store Section - only on 'all' tab */}
-            <div className="px-5 mt-10 mb-12 md:px-10">
-              {/* Modern Clean Header */}
-              <div className="flex items-center justify-between mb-8">
-                <h2 className="text-[18px] md:text-[22px] font-semibold text-[#0a193b] tracking-tight">
-                  Shop by Store
-                </h2>
-                <button
-                  onClick={() => navigate('/stores')}
-                  className="section-see-all group flex items-center gap-1.5 transition-all hover:translate-x-1"
-                >
-                  See all
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M5 12h14m-7-7l7 7-7 7" />
-                  </svg>
-                </button>
-              </div>
+            {/* Elevated Bottom Content Area (Solid + Transition) */}
+            <div className="relative mt-12">
+              {/* Transition Gradient: Transparent to Cream */}
+              <div
+                className="h-[64px] w-full"
+                style={{
+                  background: 'linear-gradient(to bottom, transparent, #faf5f2)'
+                }}
+              />
 
-              <div className="flex overflow-x-auto pb-8 gap-4 snap-x snap-mandatory scrollbar-hide md:grid md:grid-cols-4 lg:grid-cols-6 md:pb-0 md:overflow-visible">
-                {(homeData.shops || []).map((tile: any) => {
-                  const hasImages =
-                    tile.image ||
-                    (tile.productImages &&
-                      tile.productImages.filter(Boolean).length > 0);
-
-                  return (
-                    <div
-                      key={tile.id}
-                      className="hover-lift tap-scale group flex flex-col cursor-pointer bg-white rounded-[20px] border border-black/[0.04] shadow-card transition-all duration-300 flex-shrink-0 w-[32%] sm:w-[24%] md:w-auto snap-start p-3"
-                      onClick={() => {
-                        const storeSlug =
-                          tile.slug || tile.id.replace("-store", "");
-                        navigate(`/store/${storeSlug}`);
-                      }}
+              {/* Solid Content Block */}
+              <div 
+                className="pt-10 pb-0 shadow-[0_-8px_32px_rgba(0,0,0,0.06)] ring-1 ring-black/5 relative z-10 mb-[-96px]"
+                style={{ backgroundColor: 'rgba(250, 245, 242, 0.94)' }}
+              >
+                {/* Filler to avoid gap at very bottom */}
+                <div className="absolute top-full left-0 right-0 h-[200px]" style={{ backgroundColor: 'rgba(250, 245, 242, 0.94)' }} />
+                {/* Shop by Store Section - only on 'all' tab */}
+                <div className="px-5 mb-10 md:px-10">
+                  {/* Modern Clean Header */}
+                  <div className="flex items-center justify-between mb-8">
+                    <h2 className="text-[18px] md:text-[22px] font-semibold text-[#0a193b] tracking-tight">
+                      Shop by Store
+                    </h2>
+                    <button
+                      onClick={() => navigate('/stores')}
+                      className="section-see-all group flex items-center gap-1.5 transition-all hover:translate-x-1"
                     >
-                      {/* Dominant Image Component - No Double Container */}
-                      <div className="relative aspect-square rounded-[14px] overflow-hidden mb-3 flex items-center justify-center">
-                        {hasImages ? (
-                          <img
-                            src={
-                              tile.image ||
-                              (tile.productImages ? tile.productImages[0] : "")
-                            }
-                            alt={tile.name}
-                            className="w-[90%] h-[90%] object-contain drop-shadow-sm transform transition-transform duration-500 group-hover:scale-110"
-                          />
-                        ) : (
-                          <div className="text-4xl text-[#0a193b] font-bold opacity-20">
-                            {tile.name.charAt(0)}
-                          </div>
-                        )}
-                      </div>
+                      See all
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M5 12h14m-7-7l7 7-7 7" />
+                      </svg>
+                    </button>
+                  </div>
 
-                      <div className="text-center">
-                        <span className="block text-[13px] md:text-[14px] font-medium text-[#0f172a] capitalize line-clamp-1 leading-tight mb-1.5">
-                          {tile.name.toLowerCase()}
-                        </span>
-                        {/* Minimal 24px Gold Accent */}
-                        {/* <div className="w-5 h-[2px] bg-[#c5a059] mx-auto rounded-full group-hover:w-8 transition-all duration-300" /> */}
-                      </div>
-                    </div>
-                  );
-                })}
+                  <div className="flex overflow-x-auto pb-8 gap-4 snap-x snap-mandatory scrollbar-hide md:grid md:grid-cols-4 lg:grid-cols-6 md:pb-0 md:overflow-visible">
+                    {(homeData.shops || []).map((tile: any) => {
+                      const hasImages =
+                        tile.image ||
+                        (tile.productImages &&
+                          tile.productImages.filter(Boolean).length > 0);
+
+                      return (
+                        <div
+                          key={tile.id}
+                          className="hover-lift tap-scale group flex flex-col cursor-pointer bg-white rounded-[20px] border border-black/[0.04] shadow-card transition-all duration-300 flex-shrink-0 w-[32%] sm:w-[24%] md:w-auto snap-start p-3"
+                          onClick={() => {
+                            const storeSlug =
+                              tile.slug || tile.id.replace("-store", "");
+                            navigate(`/store/${storeSlug}`);
+                          }}
+                        >
+                          {/* Dominant Image Component - No Double Container */}
+                          <div className="relative aspect-square rounded-[14px] overflow-hidden mb-3 flex items-center justify-center">
+                            {hasImages ? (
+                              <img
+                                src={
+                                  tile.image ||
+                                  (tile.productImages ? tile.productImages[0] : "")
+                                }
+                                alt={tile.name}
+                                className="w-[90%] h-[90%] object-contain drop-shadow-sm transform transition-transform duration-500 group-hover:scale-110"
+                              />
+                            ) : (
+                              <div className="text-4xl text-[#0a193b] font-bold opacity-20">
+                                {tile.name.charAt(0)}
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="text-center">
+                            <span className="block text-[13px] md:text-[14px] font-medium text-[#0f172a] capitalize line-clamp-1 leading-tight mb-1.5">
+                              {tile.name.toLowerCase()}
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Decorative Bottom Background (Inside solid block) */}
+                <div
+                  className="w-full h-[180px] md:h-[300px] mt-8 mb-0 pointer-events-none relative z-0"
+                  style={{
+                    backgroundImage: 'url("/assets/background_bottom.PNG")',
+                    backgroundSize: '100% 100%',
+                    backgroundPosition: 'center bottom',
+                    backgroundRepeat: 'no-repeat'
+                  }}
+                />
               </div>
             </div>
           </>

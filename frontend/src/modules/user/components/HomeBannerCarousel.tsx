@@ -40,7 +40,7 @@ const HomeBannerCarousel = ({ banners, loading = false }: HomeBannerCarouselProp
   if (!banners || banners.length === 0) return null;
 
   return (
-    <div className="w-full px-4 md:px-6 lg:px-8 mt-4 md:mt-4 mb-5 md:mb-6">
+    <div className="w-full px-4 md:px-6 lg:px-8 mt-2 md:mt-2 mb-5 md:mb-6">
       <div className="group relative overflow-hidden rounded-[24px] aspect-[16/9] md:aspect-[3/1] bg-neutral-100 shadow-[0_8px_24px_rgba(0,0,0,0.12)] transition-all duration-300 hover:scale-[1.01] hover:shadow-[0_12px_32px_rgba(0,0,0,0.16)]">
         <AnimatePresence initial={false}>
           <motion.div

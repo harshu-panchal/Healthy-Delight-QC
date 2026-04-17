@@ -377,66 +377,56 @@ export default function HomeHero({
         paddingBottom: 0,
         marginBottom: 0,
       }}>
-      {/* Top section: Logo and Location (Deep Navy Area) */}
-      <div className="px-5 md:px-10 pt-5 pb-3">
-        <div className="flex items-center justify-between gap-6">
-          {/* Logo & Location Container */}
-          <div className="flex items-center gap-8 flex-1 min-w-0">
-            {/* Logo with subtle depth highlight */}
-            <div className="flex items-center gap-2.5 flex-shrink-0 cursor-pointer group" onClick={() => navigate('/')}>
-              <div className="relative">
-                <img src={logo} alt="Healthy Delight" className="h-8 md:h-10 w-auto object-contain brightness-0 invert drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)] transition-transform group-hover:scale-105" />
+      {/* Top section: Compact Single-Row Layout (Refined & Premium) */}
+      <div className="relative px-4 h-[60px] flex items-center justify-between transition-all duration-300">
+        {/* Row Layer: Delivery (Left) and Profile (Right) */}
+        <div className="flex items-center justify-between w-full h-full relative z-20">
+          
+          {/* Logo (Perfect Center via Absolute Positioning) */}
+          <div 
+            className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center cursor-pointer pointer-events-auto"
+            onClick={() => navigate('/')}
+          >
+            <img 
+              src={logo} 
+              alt="Healthy Delight" 
+              className="h-[38px] w-auto object-contain brightness-0 invert drop-shadow-[0_2px_4px_rgba(0,0,0,0.2)] transition-transform hover:scale-105" 
+            />
+          </div>
+
+          {/* Delivery on Left */}
+          {locationDisplayText ? (
+            <div
+              onClick={() => navigate('/account')}
+              className="flex items-center gap-2 cursor-pointer max-w-[35%] group"
+            >
+              <div className="text-white/80 group-hover:text-white transition-all">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" strokeLinecap="round" strokeLinejoin="round" />
+                  <circle cx="12" cy="10" r="3" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
               </div>
-              <span className="hidden md:block text-xl font-bold tracking-tight text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.2)]">
-                Healthy Delight
+              <span className="text-[12px] font-bold text-white/90 truncate group-hover:text-white transition-colors">
+                {locationDisplayText}
               </span>
             </div>
-
-            {/* Location with elevated feel */}
-            {locationDisplayText && (
-              <div
-                onClick={() => navigate('/account')}
-                className="flex items-center gap-2 cursor-pointer max-w-[220px] md:max-w-md group"
-              >
-                <div className="p-1.5 rounded-full bg-white/10 text-white/90 group-hover:bg-white/20 transition-all shadow-inner border border-white/20">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="drop-shadow-[0_1px_1px_rgba(0,0,0,0.3)]">
-                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" strokeLinecap="round" strokeLinejoin="round" />
-                    <circle cx="12" cy="10" r="3" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                </div>
-                <div className="flex flex-col min-w-0">
-                  <span className="text-[10px] uppercase tracking-widest font-bold text-white/50 leading-none mb-0.5 drop-shadow-[0_1px_1px_rgba(0,0,0,0.1)]">Delivery to</span>
-                  <div className="flex items-center gap-1">
-                    <span className="text-sm font-bold text-white/95 truncate group-hover:text-white transition-colors">
-                      {locationDisplayText}
-                    </span>
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" className="text-white/40 group-hover:text-white transition-colors">
-                      <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  </div>
-                </div>
+          ) : (
+            <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/account')}>
+              <div className="text-white/60">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
               </div>
-            )}
-          </div>
+              <span className="text-[12px] font-bold text-white/60 italic">Set location</span>
+            </div>
+          )}
 
-          {/* Right side - Profile (Desktop) */}
-          <div className="hidden md:flex items-center gap-4">
-            <button
-              onClick={() => navigate('/account')}
-              className="p-2.5 rounded-full bg-white/10 text-white hover:bg-white/20 transition-all shadow-[0_4px_12px_rgba(0,0,0,0.1)] border border-white/20 hover:border-white/40"
-            >
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.2)]">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
-              </svg>
-            </button>
-          </div>
-
-          {/* Profile (Mobile) */}
+          {/* Profile on Right */}
           <button
             onClick={() => navigate('/account')}
-            className="md:hidden flex-shrink-0 w-10 h-10 rounded-full bg-white/10 text-white flex items-center justify-center border border-white/20 hover:bg-white/30 transition-all shadow-lg"
+            className="w-9 h-9 rounded-full bg-white/10 text-white flex items-center justify-center border border-white/20 hover:bg-white/20 transition-all shadow-sm"
           >
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
             </svg>
           </button>
@@ -454,7 +444,7 @@ export default function HomeHero({
         }}>
 
         {/* Search Bar Container */}
-        <div className="px-5 md:px-10 py-3">
+        <div className="px-5 md:px-10 py-2">
           <form
             onSubmit={(e) => {
               e.preventDefault();

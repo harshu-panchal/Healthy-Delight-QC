@@ -133,7 +133,7 @@ export default function Account() {
           <div className="max-w-md mx-auto">
             <button
               onClick={() => navigate("/login")}
-              className="w-full py-3.5 rounded-lg font-semibold text-base bg-teal-600 text-white hover:bg-teal-700 transition-colors shadow-lg shadow-teal-500/20">
+              className="w-full py-4 rounded-xl font-bold text-base bg-[#0a193b] text-white hover:bg-[#07122b] transition-all shadow-lg shadow-[#0a193b]/20 active:scale-[0.98]">
               Login
             </button>
           </div>
@@ -146,7 +146,7 @@ export default function Account() {
     return (
       <div className="pb-24 md:pb-8 bg-white min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#0a193b] mx-auto mb-4"></div>
           <p className="text-neutral-600">Loading profile...</p>
         </div>
       </div>
@@ -160,7 +160,7 @@ export default function Account() {
           <p className="text-red-600 mb-4">{error}</p>
           <button
             onClick={() => navigate(-1)}
-            className="px-4 py-2 bg-teal-600 text-white rounded">
+            className="px-6 py-2.5 bg-[#0a193b] text-white rounded-xl font-semibold shadow-md">
             Go Back
           </button>
         </div>
@@ -568,12 +568,12 @@ export default function Account() {
                     value={gstNumber}
                     onChange={(e) => setGstNumber(e.target.value)}
                     placeholder="Enter GST Number"
-                    className="w-full rounded-xl border border-neutral-200 px-4 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
+                    className="w-full rounded-xl border border-neutral-200 px-4 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#c5a059]/20 focus:border-[#c5a059] transition-all"
                   />
                   <button
                     type="submit"
                     disabled={!gstNumber.trim()}
-                    className="w-full rounded-xl bg-teal-600 text-white font-bold py-4 hover:bg-teal-700 disabled:opacity-50 transition-colors shadow-lg shadow-teal-500/20 uppercase tracking-wider text-sm">
+                    className="w-full rounded-xl bg-[#0a193b] text-white font-bold py-4 hover:bg-[#07122b] disabled:opacity-50 transition-all shadow-lg shadow-[#0a193b]/20 uppercase tracking-wider text-sm active:scale-[0.98]">
                     Save Details
                   </button>
                 </form>
