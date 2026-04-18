@@ -102,9 +102,37 @@ export default function StorePage() {
     };
 
     return (
-        <div className="min-h-screen bg-white">
-            {/* Store Banner */}
-            <div className="relative w-full aspect-[2/1] bg-neutral-100 overflow-hidden">
+        <div className="min-h-screen bg-[#f8f6f2]">
+            {/* Premium Sticky Header */}
+            <div className="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-black/[0.04] px-4 py-4 flex items-center justify-between gap-4">
+                <button
+                    onClick={() => navigate(-1)}
+                    className="w-10 h-10 rounded-full flex items-center justify-center bg-white/50 border border-black/[0.04] hover:bg-white shadow-sm transition-all active:scale-95"
+                >
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                        <path d="M15 18L9 12L15 6" stroke="#000000" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                </button>
+
+                <div className="flex-1 flex justify-center">
+                    <h1 className="text-lg font-bold text-[#0a193b] tracking-tight truncate max-w-[200px]">{storeName}</h1>
+                </div>
+
+                <div className="flex items-center gap-2">
+                    <button
+                        onClick={() => navigate('/search')}
+                        className="w-10 h-10 rounded-full flex items-center justify-center bg-white/50 border border-black/[0.04] hover:bg-white shadow-sm transition-all active:scale-95"
+                    >
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                            <circle cx="11" cy="11" r="8" stroke="#000000" strokeWidth="2.5" />
+                            <path d="m21 21-4.35-4.35" stroke="#000000" strokeWidth="2.5" strokeLinecap="round" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            {/* Immersive Store Hero */}
+            <div className="relative w-full aspect-[16/10] bg-neutral-100 overflow-hidden">
                 {bannerImage && !imageError ? (
                     <img
                         src={bannerImage}
@@ -114,73 +142,53 @@ export default function StorePage() {
                         loading="eager"
                     />
                 ) : (
-                    <div className="banner-fallback w-full h-full bg-gradient-to-br from-cyan-50 to-teal-100 flex items-center justify-center">
-                        <div className="text-4xl font-bold text-neutral-400">
-                            {storeName.charAt(0).toUpperCase()}
+                    <div className="banner-fallback w-full h-full bg-gradient-to-br from-[#f8f6f2] to-[#e3d1ae]/30 flex items-center justify-center">
+                        <div className="text-5xl font-bold text-[#c5a059]/30 italic opacity-20">
+                            {storeName}
                         </div>
                     </div>
                 )}
-
-                {/* Header Overlay */}
-                <header className="absolute top-0 left-0 right-0 z-10">
-                    <div className="px-3 py-2 flex items-center justify-between gap-2">
-                        <button
-                            onClick={() => navigate(-1)}
-                            className="w-9 h-9 rounded-full flex items-center justify-center backdrop-blur-lg bg-white/70 shadow-sm hover:bg-white/80 transition-colors flex-shrink-0 border border-white/20"
-                        >
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                                <path d="M15 18L9 12L15 6" stroke="#000000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                            </svg>
-                        </button>
-
-                        <div className="flex-1 min-w-0 px-2">
-                            <h1 className="text-sm font-bold text-neutral-900 drop-shadow-sm">{storeName}</h1>
-                        </div>
-
-                        <div className="flex items-center gap-1.5 flex-shrink-0">
-                            <button
-                                onClick={() => navigate('/search')}
-                                className="w-9 h-9 rounded-full flex items-center justify-center backdrop-blur-lg bg-white/70 shadow-sm hover:bg-white/80 transition-colors border border-white/20"
-                            >
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                                    <circle cx="11" cy="11" r="8" stroke="#000000" strokeWidth="2" />
-                                    <path d="m21 21-4.35-4.35" stroke="#000000" strokeWidth="2" strokeLinecap="round" />
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
-                </header>
-
-                <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-white to-transparent" />
+                {/* Subtle Image Overlay for Depth */}
+                <div className="absolute inset-0 bg-gradient-to-b from-black/[0.05] via-transparent to-transparent pointer-events-none" />
             </div>
 
-            {/* Products Section */}
-            <div className="px-4 py-4">
-                <h3 className="text-lg font-semibold text-neutral-900 mb-4">Top buys in {storeName}</h3>
+            {/* Content Section with Curved Overlap */}
+            <div className="relative -mt-12 pt-10 pb-20 px-4 bg-[#f8f6f2] rounded-t-[40px] shadow-[0_-12px_40px_rgba(0,0,0,0.04)] ring-1 ring-black/[0.02] z-10">
+                <div className="max-w-screen-xl mx-auto">
+                    {/* Centered Curated Header */}
+                    <div className="flex flex-col items-center mb-10">
+                        <div className="w-12 h-1 bg-[#c5a059]/30 rounded-full mb-4 md:mb-6"></div>
+                        <h2 className="text-2xl md:text-3xl font-bold text-[#0a193b] tracking-tight">Top picks</h2>
+                    </div>
 
-                {loading ? (
-                    <div className="flex justify-center p-8">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
-                    </div>
-                ) : products.length > 0 ? (
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-4">
-                        {products.map((product) => (
-                            <ProductCard
-                                key={product._id || product.id}
-                                product={product}
-                                categoryStyle={true}
-                                showBadge={true}
-                                showPackBadge={false}
-                                showStockInfo={false}
-                            />
-                        ))}
-                    </div>
-                ) : (
-                    <div className="text-center py-20 text-neutral-500">
-                        <p>No products found in this store yet.</p>
-                        <Link to="/" className="text-green-600 font-medium mt-2 inline-block">Explore other categories</Link>
-                    </div>
-                )}
+                    {loading ? (
+                        <div className="grid grid-cols-3 gap-3 md:gap-6 animate-pulse">
+                            {[1, 2, 3, 4, 5, 6].map((i) => (
+                                <div key={i} className="aspect-[4/5] bg-white rounded-2xl shadow-sm"></div>
+                            ))}
+                        </div>
+                    ) : products.length > 0 ? (
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-6 lg:gap-8">
+                            {products.map((product) => (
+                                <ProductCard
+                                    key={product._id || product.id}
+                                    product={product}
+                                    categoryStyle={true}
+                                    showBadge={true}
+                                    showPackBadge={false}
+                                    showStockInfo={false}
+                                    storeStyle={true}
+                                />
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="text-center py-20">
+                            <div className="text-4xl mb-4 opacity-20">🛒</div>
+                            <p className="text-neutral-500 font-medium">No products found in this store yet.</p>
+                            <Link to="/" className="text-[#c5a059] font-bold mt-4 inline-block hover:underline">Explore other categories</Link>
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     );

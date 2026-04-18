@@ -288,206 +288,116 @@ export default function CategoryPage() {
   };
 
   return (
-    <div className="flex bg-transparent h-screen overflow-hidden">
-      {/* Left Sidebar */}
-      <div className="w-24 bg-transparent border-r border-neutral-100 overflow-y-auto scrollbar-hide flex-shrink-0 py-2">
-        <div className="space-y-1">
-          {subcategories.map((subcat) => {
-            const isSelected =
-              selectedSubcategory === (subcat.id || subcat._id);
-            return (
-              <button
-                key={subcat.id || subcat._id}
-                type="button"
-                onClick={() => {
-                  console.log("Clicked subcategory:", subcat.id || subcat._id);
-                  setSelectedSubcategory(subcat.id || subcat._id);
-                }}
-                className={`w-full flex flex-col items-center justify-center py-2 relative transition-all duration-200 group ${isSelected ? "bg-green-50" : "hover:bg-neutral-50"
+    <div className="min-h-screen bg-[#f8f6f2] flex flex-col">
+      {/* Premium Sticky Header Section */}
+      <div className="sticky top-0 z-40 bg-white/80 backdrop-blur-lg border-b border-black/[0.04]">
+        {/* Top Bar: Back & Title */}
+        <div className="flex items-center gap-4 px-4 py-4 md:px-6 lg:px-8">
+          <button
+            onClick={() => navigate(-1)}
+            className="w-10 h-10 flex items-center justify-center text-neutral-800 bg-white border border-black/[0.04] shadow-sm hover:bg-neutral-50 rounded-full transition-all active:scale-95"
+            aria-label="Go back"
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M15 18L9 12L15 6" />
+            </svg>
+          </button>
+          
+          <div className="flex flex-col">
+            <h1 className="text-xl md:text-2xl font-bold text-[#0a193b] tracking-tight">
+              {category?.name || "Category"}
+            </h1>
+            <span className="text-[11px] md:text-xs font-medium text-[#c5a059] uppercase tracking-widest mt-0.5">
+              Fresh & organic selection
+            </span>
+          </div>
+        </div>
+
+        {/* Sticky Subcategory Chips */}
+        <div className="px-4 md:px-6 lg:px-8 pb-3 overflow-x-auto scrollbar-hide">
+          <div className="flex items-center gap-2">
+            {subcategories.map((subcat) => {
+              const subId = subcat.id || subcat._id;
+              const isSelected = selectedSubcategory === subId;
+              return (
+                <button
+                  key={subId}
+                  onClick={() => setSelectedSubcategory(subId)}
+                  className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-full transition-all duration-300 flex-shrink-0 whitespace-nowrap border ${
+                    isSelected
+                      ? "bg-[#0a193b] border-[#0a193b] text-white shadow-md shadow-[#0a193b]/20"
+                      : "bg-white border-black/[0.06] text-neutral-600 hover:bg-neutral-50"
                   }`}
-                style={{
-                  minHeight: "80px",
-                }}>
-                {/* Active Indicator - curved blob on left */}
-                {isSelected && (
-                  <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-12 bg-green-600 rounded-r-full"></div>
-                )}
+                >
+                  <span className="text-lg leading-none">
+                    {subcat.image ? (
+                      <img src={subcat.image} alt="" className="w-5 h-5 object-cover rounded-full" />
+                    ) : (
+                      subcat.icon || "📦"
+                    )}
+                  </span>
+                  <span>{subcat.name}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
 
-                {/* Image Container */}
-                <div
-                  className={`w-14 h-14 rounded-2xl flex items-center justify-center text-xl mb-1.5 flex-shrink-0 overflow-hidden transition-all duration-200 shadow-sm ${isSelected
-                    ? "ring-2 ring-green-600 ring-offset-2 bg-white"
-                    : "bg-neutral-50 border border-neutral-100 group-hover:shadow-md"
-                    }`}>
-                  {subcat.image ? (
-                    <img
-                      src={subcat.image}
-                      alt={subcat.name}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.style.display = "none";
-                        const parent = target.parentElement;
-                        if (parent) {
-                          parent.textContent =
-                            subcat.icon || subcat.name?.charAt(0) || "📦";
-                        }
-                      }}
-                    />
-                  ) : (
-                    <span className="text-2xl">{subcat.icon || "📦"}</span>
-                  )}
-                </div>
-
-                {/* Text Label */}
-                <span
-                  className={`text-[10px] text-center leading-tight px-1 transition-colors ${isSelected
-                    ? "font-bold text-green-700"
-                    : "text-neutral-500 group-hover:text-neutral-900"
-                    }`}
-                  style={{
-                    wordBreak: "break-word",
-                    maxWidth: "100%",
-                    display: "-webkit-box",
-                    WebkitLineClamp: 2,
-                    WebkitBoxOrient: "vertical",
-                    overflow: "hidden"
-                  }}>
-                  {subcat.name}
-                </span>
-              </button>
-            );
-          })}
+        {/* Sticky Filter & Sort Bar */}
+        <div className="px-4 md:px-6 lg:px-8 py-2 border-t border-black/[0.02] flex items-center gap-3">
+          <button
+            onClick={() => setIsFiltersOpen(true)}
+            className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-black/[0.04] rounded-full shadow-sm hover:bg-neutral-50 transition-all text-sm font-bold text-[#0a193b]"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="4" y1="21" x2="4" y2="14" /><line x1="4" y1="10" x2="4" y2="3" />
+              <line x1="12" y1="21" x2="12" y2="12" /><line x1="12" y1="8" x2="12" y2="3" />
+              <line x1="20" y1="21" x2="20" y2="16" /><line x1="20" y1="12" x2="20" y2="3" />
+            </svg>
+            Filters
+          </button>
+          
+          <button
+            className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-black/[0.04] rounded-full shadow-sm hover:bg-neutral-50 transition-all text-sm font-bold text-[#0a193b]"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="m3 16 4 4 4-4" /><path d="M7 20V4" />
+              <path d="m21 8-4-4-4 4" /><path d="M17 4v16" />
+            </svg>
+            Sort
+          </button>
         </div>
       </div>
 
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col overflow-hidden bg-transparent">
-        <div className="sticky top-0 z-40 bg-transparent flex-shrink-0 pt-0 pb-1">
-          <div className="flex items-center gap-3 px-4 md:px-6 lg:px-8 py-4">
-            <button
-              onClick={() => navigate(-1)}
-              className="w-10 h-10 flex items-center justify-center text-neutral-800 bg-white shadow-md hover:bg-neutral-50 rounded-full transition-all border border-neutral-100"
-              aria-label="Go back">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M15 18L9 12L15 6" />
-              </svg>
-            </button>
-            <div className="relative flex items-center">
-              <div className="absolute -left-0.5 top-full -mt-1.5 w-3 h-3 bg-[#8A6642] origin-top-right -rotate-45 -z-10 opacity-60"></div>
-              <div className="bg-gradient-to-r from-[#8A6642] to-[#A88A68] pl-5 md:pl-7 lg:pl-10 pr-6 py-2.5 md:py-3 rounded-r-lg shadow-md relative flex items-center border-y border-white/10">
-                <h1 className="text-xs md:text-sm font-bold text-white uppercase tracking-[0.2em] drop-shadow-sm leading-tight">
-                  {category?.name}
-                </h1>
-                <div className="absolute -right-2 top-0 bottom-0 w-4 bg-[#A88A68]" style={{ clipPath: 'polygon(0 0, 100% 50%, 0 100%)' }}></div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Filter/Sort Bar - Updated layout */}
-        <div className="px-4 md:px-6 lg:px-8 py-1.5 md:py-2 bg-transparent border-b border-neutral-200 flex-shrink-0">
-          <div className="flex items-center gap-1.5 md:gap-2 overflow-x-auto scrollbar-hide -mx-4 md:-mx-6 lg:-mx-8 px-4 md:px-6 lg:px-8 scroll-smooth">
-            {/* Filters Button */}
-            <button
-              onClick={() => setIsFiltersOpen(true)}
-              className="flex items-center gap-1 px-2 py-1 text-xs font-medium text-neutral-700 bg-white border border-neutral-300 rounded-md hover:bg-neutral-50 transition-colors flex-shrink-0 whitespace-nowrap">
-              <svg
-                width="12"
-                height="12"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-                className="flex-shrink-0">
-                <circle cx="6" cy="8" r="1.5" fill="currentColor" />
-                <circle cx="6" cy="16" r="1.5" fill="currentColor" />
-                <path
-                  d="M3 8h6M3 16h6M10 8h11M10 16h11"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                />
-              </svg>
-              <span>Filters</span>
-              <span className="text-neutral-500 text-[10px] ml-0.5">▾</span>
-            </button>
-
-            {/* Sort Button */}
-            <button className="flex items-center gap-1 px-2 py-1 text-xs font-medium text-neutral-700 bg-white border border-neutral-300 rounded-md hover:bg-neutral-50 transition-colors flex-shrink-0 whitespace-nowrap">
-              <svg
-                width="12"
-                height="12"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-                className="flex-shrink-0">
-                <path
-                  d="M7 8l5-5 5 5M7 16l5 5 5-5"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-              <span>Sort</span>
-              <span className="text-neutral-500 text-[10px] ml-0.5">▾</span>
-            </button>
-
-            {/* Category Buttons */}
-            {subcategories
-              .filter((subcat) => (subcat.id || subcat._id) !== "all")
-              .map((subcat) => {
-                const subId = subcat.id || subcat._id;
-                const isSelected = selectedSubcategory === subId;
-                return (
-                  <button
-                    key={subId}
-                    onClick={() => setSelectedSubcategory(subId)}
-                    className={`flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-md transition-colors flex-shrink-0 whitespace-nowrap ${isSelected
-                      ? "bg-white border border-neutral-300 text-neutral-900"
-                      : "bg-white border border-neutral-300 text-neutral-700 hover:bg-neutral-50"
-                      }`}>
-                    <span className="text-sm flex-shrink-0">
-                      {subcat.image ? (
-                        <img
-                          src={subcat.image}
-                          alt=""
-                          className="w-4 h-4 object-cover rounded-full"
-                        />
-                      ) : (
-                        subcat.icon || "📦"
-                      )}
-                    </span>
-                    <span>{subcat.name}</span>
-                  </button>
-                );
-              })}
-          </div>
-        </div>
-
-        {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto scrollbar-hide bg-transparent">
-          {/* Products Grid */}
+      {/* Product Area: Clean Cream Surface */}
+      <div className="flex-1 overflow-y-auto scrollbar-hide py-6">
+        <div className="max-w-screen-2xl mx-auto px-4 md:px-6 lg:px-8">
           {categoryProducts.length > 0 ? (
-            <div className="px-3 md:px-6 lg:px-8 py-4 md:py-6">
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 md:gap-4">
-                {categoryProducts.map((product) => (
-                  <ProductCard
-                    key={product.id}
-                    product={product}
-                    showStockInfo={false}
-                    showBadge={true}
-                    showOptionsText={true}
-                    categoryStyle={true}
-                  />
-                ))}
-              </div>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 md:gap-6">
+              {categoryProducts.map((product) => (
+                <ProductCard
+                  key={product.id || product._id}
+                  product={product}
+                  showStockInfo={false}
+                  showBadge={true}
+                  showOptionsText={true}
+                  categoryStyle={true}
+                  storeStyle={true}
+                />
+              ))}
             </div>
           ) : (
-            <div className="px-4 md:px-6 lg:px-8 py-8 md:py-12 text-center">
-              <p className="text-neutral-500 md:text-lg">
+            <div className="py-20 text-center">
+              <div className="text-5xl mb-6 opacity-20">📦</div>
+              <p className="text-neutral-500 font-medium md:text-lg">
                 No products found in this category.
               </p>
+              <button 
+                onClick={() => navigate('/')}
+                className="mt-4 text-[#c5a059] font-bold hover:underline"
+              >
+                Explore other categories
+              </button>
             </div>
           )}
         </div>

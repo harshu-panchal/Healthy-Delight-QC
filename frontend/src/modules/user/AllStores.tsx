@@ -31,9 +31,10 @@ export default function AllStores() {
     }, [location]);
 
     return (
-        <div className="min-h-screen bg-neutral-50 pb-10">
+        <div className="min-h-screen bg-transparent pb-10 relative">
             {/* Header */}
-            <div className="sticky top-0 z-50 bg-white border-b border-neutral-200 px-4 py-4 flex items-center gap-4">
+            {/* Modern Header with Blur */}
+            <div className="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-black/[0.04] px-5 py-5 flex items-center gap-4">
                 <button
                     onClick={() => navigate("/")}
                     className="w-10 h-10 rounded-full flex items-center justify-center bg-neutral-100 hover:bg-neutral-200 transition-colors"
@@ -57,7 +58,7 @@ export default function AllStores() {
                         <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-emerald-600"></div>
                     </div>
                 ) : shops.length > 0 ? (
-                    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3 md:gap-6">
+                    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4 md:gap-10 lg:gap-8">
                         {shops.map((shop) => (
                             <motion.div
                                 key={shop.id}
@@ -68,31 +69,28 @@ export default function AllStores() {
                                     const storeSlug = shop.slug || shop.id.replace("-store", "");
                                     navigate(`/store/${storeSlug}`);
                                 }}
-                                className="group flex flex-col cursor-pointer"
+                                className="hover-lift tap-scale group flex flex-col cursor-pointer bg-white rounded-[20px] border border-black/[0.04] shadow-card transition-all duration-300 p-3"
                             >
-                                <div className="relative aspect-[4/5] bg-white rounded-t-full overflow-hidden border border-neutral-200 shadow-sm group-hover:shadow-md transition-all">
-                                    <div className="absolute inset-0 bg-gradient-to-b from-sky-50/50 to-transparent" />
-                                    <div className="w-full h-full p-2 flex items-center justify-center">
-                                        {(shop.image || (shop.productImages && shop.productImages[0])) ? (
-                                            <img
-                                                src={shop.image || shop.productImages[0]}
-                                                alt={shop.name}
-                                                className="w-[85%] h-[85%] object-contain drop-shadow-lg group-hover:scale-110 transition-transform duration-300"
-                                            />
-                                        ) : (
-                                            <div className="text-3xl text-sky-200 font-bold">
-                                                {shop.name.charAt(0)}
-                                            </div>
-                                        )}
-                                    </div>
-                                    {/* Label */}
-                                    <div className="absolute bottom-0 left-0 right-0 p-1">
-                                        <div className="bg-amber-400 py-1.5 px-1 rounded-xl shadow-sm">
-                                            <span className="block text-[8px] md:text-[10px] font-black text-amber-900 text-center uppercase tracking-tight line-clamp-1">
-                                                {shop.name}
-                                            </span>
+                                {/* Store Image Container */}
+                                <div className="relative aspect-square rounded-[14px] overflow-hidden mb-3 flex items-center justify-center bg-transparent">
+                                    { (shop.image || (shop.productImages && shop.productImages[0])) ? (
+                                        <img
+                                            src={shop.image || (shop.productImages ? shop.productImages[0] : "")}
+                                            alt={shop.name}
+                                            className="w-[90%] h-[90%] object-contain drop-shadow-sm transform transition-transform duration-500 group-hover:scale-110"
+                                        />
+                                    ) : (
+                                        <div className="text-4xl text-[#0a193b] font-bold opacity-20 capitalize">
+                                            {shop.name.charAt(0)}
                                         </div>
-                                    </div>
+                                    )}
+                                </div>
+
+                                {/* Store Name - Clean Navy Typography */}
+                                <div className="text-center">
+                                    <span className="block text-[12px] md:text-[14px] font-medium text-[#0a193b] capitalize line-clamp-1 leading-tight mb-1">
+                                        {shop.name.toLowerCase()}
+                                    </span>
                                 </div>
                             </motion.div>
                         ))}

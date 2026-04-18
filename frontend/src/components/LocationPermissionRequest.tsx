@@ -93,53 +93,60 @@ export default function LocationPermissionRequest({
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-        <div className="text-center mb-6">
-          <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-md z-[100] flex items-center justify-center p-5">
+      <div className="bg-white rounded-[32px] shadow-card max-w-md w-full p-8 relative overflow-hidden">
+        {/* Subtle Decorative Gradient */}
+        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#c5a059]/30 to-transparent" />
+
+        <div className="text-center mb-8">
+          <div className="w-20 h-20 bg-[#fcfaf7] rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm ring-1 ring-black/[0.03]">
             <svg
-              className="w-8 h-8 text-orange-600"
+              className="w-10 h-10 text-[#0a193b]"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24">
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                strokeWidth={2}
+                strokeWidth={1.8}
                 d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
               />
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                strokeWidth={2}
+                strokeWidth={1.8}
                 d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
               />
             </svg>
           </div>
-          <h2 className="text-xl font-bold text-neutral-900 mb-2">{title}</h2>
-          <p className="text-sm text-neutral-600">{description}</p>
+          <h2 className="text-2xl font-bold text-[#0a193b] mb-3 tracking-tight font-outfit">
+            {title}
+          </h2>
+          <p className="text-base text-neutral-500 leading-relaxed max-w-[280px] mx-auto">
+            {description}
+          </p>
         </div>
 
         {!showManualInput ? (
           <>
             {locationError && (
-              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-                <p className="text-sm text-red-600 mb-2 font-medium">
+              <div className="mb-8 p-4 bg-red-50/50 border border-red-100 rounded-2xl animate-fadeIn">
+                <p className="text-sm text-red-600 mb-1.5 font-bold">
                   {locationError}
                 </p>
-                <p className="text-xs text-red-500">
+                <p className="text-[13px] text-red-500/80 leading-snug">
                   {locationError.includes("timeout")
-                    ? "Please ensure your location/GPS is enabled and try again, or enter location manually."
+                    ? "Please ensure your GPS is enabled and try again, or enter location manually."
                     : "You can try again or enter your location manually below."}
                 </p>
               </div>
             )}
 
-            <div className="space-y-3">
+            <div className="space-y-4">
               <button
                 onClick={handleAllowLocation}
                 disabled={isLocationLoading}
-                className="w-full py-3 bg-orange-500 text-white rounded-lg font-semibold hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                className="w-full py-4 bg-[#0a193b] text-white rounded-full font-bold text-base shadow-lg shadow-[#0a193b]/20 hover:bg-[#0a193b]/90 transition-all active:scale-95 disabled:opacity-50 disabled:active:scale-100 flex items-center justify-center gap-2">
                 {isLocationLoading ? (
                   <>
                     <svg
@@ -159,7 +166,7 @@ export default function LocationPermissionRequest({
                         fill="currentColor"
                         d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
-                    <span>Getting your location...</span>
+                    <span>Requesting...</span>
                   </>
                 ) : locationError ? (
                   "Retry Location Access"
@@ -170,59 +177,58 @@ export default function LocationPermissionRequest({
 
               <button
                 onClick={() => setShowManualInput(true)}
-                className="w-full py-3 bg-neutral-100 text-neutral-700 rounded-lg font-semibold hover:bg-neutral-200 transition-colors">
+                className="w-full py-4 bg-neutral-50 text-neutral-700 rounded-full font-bold text-base hover:bg-neutral-100 transition-all active:scale-95">
                 Enter Location Manually
               </button>
 
               {skipable && (
                 <button
                   onClick={onLocationGranted}
-                  className="w-full py-2 text-sm text-neutral-500 hover:text-neutral-700">
+                  className="w-full pt-2 pb-0 text-sm font-semibold text-neutral-400 hover:text-[#0a193b] transition-colors">
                   Skip for now
                 </button>
               )}
 
               {locationPermissionStatus === "session_granted" &&
                 !isLocationEnabled && (
-                  <div className="mt-4 pt-4 border-t border-neutral-100">
-                    <p className="text-xs text-neutral-500 mb-2">
-                      Permission granted for this session, but location data is
-                      missing.
+                  <div className="mt-6 pt-6 border-t border-neutral-100 text-center">
+                    <p className="text-[12px] text-neutral-400 mb-2">
+                      Permission granted, but data is missing.
                     </p>
                     <button
                       onClick={clearLocation}
-                      className="text-xs text-orange-600 font-medium hover:underline">
-                      Reset and ask again
+                      className="text-xs text-[#c5a059] font-bold uppercase tracking-widest hover:underline">
+                      Reset permission
                     </button>
                   </div>
                 )}
             </div>
           </>
         ) : (
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-2">
-                Search and select your location
+          <div className="space-y-6">
+            <div className="animate-fadeIn">
+              <label className="block text-sm font-bold text-[#0a193b] mb-3 ml-1">
+                Search your location
               </label>
               <GoogleMapsAutocomplete
                 value={manualAddress}
                 onChange={handleManualLocationSelect}
-                placeholder="Type your address or location..."
+                placeholder="Type your address..."
                 required
               />
             </div>
 
-            <div className="flex gap-3">
+            <div className="flex gap-4">
               <button
                 onClick={() => setShowManualInput(false)}
-                className="flex-1 py-2 bg-neutral-100 text-neutral-700 rounded-lg font-semibold hover:bg-neutral-200 transition-colors">
+                className="flex-1 py-4 bg-neutral-50 text-neutral-700 rounded-full font-bold text-base hover:bg-neutral-100 transition-all active:scale-95">
                 Back
               </button>
               <button
                 onClick={handleSaveManualLocation}
                 disabled={!manualAddress || manualLat === 0}
-                className="flex-1 py-2 bg-orange-500 text-white rounded-lg font-semibold hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-                Save Location
+                className="flex-1 py-4 bg-[#0a193b] text-white rounded-full font-bold text-base shadow-lg shadow-[#0a193b]/20 hover:bg-[#0a193b]/90 transition-all active:scale-95 disabled:opacity-50 disabled:active:scale-100">
+                Confirm
               </button>
             </div>
           </div>

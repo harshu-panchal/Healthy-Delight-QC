@@ -23,6 +23,7 @@ interface ProductCardProps {
   optionsCount?: number;
   compact?: boolean;
   categoryStyle?: boolean;
+  storeStyle?: boolean;
 }
 
 export default function ProductCard({
@@ -37,6 +38,7 @@ export default function ProductCard({
   optionsCount = 2,
   compact = false,
   categoryStyle = false,
+  storeStyle = false,
 }: ProductCardProps) {
   const navigate = useNavigate();
   const { cart, addToCart, updateQuantity } = useCart();
@@ -239,9 +241,9 @@ export default function ProductCard({
 
           {/* Premium Gold Discount Badge */}
           {(showBadge && (discount > 0 || badgeText)) && (
-            <div className="absolute top-2.5 right-2.5 z-20">
-              <div className="bg-[#c5a059] text-white text-[10.5px] md:text-[11.5px] font-bold uppercase tracking-widest px-3 py-1 rounded-full shadow-[0_4px_12px_rgba(197,160,89,0.3)] border border-white/20">
-                {badgeText || `${discount}% OFF`}
+            <div className={`absolute top-2.5 z-20 ${storeStyle ? 'left-2.5' : 'right-2.5'}`}>
+              <div className="bg-[#c5a059] text-white text-[10.5px] md:text-[11.5px] font-bold px-3 py-1 rounded-full shadow-[0_4px_12px_rgba(197,160,89,0.3)] border border-white/20">
+                {badgeText || `${discount}% off`}
               </div>
             </div>
           )}
@@ -291,56 +293,60 @@ export default function ProductCard({
             </div>
           )}
 
-          {/* ADD Button / Quantity Controls - Positioned on Image (Bottom Right) */}
-          <div className="absolute bottom-2 right-2 z-30">
-            {inCartQty === 0 ? (
-              <button
-                ref={addButtonRef}
-                disabled={product.isAvailable === false}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleAdd(e);
-                }}
-                className={`h-7 rounded-lg font-bold text-[10px] uppercase tracking-wider transition-all duration-300 flex items-center justify-center px-3.5 ${product.isAvailable === false
-                  ? 'bg-neutral-100 text-neutral-400 cursor-not-allowed shadow-none'
-                  : 'bg-white text-[#0a193b] border border-[#0a193b]/10 shadow-[0_4px_12px_rgba(0,0,0,0.1)] hover:bg-[#0a193b] hover:text-white hover:border-transparent active:scale-90'
-                  }`}
-              >
-                {product.isAvailable === false ? 'Out' : 'ADD'}
-              </button>
-            ) : (
-              <div className="flex items-center bg-[#0a193b] text-white rounded-lg h-8 px-1 shadow-[0_4px_12px_rgba(0,0,0,0.15)] ring-1 ring-white/10">
+          {/* ADD Button / Quantity Controls - Only show as overlay if NOT storeStyle */}
+          {!storeStyle && (
+            <div className="absolute bottom-2 right-2 z-30">
+              {inCartQty === 0 ? (
                 <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDecrease(e);
-                  }}
-                  className="w-6 h-6 flex items-center justify-center rounded-md hover:bg-white/10 transition-colors active:scale-90"
-                  aria-label="Decrease quantity"
-                >
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M5 12h14" />
-                  </svg>
-                </button>
-                <span className="text-[11px] font-bold min-w-[1.2rem] text-center">
-                  {inCartQty}
-                </span>
-                <button
+                  ref={addButtonRef}
                   disabled={product.isAvailable === false}
                   onClick={(e) => {
                     e.stopPropagation();
-                    handleIncrease(e);
+                    handleAdd(e);
                   }}
-                  className="w-6 h-6 flex items-center justify-center rounded-md hover:bg-white/10 transition-colors disabled:opacity-30 active:scale-90"
-                  aria-label="Increase quantity"
+                  className={`h-7 font-bold text-[10px] uppercase tracking-wider transition-all duration-300 flex items-center justify-center px-4 shadow-[0_4px_12px_rgba(0,0,0,0.1)] active:scale-90 ${product.isAvailable === false
+                    ? 'bg-neutral-100 text-neutral-400 cursor-not-allowed shadow-none rounded-lg'
+                    : storeStyle
+                      ? 'bg-[#0a193b] text-white rounded-full hover:bg-[#0a193b]/90 ring-1 ring-white/10'
+                      : 'bg-white text-[#0a193b] border border-[#0a193b]/10 rounded-lg hover:bg-[#0a193b] hover:text-white hover:border-transparent'
+                    }`}
                 >
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M12 5v14M5 12h14" />
-                  </svg>
+                  {product.isAvailable === false ? 'Out' : 'ADD'}
                 </button>
-              </div>
-            )}
-          </div>
+              ) : (
+                <div className="flex items-center bg-[#0a193b] text-white rounded-lg h-8 px-1 shadow-[0_4px_12px_rgba(0,0,0,0.15)] ring-1 ring-white/10">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDecrease(e);
+                    }}
+                    className="w-6 h-6 flex items-center justify-center rounded-md hover:bg-white/10 transition-colors active:scale-90"
+                    aria-label="Decrease quantity"
+                  >
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M5 12h14" />
+                    </svg>
+                  </button>
+                  <span className="text-[11px] font-bold min-w-[1.2rem] text-center">
+                    {inCartQty}
+                  </span>
+                  <button
+                    disabled={product.isAvailable === false}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleIncrease(e);
+                    }}
+                    className="w-6 h-6 flex items-center justify-center rounded-md hover:bg-white/10 transition-colors disabled:opacity-30 active:scale-90"
+                    aria-label="Increase quantity"
+                  >
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M12 5v14M5 12h14" />
+                    </svg>
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         <div className="p-3 flex-1 flex flex-col">
@@ -359,16 +365,69 @@ export default function ProductCard({
           </h3>
 
           {/* Bottom Row: Price Only (Clean Layout) */}
-          <div className="mt-auto flex items-baseline gap-1.5 pt-1">
-            <span className="text-base font-black text-[#0a193b] leading-tight">
+          <div className={`mt-auto flex items-baseline gap-2 pt-1.5`}>
+            <span className={`text-base font-black text-[#0a193b] leading-tight ${storeStyle ? 'tracking-tight' : ''}`}>
               ₹{displayPrice.toLocaleString('en-IN')}
             </span>
             {mrp && mrp > displayPrice && (
-              <span className="text-[10px] text-neutral-400 line-through leading-none">
+              <span className="text-[10px] text-neutral-400 line-through leading-none ml-0.5">
                 ₹{mrp.toLocaleString('en-IN')}
               </span>
             )}
           </div>
+
+          {/* Full Width Bottom Button for storeStyle */}
+          {storeStyle && (
+            <div className="mt-3">
+              {inCartQty === 0 ? (
+                <button
+                  ref={addButtonRef}
+                  disabled={product.isAvailable === false}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleAdd(e);
+                  }}
+                  className={`w-full h-10 rounded-full font-bold text-[13px] transition-all duration-300 flex items-center justify-center px-4 ${product.isAvailable === false
+                    ? 'bg-neutral-100 text-neutral-400 cursor-not-allowed'
+                    : 'bg-[#0a193b] text-white shadow-[0_4px_12px_rgba(10,25,59,0.2)] hover:bg-[#0a193b]/90 active:scale-95'
+                    }`}
+                >
+                  {product.isAvailable === false ? 'Out of Stock' : 'Add to cart'}
+                </button>
+              ) : (
+                <div className="flex items-center justify-between bg-[#0a193b] text-white rounded-full h-10 px-2 shadow-[0_4px_12px_rgba(10,25,59,0.2)]">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDecrease(e);
+                    }}
+                    className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors active:scale-90"
+                    aria-label="Decrease quantity"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M5 12h14" />
+                    </svg>
+                  </button>
+                  <span className="text-[13px] font-bold">
+                    {inCartQty} in cart
+                  </span>
+                  <button
+                    disabled={product.isAvailable === false}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleIncrease(e);
+                    }}
+                    className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors disabled:opacity-30 active:scale-90"
+                    aria-label="Increase quantity"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M12 5v14M5 12h14" />
+                    </svg>
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </motion.div>

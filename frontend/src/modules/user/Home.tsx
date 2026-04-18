@@ -587,7 +587,7 @@ export default function Home() {
                           </div>
 
                           <div className="text-center">
-                            <span className="block text-[13px] md:text-[14px] font-medium text-[#0f172a] capitalize line-clamp-1 leading-tight mb-1.5">
+                            <span className="block text-[13px] md:text-[14px] font-medium text-[#0a193b] capitalize line-clamp-1 leading-tight mb-1.5">
                               {tile.name.toLowerCase()}
                             </span>
                           </div>
