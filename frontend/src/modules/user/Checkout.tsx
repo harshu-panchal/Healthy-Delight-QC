@@ -278,7 +278,7 @@ export default function Checkout() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
         <div className="flex flex-col items-center">
-          <div className="w-12 h-12 border-4 border-green-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+          <div className="w-12 h-12 border-4 border-[#0a193b] border-t-transparent rounded-full animate-spin mb-4"></div>
           <p className="text-sm font-medium text-neutral-600">
             {cartLoading ? "Loading checkout..." : "Redirecting..."}
           </p>
@@ -685,7 +685,7 @@ export default function Checkout() {
                       }))
                     }
                     placeholder="Enter your full name"
-                    className="w-full px-3 py-2.5 text-sm border border-neutral-300 rounded-lg focus:outline-none focus:border-green-500 transition-colors"
+                    className="w-full px-3 py-2.5 text-sm border border-neutral-300 rounded-lg focus:outline-none focus:border-[#0a193b] transition-colors"
                     disabled={isUpdatingProfile}
                   />
                 </div>
@@ -704,7 +704,7 @@ export default function Checkout() {
                       }))
                     }
                     placeholder="Enter your email"
-                    className="w-full px-3 py-2.5 text-sm border border-neutral-300 rounded-lg focus:outline-none focus:border-green-500 transition-colors"
+                    className="w-full px-3 py-2.5 text-sm border border-neutral-300 rounded-lg focus:outline-none focus:border-[#0a193b] transition-colors"
                     disabled={isUpdatingProfile}
                   />
                 </div>
@@ -733,7 +733,7 @@ export default function Checkout() {
                       !profileFormData.name.trim() ||
                       !profileFormData.email.trim()
                       ? "bg-neutral-300 text-neutral-500 cursor-not-allowed"
-                      : "bg-green-600 text-white hover:bg-green-700"
+                      : "bg-[#0a193b] text-white hover:bg-[#0a193b]/90"
                       }`}>
                     {isUpdatingProfile ? "Saving..." : "Save & Continue"}
                   </button>
@@ -860,14 +860,14 @@ export default function Checkout() {
               }}>
               {/* Outer ring animation */}
               <div
-                className="absolute inset-0 w-32 h-32 rounded-full border-4 border-green-500"
+                className="absolute inset-0 w-32 h-32 rounded-full border-4 border-[#0a193b]"
                 style={{
                   animation: "ringPulse 1.5s ease-out infinite",
                   opacity: 0.3,
                 }}
               />
               {/* Main circle */}
-              <div className="w-32 h-32 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center shadow-2xl">
+              <div className="w-32 h-32 bg-gradient-to-br from-[#0a193b] to-[#0a193b]/80 rounded-full flex items-center justify-center shadow-2xl">
                 <svg
                   className="w-16 h-16 text-white"
                   viewBox="0 0 24 24"
@@ -920,7 +920,7 @@ export default function Checkout() {
             <div
               className="mt-12 text-center"
               style={{ animation: "slideUp 0.5s ease-out 0.8s both" }}>
-              <h3 className="text-3xl font-bold text-green-600 mb-2">
+              <h3 className="text-3xl font-bold text-[#0a193b] mb-2">
                 Order Placed!
               </h3>
               <p className="text-gray-600">Your order is on the way</p>
@@ -929,7 +929,7 @@ export default function Checkout() {
             {/* Action Button */}
             <button
               onClick={handleGoToOrders}
-              className="mt-10 bg-green-600 hover:bg-green-700 text-white font-semibold py-4 px-12 rounded-xl shadow-lg transition-all hover:shadow-xl hover:scale-105"
+              className="mt-10 bg-[#0a193b] hover:bg-[#0a193b]/90 text-white font-semibold py-4 px-12 rounded-xl shadow-lg transition-all hover:shadow-xl hover:scale-105"
               style={{ animation: "slideUp 0.5s ease-out 1s both" }}>
               Track Your Order
             </button>
@@ -982,7 +982,7 @@ export default function Checkout() {
                 },
               })
             }
-            className="text-xs text-emerald-600 font-medium hover:text-emerald-700 transition-colors">
+            className="text-xs text-[#0a193b] font-bold hover:underline transition-colors">
             Add details
           </button>
         </div>
@@ -1002,7 +1002,7 @@ export default function Checkout() {
 
           <div
             className={`border rounded-lg p-2.5 cursor-pointer transition-all ${selectedAddress && !isMapSelected
-              ? "border-green-600 bg-green-50"
+              ? "border-[#0a193b] bg-[#0a193b]/5"
               : "border-neutral-300 bg-white"
               }`}
             onClick={() => {
@@ -1014,7 +1014,7 @@ export default function Checkout() {
                 <div className="flex items-center gap-1.5 mb-1">
                   <div
                     className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${selectedAddress && !isMapSelected
-                      ? "border-green-600 bg-green-600"
+                      ? "border-[#0a193b] bg-[#0a193b]"
                       : "border-neutral-400"
                       }`}>
                     {selectedAddress && !isMapSelected && (
@@ -1047,7 +1047,7 @@ export default function Checkout() {
                   {savedAddress.landmark ? (
                     <>
                       ,{" "}
-                      <span className="font-medium text-green-700">
+                      <span className="font-medium text-[#0a193b]">
                         Near {savedAddress.landmark}
                       </span>
                     </>
@@ -1066,7 +1066,7 @@ export default function Checkout() {
                     },
                   });
                 }}
-                className="text-xs text-green-600 font-medium ml-2">
+                className="text-xs text-[#0a193b] font-bold ml-2">
                 Edit
               </button>
             </div>
@@ -1084,8 +1084,8 @@ export default function Checkout() {
                 setShowMapPicker(true);
               }}
               className={`flex items-center gap-3 text-base font-bold px-5 py-4 rounded-xl w-full justify-center transition-colors ${isMapSelected
-                ? "text-green-700 bg-green-100 border-2 border-green-500 ring-2 ring-green-600"
-                : "text-green-600 hover:text-green-700 bg-green-50 border-2 border-green-300 hover:bg-green-100 hover:border-green-400"
+                ? "text-[#0a193b] bg-[#0a193b]/10 border-2 border-[#0a193b] ring-1 ring-[#0a193b]/20"
+                : "text-[#0a193b] hover:text-[#0a193b]/90 bg-[#0a193b]/5 border-2 border-[#0a193b]/20 hover:bg-[#0a193b]/10 hover:border-[#0a193b]/30"
                 }`}>
               {isMapSelected ? (
                 <svg
@@ -1139,7 +1139,7 @@ export default function Checkout() {
         <div className="bg-white rounded-3xl shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-neutral-100 overflow-hidden">
           <div className="px-5 py-4 border-b border-neutral-50 bg-neutral-50/30 flex items-center justify-between">
             <h2 className="text-sm font-bold text-neutral-900">Your Cart</h2>
-            <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full uppercase tracking-wider">
+            <span className="text-[10px] font-bold text-[#0a193b] bg-[#0a193b]/5 px-2 py-0.5 rounded-full uppercase tracking-wider">
               {displayCart.itemCount || 0} {(displayCart.itemCount || 0) === 1 ? "item" : "items"}
             </span>
           </div>
@@ -1176,7 +1176,7 @@ export default function Checkout() {
                           e.stopPropagation();
                           handleMoveToWishlist(item.product, variantId, variantTitle);
                         }}
-                        className="text-[10px] font-medium text-neutral-400 hover:text-emerald-600 transition-colors">
+                        className="text-[10px] font-medium text-neutral-400 hover:text-[#0a193b] font-bold transition-colors">
                         Move to wishlist
                       </button>
                     </div>
@@ -1191,7 +1191,7 @@ export default function Checkout() {
                       <div className="flex items-center gap-3 bg-neutral-50 rounded-xl px-1.5 py-1">
                         <button
                           onClick={() => updateQuantity(item.product?.id, item.quantity - 1, variantId, variantTitle)}
-                          className="w-7 h-7 flex items-center justify-center text-neutral-400 hover:text-emerald-600 hover:bg-white rounded-lg transition-all font-bold text-lg">
+                          className="w-7 h-7 flex items-center justify-center text-neutral-400 hover:text-[#0a193b] hover:bg-white rounded-lg transition-all font-bold text-lg">
                           −
                         </button>
                         <span className="text-xs font-bold text-neutral-900 min-w-[1rem] text-center">
@@ -1199,7 +1199,7 @@ export default function Checkout() {
                         </span>
                         <button
                           onClick={() => updateQuantity(item.product?.id, item.quantity + 1, variantId, variantTitle)}
-                          className="w-7 h-7 flex items-center justify-center text-neutral-400 hover:text-emerald-600 hover:bg-white rounded-lg transition-all font-bold text-lg">
+                          className="w-7 h-7 flex items-center justify-center text-neutral-400 hover:text-[#0a193b] hover:bg-white rounded-lg transition-all font-bold text-lg">
                           +
                         </button>
                       </div>
@@ -1232,7 +1232,7 @@ export default function Checkout() {
                     className="w-full h-full object-contain transition-transform group-hover:scale-110"
                   />
                   {hasDiscount && (
-                    <div className="absolute top-2 left-2 bg-emerald-600 text-[8px] font-bold text-white px-1.5 py-0.5 rounded-full uppercase tracking-tighter shadow-sm">
+                    <div className="absolute top-2 left-2 bg-[#0a193b] text-[8px] font-bold text-white px-1.5 py-0.5 rounded-full uppercase tracking-tighter shadow-sm">
                       {discount}% OFF
                     </div>
                   )}
@@ -1248,7 +1248,7 @@ export default function Checkout() {
 
                     <button
                       onClick={() => addToCart(product)}
-                      className="w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center hover:bg-emerald-600 hover:text-white transition-all shadow-sm">
+                      className="w-8 h-8 rounded-full bg-[#0a193b]/5 text-[#0a193b] flex items-center justify-center hover:bg-[#0a193b] hover:text-white transition-all shadow-sm">
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14" /></svg>
                     </button>
                   </div>
@@ -1321,9 +1321,9 @@ export default function Checkout() {
       {/* Coupon Section */}
       {selectedCoupon ? (
         <div className="px-4 py-1.5 border-b border-neutral-200">
-          <div className="flex items-center justify-between bg-green-50 rounded-lg p-2 border border-green-200">
+          <div className="flex items-center justify-between bg-[#0a193b]/5 rounded-lg p-2 border border-[#0a193b]/20">
             <div className="flex items-center gap-2 flex-1 min-w-0">
-              <div className="w-6 h-6 rounded-full bg-green-600 flex items-center justify-center flex-shrink-0">
+              <div className="w-6 h-6 rounded-full bg-[#0a193b] flex items-center justify-center flex-shrink-0">
                 <svg
                   width="14"
                   height="14"
@@ -1340,17 +1340,17 @@ export default function Checkout() {
                 </svg>
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-semibold text-green-700 truncate">
+                <p className="text-xs font-semibold text-[#0a193b] truncate">
                   {selectedCoupon.code}
                 </p>
-                <p className="text-[10px] text-green-600 truncate">
+                <p className="text-[10px] text-[#0a193b]/80 truncate">
                   {selectedCoupon.title}
                 </p>
               </div>
             </div>
             <button
               onClick={handleRemoveCoupon}
-              className="text-xs text-green-600 font-medium ml-2 flex-shrink-0">
+              className="text-xs text-[#0a193b] font-bold ml-2 flex-shrink-0">
               Remove
             </button>
           </div>
@@ -1401,18 +1401,18 @@ export default function Checkout() {
                 type="button"
                 onClick={() => setTimeSlot(slot.value)}
                 className={`group relative p-3.5 rounded-2xl border-2 transition-all duration-300 ${selected
-                  ? "border-emerald-600 bg-emerald-50/50 shadow-[0_4px_15px_rgba(16,185,129,0.1)]"
+                  ? "border-[#0a193b] bg-[#0a193b]/5 shadow-[0_4px_15px_rgba(10,25,59,0.1)]"
                   : "border-neutral-100 bg-white hover:border-neutral-200"
                   }`}
               >
                 <div className="flex flex-col gap-1">
-                  <span className={`text-xs font-bold leading-tight ${selected ? "text-emerald-700" : "text-neutral-900"}`}>
+                  <span className={`text-xs font-bold leading-tight ${selected ? "text-[#0a193b]" : "text-neutral-900"}`}>
                     {slot.label}
                   </span>
                   <span className="text-[9px] font-medium text-neutral-500 uppercase tracking-tight">{slot.sub}</span>
                 </div>
                 {selected && (
-                  <div className="absolute top-2 right-2 w-4 h-4 bg-emerald-600 rounded-full flex items-center justify-center">
+                  <div className="absolute top-2 right-2 w-4 h-4 bg-[#0a193b] rounded-full flex items-center justify-center">
                     <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
                       <polyline points="20 6 9 17 4 12" />
                     </svg>
@@ -1460,7 +1460,7 @@ export default function Checkout() {
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <h4 className="text-xs font-bold text-neutral-800 uppercase tracking-wider">Tip your delivery partner</h4>
-            <span className="text-[9px] font-bold text-emerald-600 uppercase">100% goes to partner</span>
+            <span className="text-[9px] font-bold text-[#0a193b] uppercase">100% goes to partner</span>
           </div>
           <div className="flex gap-2 pb-1">
             {[20, 30, 50].map((amount) => (
@@ -1468,7 +1468,7 @@ export default function Checkout() {
                 key={amount}
                 onClick={() => { setTipAmount(amount); setShowCustomTipInput(false); }}
                 className={`relative flex-1 py-2.5 rounded-full text-xs font-bold transition-all ${tipAmount === amount && !showCustomTipInput
-                  ? "bg-emerald-600 text-white shadow-[0_4px_12px_rgba(16,185,129,0.2)]"
+                  ? "bg-[#0a193b] text-white shadow-[0_4px_12px_rgba(10,25,59,0.2)]"
                   : "bg-neutral-50 text-neutral-600 hover:bg-neutral-100"
                   }`}>
                 ₹{amount}
@@ -1481,7 +1481,7 @@ export default function Checkout() {
             ))}
             <button
               onClick={() => { setShowCustomTipInput(true); setTipAmount(null); }}
-              className={`flex-1 py-2.5 rounded-full text-xs font-bold transition-all ${showCustomTipInput ? "bg-emerald-600 text-white shadow-[0_4px_12px_rgba(16,185,129,0.2)]" : "bg-neutral-50 text-neutral-600"
+              className={`flex-1 py-2.5 rounded-full text-xs font-bold transition-all ${showCustomTipInput ? "bg-[#0a193b] text-white shadow-[0_4px_12px_rgba(10,25,59,0.2)]" : "bg-neutral-50 text-neutral-600"
                 }`}>
               Custom
             </button>
@@ -1493,7 +1493,7 @@ export default function Checkout() {
                 value={customTipAmount || ""}
                 onChange={(e) => setCustomTipAmount(Math.max(0, Number(e.target.value)))}
                 placeholder="Enter tip amount"
-                className="flex-1 px-4 py-2.5 bg-white border border-emerald-200 rounded-xl text-xs font-bold focus:outline-none focus:ring-2 focus:ring-emerald-100"
+                className="flex-1 px-4 py-2.5 bg-white border border-[#0a193b]/20 rounded-xl text-xs font-bold focus:outline-none focus:ring-2 focus:ring-[#0a193b]/10"
               />
               <button onClick={() => { setShowCustomTipInput(false); setTipAmount(null); }} className="text-[10px] font-bold text-neutral-400 uppercase">Cancel</button>
             </div>
@@ -1503,10 +1503,10 @@ export default function Checkout() {
         {/* Improved Gift Packaging UI */}
         <button
           onClick={() => setGiftPackaging(!giftPackaging)}
-          className={`w-full flex items-center justify-between p-4 rounded-2xl border transition-all ${giftPackaging ? "bg-emerald-50 border-emerald-200 shadow-sm" : "bg-neutral-50/50 border-neutral-100"
+          className={`w-full flex items-center justify-between p-4 rounded-2xl border transition-all ${giftPackaging ? "bg-[#0a193b]/5 border-[#0a193b]/20 shadow-sm" : "bg-neutral-50/50 border-neutral-100"
             }`}>
           <div className="flex items-center gap-4">
-            <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${giftPackaging ? "bg-emerald-100 text-emerald-600" : "bg-neutral-100 text-neutral-400"}`}>
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${giftPackaging ? "bg-[#0a193b]/10 text-[#0a193b]" : "bg-neutral-100 text-neutral-400"}`}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 12V8H4v4M2 12h20M7 8V5c0-1.7 1.3-3 3-3h4c1.7 0 3 1.3 3 3v3M12 2v20M2 12v6c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2v-6" /></svg>
             </div>
             <div className="text-left">
@@ -1514,7 +1514,7 @@ export default function Checkout() {
               <p className="text-[10px] text-neutral-500 font-medium tracking-tight">Add an elegant gift wrap for only ₹30</p>
             </div>
           </div>
-          <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${giftPackaging ? "bg-emerald-600 border-emerald-600 scale-110" : "border-neutral-200 bg-white"}`}>
+          <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${giftPackaging ? "bg-[#0a193b] border-[#0a193b] scale-110" : "border-neutral-200 bg-white"}`}>
             {giftPackaging && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>}
           </div>
         </button>
@@ -1604,7 +1604,7 @@ export default function Checkout() {
             </div>
             <div className="flex flex-col items-end">
               <span
-                className={`text-xs font-medium ${deliveryCharge === 0 ? "text-green-600" : "text-neutral-900"
+                className={`text-xs font-bold ${deliveryCharge === 0 ? "text-[#0a193b]" : "text-neutral-900"
                   }`}>
                 {deliveryCharge === 0 ? "FREE" : `₹${deliveryCharge}`}
               </span>
@@ -1637,11 +1637,11 @@ export default function Checkout() {
                 <span className="text-xs text-neutral-700">
                   Coupon discount
                 </span>
-                <span className="text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full font-medium">
+                <span className="text-[10px] bg-[#0a193b]/5 text-[#0a193b] px-1.5 py-0.5 rounded-full font-medium">
                   {selectedCoupon.code}
                 </span>
               </div>
-              <span className="text-xs font-medium text-green-600">
+              <span className="text-xs font-medium text-[#0a193b]">
                 -₹{currentCouponDiscount.toLocaleString("en-IN")}
               </span>
             </div>
@@ -1759,7 +1759,7 @@ export default function Checkout() {
                   }
                 }}
                 placeholder="Enter 15-character GSTIN"
-                className="w-full px-4 py-3 bg-white border-2 border-neutral-300 rounded-lg text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                className="w-full px-4 py-3 bg-white border-2 border-neutral-300 rounded-lg text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-[#0a193b]/20 focus:border-[#0a193b]"
                 maxLength={15}
               />
               <p className="text-xs text-neutral-500 mt-1">
@@ -1774,7 +1774,7 @@ export default function Checkout() {
                   alert("Please enter a valid 15-character GSTIN");
                 }
               }}
-              className="w-full bg-green-600 text-white py-3 px-4 font-bold text-sm uppercase tracking-wide hover:bg-green-700 transition-colors rounded-lg">
+              className="w-full bg-[#0a193b] text-white py-3 px-4 font-bold text-sm uppercase tracking-wide hover:bg-[#0a193b]/90 transition-colors rounded-lg">
               Save GSTIN
             </button>
             {gstin && (
@@ -1846,13 +1846,13 @@ export default function Checkout() {
                 <div className="bg-neutral-50 rounded-2xl p-4 border border-neutral-100">
                   <ul className="space-y-4 font-medium">
                     <li className="flex items-start gap-3">
-                      <div className="w-5 h-5 rounded-full bg-green-100 text-green-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <div className="w-5 h-5 rounded-full bg-[#0a193b]/10 text-[#0a193b] flex items-center justify-center flex-shrink-0 mt-0.5">
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
                       </div>
                       <span className="text-sm text-neutral-700">Refunds are processed within 5-7 business days</span>
                     </li>
                     <li className="flex items-start gap-3">
-                      <div className="w-5 h-5 rounded-full bg-green-100 text-green-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <div className="w-5 h-5 rounded-full bg-[#0a193b]/10 text-[#0a193b] flex items-center justify-center flex-shrink-0 mt-0.5">
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
                       </div>
                       <span className="text-sm text-neutral-700">Amount will be credited to your original payment method</span>
@@ -1904,10 +1904,10 @@ export default function Checkout() {
           <div
             onClick={() => setPaymentMethod("Online")}
             className={`flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all ${paymentMethod === "Online"
-              ? "border-green-600 bg-green-50"
+              ? "border-[#0a193b] bg-[#0a193b]/5"
               : "border-neutral-200 bg-white"
               }`}>
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${paymentMethod === "Online" ? "bg-green-100 text-green-600" : "bg-neutral-100 text-neutral-500"
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${paymentMethod === "Online" ? "bg-[#0a193b]/10 text-[#0a193b]" : "bg-neutral-100 text-neutral-500"
               }`}>
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="2" y="5" width="20" height="14" rx="2" ry="2" />
@@ -1915,12 +1915,12 @@ export default function Checkout() {
               </svg>
             </div>
             <div>
-              <span className={`text-xs font-bold block ${paymentMethod === "Online" ? "text-green-700" : "text-neutral-900"}`}>Online Payment</span>
+              <span className={`text-xs font-bold block ${paymentMethod === "Online" ? "text-[#0a193b]" : "text-neutral-900"}`}>Online Payment</span>
               <span className="text-[10px] text-neutral-500">Secure payment via Razorpay</span>
             </div>
             {paymentMethod === "Online" && (
               <div className="ml-auto">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-green-600">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-[#0a193b]">
                   <polyline points="20 6 9 17 4 12" />
                 </svg>
               </div>
@@ -1931,10 +1931,10 @@ export default function Checkout() {
           <div
             onClick={() => setPaymentMethod("COD")}
             className={`flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all ${paymentMethod === "COD"
-              ? "border-green-600 bg-green-50"
+              ? "border-[#0a193b] bg-[#0a193b]/5"
               : "border-neutral-200 bg-white"
               }`}>
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${paymentMethod === "COD" ? "bg-green-100 text-green-600" : "bg-neutral-100 text-neutral-500"
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${paymentMethod === "COD" ? "bg-[#0a193b]/10 text-[#0a193b]" : "bg-neutral-100 text-neutral-500"
               }`}>
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="1" y="4" width="22" height="16" rx="2" ry="2" />
@@ -1942,12 +1942,12 @@ export default function Checkout() {
               </svg>
             </div>
             <div>
-              <span className={`text-xs font-bold block ${paymentMethod === "COD" ? "text-green-700" : "text-neutral-900"}`}>Cash on Delivery</span>
+              <span className={`text-xs font-bold block ${paymentMethod === "COD" ? "text-[#0a193b]" : "text-neutral-900"}`}>Cash on Delivery</span>
               <span className="text-[10px] text-neutral-500">Pay when you receive your order</span>
             </div>
             {paymentMethod === "COD" && (
               <div className="ml-auto">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-green-600">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-[#0a193b]">
                   <polyline points="20 6 9 17 4 12" />
                 </svg>
               </div>
@@ -1968,7 +1968,7 @@ export default function Checkout() {
               ❤️
             </motion.span>
             <span className="text-[10px] font-medium">by</span>
-            <span className="text-[10px] font-semibold text-green-600">
+            <span className="text-[10px] font-semibold text-[#0a193b]">
               Healthy Delight
             </span>
           </div>
@@ -2020,7 +2020,7 @@ export default function Checkout() {
                     <div
                       key={coupon._id}
                       className={`border-2 rounded-lg p-2.5 transition-all ${isSelected
-                        ? "border-green-600 bg-green-50"
+                        ? "border-[#0a193b] bg-[#0a193b]/5"
                         : meetsMinOrder
                           ? "border-neutral-200 bg-white"
                           : "border-neutral-200 bg-neutral-50 opacity-60"
@@ -2028,7 +2028,7 @@ export default function Checkout() {
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1">
-                            <span className="text-xs font-bold text-green-600">
+                            <span className="text-xs font-bold text-[#0a193b]">
                               {coupon.code}
                             </span>
                             <span className="text-xs font-semibold text-neutral-900">
@@ -2045,7 +2045,7 @@ export default function Checkout() {
                           )}
                         </div>
                         {isSelected ? (
-                          <div className="flex items-center gap-1 text-green-600">
+                          <div className="flex items-center gap-1 text-[#0a193b]">
                             <svg
                               width="16"
                               height="16"
@@ -2060,7 +2060,7 @@ export default function Checkout() {
                                 strokeLinejoin="round"
                               />
                             </svg>
-                            <span className="text-xs font-medium">Applied</span>
+                            <span className="text-xs font-bold">Applied</span>
                           </div>
                         ) : (
                           <button
@@ -2068,8 +2068,8 @@ export default function Checkout() {
                               meetsMinOrder && handleApplyCoupon(coupon)
                             }
                             disabled={!meetsMinOrder || isValidatingCoupon}
-                            className={`px-3 py-1 rounded text-xs font-medium transition-colors ${meetsMinOrder
-                              ? "bg-green-600 text-white hover:bg-green-700"
+                            className={`px-3 py-1 rounded text-xs font-bold transition-colors ${meetsMinOrder
+                              ? "bg-[#0a193b] text-white hover:bg-[#0a193b]/90"
                               : "bg-neutral-300 text-neutral-500 cursor-not-allowed"
                               }`}>
                             {isValidatingCoupon ? "..." : "Apply"}
@@ -2098,7 +2098,7 @@ export default function Checkout() {
                 const element = document.getElementById('bill-summary');
                 if (element) element.scrollIntoView({ behavior: 'smooth' });
               }}
-              className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest text-left hover:underline">
+              className="text-[10px] font-bold text-[#0a193b] uppercase tracking-widest text-left hover:underline">
               View Bill Details
             </button>
           </div>
@@ -2109,8 +2109,8 @@ export default function Checkout() {
               <button
                 onClick={handlePlaceOrder}
                 disabled={cart.items.length === 0 || !timeSlot}
-                className={`w-full py-3.5 rounded-2xl font-bold text-sm tracking-wide shadow-[0_8px_25px_rgba(16,185,129,0.25)] transition-all active:scale-95 ${cart.items.length > 0 && timeSlot
-                  ? "bg-emerald-600 text-white hover:bg-emerald-700 hover:shadow-[0_12px_30px_rgba(16,185,129,0.3)]"
+                className={`w-full py-3.5 rounded-2xl font-bold text-sm tracking-wide shadow-[0_8px_25px_rgba(10,25,59,0.25)] transition-all active:scale-95 ${cart.items.length > 0 && timeSlot
+                  ? "bg-[#0a193b] text-white hover:bg-[#0a193b]/90 hover:shadow-[0_12px_30px_rgba(10,25,59,0.3)]"
                   : "bg-neutral-100 text-neutral-400 cursor-not-allowed shadow-none"
                   }`}>
                 Place Order
@@ -2124,7 +2124,7 @@ export default function Checkout() {
                     },
                   })
                 }
-                className="w-full bg-emerald-600 text-white py-3.5 rounded-2xl font-bold text-sm tracking-wide shadow-[0_8px_25px_rgba(16,185,129,0.25)] hover:bg-emerald-700 hover:shadow-[0_12px_30px_rgba(16,185,129,0.3)] transition-all active:scale-95">
+                className="w-full bg-[#0a193b] text-white py-3.5 rounded-2xl font-bold text-sm tracking-wide shadow-[0_8px_25px_rgba(10,25,59,0.25)] hover:bg-[#0a193b]/90 hover:shadow-[0_12px_30px_rgba(10,25,59,0.3)] transition-all active:scale-95">
                 Continue to Address
               </button>
             )}
