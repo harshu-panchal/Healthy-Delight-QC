@@ -142,7 +142,7 @@ export default function DeliveryAbout() {
         {/* Copyright */}
         <div className="mt-6 text-center">
           <p className="text-neutral-400 text-xs">
-            © 2026 Healthy Delight. All rights reserved.
+            © {new Date().getFullYear()} Healthy Delight. All rights reserved.
           </p>
         </div>
       </div>

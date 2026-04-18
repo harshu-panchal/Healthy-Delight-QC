@@ -8,21 +8,34 @@ import { useToast } from '../../context/ToastContext';
 import Button from '../../components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
 import { calculateProductPrice } from '../../utils/priceUtils';
+import logo from "../../../assets/logo.png";
 
 export default function Wishlist() {
   const navigate = useNavigate();
-  const { location } = useLocation();
+  const { location: userLocation } = useLocation();
   const { addToCart } = useCart();
   const { showToast } = useToast();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isHeaderSolid, setIsHeaderSolid] = useState(false);
+
+  // Scroll Listener for Dynamic Header
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollY = window.scrollY || document.documentElement.scrollTop;
+      setIsHeaderSolid(scrollY > 10);
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const fetchWishlist = async () => {
     try {
       setLoading(true);
       const res = await getWishlist({
-        latitude: location?.latitude,
-        longitude: location?.longitude
+        latitude: userLocation?.latitude,
+        longitude: userLocation?.longitude
       });
       if (res.success && res.data) {
         setProducts(res.data.products.map(p => ({
@@ -44,7 +57,7 @@ export default function Wishlist() {
 
   useEffect(() => {
     fetchWishlist();
-  }, [location?.latitude, location?.longitude]);
+  }, [userLocation?.latitude, userLocation?.longitude]);
 
   const handleRemove = async (productId: string) => {
     try {
@@ -55,19 +68,121 @@ export default function Wishlist() {
     }
   };
 
+  // Format location display text
+  const locationDisplayText = userLocation?.address ||
+    (userLocation?.city && userLocation?.state ? `${userLocation.city}, ${userLocation.state}` :
+      (userLocation?.city || ""));
+
   return (
-    <div className="pb-24 md:pb-8 bg-white min-h-screen">
-      <div className="px-4 py-4 bg-white border-b border-neutral-200 mb-4 sticky top-0 z-10 flex items-center gap-3">
-        <button onClick={() => navigate(-1)} className="p-1">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
-        </button>
-        <h1 className="text-xl font-bold text-neutral-900">My Wishlist</h1>
+    <div className="min-h-screen bg-transparent relative flex flex-col pt-[140px] md:pt-[160px] pb-24 md:pb-8">
+      {/* Premium Home-Style Fixed Header */}
+      <header
+        className="fixed top-0 left-0 w-full z-50 transition-all duration-300"
+        style={{
+          background: isHeaderSolid
+            ? '#0a193b'
+            : 'linear-gradient(180deg, #0a193b 0%, rgba(10, 25, 59, 0.9) 30%, rgba(10, 25, 59, 0.7) 60%, rgba(10, 25, 59, 0.4) 85%, rgba(252, 250, 247, 0) 100%)',
+          boxShadow: isHeaderSolid ? "0 12px 24px rgba(0,0,0,0.12)" : "none",
+          paddingBottom: isHeaderSolid ? '8px' : '20px',
+          borderBottomLeftRadius: isHeaderSolid ? '20px' : '0px',
+          borderBottomRightRadius: isHeaderSolid ? '20px' : '0px',
+        }}
+      >
+        <div className="px-5 md:px-10 pt-5 pb-3">
+          <div className="flex items-center justify-between gap-6">
+            <div className="flex items-center gap-8 flex-1 min-w-0">
+              {/* Logo */}
+              <div className="flex items-center gap-2.5 flex-shrink-0 cursor-pointer group" onClick={() => navigate('/')}>
+                <img src={logo} alt="Healthy Delight" className="h-8 md:h-9 w-auto object-contain brightness-0 invert drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)] transition-transform group-hover:scale-105" />
+                <span className="hidden md:block text-xl font-bold tracking-tight text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.2)]">
+                  Healthy Delight
+                </span>
+              </div>
+
+              {/* Location */}
+              {locationDisplayText && (
+                <div onClick={() => navigate('/account')} className="flex items-center gap-2 cursor-pointer max-w-[200px] md:max-w-md group">
+                  <div className="p-1.5 rounded-full bg-white/10 text-white/90 group-hover:bg-white/20 transition-all border border-white/20">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" strokeLinecap="round" strokeLinejoin="round" />
+                      <circle cx="12" cy="10" r="3" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </div>
+                  <div className="flex flex-col min-w-0">
+                    <span className="text-[10px] uppercase tracking-widest font-bold text-white/50 leading-none mb-0.5">Delivery to</span>
+                    <div className="flex items-center gap-1">
+                      <span className="text-sm font-bold text-white/95 truncate group-hover:text-white transition-colors">{locationDisplayText}</span>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" className="text-white/40 group-hover:text-white transition-colors">
+                        <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Profile Button */}
+            <button
+              onClick={() => navigate('/account')}
+              className="flex-shrink-0 w-10 h-10 rounded-full bg-white/10 text-white flex items-center justify-center border border-white/20 hover:bg-white/20 transition-all shadow-lg"
+            >
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        {/* Home-Style Search Bar */}
+        <div className="px-5 md:px-10 py-3">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              const input = e.currentTarget.querySelector('input') as HTMLInputElement;
+              if (input.value.trim()) navigate(`/search?q=${encodeURIComponent(input.value.trim())}`);
+            }}
+            className="w-full md:max-w-2xl md:mx-auto h-12 md:h-13 bg-white rounded-2xl flex items-center gap-4 px-5 transition-all shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-neutral-100 focus-within:ring-4 focus-within:ring-primary-500/10"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0a193b" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="opacity-70">
+              <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
+            </svg>
+            <input
+              type="text"
+              placeholder="Search for fresh items..."
+              className="flex-1 bg-transparent border-none outline-none text-[15px] font-semibold text-neutral-800 placeholder-slate-400"
+              autoComplete="off"
+            />
+          </form>
+        </div>
+      </header>
+
+      {/* Premium Background Layer */}
+      <div className="fixed inset-0 bg-gradient-to-b from-[#f8f6f2] to-[#f6f1e6] -z-10" />
+      <div className="fixed inset-0 opacity-[0.03] pointer-events-none -z-5" style={{ backgroundImage: 'url("https://www.transparenttextures.com/patterns/natural-paper.png")' }}></div>
+
+      {/* Page Header Section */}
+      <div className="px-5 pt-4 pb-4 md:px-10 md:pt-6 md:pb-6 mt-4 flex items-center justify-between">
+        <div>
+          <h1 className="text-[18px] md:text-[22px] font-semibold text-[#0a193b] tracking-tight">
+            My Wishlist
+          </h1>
+          <p className="text-[11px] md:text-[13px] text-neutral-500 mt-1 font-medium">
+            Items you've saved for later
+          </p>
+        </div>
+        {products.length > 0 && (
+          <div className="bg-[#0a193b]/5 px-3 py-1.5 rounded-full border border-[#0a193b]/10">
+            <span className="text-[12px] font-bold text-[#0a193b]">
+              {products.length} {products.length === 1 ? 'Item' : 'Items'}
+            </span>
+          </div>
+        )}
       </div>
 
       <div className="px-4">
         {loading ? (
-          <div className="flex justify-center pt-20">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
+          <div className="flex justify-center py-20">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0a193b]"></div>
           </div>
         ) : products.length > 0 ? (
           <div className="grid grid-cols-2 gap-4">
@@ -114,7 +229,7 @@ export default function Wishlist() {
                       variant="outline"
                       size="sm"
                       onClick={() => addToCart(product)}
-                      className="w-full border-green-600 text-green-600 hover:bg-green-50 rounded-lg h-8 text-xs font-bold"
+                      className="w-full border-[#0a193b] text-[#0a193b] hover:bg-neutral-50 rounded-lg h-8 text-xs font-bold"
                     >
                       ADD TO CART
                     </Button>
@@ -128,7 +243,7 @@ export default function Wishlist() {
             <div className="text-6xl mb-4">❤️</div>
             <h2 className="text-lg font-bold text-neutral-900 mb-2">Your wishlist is empty</h2>
             <p className="text-sm mb-6">Explore more and shortlist some items</p>
-            <Button onClick={() => navigate('/')} className="bg-green-600 text-white rounded-full px-8">
+            <Button onClick={() => navigate('/')} className="bg-[#0a193b] text-white rounded-full px-8">
               Start Shopping
             </Button>
           </div>

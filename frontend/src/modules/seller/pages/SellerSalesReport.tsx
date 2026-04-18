@@ -370,7 +370,7 @@ export default function SellerSalesReport() {
             {/* Footer */}
             <footer className="px-4 sm:px-6 py-4 text-center bg-white border-t border-neutral-200">
                 <p className="text-xs sm:text-sm text-neutral-600">
-                    Copyright © 2026. Developed By{' '}
+                    Copyright © {new Date().getFullYear()}. Developed By{' '}
                     <span className="font-semibold text-primary">Healthy Delight</span>
                 </p>
             </footer>

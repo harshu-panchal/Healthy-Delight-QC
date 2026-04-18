@@ -453,7 +453,7 @@ export default function SellerOrderDetail() {
 
     doc.setFontSize(8);
     doc.text(
-      "Copyright © 2026. Developed By Healthy Delight",
+      "Copyright © {new Date().getFullYear()}. Developed By Healthy Delight",
       pageWidth / 2,
       yPos,
       { align: "center" }
@@ -816,7 +816,7 @@ export default function SellerOrderDetail() {
       {/* Footer */}
       <footer className="mt-6 px-4 sm:px-6 text-center py-4 bg-neutral-100 rounded-lg">
         <p className="text-xs sm:text-sm text-neutral-600">
-          Copyright © 2026. Developed By{" "}
+          Copyright © {new Date().getFullYear()}. Developed By{" "}
           <span className="font-semibold text-primary">
             Healthy Delight
           </span>

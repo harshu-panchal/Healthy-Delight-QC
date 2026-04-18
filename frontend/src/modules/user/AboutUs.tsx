@@ -1,386 +1,198 @@
 import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import logo from "../../../assets/logo.png";
 
 export default function AboutUs() {
   const navigate = useNavigate();
+  const [isHeaderSolid, setIsHeaderSolid] = useState(false);
+
+  // Scroll Listener for Dynamic Header
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollY = window.scrollY || document.documentElement.scrollTop;
+      setIsHeaderSolid(scrollY > 10);
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   return (
-    <div className="pb-24 md:pb-8 bg-white min-h-screen">
-      {/* Header */}
-      <div className="bg-gradient-to-b from-teal-50 to-white pb-6 pt-4 sticky top-0 z-10 border-b border-neutral-100">
-        <div className="px-4 md:px-6 lg:px-8">
+    <div className="min-h-screen bg-transparent relative flex flex-col pt-[100px] pb-24 md:pb-8">
+      {/* Premium Home-Style Fixed Header */}
+      <header
+        className="fixed top-0 left-0 w-full z-50 transition-all duration-300"
+        style={{
+          background: isHeaderSolid
+            ? "#0a193b"
+            : "linear-gradient(180deg, #0a193b 0%, rgba(10, 25, 59, 0.9) 30%, rgba(10, 25, 59, 0.7) 60%, rgba(10, 25, 59, 0.4) 85%, rgba(252, 250, 247, 0) 100%)",
+          boxShadow: isHeaderSolid ? "0 12px 24px rgba(0,0,0,0.12)" : "none",
+          paddingBottom: "16px",
+          borderBottomLeftRadius: isHeaderSolid ? "20px" : "0px",
+          borderBottomRightRadius: isHeaderSolid ? "20px" : "0px",
+        }}
+      >
+        <div className="px-5 md:px-10 pt-5 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <button
               onClick={() => navigate(-1)}
-              className="text-neutral-900"
-              aria-label="Back">
+              className="w-10 h-10 rounded-full bg-white/10 text-white flex items-center justify-center border border-white/20 hover:bg-white/20 transition-all"
+              aria-label="Back"
+            >
               <svg
                 width="24"
                 height="24"
                 viewBox="0 0 24 24"
                 fill="none"
-                xmlns="http://www.w3.org/2000/svg">
-                <path
-                  d="M15 18L9 12L15 6"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M15 18L9 12L15 6" />
               </svg>
             </button>
-            <h1 className="text-xl font-bold text-neutral-900">About Us</h1>
+            <h1 className="text-xl font-bold text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.2)]">
+              About Us
+            </h1>
+          </div>
+
+          <div className="cursor-pointer" onClick={() => navigate("/")}>
+            <img
+              src={logo}
+              alt="Healthy Delight"
+              className="h-8 md:h-9 w-auto object-contain brightness-0 invert drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)] transition-transform hover:scale-105"
+            />
           </div>
         </div>
-      </div>
+      </header>
 
-      {/* Content */}
-      <div className="px-4 md:px-6 lg:px-8 py-6 max-w-3xl mx-auto">
-        {/* Logo/Brand Section */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br from-teal-500 to-teal-600 mb-4 shadow-lg">
-            <svg
-              width="40"
-              height="40"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-              className="text-white">
-              <path
-                d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                fill="currentColor"
-              />
-            </svg>
-          </div>
-          <h2 className="text-3xl font-bold text-neutral-900 mb-2">Healthy Delight</h2>
-          <p className="text-sm text-neutral-600">
-            Your Trusted Delivery Partner
-          </p>
-        </div>
+      {/* Premium Background Layer */}
+      <div className="fixed inset-0 bg-gradient-to-b from-[#f8f6f2] to-[#f6f1e6] -z-10" />
+      <div
+        className="fixed inset-0 opacity-[0.03] pointer-events-none -z-5"
+        style={{
+          backgroundImage:
+            'url("https://www.transparenttextures.com/patterns/natural-paper.png")',
+        }}
+      ></div>
 
-        {/* Mission Section */}
-        <div className="mb-8">
-          <h3 className="text-lg font-bold text-neutral-900 mb-3 flex items-center gap-2">
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-              className="text-teal-600">
-              <path
-                d="M12 2L2 7l10 5 10-5-10-5z"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <path
-                d="M2 17l10 5 10-5M2 12l10 5 10-5"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-            Our Mission
-          </h3>
-          <p className="text-sm text-neutral-700 leading-relaxed">
-            At Healthy Delight, we're committed to revolutionizing the way you shop and
-            receive your products. Our mission is to provide lightning-fast
-            delivery services while maintaining the highest standards of quality
-            and customer satisfaction.
-          </p>
-        </div>
-
-        {/* What We Do Section */}
-        <div className="mb-8">
-          <h3 className="text-lg font-bold text-neutral-900 mb-3 flex items-center gap-2">
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-              className="text-teal-600">
-              <path
-                d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <line
-                x1="3"
-                y1="6"
-                x2="21"
-                y2="6"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-              />
-              <path
-                d="M16 10a4 4 0 0 1-8 0"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-            What We Do
-          </h3>
-          <p className="text-sm text-neutral-700 leading-relaxed mb-4">
-            Healthy Delight is a comprehensive e-commerce platform that connects customers
-            with a wide range of products across multiple categories including
-            groceries, fashion, electronics, pharmacy, and much more.
-          </p>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="bg-teal-50 rounded-lg p-3 border border-teal-100">
-              <div className="text-2xl font-bold text-teal-600 mb-1">10K+</div>
-              <div className="text-xs text-neutral-700">Products</div>
+      {/* Main Content */}
+      <div className="px-5 md:px-10 py-6 max-w-4xl mx-auto w-full">
+        {/* Brand Reveal Section */}
+        <div className="relative overflow-hidden rounded-[32px] bg-[#0a193b] p-8 md:p-12 mb-10 text-center shadow-2xl">
+          <div className="absolute top-0 left-0 w-full h-full opacity-10 bg-[radial-gradient(circle_at_30%_50%,#c5a059_0%,transparent_70%)]"></div>
+          
+          <div className="relative z-10">
+            <div className="inline-flex items-center justify-center w-24 h-24 rounded-3xl bg-white p-5 mb-6 shadow-xl transform hover:rotate-3 transition-transform">
+              <img src={logo} alt="Healthy Delight" className="w-full h-full object-contain" />
             </div>
-            <div className="bg-teal-50 rounded-lg p-3 border border-teal-100">
-              <div className="text-2xl font-bold text-teal-600 mb-1">500+</div>
-              <div className="text-xs text-neutral-700">Sellers</div>
-            </div>
-            <div className="bg-teal-50 rounded-lg p-3 border border-teal-100">
-              <div className="text-2xl font-bold text-teal-600 mb-1">50K+</div>
-              <div className="text-xs text-neutral-700">Happy Customers</div>
-            </div>
-            <div className="bg-teal-50 rounded-lg p-3 border border-teal-100">
-              <div className="text-2xl font-bold text-teal-600 mb-1">24/7</div>
-              <div className="text-xs text-neutral-700">Support</div>
-            </div>
+            <h2 className="text-3xl md:text-4xl font-black text-white mb-4 tracking-tight">
+              Healthy Delight
+            </h2>
+            <div className="h-1.5 w-16 bg-[#c5a059] mx-auto rounded-full mb-6"></div>
+            <p className="text-white/80 text-lg md:text-xl font-medium max-w-2xl mx-auto leading-relaxed italic">
+              "Purity in every drop, freshness in every bite. Bridging the gap between the farm and your family."
+            </p>
           </div>
         </div>
 
-        {/* Why Choose Us Section */}
-        <div className="mb-8">
-          <h3 className="text-lg font-bold text-neutral-900 mb-3 flex items-center gap-2">
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-              className="text-teal-600">
-              <path
-                d="M22 11.08V12a10 10 0 1 1-5.93-9.14"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <polyline
-                points="22 4 12 14.01 9 11.01"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-            Why Choose Us
-          </h3>
-          <div className="space-y-3">
-            <div className="flex gap-3">
-              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-teal-100 flex items-center justify-center">
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="text-teal-600">
-                  <path
-                    d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"
-                    fill="currentColor"
-                  />
-                </svg>
-              </div>
-              <div>
-                <h4 className="text-sm font-semibold text-neutral-900 mb-1">
-                  Fast Delivery
-                </h4>
-                <p className="text-xs text-neutral-600">
-                  Get your orders delivered at lightning speed with our
-                  efficient delivery network.
-                </p>
-              </div>
-            </div>
-            <div className="flex gap-3">
-              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-teal-100 flex items-center justify-center">
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="text-teal-600">
-                  <path
-                    d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </div>
-              <div>
-                <h4 className="text-sm font-semibold text-neutral-900 mb-1">
-                  Secure Payments
-                </h4>
-                <p className="text-xs text-neutral-600">
-                  Your transactions are protected with industry-standard
-                  encryption and security.
-                </p>
-              </div>
-            </div>
-            <div className="flex gap-3">
-              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-teal-100 flex items-center justify-center">
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="text-teal-600">
-                  <path
-                    d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </div>
-              <div>
-                <h4 className="text-sm font-semibold text-neutral-900 mb-1">
-                  Quality Products
-                </h4>
-                <p className="text-xs text-neutral-600">
-                  We partner with trusted sellers to ensure you receive only the
-                  best quality products.
-                </p>
-              </div>
-            </div>
-            <div className="flex gap-3">
-              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-teal-100 flex items-center justify-center">
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="text-teal-600">
-                  <path
-                    d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </div>
-              <div>
-                <h4 className="text-sm font-semibold text-neutral-900 mb-1">
-                  24/7 Support
-                </h4>
-                <p className="text-xs text-neutral-600">
-                  Our dedicated support team is always ready to help you with
-                  any queries.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Contact Section */}
-        <div className="bg-gradient-to-br from-teal-50 to-teal-100 rounded-2xl p-6 border border-teal-200">
-          <h3 className="text-lg font-bold text-neutral-900 mb-4 text-center">
-            Get In Touch
-          </h3>
-          <div className="space-y-3">
-            <div className="flex items-center gap-3 text-sm">
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-                className="text-teal-600 flex-shrink-0">
-                <path
-                  d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <polyline
-                  points="22,6 12,13 2,6"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
+        {/* Story Section */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+          <div className="bg-white rounded-[24px] p-8 border border-[#0a193b]/5 shadow-[0_10px_40px_rgba(0,0,0,0.03)] group hover:shadow-[0_15px_50px_rgba(0,0,0,0.06)] transition-all">
+            <div className="w-12 h-12 bg-[#0a193b]/5 rounded-2xl flex items-center justify-center text-[#c5a059] mb-6 group-hover:scale-110 transition-transform">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
               </svg>
-              <span className="text-neutral-700">support@kosil.com</span>
             </div>
-            <div className="flex items-center gap-3 text-sm">
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-                className="text-teal-600 flex-shrink-0">
-                <path
-                  d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
+            <h3 className="text-xl font-bold text-[#0a193b] mb-4">Our Mission</h3>
+            <p className="text-neutral-600 leading-relaxed text-sm md:text-base">
+              To empower families with the highest quality, farm-fresh organic products. We believe that health starts at the source, and our goal is to eliminate middlemen, ensuring that what reaches your table is nothing short of pure.
+            </p>
+          </div>
+
+          <div className="bg-white rounded-[24px] p-8 border border-[#0a193b]/5 shadow-[0_10px_40px_rgba(0,0,0,0.03)] group hover:shadow-[0_15px_50px_rgba(0,0,0,0.06)] transition-all">
+            <div className="w-12 h-12 bg-[#0a193b]/5 rounded-2xl flex items-center justify-center text-[#c5a059] mb-6 group-hover:scale-110 transition-transform">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <path d="M12 2L2 7l10 5 10-5-10-5z" />
+                <path d="M2 17l10 5 10-5M2 12l10 5 10-5" />
               </svg>
-              <span className="text-neutral-700">+91 1800-123-4567</span>
             </div>
-            <div className="flex items-center gap-3 text-sm">
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-                className="text-teal-600 flex-shrink-0">
-                <path
-                  d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <circle
-                  cx="12"
-                  cy="10"
-                  r="3"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-              <span className="text-neutral-700">India</span>
+            <h3 className="text-xl font-bold text-[#0a193b] mb-4">What We Do</h3>
+            <p className="text-neutral-600 leading-relaxed text-sm md:text-base">
+              Healthy Delight is more than a delivery app; it's a commitment to your wellbeing. We source premium organic milk, vegetables, and staples directly from local farmers and deliver them to you within hours of harvest.
+            </p>
+          </div>
+        </div>
+
+        {/* Stats Section with Glassmorphism */}
+        <div className="bg-[#0a193b]/5 rounded-[32px] p-8 md:p-10 mb-12 border border-white">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+            <div className="text-center">
+              <div className="text-3xl md:text-4xl font-black text-[#0a193b] mb-1">25+</div>
+              <div className="text-[10px] md:text-xs font-black text-[#c5a059] uppercase tracking-widest">Organic Farms</div>
+            </div>
+            <div className="text-center">
+              <div className="text-3xl md:text-4xl font-black text-[#0a193b] mb-1">100%</div>
+              <div className="text-[10px] md:text-xs font-black text-[#c5a059] uppercase tracking-widest">Pure & Fresh</div>
+            </div>
+            <div className="text-center">
+              <div className="text-3xl md:text-4xl font-black text-[#0a193b] mb-1">10K+</div>
+              <div className="text-[10px] md:text-xs font-black text-[#c5a059] uppercase tracking-widest">Happy Homes</div>
+            </div>
+            <div className="text-center">
+              <div className="text-3xl md:text-4xl font-black text-[#0a193b] mb-1">24h</div>
+              <div className="text-[10px] md:text-xs font-black text-[#c5a059] uppercase tracking-widest">Farm-to-Door</div>
             </div>
           </div>
         </div>
 
-        {/* Version Info */}
-        <div className="mt-8 text-center">
-          <p className="text-xs text-neutral-500">Version 1.0.0</p>
-          <p className="text-xs text-neutral-500 mt-1">
-            © 2024 Healthy Delight. All rights reserved.
+        {/* Contact Unit */}
+        <div className="bg-white rounded-[32px] p-10 border border-[#0a193b]/5 shadow-2xl mb-12 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-[#c5a059]/5 rounded-full -mr-16 -mt-16 blur-3xl"></div>
+          
+          <h3 className="text-2xl font-bold text-[#0a193b] mb-8 text-center">Get in Touch</h3>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="flex flex-col items-center text-center p-6 rounded-2xl bg-[#0a193b]/[0.02] border border-neutral-100 hover:border-[#c5a059]/30 transition-colors">
+              <div className="w-10 h-10 rounded-full bg-[#0a193b] text-white flex items-center justify-center mb-4">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" /><polyline points="22,6 12,13 2,6" />
+                </svg>
+              </div>
+              <div className="text-sm font-bold text-[#0a193b] mb-1">Email Us</div>
+              <div className="text-xs text-neutral-500">support@healthydelight.com</div>
+            </div>
+
+            <div className="flex flex-col items-center text-center p-6 rounded-2xl bg-[#0a193b]/[0.02] border border-neutral-100 hover:border-[#c5a059]/30 transition-colors">
+              <div className="w-10 h-10 rounded-full bg-[#0a193b] text-white flex items-center justify-center mb-4">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+                </svg>
+              </div>
+              <div className="text-sm font-bold text-[#0a193b] mb-1">Call Support</div>
+              <div className="text-xs text-neutral-500">+91 1800-419-5566</div>
+            </div>
+
+            <div className="flex flex-col items-center text-center p-6 rounded-2xl bg-[#0a193b]/[0.02] border border-neutral-100 hover:border-[#c5a059]/30 transition-colors">
+              <div className="w-10 h-10 rounded-full bg-[#0a193b] text-white flex items-center justify-center mb-4">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" />
+                </svg>
+              </div>
+              <div className="text-sm font-bold text-[#0a193b] mb-1">Headquarters</div>
+              <div className="text-xs text-neutral-500">Ahmedabad, Gujarat</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer Info */}
+        <div className="text-center pt-4">
+          <p className="text-[11px] font-bold text-[#0a193b]/40 uppercase tracking-[0.3em] mb-4">
+            Version 2.1.0 • Premium Portal
+          </p>
+          <p className="text-[12px] text-neutral-400 font-medium">
+            © {new Date().getFullYear()} Healthy Delight. All rights reserved.
           </p>
         </div>
       </div>

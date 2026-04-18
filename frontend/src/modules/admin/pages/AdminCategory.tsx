@@ -610,7 +610,7 @@ export default function AdminCategory() {
 
       {/* Footer */}
       <div className="text-center py-4 text-xs sm:text-sm text-neutral-600">
-        Copyright © 2025. Developed By{" "}
+        Copyright © {new Date().getFullYear()}. Developed By{" "}
         <a href="#" className="text-primary-dark hover:text-neutral-900">
           Healthy Delight
         </a>
