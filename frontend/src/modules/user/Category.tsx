@@ -156,13 +156,22 @@ export default function CategoryPage() {
 
   if (!category && !categoryLoading) {
     return (
-      <div className="px-4 md:px-6 lg:px-8 py-6 md:py-8">
-        <h1 className="text-2xl md:text-3xl font-bold text-neutral-900 mb-4">
+      <div className="flex flex-col items-center justify-center min-h-[70vh] px-4 text-center">
+        <div className="w-24 h-24 bg-[#0a193b]/5 rounded-full flex items-center justify-center mb-8 shadow-sm">
+          <span className="text-4xl text-[#0a193b]">📦</span>
+        </div>
+        <h1 className="text-2xl md:text-3xl font-bold text-[#0a193b] mb-4 tracking-tight">
           Category not found
         </h1>
-        <p className="text-neutral-600 md:text-lg">
-          The category you're looking for doesn't exist.
+        <p className="text-neutral-500 md:text-lg max-w-sm mx-auto mb-10 leading-relaxed">
+          The collection you're looking for doesn't exist or may have been moved.
         </p>
+        <button
+          onClick={() => navigate("/")}
+          className="px-8 py-3.5 bg-[#0a193b] text-white rounded-2xl font-bold hover:bg-[#0a193b]/90 transition-all shadow-lg active:scale-95"
+        >
+          Back to Home
+        </button>
       </div>
     );
   }

@@ -475,7 +475,15 @@ export default function Home() {
                               {section.title}
                             </h2>
                             <button
-                              onClick={() => navigate(`/category/${section.categoryId || 'all'}`)}
+                              onClick={() => {
+                                const targetId = section.categoryId || 
+                                               (section.data?.[0]?.categoryId?._id || section.data?.[0]?.categoryId);
+                                if (targetId) {
+                                  navigate(`/category/${targetId}`);
+                                } else {
+                                  navigate('/categories');
+                                }
+                              }}
                               className="section-see-all group flex items-center gap-1.5 transition-all hover:translate-x-1"
                             >
                               See all
