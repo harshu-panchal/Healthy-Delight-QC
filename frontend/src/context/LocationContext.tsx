@@ -341,7 +341,11 @@ export function LocationProvider({ children }: { children: ReactNode }) {
   const reverseGeocode = async (lat: number, lng: number, signal?: AbortSignal, skipCache: boolean = false): Promise<GeocodeResult> => {
     const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
     if (!apiKey) {
-      console.warn('⚠️ Google Maps API key not found, using coordinates only');
+      if (import.meta.env.PROD) {
+        console.error('❌ [LocationContext] Google Maps API key is missing in Production environment. Please add VITE_GOOGLE_MAPS_API_KEY to Vercel environment variables.');
+      } else {
+        console.warn('⚠️ [LocationContext] Google Maps API key not found, using coordinates only');
+      }
       return { formatted_address: `${lat.toFixed(6)}, ${lng.toFixed(6)}` };
     }
 

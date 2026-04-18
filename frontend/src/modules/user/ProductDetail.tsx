@@ -236,7 +236,7 @@ export default function ProductDetail() {
         <p className="text-gray-600 mb-6 max-w-xs">{error}</p>
         <button
           onClick={() => window.location.reload()}
-          className="px-6 py-2 bg-green-600 text-white rounded-full font-medium hover:bg-green-700 transition-colors">
+          className="px-6 py-2 bg-[#0a193b] text-white rounded-full font-medium hover:bg-[#0a193b]/90 transition-colors">
           Try Refreshing
         </button>
       </div>
@@ -362,7 +362,7 @@ export default function ProductDetail() {
                 {allImages.map((_: string, index: number) => (
                   <div
                     key={index}
-                    className={`h-1 rounded-full transition-all duration-300 ${index === selectedImageIndex ? "w-6 bg-emerald-600" : "w-1.5 bg-neutral-200"}`}
+                    className={`h-1 rounded-full transition-all duration-300 ${index === selectedImageIndex ? "w-6 bg-[#0a193b]" : "w-1.5 bg-neutral-200"}`}
                   />
                 ))}
               </div>
@@ -385,7 +385,7 @@ export default function ProductDetail() {
           <div className="space-y-4">
             {/* Name & Delivery Info */}
             <div className="space-y-2">
-              <div className="flex items-center gap-2 text-[10px] font-bold text-emerald-600 uppercase tracking-widest">
+              <div className="flex items-center gap-2 text-[10px] font-bold text-[#0a193b] uppercase tracking-widest">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
                 17 Mins delivery
               </div>
@@ -407,7 +407,7 @@ export default function ProductDetail() {
                   <span className="text-base text-neutral-400 line-through font-medium">
                     ₹{variantMrp.toLocaleString("en-IN")}
                   </span>
-                  <span className="bg-emerald-50 text-emerald-600 text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider">
+                  <span className="bg-[#0a193b]/5 text-[#0a193b] text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider">
                     {discount}% OFF
                   </span>
                 </>
@@ -434,7 +434,7 @@ export default function ProductDetail() {
                       disabled={isOutOfStock}
                       className={`px-4 py-2.5 rounded-xl text-sm font-semibold transition-all border-2 ${
                         isSelected
-                          ? "border-emerald-600 bg-emerald-50 text-emerald-700 shadow-sm"
+                          ? "border-[#0a193b] bg-[#0a193b]/5 text-[#0a193b] shadow-sm"
                           : isOutOfStock
                             ? "border-neutral-100 bg-neutral-50 text-neutral-300 cursor-not-allowed"
                             : "border-neutral-100 bg-white text-neutral-600 hover:border-neutral-200"
@@ -455,7 +455,7 @@ export default function ProductDetail() {
             onClick={() =>
               setIsProductDetailsExpanded(!isProductDetailsExpanded)
             }
-            className="flex items-center gap-0.5 text-sm text-green-600 font-medium">
+            className="flex items-center gap-0.5 text-sm text-[#0a193b] font-medium">
             View product details
             <svg
               width="11"
@@ -774,7 +774,7 @@ export default function ProductDetail() {
               <h2 className="text-lg font-semibold text-neutral-900 tracking-tight">Similar Products</h2>
               <button 
                  onClick={() => navigate('/category/' + (product.category?._id || product.category?.id))}
-                 className="text-xs font-bold text-emerald-600 uppercase tracking-widest">See All</button>
+                 className="text-xs font-bold text-[#0a193b] uppercase tracking-widest">See All</button>
             </div>
             
             <div className="flex gap-4 overflow-x-auto scrollbar-hide pb-4 -mx-6 px-6">
@@ -796,7 +796,7 @@ export default function ProductDetail() {
                         className="w-full h-full object-contain"
                       />
                       {hasDiscount && (
-                        <div className="absolute top-2 left-2 bg-emerald-600 text-[8px] font-bold text-white px-1.5 py-0.5 rounded-full uppercase tracking-tighter">
+                        <div className="absolute top-2 left-2 bg-[#0a193b] text-[8px] font-bold text-white px-1.5 py-0.5 rounded-full uppercase tracking-tighter">
                           {discount}% OFF
                         </div>
                       )}
@@ -815,7 +815,7 @@ export default function ProductDetail() {
                           e.stopPropagation();
                           addToCart(item);
                         }}
-                        className="w-7 h-7 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center hover:bg-emerald-100 transition-colors">
+                        className="w-7 h-7 rounded-full bg-[#0a193b]/10 text-[#0a193b] flex items-center justify-center hover:bg-[#0a193b]/20 transition-colors">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14"/></svg>
                       </button>
                     </div>
@@ -848,10 +848,10 @@ export default function ProductDetail() {
                   exit={{ opacity: 0, scale: 0.95 }}
                   onClick={handleAddToCart}
                   disabled={!isAvailableAtLocation || (!isVariantAvailable && variantStock !== 0)}
-                  className={`w-full py-3.5 rounded-2xl font-bold text-sm tracking-wide shadow-[0_8px_25px_rgba(16,185,129,0.25)] transition-all active:scale-95 ${
+                  className={`w-full py-3.5 rounded-2xl font-bold text-sm tracking-wide shadow-[0_8px_25px_rgba(10,25,59,0.25)] transition-all active:scale-95 ${
                     !isAvailableAtLocation || (!isVariantAvailable && variantStock !== 0)
                       ? "bg-neutral-100 text-neutral-400 cursor-not-allowed shadow-none"
-                      : "bg-emerald-600 text-white hover:bg-emerald-700 hover:shadow-[0_12px_30px_rgba(16,185,129,0.3)]"
+                      : "bg-[#0a193b] text-white hover:bg-[#0a193b]/90 hover:shadow-[0_12px_30px_rgba(10,25,59,0.3)]"
                   }`}>
                   {!isAvailableAtLocation 
                     ? "Unavailable" 
@@ -865,16 +865,16 @@ export default function ProductDetail() {
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.95 }}
-                  className="flex items-center justify-between bg-emerald-600 rounded-2xl p-1.5 shadow-[0_8px_25px_rgba(16,185,129,0.25)]">
+                  className="flex items-center justify-between bg-[#0a193b] rounded-2xl p-1.5 shadow-[0_8px_25px_rgba(10,25,59,0.25)]">
                   <button
                     onClick={() => updateQuantity(product.id || product._id, inCartQty - 1, selectedVariant?._id, variantTitle)}
-                    className="w-10 h-10 rounded-xl bg-emerald-500 text-white flex items-center justify-center transition-colors hover:bg-emerald-400">
+                    className="w-10 h-10 rounded-xl bg-white/20 text-white flex items-center justify-center transition-colors hover:bg-white/30">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>
                   </button>
                   <span className="text-sm font-bold text-white px-2">{inCartQty}</span>
                   <button
                     onClick={() => updateQuantity(product.id || product._id, inCartQty + 1, selectedVariant?._id, variantTitle)}
-                    className="w-10 h-10 rounded-xl bg-emerald-500 text-white flex items-center justify-center transition-colors hover:bg-emerald-400">
+                    className="w-10 h-10 rounded-xl bg-white/20 text-white flex items-center justify-center transition-colors hover:bg-white/30">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                   </button>
                 </motion.div>

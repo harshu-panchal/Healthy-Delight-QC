@@ -476,10 +476,8 @@ export default function Home() {
                             </h2>
                             <button
                               onClick={() => {
-                                const targetId = section.categoryId || 
-                                               (section.data?.[0]?.categoryId?._id || section.data?.[0]?.categoryId);
-                                if (targetId) {
-                                  navigate(`/category/${targetId}`);
+                                if (section.id) {
+                                  navigate(`/collection/${section.id}?title=${encodeURIComponent(section.title)}`);
                                 } else {
                                   navigate('/categories');
                                 }
@@ -525,10 +523,10 @@ export default function Home() {
             )}
 
             {/* Elevated Bottom Content Area (Solid + Transition) */}
-            <div className="relative mt-4">
+            <div className="relative mt-2">
               {/* Transition Gradient: Transparent to Cream */}
               <div
-                className="h-[64px] w-full"
+                className="h-10 w-full"
                 style={{
                   background: 'linear-gradient(to bottom, transparent, #faf5f2)'
                 }}
@@ -536,7 +534,7 @@ export default function Home() {
 
               {/* Solid Content Block */}
               <div 
-                className="pt-10 pb-0 shadow-[0_-8px_32px_rgba(0,0,0,0.06)] ring-1 ring-black/5 relative z-10 mb-[-96px]"
+                className="pt-6 pb-0 shadow-[0_-8px_32px_rgba(0,0,0,0.06)] ring-1 ring-black/5 relative z-10 mb-[-96px]"
                 style={{ backgroundColor: 'rgba(250, 245, 242, 0.94)' }}
               >
                 {/* Filler to avoid gap at very bottom */}

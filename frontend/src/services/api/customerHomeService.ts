@@ -11,6 +11,7 @@ export interface HomeContentResponse {
     promoBanners: any[];
     trending: any[];
     cookingIdeas: any[];
+    homeSections?: any[];
     promoCards?: any[];
     promoStrip?: any; // PromoStrip data from backend
   };
