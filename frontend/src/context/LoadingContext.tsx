@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useCallback, useRef } from 'react';
 
-export type LoadingVariant = 'first' | 'milk_bottle' | 'milk_can_open';
+export type LoadingVariant = 'first' | 'milk_bottle' | 'milk_can_open' | 'cheese' | 'cow_drink' | 'ice_cream' | 'milk' | 'spreading_butter';
 
 interface LoadingContextType {
   isLoading: boolean;
@@ -15,17 +15,25 @@ interface LoadingContextType {
 
 const LoadingContext = createContext<LoadingContextType | undefined>(undefined);
 
-const ROUTE_LOADER_VARIANTS = ['milk_bottle', 'milk_can_open'] as const;
-const ROUTE_LOADER_QUOTES = [
-  'Collecting milk from the dairy...',
-  'Pouring freshness into your cart...',
-  'Preparing super-fresh delivery...',
-  'Bringing farm freshness to you...',
-  'Packing pure goodness for you...',
-  'Fetching today’s freshest picks...',
-  'Fresh dairy delights coming up...',
-  'Almost there, freshness in motion...',
-] as const;
+const ROUTE_LOADER_VARIANTS: LoadingVariant[] = [
+  'milk_bottle', 
+  'milk_can_open', 
+  'cheese', 
+  'cow_drink', 
+  'ice_cream', 
+  'milk', 
+  'spreading_butter'
+];
+const VARIANT_SPECIFIC_QUOTES: Record<string, string[]> = {
+  milk: ['Collected fresh, delivered right'],
+  milk_bottle: ['Collected fresh, delivered right'],
+  cow_drink: ['From free-grazing farms to your home'],
+  milk_can_open: ['From free-grazing farms to your home'],
+  cheese: ['Artisan dairy, made with patience'],
+  ice_cream: ['A scoop of pure delight'],
+  spreading_butter: ['Pure butter, simply made'],
+  first: []
+};
 
 export const LoadingProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isLoading, setIsLoading] = useState(false);
@@ -84,12 +92,17 @@ export const LoadingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     activeRouteRequests.current += 1;
     if (activeRouteRequests.current === 1) {
       if (hasCompletedFirstLoadRef.current) {
-        setLoadingVariant(
-          ROUTE_LOADER_VARIANTS[Math.floor(Math.random() * ROUTE_LOADER_VARIANTS.length)]
-        );
-        const idx = routeQuoteIndexRef.current % ROUTE_LOADER_QUOTES.length;
-        setRouteLoadingQuote(ROUTE_LOADER_QUOTES[idx]);
-        routeQuoteIndexRef.current += 1;
+        const variant = ROUTE_LOADER_VARIANTS[Math.floor(Math.random() * ROUTE_LOADER_VARIANTS.length)];
+        setLoadingVariant(variant);
+        
+        const quotes = VARIANT_SPECIFIC_QUOTES[variant] || [];
+        if (quotes.length > 0) {
+          // Select a random quote from the specific variant's list
+          const quoteIdx = Math.floor(Math.random() * quotes.length);
+          setRouteLoadingQuote(quotes[quoteIdx]);
+        } else {
+          setRouteLoadingQuote(null);
+        }
       } else {
         // First load: keep main loader clean (no quote)
         setRouteLoadingQuote(null);

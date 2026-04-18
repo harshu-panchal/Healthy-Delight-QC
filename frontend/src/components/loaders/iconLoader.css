@@ -6,7 +6,7 @@
   height: 100vh;
   /* Support for modern mobile browsers with dynamic viewport height */
   height: 100dvh;
-  background-color: #EADDCF;
+  background-color: #f8f6f2;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -14,6 +14,40 @@
   /* Prevent any touch interactions while loading */
   touch-action: none;
   pointer-events: all;
+  overflow: hidden;
+}
+
+/* Layer: Illustration Texture - Matching global app style */
+.global-loader-overlay::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url('/assets/bg.png');
+  background-position: center top;
+  background-repeat: repeat;
+  background-size: 500px auto;
+  opacity: 0.45;
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* Layer: Global Navy Depth - Matching global app style */
+.global-loader-overlay::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(180deg,
+      rgba(10, 25, 59, 0.05) 0%,
+      rgba(10, 25, 59, 0.02) 40%,
+      transparent 100%);
+  z-index: -1;
+  pointer-events: none;
 }
 
 /* Mobile optimizations for centered content */

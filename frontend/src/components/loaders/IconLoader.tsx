@@ -1,16 +1,26 @@
 import React from 'react';
-import Lottie from 'lottie-react';
+import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLoading, LoadingVariant } from '../../context/LoadingContext';
-import firstLoadAnimation2 from '@assets/animation/load_churn_curd.json';
-import milkPotAnimation from '@assets/animation/load_milk_pot.json';
-import milkCanOpenAnimation from '@assets/animation/milk_can_open.json';
+
+// .lottie Assets
+import milkLottie from '@assets/animation/Milk.lottie';
+import cowLottie from '@assets/animation/Cow_Drink_Milk.lottie';
+import cheeseLottie from '@assets/animation/Cheese.lottie';
+import iceCreamLottie from '@assets/animation/Ice_cream.lottie';
+import butterLottie from '@assets/animation/Spreading_butter.lottie';
+
 import './iconLoader.css';
 
-const VARIANT_ANIMATIONS: Record<LoadingVariant, any> = {
-  first: firstLoadAnimation2,
-  milk_bottle: milkPotAnimation,
-  milk_can_open: milkCanOpenAnimation,
+const VARIANT_ANIMATIONS: Record<LoadingVariant, string> = {
+  first: milkLottie,
+  milk_bottle: milkLottie,
+  milk_can_open: cowLottie,
+  cheese: cheeseLottie,
+  cow_drink: cowLottie,
+  ice_cream: iceCreamLottie,
+  milk: milkLottie,
+  spreading_butter: butterLottie,
 };
 
 interface IconLoaderProps {
@@ -26,10 +36,10 @@ const IconLoader: React.FC<IconLoaderProps> = ({ forceShow = false }) => {
     path.startsWith('/admin') ||
     path.startsWith('/delivery');
 
-  // TEMPORARILY DISABLED: Returning null to hide all loader animations for now.
-  return null;
+  // Should not show on restricted portals
+  if (isRestrictedApp && !forceShow) return null;
 
-  const animationData = VARIANT_ANIMATIONS[loadingVariant];
+  const animationSrc = VARIANT_ANIMATIONS[loadingVariant];
 
   return (
     <AnimatePresence>
@@ -43,10 +53,11 @@ const IconLoader: React.FC<IconLoaderProps> = ({ forceShow = false }) => {
         >
           <div className="loader-container">
             <div className={`lottie-wrapper ${loadingVariant === 'first' ? 'first-load-variant' : ''}`}>
-              {animationData && (
-                <Lottie
-                  animationData={animationData}
+              {animationSrc && (
+                <DotLottieReact
+                  src={animationSrc}
                   loop={true}
+                  autoplay={true}
                   className="loader-lottie"
                   style={{ backgroundColor: 'transparent' }}
                 />
