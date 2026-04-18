@@ -601,7 +601,7 @@ export default function Home() {
                 <div
                   className="w-full h-[180px] md:h-[300px] mt-8 mb-0 pointer-events-none relative z-0"
                   style={{
-                    backgroundImage: 'url("/assets/background_bottom.PNG")',
+                    backgroundImage: 'url("/assets/background_bottom.png")',
                     backgroundSize: '100% 100%',
                     backgroundPosition: 'center bottom',
                     backgroundRepeat: 'no-repeat'
