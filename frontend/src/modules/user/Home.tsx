@@ -517,7 +517,7 @@ export default function Home() {
             )}
 
             {/* Elevated Bottom Content Area (Solid + Transition) */}
-            <div className="relative mt-12">
+            <div className="relative mt-4">
               {/* Transition Gradient: Transparent to Cream */}
               <div
                 className="h-[64px] w-full"
