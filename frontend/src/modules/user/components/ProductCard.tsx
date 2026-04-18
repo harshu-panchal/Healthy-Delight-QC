@@ -239,14 +239,7 @@ export default function ProductCard({
           {/* Subtle Image Overlay for Depth */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/[0.08] via-transparent to-transparent opacity-60 pointer-events-none"></div>
 
-          {/* Premium Gold Discount Badge */}
-          {(showBadge && (discount > 0 || badgeText)) && (
-            <div className={`absolute top-2.5 z-20 ${storeStyle ? 'left-2.5' : 'right-2.5'}`}>
-              <div className="bg-[#c5a059] text-white text-[10.5px] md:text-[11.5px] font-bold px-3 py-1 rounded-full shadow-[0_4px_12px_rgba(197,160,89,0.3)] border border-white/20">
-                {badgeText || `${discount}% off`}
-              </div>
-            </div>
-          )}
+          {/* Discount Badge Removed as per user request to use inline pricing instead */}
 
           {showHeartIcon && (
             <button
@@ -364,16 +357,18 @@ export default function ProductCard({
             {product.name || product.productName || ''}
           </h3>
 
-          {/* Bottom Row: Price Only (Clean Layout) */}
-          <div className={`mt-auto flex items-baseline gap-2 pt-1.5`}>
-            <span className={`text-base font-black text-[#0a193b] leading-tight ${storeStyle ? 'tracking-tight' : ''}`}>
-              ₹{displayPrice.toLocaleString('en-IN')}
-            </span>
-            {mrp && mrp > displayPrice && (
-              <span className="text-[10px] text-neutral-400 line-through leading-none ml-0.5">
-                ₹{mrp.toLocaleString('en-IN')}
+          {/* Bottom Row: Rich Pricing (Matching Detail Page) */}
+          <div className="mt-auto pt-1.5 flex flex-col gap-0.5">
+            <div className="flex items-baseline gap-1.5 flex-wrap">
+              <span className={`text-[15px] font-black text-[#0a193b] leading-none ${storeStyle ? 'tracking-tight' : ''}`}>
+                ₹{displayPrice.toLocaleString('en-IN')}
               </span>
-            )}
+              {mrp && mrp > displayPrice && (
+                <span className="text-[11px] text-neutral-400 line-through decoration-neutral-500 decoration-[1.5px] leading-none">
+                  ₹{mrp.toLocaleString('en-IN')}
+                </span>
+              )}
+            </div>
           </div>
 
           {/* Full Width Bottom Button for storeStyle */}

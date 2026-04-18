@@ -132,7 +132,7 @@ async function fetchSectionData(
         .sort({ createdAt: -1 }) // Show newest items first
         .limit(limit || 8)
         .select(
-          "productName mainImage price mrp discount rating reviewsCount pack seller",
+          "productName mainImage price discPrice compareAtPrice mrp discount rating reviewsCount pack seller",
         )
         .lean();
 
@@ -153,10 +153,14 @@ async function fetchSectionData(
           image: p.mainImage,
           mainImage: p.mainImage,
           price: p.price,
+          discPrice: p.discPrice,
+          compareAtPrice: p.compareAtPrice,
+          displayPrice: (p.discPrice && p.discPrice > 0) ? p.discPrice : p.price,
+          mrp: p.compareAtPrice || (p.discPrice > 0 ? p.price : 0) || p.mrp || p.price,
           discount:
             p.discount ||
-            (p.mrp && p.price
-              ? Math.round(((p.mrp - p.price) / p.mrp) * 100)
+            (((p.compareAtPrice || (p.discPrice > 0 ? p.price : 0)) && (p.discPrice || p.price))
+              ? Math.round((((p.compareAtPrice || (p.discPrice > 0 ? p.price : 0)) - (p.discPrice || p.price)) / (p.compareAtPrice || (p.discPrice > 0 ? p.price : 0))) * 100)
               : 0),
           productImages: p.mainImage ? [p.mainImage] : [],
           rating: p.rating || 0,
@@ -319,7 +323,7 @@ export const getHomeContent = async (req: Request, res: Response) => {
       .populate({
         path: "product",
         select:
-          "productName mainImage price mrp discount status publish category subcategory seller",
+          "productName mainImage price discPrice compareAtPrice discount status publish category subcategory seller",
         match: {
           status: "Active",
           publish: true,
@@ -350,11 +354,14 @@ export const getHomeContent = async (req: Request, res: Response) => {
           mainImage: product.mainImage,
           imageUrl: product.mainImage,
           price: product.price,
-          mrp: product.mrp || product.price,
+          discPrice: product.discPrice,
+          compareAtPrice: product.compareAtPrice,
+          displayPrice: (product.discPrice && product.discPrice > 0) ? product.discPrice : product.price,
+          mrp: product.compareAtPrice || (product.discPrice > 0 ? product.price : 0) || product.mrp || product.price,
           discount:
             product.discount ||
-            (product.mrp && product.price
-              ? Math.round(((product.mrp - product.price) / product.mrp) * 100)
+            ((product.compareAtPrice || (product.discPrice > 0 ? product.price : 0)) && (product.discPrice || product.price)
+              ? Math.round((((product.compareAtPrice || (product.discPrice > 0 ? product.price : 0)) - (product.discPrice || product.price)) / (product.compareAtPrice || (product.discPrice > 0 ? product.price : 0))) * 100)
               : 0),
           categoryId: product.category?.toString() || "",
           subcategory: product.subcategory?.toString() || "",
@@ -617,7 +624,7 @@ export const getHomeContent = async (req: Request, res: Response) => {
         .populate("categoryCards.categoryId", "name slug image")
         .populate(
           "featuredProducts",
-          "productName mainImage mainImageUrl galleryImageUrls galleryImages price mrp compareAtPrice discount rating reviewsCount seller",
+          "productName mainImage mainImageUrl galleryImageUrls galleryImages price discPrice compareAtPrice mrp discount rating reviewsCount seller",
         )
         .sort({ order: 1 })
         .lean();

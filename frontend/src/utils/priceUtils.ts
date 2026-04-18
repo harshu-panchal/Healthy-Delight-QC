@@ -39,8 +39,11 @@ export const calculateProductPrice = (product: any, variationSelector?: number |
 
   const mrp = variation?.price || product.mrp || product.compareAtPrice || product.price || 0;
 
-  const hasDiscount = mrp > displayPrice;
-  const discount = hasDiscount ? Math.round(((mrp - displayPrice) / mrp) * 100) : 0;
+  const baseDiscount = variation?.discount || product.discount || 0;
+  
+  const hasDiscount = mrp > displayPrice || baseDiscount > 0;
+  const calculatedDiscount = (mrp > displayPrice) ? Math.round(((mrp - displayPrice) / mrp) * 100) : 0;
+  const discount = baseDiscount > 0 ? baseDiscount : calculatedDiscount;
 
   return {
     displayPrice,

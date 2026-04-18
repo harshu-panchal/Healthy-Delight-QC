@@ -6,8 +6,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const rootDir = path.resolve(__dirname, "..");
 const assetsDir = path.join(rootDir, "assets");
-// Copy to dist/assets for production builds (Vite will use these)
-const publicAssetsDir = path.join(rootDir, "dist", "assets");
+// Copy to public/assets so Vite bundles them and they work in dev/prod
+const publicAssetsDir = path.join(rootDir, "public", "assets");
 
 // Create target assets directory
 if (!fs.existsSync(publicAssetsDir)) {
@@ -329,8 +329,24 @@ function copyDeliveryIcon() {
   }
 }
 
+// Copy base root assets (bg, logo, etc)
+function copyBaseAssets() {
+  const baseAssets = ["bg.png", "logo.png", "HomeBackground.png", "Home_Bg_2.png", "Home_Bg_3.png", "Home_Bg_4.png", "HeaderBg.jpg"];
+  baseAssets.forEach(file => {
+    const srcPath = path.join(assetsDir, file);
+    const destPath = path.join(publicAssetsDir, file);
+    if (fs.existsSync(srcPath)) {
+      if (!fs.existsSync(destPath)) {
+        fs.copyFileSync(srcPath, destPath);
+        console.log(`Copied base asset: ${file}`);
+      }
+    }
+  });
+}
+
 // Main execution
 console.log("Starting image copy process...");
+copyBaseAssets();
 copyCategoryImages();
 copyProductImages();
 copyBannerImage();
