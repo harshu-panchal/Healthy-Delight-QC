@@ -87,11 +87,11 @@ export default function AboutUs() {
             <div className="inline-flex items-center justify-center w-24 h-24 rounded-3xl bg-white p-5 mb-6 shadow-xl transform hover:rotate-3 transition-transform">
               <img src={logo} alt="Healthy Delight" className="w-full h-full object-contain" />
             </div>
-            <h2 className="text-3xl md:text-4xl font-black text-white mb-4 tracking-tight">
+            <h2 className="text-2xl md:text-3xl font-bold text-white mb-3 tracking-tight">
               Healthy Delight
             </h2>
-            <div className="h-1.5 w-16 bg-[#c5a059] mx-auto rounded-full mb-6"></div>
-            <p className="text-white/80 text-lg md:text-xl font-medium max-w-2xl mx-auto leading-relaxed italic">
+            <div className="h-1 w-12 bg-[#c5a059] mx-auto rounded-full mb-5"></div>
+            <p className="text-white/80 text-base md:text-lg font-normal max-w-2xl mx-auto leading-relaxed italic">
               "Purity in every drop, freshness in every bite. Bridging the gap between the farm and your family."
             </p>
           </div>
