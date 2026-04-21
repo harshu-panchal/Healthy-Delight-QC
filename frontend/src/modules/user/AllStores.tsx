@@ -3,12 +3,25 @@ import { useState, useEffect } from "react";
 import { getHomeContent } from "../../services/api/customerHomeService";
 import { useLocation } from "../../hooks/useLocation";
 import { motion } from "framer-motion";
+import logo from "../../../assets/logo.png";
 
 export default function AllStores() {
     const navigate = useNavigate();
     const { location } = useLocation();
     const [shops, setShops] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [isHeaderSolid, setIsHeaderSolid] = useState(false);
+
+    // Scroll Listener for Dynamic Header
+    useEffect(() => {
+        const handleScroll = () => {
+            const scrollY = window.scrollY || document.documentElement.scrollTop;
+            setIsHeaderSolid(scrollY > 10);
+        };
+
+        window.addEventListener("scroll", handleScroll, { passive: true });
+        return () => window.removeEventListener("scroll", handleScroll);
+    }, []);
 
     useEffect(() => {
         const fetchShops = async () => {
@@ -30,29 +43,96 @@ export default function AllStores() {
         fetchShops();
     }, [location]);
 
+    const locationDisplayText = (location as any)?.address ||
+        ((location as any)?.city && (location as any)?.state ? `${(location as any).city}, ${(location as any).state}` :
+            ((location as any)?.city || ""));
+
     return (
-        <div className="min-h-screen bg-transparent pb-10 relative">
-            {/* Header */}
-            {/* Modern Header with Blur */}
-            <div className="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-black/[0.04] px-5 py-5 flex items-center gap-4">
-                <button
-                    onClick={() => navigate("/")}
-                    className="w-10 h-10 rounded-full flex items-center justify-center bg-neutral-100 hover:bg-neutral-200 transition-colors"
-                >
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                        <path
-                            d="M15 18L9 12L15 6"
-                            stroke="currentColor"
-                            strokeWidth="2.5"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
+        <div className="min-h-screen bg-transparent pb-10 relative pt-[140px] md:pt-[5px]">
+            {/* Premium Home-Style Fixed Header (MOBILE ONLY) */}
+            <header
+                className="md:hidden fixed top-0 left-0 w-full z-50 transition-all duration-300"
+                style={{
+                    background: isHeaderSolid ? '#0a193b' : 'linear-gradient(180deg, #0a193b 0%, rgba(10, 25, 59, 0.94) 100%)',
+                    boxShadow: isHeaderSolid ? "0 12px 24px rgba(0,0,0,0.12)" : "none",
+                    paddingBottom: isHeaderSolid ? '8px' : '20px',
+                }}
+            >
+                <div className="px-5 md:px-10 pt-5 pb-3">
+                    <div className="flex items-center justify-between gap-6">
+                        <div className="flex items-center gap-8 flex-1 min-w-0">
+                            <div className="flex items-center gap-2.5 flex-shrink-0 cursor-pointer group" onClick={() => navigate('/')}>
+                                <img src={logo} alt="Healthy Delight" className="h-8 md:h-9 w-auto object-contain brightness-0 invert drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)] transition-transform group-hover:scale-105" />
+                            </div>
+
+                            {locationDisplayText && (
+                                <div onClick={() => navigate('/account')} className="flex items-center gap-2 cursor-pointer max-w-[200px] md:max-w-md group">
+                                    <div className="p-1.5 rounded-full bg-white/10 text-white/90 border border-white/20">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" strokeLinecap="round" strokeLinejoin="round" />
+                                        </svg>
+                                    </div>
+                                    <div className="flex flex-col min-w-0">
+                                        <span className="text-[10px] uppercase tracking-widest font-bold text-white/50 leading-none mb-0.5">Delivery to</span>
+                                        <span className="text-sm font-bold text-white/95 truncate">{locationDisplayText}</span>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        <button
+                            onClick={() => navigate('/account')}
+                            className="flex-shrink-0 w-10 h-10 rounded-full bg-white/10 text-white flex items-center justify-center border border-white/20"
+                        >
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                {/* Improved Search Bar */}
+                <div className="px-5 md:px-10 py-3">
+                    <div className="w-full md:max-w-2xl md:mx-auto h-12 bg-white rounded-2xl flex items-center gap-4 px-5 shadow-lg border border-neutral-100">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0a193b" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="opacity-70">
+                            <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
+                        </svg>
+                        <input
+                            type="text"
+                            placeholder="Search among all stores..."
+                            className="flex-1 bg-transparent border-none outline-none text-[15px] font-semibold text-neutral-800"
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter') navigate(`/search?q=${encodeURIComponent((e.target as HTMLInputElement).value)}`);
+                            }}
                         />
-                    </svg>
-                </button>
-                <h1 className="text-xl font-bold text-neutral-900">All Stores</h1>
+                    </div>
+                </div>
+            </header>
+
+            {/* Cinematic Hero Header (Desktop Optimized) */}
+            <div className="px-5 pt-8 pb-4 md:px-10 md:pt-0 md:pb-8">
+                <div className="flex items-center gap-4 mb-2">
+                    <button
+                        onClick={() => navigate(-1)}
+                        className="flex items-center justify-center w-10 h-10 md:w-12 md:h-12 rounded-2xl bg-[#0a193b]/5 text-[#0a193b] hover:bg-[#0a193b]/10 transition-all active:scale-95 shadow-sm"
+                        title="Go back"
+                    >
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M19 12H5M12 19l-7-7 7-7" />
+                        </svg>
+                    </button>
+                    <div className="flex flex-col">
+                        <h1 className="text-2xl md:text-[36px] font-bold text-[#0a193b] tracking-tighter leading-tight">
+                            All Stores
+                        </h1>
+                        <p className="text-[11px] md:text-sm text-neutral-400 font-medium mt-0.5">
+                            {shops.length} marketplace stores available
+                        </p>
+                    </div>
+                </div>
             </div>
 
-            <div className="px-4 py-6 md:px-8">
+            <div className="px-4 py-2 md:px-10">
                 {loading ? (
                     <div className="flex justify-center py-20">
                         <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-emerald-600"></div>
@@ -73,7 +153,7 @@ export default function AllStores() {
                             >
                                 {/* Store Image Container */}
                                 <div className="relative aspect-square rounded-[14px] overflow-hidden mb-3 flex items-center justify-center bg-transparent">
-                                    { (shop.image || (shop.productImages && shop.productImages[0])) ? (
+                                    {(shop.image || (shop.productImages && shop.productImages[0])) ? (
                                         <img
                                             src={shop.image || (shop.productImages ? shop.productImages[0] : "")}
                                             alt={shop.name}

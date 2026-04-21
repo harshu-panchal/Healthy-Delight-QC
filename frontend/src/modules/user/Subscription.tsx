@@ -75,16 +75,16 @@ export default function Subscription() {
   const selected = plans.find((p) => p.id === selectedPlan);
 
   return (
-    <div className="min-h-screen bg-transparent relative flex flex-col pt-[160px] md:pt-[180px]">
+    <div className="min-h-screen bg-transparent relative flex flex-col pt-[160px] md:pt-[2px]">
       {/* Premium Background Layer */}
       <div className="fixed inset-0 bg-gradient-to-b from-[#f8f6f2] to-[#f6f1e6] -z-10" />
 
       {/* Decorative Texture Overlay (Optional, keep it very subtle) */}
       <div className="fixed inset-0 opacity-[0.03] pointer-events-none -z-5" style={{ backgroundImage: 'url("https://www.transparenttextures.com/patterns/natural-paper.png")' }}></div>
 
-      {/* Premium Home-Style Fixed Header */}
+      {/* Premium Home-Style Fixed Header (MOBILE ONLY) */}
       <header
-        className="fixed top-0 left-0 w-full z-50 transition-all duration-300"
+        className="md:hidden fixed top-0 left-0 w-full z-50 transition-all duration-300"
         style={{
           background: isHeaderSolid
             ? '#0a193b'
@@ -112,9 +112,6 @@ export default function Subscription() {
                 </button>
                 <div className="flex items-center gap-2.5 cursor-pointer group" onClick={() => navigate('/')}>
                   <img src={logo} alt="Healthy Delight" className="h-8 md:h-9 w-auto object-contain brightness-0 invert drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)] transition-transform group-hover:scale-105" />
-                  <span className="hidden lg:block text-xl font-bold tracking-tight text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.2)]">
-                    Healthy Delight
-                  </span>
                 </div>
               </div>
 
@@ -177,10 +174,10 @@ export default function Subscription() {
 
 
       {/* Modern Full-Width Hero Section */}
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="w-full py-12 px-5 md:px-10 mb-6 relative overflow-hidden flex flex-col items-center text-center"
+        className="w-full py-12 md:py-6 px-5 md:px-10 mb-6 relative overflow-hidden flex flex-col items-center text-center"
       >
         <div className="relative z-10 max-w-4xl">
           <h2 className="text-3xl md:text-5xl font-black text-[#0a193b] leading-tight mb-6">

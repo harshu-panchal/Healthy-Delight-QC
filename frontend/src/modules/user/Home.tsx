@@ -38,8 +38,16 @@ export default function Home() {
     cookingIdeas: [],
   });
   const [headerCategories, setHeaderCategories] = useState<any[]>([]);
-
   const [products, setProducts] = useState<any[]>([]);
+
+  // Resolve the display name for the current active tab
+  const activeHeaderCategoryName = useMemo(() => {
+    if (activeTab === "all") return "Home";
+    const found = headerCategories.find(c => c.slug === activeTab);
+    if (found) return found.name;
+    // Fallback to formatted slug if not found yet
+    return activeTab.charAt(0).toUpperCase() + activeTab.slice(1).replace(/-/g, " ");
+  }, [activeTab, headerCategories]);
   const [categoryProducts, setCategoryProducts] = useState<any[]>([]);
   const [selectedSubcategory, setSelectedSubcategory] = useState<string>("all");
   const [productsLoading, setProductsLoading] = useState(false);
@@ -245,7 +253,7 @@ export default function Home() {
   }
 
   return (
-    <div className={`${activeTab === "all" ? "pt-[var(--header-height)]" : "pt-[calc(var(--header-height)-34px)]"} `} ref={contentRef}>
+    <div className={`${activeTab === "all" ? "pt-[var(--header-height)] md:pt-0" : "pt-[calc(var(--header-height)-34px)] md:pt-0"} `} ref={contentRef}>
       {/* Hero Header with Gradient and Tabs */}
       <HomeHero activeTab={activeTab} onTabChange={setActiveTab} />
 
@@ -259,7 +267,7 @@ export default function Home() {
       {/* Quick Categories strip */}
       {/* Refined Quick Categories strip - Full Width Solid Architecture */}
       {activeTab === "all" && homeData.categories && homeData.categories.length > 0 && (
-        <div className="w-full mt-8 mb-12 px-5 py-8 md:px-10 lg:px-12 bg-[#f8f6f2] border-y border-black/[0.02] shadow-[0_4px_12px_rgba(0,0,0,0.03),0_20px_50px_rgba(0,0,0,0.06)]">
+        <div className="w-full mt-8 mb-12 px-5 py-8 md:px-10 lg:px-12 bg-[#f8f6f2] md:rounded-[48px] md:mx-auto md:max-w-[1240px] border-y md:border border-black/[0.02] shadow-[0_4px_12px_rgba(0,0,0,0.03),0_20px_50px_rgba(0,0,0,0.06)]">
           {/* Section Header */}
           <div className="flex items-center justify-between mb-8 px-1">
             <h2 className="text-[18px] md:text-2xl font-bold text-[#0a193b] tracking-tight">
@@ -318,9 +326,9 @@ export default function Home() {
           }`}>
         {/* Category Specific View (Sidebar + Products) */}
         {activeTab !== "all" && (
-          <div className="flex bg-transparent min-h-[70vh] relative">
-            {/* Unified Floating Navigation Rail - Descriptive Color Icons */}
-            <div className="flex flex-col items-center gap-5 md:gap-6 sticky top-[calc(var(--header-height)+16px)] h-fit w-[64px] md:w-[82px] ml-2 md:ml-4 mr-3 md:mr-8 py-4 px-1.5 bg-white/70 backdrop-blur-md rounded-[20px] shadow-[0_8px_32px_rgba(0,0,0,0.06)] border border-white/30 z-40 transition-all duration-300">
+          <div className="flex bg-transparent min-h-[70vh] relative pt-16 md:pt-6">
+            {/* Unified Floating Navigation Rail - Descriptive Color Icons - Hidden on Desktop as requested */}
+            <div className="flex md:hidden flex-col items-center gap-5 md:gap-6 sticky top-[calc(var(--header-height)+16px)] h-fit w-[64px] md:w-[82px] ml-2 md:ml-4 mr-3 md:mr-8 py-4 px-1.5 bg-white/70 backdrop-blur-md rounded-[20px] shadow-[0_8px_32px_rgba(0,0,0,0.06)] border border-white/30 z-40 transition-all duration-300">
               {/* 'All' Option */}
               <button
                 type="button"
@@ -383,7 +391,7 @@ export default function Home() {
             </div>
 
             {/* Right Side: Product Grid */}
-            <div className="flex-1 pr-4 md:pr-10 py-4 md:py-4 min-w-0">
+            <div className="flex-1 px-4 md:px-10 pb-4 min-w-0">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={selectedSubcategory}
@@ -392,18 +400,7 @@ export default function Home() {
                   exit={{ opacity: 0, x: -20 }}
                   transition={{ duration: 0.25, ease: "easeOut" }}
                 >
-                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 md:mb-8 px-1 md:px-0">
-                    <div className="flex items-center gap-3">
-                      <div className="w-1 md:w-1.5 h-5 md:h-6 bg-[#0a193b] rounded-full"></div>
-                      <h2 className="text-[17px] md:text-[22px] font-semibold text-[#0a193b] tracking-tight">
-                        {selectedSubcategory === "all"
-                          ? `${activeTab.charAt(0).toUpperCase()}${activeTab.slice(1).replace("-", " ")}`
-                          : (homeData.categories || []).find(
-                            (c: any) => String(c._id || c.id) === String(selectedSubcategory)
-                          )?.name || "Products"}
-                      </h2>
-                    </div>
-                  </div>
+                  {/* Title Section Removed */}
 
                   {productsLoading ? (
                     <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-8 animate-pulse">
@@ -533,12 +530,10 @@ export default function Home() {
               />
 
               {/* Solid Content Block */}
-              <div 
-                className="pt-6 pb-0 shadow-[0_-8px_32px_rgba(0,0,0,0.06)] ring-1 ring-black/5 relative z-10 mb-[-96px]"
+              <div
+                className="pt-6 pb-0 md:pb-12 shadow-[0_-8px_32px_rgba(0,0,0,0.06)] ring-1 ring-black/5 relative z-10 mb-[-64px] md:mb-12 md:mx-10 md:rounded-[48px]"
                 style={{ backgroundColor: 'rgba(250, 245, 242, 0.94)' }}
               >
-                {/* Filler to avoid gap at very bottom */}
-                <div className="absolute top-full left-0 right-0 h-[200px]" style={{ backgroundColor: 'rgba(250, 245, 242, 0.94)' }} />
                 {/* Shop by Store Section - only on 'all' tab */}
                 <div className="px-5 mb-10 md:px-10">
                   {/* Modern Clean Header */}
@@ -605,7 +600,7 @@ export default function Home() {
 
                 {/* Decorative Bottom Background (Inside solid block) */}
                 <div
-                  className="w-full h-[180px] md:h-[300px] mt-8 mb-0 pointer-events-none relative z-0"
+                  className="w-full h-[180px] md:hidden mt-8 mb-0 pointer-events-none relative z-0"
                   style={{
                     backgroundImage: 'url("/assets/background_bottom.png")',
                     backgroundSize: '100% 100%',

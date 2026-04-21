@@ -6,7 +6,7 @@
   height: 100vh;
   /* Support for modern mobile browsers with dynamic viewport height */
   height: 100dvh;
-  background-color: #f8f6f2;
+  background-color: #0a193b;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -17,48 +17,18 @@
   overflow: hidden;
 }
 
-/* Layer: Illustration Texture - Matching global app style */
-.global-loader-overlay::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-image: url('/assets/bg.png');
-  background-position: center top;
-  background-repeat: repeat;
-  background-size: 500px auto;
-  opacity: 0.45;
-  z-index: -1;
-  pointer-events: none;
-}
-
-/* Layer: Global Navy Depth - Matching global app style */
-.global-loader-overlay::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(180deg,
-      rgba(10, 25, 59, 0.05) 0%,
-      rgba(10, 25, 59, 0.02) 40%,
-      transparent 100%);
-  z-index: -1;
-  pointer-events: none;
-}
 
 /* Mobile optimizations for centered content */
 @media (max-width: 768px) {
   .lottie-wrapper {
-    width: 200px; /* vs current 150px */
-    height: 200px;
+    width: 100vw;
+    height: auto;
+    min-height: 250px;
   }
   .lottie-wrapper.first-load-variant {
-    width: 280px;
-    height: 280px;
+    width: 100vw;
+    height: auto;
+    min-height: 320px;
   }
 }
 
@@ -68,11 +38,13 @@
   align-items: center;
   justify-content: center;
   background: transparent !important;
+  width: 100%;
 }
 
 .lottie-wrapper {
-  width: 250px; /* vs current 200 */
-  height: 250px;
+  width: 800px; 
+  height: auto;
+  min-height: 400px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -80,15 +52,14 @@
 }
 
 .lottie-wrapper.first-load-variant {
-  width: 350px;
-  height: 350px;
+  width: 900px;
+  height: auto;
+  min-height: 450px;
 }
 
 .loader-lottie {
   width: 100%;
   height: 100%;
-  /* Blend against loader overlay background to avoid white “card” */
-  mix-blend-mode: multiply;
 }
 
 .loader-quote {
@@ -98,6 +69,6 @@
   text-align: center;
   font-size: 14px;
   line-height: 1.4;
-  color: #6b7280;
+  color: #ffffff;
   font-weight: 600;
 }

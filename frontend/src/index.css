@@ -208,7 +208,6 @@
     margin: 0;
     padding: 0;
     width: 100%;
-    overflow-x: hidden;
     background: transparent !important;
   }
 
@@ -218,7 +217,6 @@
     width: 100%;
     min-height: 100vh;
     background: transparent !important;
-    overflow-x: hidden;
   }
 }
 

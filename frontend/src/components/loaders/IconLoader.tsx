@@ -1,26 +1,20 @@
 import React from 'react';
-import { DotLottieReact } from '@lottiefiles/dotlottie-react';
+import Lottie from 'lottie-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLoading, LoadingVariant } from '../../context/LoadingContext';
 
-// .lottie Assets
-import milkLottie from '@assets/animation/Milk.lottie';
-import cowLottie from '@assets/animation/Cow_Drink_Milk.lottie';
-import cheeseLottie from '@assets/animation/Cheese.lottie';
-import iceCreamLottie from '@assets/animation/Ice_cream.lottie';
-import butterLottie from '@assets/animation/Spreading_butter.lottie';
+// JSON Animation Assets
+import milkDelivery from '@assets/animation/milk_delivery.json';
+import milkPouring from '@assets/animation/milk_pouring.json';
+import cowGrazing from '@assets/animation/cow_grazing.json';
 
 import './iconLoader.css';
 
-const VARIANT_ANIMATIONS: Record<LoadingVariant, string> = {
-  first: milkLottie,
-  milk_bottle: milkLottie,
-  milk_can_open: cowLottie,
-  cheese: cheeseLottie,
-  cow_drink: cowLottie,
-  ice_cream: iceCreamLottie,
-  milk: milkLottie,
-  spreading_butter: butterLottie,
+const VARIANT_ANIMATIONS: Record<LoadingVariant, any> = {
+  first: milkPouring,
+  milk_delivery: milkDelivery,
+  milk_pouring: milkPouring,
+  cow_grazing: cowGrazing,
 };
 
 interface IconLoaderProps {
@@ -55,8 +49,8 @@ const IconLoader: React.FC<IconLoaderProps> = ({ forceShow = false }) => {
           <div className="loader-container">
             <div className={`lottie-wrapper ${loadingVariant === 'first' ? 'first-load-variant' : ''}`}>
               {animationSrc && (
-                <DotLottieReact
-                  src={animationSrc}
+                <Lottie
+                  animationData={animationSrc}
                   loop={true}
                   autoplay={true}
                   className="loader-lottie"

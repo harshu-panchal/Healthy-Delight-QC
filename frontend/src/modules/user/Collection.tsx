@@ -87,10 +87,10 @@ export default function Collection() {
   }[columns] || "grid-cols-2 md:grid-cols-4";
 
   return (
-    <div className="min-h-screen bg-[#fcfaf7] relative flex flex-col pt-[140px] md:pt-[160px]">
-      {/* Premium Fixed Header */}
+    <div className="min-h-screen bg-transparent relative flex flex-col pt-[140px] md:pt-[5px]">
+      {/* Premium Home-Style Fixed Header (MOBILE ONLY) */}
       <header
-        className="fixed top-0 left-0 w-full z-50 transition-all duration-300"
+        className="md:hidden fixed top-0 left-0 w-full z-50 transition-all duration-300"
         style={{
           background: isHeaderSolid ? '#0a193b' : 'linear-gradient(180deg, #0a193b 0%, rgba(10, 25, 59, 0.94) 100%)',
           boxShadow: isHeaderSolid ? "0 12px 24px rgba(0,0,0,0.12)" : "none",
@@ -102,14 +102,11 @@ export default function Collection() {
             <div className="flex items-center gap-8 flex-1 min-w-0">
               <div className="flex items-center gap-2.5 flex-shrink-0 cursor-pointer group" onClick={() => navigate('/')}>
                 <img src={logo} alt="Healthy Delight" className="h-8 md:h-9 w-auto object-contain brightness-0 invert drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)] transition-transform group-hover:scale-105" />
-                <span className="hidden md:block text-xl font-bold tracking-tight text-white">
-                  Healthy Delight
-                </span>
               </div>
 
               {locationDisplayText && (
                 <div onClick={() => navigate('/account')} className="flex items-center gap-2 cursor-pointer max-w-[200px] md:max-w-md group">
-                   <div className="p-1.5 rounded-full bg-white/10 text-white/90 border border-white/20">
+                  <div className="p-1.5 rounded-full bg-white/10 text-white/90 border border-white/20">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                       <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
@@ -154,24 +151,27 @@ export default function Collection() {
       {/* Decorative Background */}
       <div className="fixed inset-0 bg-[#fcfaf7] -z-10" />
 
-      {/* Hero Header */}
-      <div className="px-5 pt-8 pb-4 md:px-10 md:pt-10 md:pb-8">
-        <div className="flex items-center gap-3 mb-2">
-          <button 
+      {/* Hero Header - Redesigned for Cinematic Desktop */}
+      <div className="px-5 pt-8 pb-4 md:px-10 md:pt-0 md:pb-8">
+        <div className="flex items-center gap-4 mb-2">
+          <button
             onClick={() => navigate(-1)}
-            className="p-2 -ml-2 rounded-xl text-[#0a193b] hover:bg-[#0a193b]/5 transition-colors"
+            className="flex items-center justify-center w-10 h-10 md:w-12 md:h-12 rounded-2xl bg-[#0a193b]/5 text-[#0a193b] hover:bg-[#0a193b]/10 transition-all active:scale-95 shadow-sm"
+            title="Go back"
           >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
               <path d="M19 12H5M12 19l-7-7 7-7" />
             </svg>
           </button>
-          <h1 className="text-2xl md:text-3xl font-extrabold text-[#0a193b] tracking-tight">
-            {section?.title || initialTitle}
-          </h1>
+          <div className="flex flex-col">
+            <h1 className="text-2xl md:text-[36px] font-bold text-[#0a193b] tracking-tighter leading-tight">
+              {section?.title || initialTitle}
+            </h1>
+            <p className="text-[11px] md:text-sm text-neutral-400 font-medium mt-0.5">
+              {items.length} {displayType === 'products' ? 'items' : 'categories'} found
+            </p>
+          </div>
         </div>
-        <p className="text-[13px] md:text-base text-neutral-500 font-medium">
-          {items.length} {displayType === 'products' ? 'items' : 'categories'} available
-        </p>
       </div>
 
       {/* Content Grid */}
@@ -184,10 +184,10 @@ export default function Collection() {
               ))}
             </div>
           ) : (
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className={`grid ${gridCols} gap-5 md:gap-10`}
+              className={`grid ${gridCols} gap-5 md:gap-8 lg:gap-10`}
             >
               {items.map((item: any) => {
                 if (displayType === "products") {
@@ -217,9 +217,9 @@ export default function Collection() {
                   >
                     <div className="w-full aspect-square rounded-[18px] bg-[#f8f6f2] flex items-center justify-center overflow-hidden transition-colors group-hover:bg-[#f3eee5]">
                       {item.image || item.productImages?.[0] ? (
-                        <img 
-                          src={item.image || item.productImages?.[0]} 
-                          alt={item.name} 
+                        <img
+                          src={item.image || item.productImages?.[0]}
+                          alt={item.name}
                           className="w-[80%] h-[80%] object-contain drop-shadow-md transition-transform duration-500 group-hover:scale-110"
                         />
                       ) : (

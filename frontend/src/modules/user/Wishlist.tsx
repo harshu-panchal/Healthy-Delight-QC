@@ -74,10 +74,10 @@ export default function Wishlist() {
       (userLocation?.city || ""));
 
   return (
-    <div className="min-h-screen bg-transparent relative flex flex-col pt-[140px] md:pt-[160px] pb-24 md:pb-8">
-      {/* Premium Home-Style Fixed Header */}
+    <div className="min-h-screen bg-transparent relative flex flex-col pt-[140px] md:pt-[2px] pb-24 md:pb-8">
+      {/* Premium Home-Style Fixed Header (MOBILE ONLY) */}
       <header
-        className="fixed top-0 left-0 w-full z-50 transition-all duration-300"
+        className="md:hidden fixed top-0 left-0 w-full z-50 transition-all duration-300"
         style={{
           background: isHeaderSolid
             ? '#0a193b'
@@ -94,9 +94,6 @@ export default function Wishlist() {
               {/* Logo */}
               <div className="flex items-center gap-2.5 flex-shrink-0 cursor-pointer group" onClick={() => navigate('/')}>
                 <img src={logo} alt="Healthy Delight" className="h-8 md:h-9 w-auto object-contain brightness-0 invert drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)] transition-transform group-hover:scale-105" />
-                <span className="hidden md:block text-xl font-bold tracking-tight text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.2)]">
-                  Healthy Delight
-                </span>
               </div>
 
               {/* Location */}
@@ -161,7 +158,7 @@ export default function Wishlist() {
       <div className="fixed inset-0 opacity-[0.03] pointer-events-none -z-5" style={{ backgroundImage: 'url("https://www.transparenttextures.com/patterns/natural-paper.png")' }}></div>
 
       {/* Page Header Section */}
-      <div className="px-5 pt-4 pb-4 md:px-10 md:pt-6 md:pb-6 mt-4 flex items-center justify-between">
+      <div className="px-5 pt-4 pb-4 md:px-10 md:pt-0 md:pb-6 mt-4 md:mt-0 flex items-center justify-between">
         <div>
           <h1 className="text-[18px] md:text-[22px] font-semibold text-[#0a193b] tracking-tight">
             My Wishlist

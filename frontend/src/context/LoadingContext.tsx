@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useCallback, useRef } from 'react';
 
-export type LoadingVariant = 'first' | 'milk_bottle' | 'milk_can_open' | 'cheese' | 'cow_drink' | 'ice_cream' | 'milk' | 'spreading_butter';
+export type LoadingVariant = 'first' | 'milk_delivery' | 'milk_pouring' | 'cow_grazing';
 
 interface LoadingContextType {
   isLoading: boolean;
@@ -16,22 +16,14 @@ interface LoadingContextType {
 const LoadingContext = createContext<LoadingContextType | undefined>(undefined);
 
 const ROUTE_LOADER_VARIANTS: LoadingVariant[] = [
-  'milk_bottle', 
-  'milk_can_open', 
-  'cheese', 
-  'cow_drink', 
-  'ice_cream', 
-  'milk', 
-  'spreading_butter'
+  'milk_delivery', 
+  'milk_pouring', 
+  'cow_grazing'
 ];
 const VARIANT_SPECIFIC_QUOTES: Record<string, string[]> = {
-  milk: ['Collected fresh, delivered right'],
-  milk_bottle: ['Collected fresh, delivered right'],
-  cow_drink: ['From free-grazing farms to your home'],
-  milk_can_open: ['From free-grazing farms to your home'],
-  cheese: ['Artisan dairy, made with patience'],
-  ice_cream: ['A scoop of pure delight'],
-  spreading_butter: ['Pure butter, simply made'],
+  milk_delivery: ['Charting the path to your doorstep...', 'The morning magic is on its way'],
+  milk_pouring: ['Pouring nature\'s best for you...', 'Curating pure goodness in every drop'],
+  cow_grazing: ['Grazing in green pastures...', 'From our happy farms to your home'],
   first: []
 };
 

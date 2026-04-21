@@ -282,12 +282,16 @@ export default function HomeHero({
         try {
           // Use offsetLeft for position relative to container (not affected by scroll)
           // This ensures the indicator stays aligned even when container scrolls
-          const left = activeTabButton.offsetLeft;
-          const width = activeTabButton.offsetWidth;
+          const containerRect = container.getBoundingClientRect();
+          const buttonRect = activeTabButton.getBoundingClientRect();
+          const left = buttonRect.left - containerRect.left + container.scrollLeft;
+          const width = buttonRect.width;
 
           // Ensure valid values
           if (width > 0) {
-            setIndicatorStyle({ left, width });
+            const refinedWidth = width * 0.7;
+            const offset = (width - refinedWidth) / 2;
+            setIndicatorStyle({ left: left + offset, width: refinedWidth });
           }
 
           // Scroll the container to bring the active tab into view (only when tab changes)
@@ -366,7 +370,7 @@ export default function HomeHero({
   return (
     <div
       ref={heroRef}
-      className="fixed top-0 left-0 w-full z-50 overflow-hidden transition-all duration-300"
+      className="fixed md:hidden top-0 left-0 w-full z-50 overflow-hidden transition-all duration-300"
       style={{
         background: isHeaderSolid
           ? '#0a193b'
@@ -378,7 +382,7 @@ export default function HomeHero({
         marginBottom: 0,
       }}>
       {/* Top section: Compact Single-Row Layout (Refined & Premium) */}
-      <div className="relative px-4 h-[60px] flex items-center justify-between transition-all duration-300">
+      <div className="relative md:hidden px-4 h-[60px] flex items-center justify-between transition-all duration-300">
         {/* Row Layer: Delivery (Left) and Profile (Right) */}
         <div className="flex items-center justify-between w-full h-full relative z-20">
           
@@ -436,7 +440,7 @@ export default function HomeHero({
       {/* Sticky section: Fully Unified Search & Categories */}
       <div
         ref={stickyRef}
-        className="sticky top-0 z-50 transition-all duration-300"
+        className="sticky top-0 md:top-24 z-50 transition-all duration-300"
         style={{
           background: isHeaderSolid ? '#0a193b' : 'transparent',
           backdropFilter: 'none',
@@ -444,7 +448,7 @@ export default function HomeHero({
         }}>
 
         {/* Search Bar Container */}
-        <div className="px-5 md:px-10 py-2">
+        <div className="px-5 md:px-10 py-2 md:hidden">
           <form
             onSubmit={(e) => {
               e.preventDefault();

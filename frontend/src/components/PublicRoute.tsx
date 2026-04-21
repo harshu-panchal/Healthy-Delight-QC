@@ -32,8 +32,8 @@ export default function PublicRoute({ children, userType: allowedUserType }: Pub
             return <Navigate to="/delivery" replace />;
         }
 
-        // Default for Customer
-        return <Navigate to="/" replace />;
+        // Default for Customer — bypass landing page, go straight to app
+        return <Navigate to="/user" replace />;
     }
 
     return children ? <>{children}</> : <Outlet />;

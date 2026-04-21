@@ -92,10 +92,10 @@ export default function OrderAgain() {
   const hasOrders = orders && orders.length > 0;
 
   return (
-    <div className="min-h-screen bg-transparent relative flex flex-col pt-[140px] md:pt-[160px]">
-      {/* Premium Home-Style Fixed Header */}
+    <div className="min-h-screen bg-transparent relative flex flex-col pt-[140px] md:pt-[5px]">
+      {/* Premium Home-Style Fixed Header (MOBILE ONLY) */}
       <header
-        className="fixed top-0 left-0 w-full z-50 transition-all duration-300"
+        className="md:hidden fixed top-0 left-0 w-full z-50 transition-all duration-300"
         style={{
           background: isHeaderSolid
             ? '#0a193b'
@@ -113,9 +113,6 @@ export default function OrderAgain() {
               {/* Logo */}
               <div className="flex items-center gap-2.5 flex-shrink-0 cursor-pointer group" onClick={() => navigate('/')}>
                 <img src={logo} alt="Healthy Delight" className="h-8 md:h-9 w-auto object-contain brightness-0 invert drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)] transition-transform group-hover:scale-105" />
-                <span className="hidden md:block text-xl font-bold tracking-tight text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.2)]">
-                  Healthy Delight
-                </span>
               </div>
 
               {/* Location (Only if available) */}
@@ -178,7 +175,7 @@ export default function OrderAgain() {
       <div className="pb-4">
         {/* Orders Section - Show when orders exist */}
         {hasOrders && (
-          <div className="px-5 mt-8 mb-12">
+          <div className="px-5 mt-8 md:mt-0 mb-12">
             <div className="flex items-center gap-2 mb-6">
               <h2 className="text-[18px] md:text-[20px] font-bold text-[#0a193b] tracking-tight">Your Previous Orders</h2>
             </div>
@@ -216,7 +213,7 @@ export default function OrderAgain() {
                           <div className="text-[12px] md:text-[13px] text-slate-500 font-medium">
                             {formatDate(order.createdAt)}
                           </div>
-                          
+
                           {/* Product Imagery - Highly Curated */}
                           <div className="flex items-center gap-2">
                             {previewItems
@@ -262,11 +259,10 @@ export default function OrderAgain() {
                         <button
                           onClick={(e) => handleOrderAgain(order, e)}
                           disabled={addedOrders.has(order.id)}
-                          className={`w-full md:w-auto h-10 px-8 rounded-full text-[13px] font-bold transition-all duration-300 shadow-[0_4px_10px_rgba(10,25,59,0.2)] active:scale-95 flex items-center justify-center gap-2 ${
-                            addedOrders.has(order.id)
-                            ? 'bg-emerald-50 text-emerald-600 shadow-inner cursor-not-allowed border border-emerald-100'
-                            : 'bg-[#0a193b] text-white hover:bg-[#122b5e] hover:shadow-[0_8px_20px_rgba(10,25,59,0.3)]'
-                          }`}
+                          className={`w-full md:w-auto h-10 px-8 rounded-full text-[13px] font-bold transition-all duration-300 shadow-[0_4px_10px_rgba(10,25,59,0.2)] active:scale-95 flex items-center justify-center gap-2 ${addedOrders.has(order.id)
+                              ? 'bg-emerald-50 text-emerald-600 shadow-inner cursor-not-allowed border border-emerald-100'
+                              : 'bg-[#0a193b] text-white hover:bg-[#122b5e] hover:shadow-[0_8px_20px_rgba(10,25,59,0.3)]'
+                            }`}
                         >
                           {addedOrders.has(order.id) ? (
                             <>

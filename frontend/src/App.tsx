@@ -18,12 +18,13 @@ import LoadingSpinner from "./components/LoadingSpinner";
 import ErrorBoundary from "./components/ErrorBoundary";
 import RouteTransition from "./components/RouteTransition";
 
-// Critical routes - load immediately (Home, Cart, Checkout)
+// Critical routes - load immediately (Cart, Checkout, ProductDetail)
 import Home from "./modules/user/Home";
 import Cart from "./modules/user/Cart";
 import Checkout from "./modules/user/Checkout";
 import CheckoutAddress from "./modules/user/CheckoutAddress";
 import ProductDetail from "./modules/user/ProductDetail";
+const LandingPage = lazy(() => import("./modules/user/LandingPage"));
 
 // Lazy load less critical routes for code splitting
 const Search = lazy(() => import("./modules/user/Search"));
@@ -704,6 +705,16 @@ function AppContent() {
                           }
                         />
 
+                        {/* Public Landing Page Route */}
+                        <Route
+                          path="/"
+                          element={
+                            <Suspense fallback={<IconLoader forceShow />}>
+                              <LandingPage />
+                            </Suspense>
+                          }
+                        />
+
                         {/* Main App Routes */}
                         <Route
                           path="/*"
@@ -711,7 +722,7 @@ function AppContent() {
                             <AppLayout>
                               <Suspense fallback={<IconLoader forceShow />}>
                                 <Routes>
-                                  <Route path="/" element={<Home />} />
+                                  <Route path="/user" element={<Home />} />
                                   <Route
                                     path="/user/home"
                                     element={<Home />}
