@@ -21,14 +21,16 @@
 /* Mobile optimizations for centered content */
 @media (max-width: 768px) {
   .lottie-wrapper {
-    width: 100vw;
+    width: 90%;
+    max-width: 380px;
     height: auto;
-    min-height: 250px;
+    min-height: 200px;
   }
   .lottie-wrapper.first-load-variant {
-    width: 100vw;
+    width: 90%;
+    max-width: 420px;
     height: auto;
-    min-height: 320px;
+    min-height: 280px;
   }
 }
 
@@ -42,9 +44,9 @@
 }
 
 .lottie-wrapper {
-  width: 800px; 
+  width: 500px; 
   height: auto;
-  min-height: 400px;
+  min-height: 300px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -52,9 +54,9 @@
 }
 
 .lottie-wrapper.first-load-variant {
-  width: 900px;
+  width: 600px;
   height: auto;
-  min-height: 450px;
+  min-height: 350px;
 }
 
 .loader-lottie {
