@@ -13,7 +13,7 @@ const STEPS = [
     id: "01",
     title: "Pure Source",
     subtitle: "Farm-Fresh Milking",
-    desc: "Every morning starts at our partner farms. Milk is collected in sterile stainless steel cans within 2 hours of milking, preserving its raw protein and natural enzymes.",
+    desc: "Every morning starts at our own dairy farms. Milk is collected in sterile stainless steel cans within 2 hours of milking, preserving its raw protein and natural enzymes.",
     image: pureSource,
   },
   {
@@ -49,20 +49,20 @@ export const PurityPath: React.FC = () => {
   const pathLength = useTransform(scrollYProgress, [0.2, 0.7], [0, 1]);
 
   return (
-    <section 
+    <section
       ref={containerRef}
-      className="relative pt-10 pb-24 md:pt-12 md:pb-32 overflow-hidden" 
+      className="relative pt-10 pb-24 md:pt-12 md:pb-32 overflow-hidden"
       style={{ background: "#f8f6f2" }}
     >
       {/* Texture Overlay */}
-      <div 
-        className="absolute inset-0 opacity-[0.3] pointer-events-none" 
-        style={{ backgroundImage: `url(${bg})`, backgroundSize: '400px auto', backgroundRepeat: 'repeat' }} 
+      <div
+        className="absolute inset-0 opacity-[0.3] pointer-events-none"
+        style={{ backgroundImage: `url(${bg})`, backgroundSize: '400px auto', backgroundRepeat: 'repeat' }}
       />
 
       <div className="relative z-10 max-w-7xl mx-auto px-5 md:px-10">
         <div className="text-center mb-12 md:mb-16">
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -70,7 +70,7 @@ export const PurityPath: React.FC = () => {
           >
             Our Promise
           </motion.div>
-          <motion.h2 
+          <motion.h2
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -80,14 +80,14 @@ export const PurityPath: React.FC = () => {
           >
             The Path to <span className="text-[#c5a059]">Pure Freshness</span>
           </motion.h2>
-          <motion.p 
+          <motion.p
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.2 }}
             className="text-[#0a193b]/60 text-[16px] md:text-[18px] max-w-2xl mx-auto leading-relaxed"
           >
-            Experience the journey of unadulterated dairy, from our happy farms 
+            Experience the journey of unadulterated dairy, from our happy farms
             to your morning table in record time.
           </motion.p>
         </div>
@@ -116,7 +116,7 @@ export const PurityPath: React.FC = () => {
             preserveAspectRatio="none"
           >
             <motion.path
-               d="M 25,35 L 75,35 C 95,35 95,50 95,65 L 95,75 C 95,95 5,95 5,115 L 5,125 C 5,145 5,155 25,155 L 75,155"
+              d="M 25,35 L 75,35 C 95,35 95,50 95,65 L 95,75 C 95,95 5,95 5,115 L 5,125 C 5,145 5,155 25,155 L 75,155"
               stroke="#0a193b"
               strokeWidth="1.5"
               strokeDasharray="6 6"
@@ -147,9 +147,9 @@ export const PurityPath: React.FC = () => {
                         className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                       />
                     ) : (
-                      <img 
-                        src={step.image} 
-                        alt={step.title} 
+                      <img
+                        src={step.image}
+                        alt={step.title}
                         className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                       />
                     )}

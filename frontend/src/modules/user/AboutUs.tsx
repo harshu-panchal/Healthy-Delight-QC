@@ -82,7 +82,7 @@ export default function AboutUs() {
         {/* Brand Reveal Section */}
         <div className="relative overflow-hidden rounded-[32px] bg-[#0a193b] p-8 md:p-12 mb-10 text-center shadow-2xl">
           <div className="absolute top-0 left-0 w-full h-full opacity-10 bg-[radial-gradient(circle_at_30%_50%,#c5a059_0%,transparent_70%)]"></div>
-          
+
           <div className="relative z-10">
             <div className="inline-flex items-center justify-center w-24 h-24 rounded-3xl bg-white p-5 mb-6 shadow-xl transform hover:rotate-3 transition-transform">
               <img src={logo} alt="Healthy Delight" className="w-full h-full object-contain" />
@@ -120,7 +120,7 @@ export default function AboutUs() {
             </div>
             <h3 className="text-xl font-bold text-[#0a193b] mb-4">What We Do</h3>
             <p className="text-neutral-600 leading-relaxed text-sm md:text-base">
-              Healthy Delight is more than a delivery app; it's a commitment to your wellbeing. We source premium organic milk, vegetables, and staples directly from local farmers and deliver them to you within hours of harvest.
+              Healthy Delight is more than a delivery app; it's a commitment to your wellbeing. We source premium organic milk, vegetables, and staples directly from our farms and deliver them to you within hours of harvest.
             </p>
           </div>
         </div>
@@ -150,9 +150,9 @@ export default function AboutUs() {
         {/* Contact Unit */}
         <div className="bg-white rounded-[32px] p-10 border border-[#0a193b]/5 shadow-2xl mb-12 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-32 h-32 bg-[#c5a059]/5 rounded-full -mr-16 -mt-16 blur-3xl"></div>
-          
+
           <h3 className="text-2xl font-bold text-[#0a193b] mb-8 text-center">Get in Touch</h3>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="flex flex-col items-center text-center p-6 rounded-2xl bg-[#0a193b]/[0.02] border border-neutral-100 hover:border-[#c5a059]/30 transition-colors">
               <div className="w-10 h-10 rounded-full bg-[#0a193b] text-white flex items-center justify-center mb-4">

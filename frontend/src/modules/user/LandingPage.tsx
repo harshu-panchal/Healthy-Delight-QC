@@ -60,7 +60,7 @@ const FEATURES = [
       </svg>
     ),
     title: "100% Organic Sourcing",
-    desc: "Directly from certified partner farms — no middlemen, no shortcuts, no compromise on purity.",
+    desc: "Directly from our organic farms — no middlemen, no shortcuts, no compromise on purity.",
   },
   {
     icon: (
@@ -191,7 +191,7 @@ const TESTIMONIALS = [
     name: "Arjun Mehta",
     role: "Health Coach",
     image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=200&auto=format&fit=crop",
-    quote: "I've personally visited their partner farms. The level of hygiene and animal care is unmatched in the industry. This is my only recommendation for pure dairy.",
+    quote: "I've personally visited their dairy farms. The level of hygiene and animal care is unmatched in the industry. This is my only recommendation for pure dairy.",
     rating: 5,
   },
   {
@@ -210,7 +210,7 @@ const FAQ_ITEMS = [
   },
   {
     q: "Are your products truly 100% organic?",
-    a: "Yes. Every drop of milk and every dairy batch comes from certified partner farms that follow strict organic protocols, meaning no synthetic hormones or harmful pesticides.",
+    a: "Yes. Every drop of milk and every dairy batch comes from our own farms that follow strict organic protocols, meaning no synthetic hormones or harmful pesticides.",
   },
   {
     q: "Can I pause or modify my subscription easily?",
@@ -257,7 +257,7 @@ function PhoneMockup({ screenImg, className = "" }: { screenImg: string; classNa
       </svg>
 
       {/* Actual Screen Image Overlay */}
-      <div 
+      <div
         className="absolute overflow-hidden"
         style={{
           top: "5.4%",
@@ -267,10 +267,10 @@ function PhoneMockup({ screenImg, className = "" }: { screenImg: string; classNa
           borderRadius: "32px",
         }}
       >
-        <img 
-          src={screenImg} 
-          alt="App Screenshot" 
-          className="w-full h-full object-cover" 
+        <img
+          src={screenImg}
+          alt="App Screenshot"
+          className="w-full h-full object-cover"
         />
       </div>
 
@@ -334,7 +334,7 @@ function FAQSection() {
   return (
     <div className="max-w-3xl mx-auto space-y-4">
       {FAQ_ITEMS.map((item, i) => (
-        <div 
+        <div
           key={i}
           className="border border-[#0a193b]/10 rounded-2xl overflow-hidden transition-all duration-300 bg-white"
           style={{ boxShadow: openIndex === i ? "0 12px 24px rgba(10,25,59,0.06)" : "none" }}
@@ -345,7 +345,7 @@ function FAQSection() {
           >
             <span className="font-bold text-[#0a193b] pr-8 leading-tight" style={{ fontFamily: "'Outfit', sans-serif" }}>{item.q}</span>
             <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${openIndex === i ? 'bg-[#c5a059] text-[#0a193b]' : 'bg-[#0a193b]/5 text-[#0a193b]'}`}>
-              <svg 
+              <svg
                 width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"
                 className={`transition-transform duration-300 ${openIndex === i ? 'rotate-180' : ''}`}
               >
@@ -353,7 +353,7 @@ function FAQSection() {
               </svg>
             </div>
           </button>
-          
+
           <AnimatePresence>
             {openIndex === i && (
               <motion.div
@@ -540,7 +540,7 @@ export default function LandingPage() {
           </h1>
 
           <p className="text-white/65 text-[16px] md:text-[20px] max-w-2xl mx-auto mb-10 leading-relaxed font-normal">
-            From our partner farms to your doorstep — ethically sourced, hygienically handled, and delivered fresh every single morning.
+            From our organic dairy farms to your doorstep — ethically sourced, hygienically handled, and delivered fresh every single morning.
           </p>
 
           {/* CTAs */}
@@ -554,9 +554,9 @@ export default function LandingPage() {
                 <span>Explore Products</span>
                 <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" className="transition-transform group-hover:translate-x-1"><path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" /></svg>
               </div>
-              
+
               {/* Shine effect */}
-              <motion.div 
+              <motion.div
                 className="absolute inset-0 z-0"
                 style={{
                   background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)",
@@ -564,11 +564,11 @@ export default function LandingPage() {
                   transform: "skewX(-25deg)"
                 }}
                 animate={{ x: ["-200%", "400%"] }}
-                transition={{ 
-                  duration: 2, 
-                  repeat: Infinity, 
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
                   ease: "easeInOut",
-                  repeatDelay: 1.5 
+                  repeatDelay: 1.5
                 }}
               />
             </button>
@@ -583,7 +583,7 @@ export default function LandingPage() {
           {/* Social proof strip */}
           <div className="mt-14 flex flex-col sm:flex-row items-center justify-center gap-6 sm:gap-12">
             {[
-              { val: 25, suf: "+", label: "Partner Farms", delay: 0.4 },
+              { val: 25, suf: "+", label: "Our Farms", delay: 0.4 },
               { val: 10000, suf: "+", label: "Happy Families", delay: 0.6 },
               { val: 6, suf: " AM", label: "Morning Delivery", delay: 0.8 },
             ].map((stat) => (
@@ -610,9 +610,9 @@ export default function LandingPage() {
       {/* ── C. BRAND STORY ────────────────────────────────────────────────── */}
       <section id="story" className="relative py-20 md:py-28" style={{ background: "#f8f6f2" }}>
         {/* Texture Overlay */}
-        <div 
-          className="absolute inset-0 opacity-[0.3] pointer-events-none" 
-          style={{ backgroundImage: `url(${bg})`, backgroundSize: '400px auto', backgroundRepeat: 'repeat' }} 
+        <div
+          className="absolute inset-0 opacity-[0.3] pointer-events-none"
+          style={{ backgroundImage: `url(${bg})`, backgroundSize: '400px auto', backgroundRepeat: 'repeat' }}
         />
         <div className="relative z-10 max-w-5xl mx-auto px-5 md:px-10">
           <Reveal>
@@ -638,7 +638,7 @@ export default function LandingPage() {
                 step: "01",
                 icon: "🌿",
                 title: "The Farm",
-                desc: "Our partner farms across Gujarat, Maharashtra, and UP follow strict organic protocols. Happy cows, clean pastures, zero synthetic hormones.",
+                desc: "Our own dairy farms across India follow strict organic protocols. Happy cows, clean pastures, zero synthetic hormones.",
               },
               {
                 step: "02",
@@ -662,10 +662,10 @@ export default function LandingPage() {
                     className="w-16 h-16 mx-auto rounded-2xl flex items-center justify-center text-2xl mb-6 relative z-10 flex-shrink-0"
                     style={{ background: "#0a193b" }}
                     animate={{ y: [0, -8, 0] }}
-                    transition={{ 
-                      duration: 3, 
-                      repeat: Infinity, 
-                      ease: "easeInOut" 
+                    transition={{
+                      duration: 3,
+                      repeat: Infinity,
+                      ease: "easeInOut"
                     }}
                   >
                     {icon}
@@ -740,9 +740,9 @@ export default function LandingPage() {
       {/* ── E. PRODUCT HIGHLIGHTS ─────────────────────────────────────────── */}
       <section id="products" className="relative pt-20 pb-10 md:pt-28 md:pb-12 overflow-hidden" style={{ background: "#f8f6f2" }}>
         {/* Texture Overlay */}
-        <div 
-          className="absolute inset-0 opacity-[0.3] pointer-events-none" 
-          style={{ backgroundImage: `url(${bg})`, backgroundSize: '400px auto', backgroundRepeat: 'repeat' }} 
+        <div
+          className="absolute inset-0 opacity-[0.3] pointer-events-none"
+          style={{ backgroundImage: `url(${bg})`, backgroundSize: '400px auto', backgroundRepeat: 'repeat' }}
         />
         <div className="relative z-10 max-w-5xl mx-auto px-5 md:px-10">
           <Reveal>
@@ -769,9 +769,9 @@ export default function LandingPage() {
                   style={{ boxShadow: "0 10px 30px rgba(0,0,0,0.04)" }}
                 >
                   <div className="aspect-[4/3] overflow-hidden bg-neutral-100 flex-shrink-0">
-                    <img 
-                      src={p.image} 
-                      alt={p.label} 
+                    <img
+                      src={p.image}
+                      alt={p.label}
                       className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                     />
                   </div>
@@ -807,7 +807,7 @@ export default function LandingPage() {
 
       {/* Wave Divider to App Experience (Navy) */}
       <div className="relative h-0" style={{ background: "#f8f6f2" }}>
-         <WaveDivider fill="#0a193b" />
+        <WaveDivider fill="#0a193b" />
       </div>
 
       {/* ── F. APP PROMO ──────────────────────────────────────────────────── */}
@@ -868,11 +868,11 @@ export default function LandingPage() {
                 {/* Store badges */}
                 <div className="flex items-center gap-3 mt-6 opacity-50">
                   <div className="px-4 py-2 rounded-xl border border-white/20 flex items-center gap-2">
-                    <svg width="18" height="18" fill="white" viewBox="0 0 24 24"><path d="M19.665 16.811a10.316 10.316 0 0 1-1.021 1.837c-.537.767-.978 1.297-1.316 1.592-.525.482-1.089.73-1.692.744-.432 0-.954-.123-1.562-.373-.61-.249-1.17-.371-1.683-.371-.537 0-1.113.122-1.73.371-.617.25-1.114.381-1.495.393-.577.025-1.154-.229-1.729-.764-.367-.32-.826-.87-1.377-1.648-.59-.829-1.075-1.794-1.455-2.891-.407-1.187-.611-2.335-.611-3.447 0-1.273.275-2.372.826-3.292a4.857 4.857 0 0 1 1.73-1.751 4.65 4.65 0 0 1 2.34-.662c.46 0 1.063.142 1.81.422s1.227.422 1.436.422c.158 0 .689-.167 1.593-.498.853-.307 1.573-.434 2.163-.384 1.6.129 2.801.759 3.6 1.895-1.43.867-2.137 2.08-2.123 3.637.012 1.213.453 2.222 1.317 3.023a4.33 4.33 0 0 0 1.315.863c-.106.307-.218.6-.336.882z"/></svg>
+                    <svg width="18" height="18" fill="white" viewBox="0 0 24 24"><path d="M19.665 16.811a10.316 10.316 0 0 1-1.021 1.837c-.537.767-.978 1.297-1.316 1.592-.525.482-1.089.73-1.692.744-.432 0-.954-.123-1.562-.373-.61-.249-1.17-.371-1.683-.371-.537 0-1.113.122-1.73.371-.617.25-1.114.381-1.495.393-.577.025-1.154-.229-1.729-.764-.367-.32-.826-.87-1.377-1.648-.59-.829-1.075-1.794-1.455-2.891-.407-1.187-.611-2.335-.611-3.447 0-1.273.275-2.372.826-3.292a4.857 4.857 0 0 1 1.73-1.751 4.65 4.65 0 0 1 2.34-.662c.46 0 1.063.142 1.81.422s1.227.422 1.436.422c.158 0 .689-.167 1.593-.498.853-.307 1.573-.434 2.163-.384 1.6.129 2.801.759 3.6 1.895-1.43.867-2.137 2.08-2.123 3.637.012 1.213.453 2.222 1.317 3.023a4.33 4.33 0 0 0 1.315.863c-.106.307-.218.6-.336.882z" /></svg>
                     <span className="text-white text-[12px] font-bold">App Store</span>
                   </div>
                   <div className="px-4 py-2 rounded-xl border border-white/20 flex items-center gap-2">
-                    <svg width="18" height="18" fill="white" viewBox="0 0 24 24"><path d="M3.18 23.76a2.4 2.4 0 0 0 2.59-.28l.06-.05L14.14 16 10 11.85 3.18 23.76zm18.16-10.3-3.37-1.97-4.34 4.27 4.34 4.37 3.37-1.97a2.43 2.43 0 0 0 0-4.7zM1.93 1.24l.85.85L10 9.15l0 0L6.45 5.4l11.25 6.57L1.93 4.25A2.45 2.45 0 0 0 .44 6.47v11.06a2.45 2.45 0 0 0 1.49 2.22l14.53-8.7-14.53-8.7z"/></svg>
+                    <svg width="18" height="18" fill="white" viewBox="0 0 24 24"><path d="M3.18 23.76a2.4 2.4 0 0 0 2.59-.28l.06-.05L14.14 16 10 11.85 3.18 23.76zm18.16-10.3-3.37-1.97-4.34 4.27 4.34 4.37 3.37-1.97a2.43 2.43 0 0 0 0-4.7zM1.93 1.24l.85.85L10 9.15l0 0L6.45 5.4l11.25 6.57L1.93 4.25A2.45 2.45 0 0 0 .44 6.47v11.06a2.45 2.45 0 0 0 1.49 2.22l14.53-8.7-14.53-8.7z" /></svg>
                     <span className="text-white text-[12px] font-bold">Google Play</span>
                   </div>
                 </div>
@@ -916,7 +916,7 @@ export default function LandingPage() {
                   {/* Stars */}
                   <div className="flex gap-1 mb-6">
                     {[...Array(5)].map((_, i) => (
-                      <svg key={i} width="16" height="16" fill="#c5a059" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                      <svg key={i} width="16" height="16" fill="#c5a059" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
                     ))}
                   </div>
 
@@ -934,7 +934,7 @@ export default function LandingPage() {
                     </div>
                     {/* Gold quote icon */}
                     <div className="ml-auto opacity-20 transform translate-y-2">
-                       <svg width="24" height="24" fill="#c5a059" viewBox="0 0 24 24"><path d="M14.017 21L14.017 18C14.017 14.69 16.69 12 20 12L20 10C16.69 10 14.017 7.31 14.017 4L11 4L11 9C11 12.31 8.31 15 5 15L5 17C8.31 17 11 19.69 11 23L14.017 23 14.017 21ZM24 21L24 18C24 14.69 22.183 12 18.873 12L18.873 10C22.183 10 24 7.31 24 4L20.983 4L20.983 9C20.983 12.31 22.8 15 26.113 15L26.113 17C22.8 17 20.983 19.69 20.983 23L24 23 24 21Z"/></svg>
+                      <svg width="24" height="24" fill="#c5a059" viewBox="0 0 24 24"><path d="M14.017 21L14.017 18C14.017 14.69 16.69 12 20 12L20 10C16.69 10 14.017 7.31 14.017 4L11 4L11 9C11 12.31 8.31 15 5 15L5 17C8.31 17 11 19.69 11 23L14.017 23 14.017 21ZM24 21L24 18C24 14.69 22.183 12 18.873 12L18.873 10C22.183 10 24 7.31 24 4L20.983 4L20.983 9C20.983 12.31 22.8 15 26.113 15L26.113 17C22.8 17 20.983 19.69 20.983 23L24 23 24 21Z" /></svg>
                     </div>
                   </div>
                 </div>
@@ -950,9 +950,9 @@ export default function LandingPage() {
       {/* ── G++. FAQ ──────────────────────────────────────────────────────── */}
       <section className="relative pt-10 pb-20 md:pt-16 md:pb-28 overflow-hidden" style={{ background: "#f8f6f2" }}>
         {/* Texture Overlay */}
-        <div 
-          className="absolute inset-0 opacity-[0.3] pointer-events-none" 
-          style={{ backgroundImage: `url(${bg})`, backgroundSize: '400px auto', backgroundRepeat: 'repeat' }} 
+        <div
+          className="absolute inset-0 opacity-[0.3] pointer-events-none"
+          style={{ backgroundImage: `url(${bg})`, backgroundSize: '400px auto', backgroundRepeat: 'repeat' }}
         />
         <div className="relative z-10 max-w-5xl mx-auto px-5 md:px-10">
           <Reveal>
@@ -1011,7 +1011,7 @@ export default function LandingPage() {
                 </div>
 
                 {/* Shine effect */}
-                <motion.div 
+                <motion.div
                   className="absolute inset-0 z-0"
                   style={{
                     background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)",
@@ -1019,11 +1019,11 @@ export default function LandingPage() {
                     transform: "skewX(-25deg)"
                   }}
                   animate={{ x: ["-200%", "400%"] }}
-                  transition={{ 
-                    duration: 2, 
-                    repeat: Infinity, 
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
                     ease: "easeInOut",
-                    repeatDelay: 1.5 
+                    repeatDelay: 1.5
                   }}
                 />
               </button>
