@@ -394,7 +394,7 @@ export default function HomeHero({
             <img 
               src={logo} 
               alt="Healthy Delight" 
-              className="h-[38px] w-auto object-contain brightness-0 invert drop-shadow-[0_2px_4px_rgba(0,0,0,0.2)] transition-transform hover:scale-105" 
+              className="h-[48px] w-auto object-contain brightness-0 invert drop-shadow-[0_2px_4px_rgba(0,0,0,0.2)] transition-transform hover:scale-105" 
             />
           </div>
 
@@ -425,15 +425,25 @@ export default function HomeHero({
             </div>
           )}
 
-          {/* Profile on Right */}
-          <button
-            onClick={() => navigate('/account')}
-            className="w-9 h-9 rounded-full bg-white/10 text-white flex items-center justify-center border border-white/20 hover:bg-white/20 transition-all shadow-sm"
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
-            </svg>
-          </button>
+          {/* Profile & Menu on Right */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => navigate('/account')}
+              className="w-9 h-9 rounded-full bg-white/10 text-white flex items-center justify-center border border-white/20 hover:bg-white/20 transition-all shadow-sm"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
+              </svg>
+            </button>
+            <button
+              onClick={() => navigate('/manage-schedule')}
+              className="w-9 h-9 rounded-full bg-white/10 text-white flex items-center justify-center border border-white/20 hover:bg-white/20 transition-all shadow-sm"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="5" r="1" /><circle cx="12" cy="12" r="1" /><circle cx="12" cy="19" r="1" />
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
 

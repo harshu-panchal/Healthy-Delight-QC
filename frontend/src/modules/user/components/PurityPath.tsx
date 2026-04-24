@@ -13,7 +13,7 @@ const STEPS = [
     id: "01",
     title: "Pure Source",
     subtitle: "Farm-Fresh Milking",
-    desc: "Every morning starts at our own dairy farms. Milk is collected in sterile stainless steel cans within 2 hours of milking, preserving its raw protein and natural enzymes.",
+    desc: "Twice daily, the journey starts at our own dairy farms. Milk is collected in sterile stainless steel cans within 2 hours of milking, preserving its raw protein and natural enzymes.",
     image: pureSource,
   },
   {
@@ -32,9 +32,9 @@ const STEPS = [
   },
   {
     id: "04",
-    title: "Morning Magic",
-    subtitle: "Doorstep Delivery",
-    desc: "By 7 AM, pure health arrives at your door. Scanned, verified, and delivered fresh — providing your family with the perfect start to a healthy day.",
+    title: "Daily Freshness",
+    subtitle: "Twice Daily Delivery",
+    desc: "Twice daily, pure health arrives at your door. Scanned, verified, and delivered fresh (Morning & Evening) — providing your family with the perfect nutritional boost.",
     video: morningVideo,
   },
 ];
@@ -88,7 +88,7 @@ export const PurityPath: React.FC = () => {
             className="text-[#0a193b]/60 text-[16px] md:text-[18px] max-w-2xl mx-auto leading-relaxed"
           >
             Experience the journey of unadulterated dairy, from our happy farms
-            to your morning table in record time.
+            to your table twice daily, in record time.
           </motion.p>
         </div>
 

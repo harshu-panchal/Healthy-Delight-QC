@@ -8,15 +8,18 @@ const useRouteLoader = () => {
   const isInitialMount = useRef(true);
 
   useEffect(() => {
-    const isRestrictedApp =
+    const isExcludedPath =
       location.pathname.startsWith('/seller') ||
       location.pathname.startsWith('/admin') ||
-      location.pathname.startsWith('/delivery');
+      location.pathname.startsWith('/delivery') ||
+      location.pathname === '/login' ||
+      location.pathname === '/signup';
 
-    if (isRestrictedApp) {
+    if (isExcludedPath) {
       // Do not trigger the global route loader on seller/admin/delivery
       if (isInitialMount.current) {
         isInitialMount.current = false;
+        stopRouteLoading();
       }
       return;
     }

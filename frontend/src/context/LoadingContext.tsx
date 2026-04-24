@@ -21,15 +21,22 @@ const ROUTE_LOADER_VARIANTS: LoadingVariant[] = [
   'cow_grazing'
 ];
 const VARIANT_SPECIFIC_QUOTES: Record<string, string[]> = {
-  milk_delivery: ['Charting the path to your doorstep...', 'The morning magic is on its way'],
+  milk_delivery: ['Charting the path to your doorstep...', 'Daily freshness is on its way'],
   milk_pouring: ['Pouring nature\'s best for you...', 'Curating pure goodness in every drop'],
   cow_grazing: ['Grazing in green pastures...', 'From our happy farms to your home'],
   first: []
 };
 
 export const LoadingProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const isExcludedInitially = 
+    window.location.pathname.startsWith('/seller') ||
+    window.location.pathname.startsWith('/admin') ||
+    window.location.pathname.startsWith('/delivery') ||
+    window.location.pathname === '/login' ||
+    window.location.pathname === '/signup';
+
   const [isLoading, setIsLoading] = useState(false);
-  const [isRouteLoading, setIsRouteLoading] = useState(true); // Default to true for full page reload
+  const [isRouteLoading, setIsRouteLoading] = useState(!isExcludedInitially); // Prevent flash on login/admin/etc
   const [loadingVariant, setLoadingVariant] = useState<LoadingVariant>('first');
   const [routeLoadingQuote, setRouteLoadingQuote] = useState<string | null>(null);
   const hasCompletedFirstLoadRef = useRef(false);
@@ -37,8 +44,8 @@ export const LoadingProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const loadingStartTime = useRef<number | null>(null);
   const routeLoadingStartTime = useRef<number | null>(Date.now()); // Start timing immediately
   const activeRequests = useRef(0);
-  const activeRouteRequests = useRef(1); // Start with 1 to represent initial page load
-  const MINIMUM_LOADING_TIME = 3000; // 3 seconds (was 1s; +2s so Lottie can play completely)
+  const activeRouteRequests = useRef(isExcludedInitially ? 0 : 1); // Match initial state
+  const MINIMUM_LOADING_TIME = 800; // Snappier loading (800ms) for better UX
 
   const safetyTimer = useRef<NodeJS.Timeout | null>(null);
   const routeSafetyTimer = useRef<NodeJS.Timeout | null>(null);

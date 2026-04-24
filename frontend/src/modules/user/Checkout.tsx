@@ -1391,8 +1391,8 @@ export default function Checkout() {
 
         <div className="grid grid-cols-2 gap-3">
           {[
-            { value: "Morning (9:00 AM - 12:00 PM)", label: "Morning", sub: "9:00 AM - 12:00 PM" },
-            { value: "Evening (5:00 PM - 9:00 PM)", label: "Evening", sub: "5:00 PM - 9:00 PM" },
+            { value: "Morning (6:00 AM - 9:00 AM)", label: "Morning", sub: "6:00 AM - 9:00 AM" },
+            { value: "Evening (6:00 PM - 9:00 PM)", label: "Evening", sub: "6:00 PM - 9:00 PM" },
           ].map((slot) => {
             const selected = timeSlot === slot.value;
             return (

@@ -70,7 +70,7 @@ const FEATURES = [
       </svg>
     ),
     title: "Daily Doorstep Delivery",
-    desc: "Your morning dairy essentials arrive fresh at your door before the first cup of chai.",
+    desc: "Your dairy essentials arrive fresh at your door — morning and evening delivery.",
   },
   {
     icon: (
@@ -184,7 +184,7 @@ const TESTIMONIALS = [
     name: "Priya Sharma",
     role: "Marketing Professional",
     image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=200&auto=format&fit=crop",
-    quote: "Authentic, fresh, and reliable. The daily subscription has transformed my morning routine. I don't have to worry about quality or timing anymore.",
+    quote: "Authentic, fresh, and reliable. The twice-daily subscription has transformed my routine. I don't have to worry about quality or timing anymore.",
     rating: 5,
   },
   {
@@ -206,7 +206,7 @@ const TESTIMONIALS = [
 const FAQ_ITEMS = [
   {
     q: "What time do you deliver the dairy products?",
-    a: "We prioritize freshness and convenience. All daily orders and subscriptions are delivered fresh to your doorstep before 7:00 AM every single morning.",
+    a: "We prioritize freshness and convenience. All daily orders and subscriptions are delivered fresh to your doorstep twice daily — before 7:00 AM and 7:00 PM.",
   },
   {
     q: "Are your products truly 100% organic?",
@@ -525,7 +525,7 @@ export default function LandingPage() {
             style={{ background: "rgba(197,160,89,0.15)", border: "1px solid rgba(197,160,89,0.35)", color: "#c5a059" }}
           >
             <span className="w-1.5 h-1.5 rounded-full bg-[#c5a059] animate-pulse" />
-            Farm-Fresh · Organic · Daily Delivery
+            Farm-Fresh · Organic · Morning & Evening Delivery
           </div>
 
           <h1
@@ -540,7 +540,7 @@ export default function LandingPage() {
           </h1>
 
           <p className="text-white/65 text-[16px] md:text-[20px] max-w-2xl mx-auto mb-10 leading-relaxed font-normal">
-            From our organic dairy farms to your doorstep — ethically sourced, hygienically handled, and delivered fresh every single morning.
+            From our organic dairy farms to your doorstep — ethically sourced, hygienically handled, and delivered fresh twice daily (Morning & Evening).
           </p>
 
           {/* CTAs */}
@@ -585,11 +585,11 @@ export default function LandingPage() {
             {[
               { val: 25, suf: "+", label: "Our Farms", delay: 0.4 },
               { val: 10000, suf: "+", label: "Happy Families", delay: 0.6 },
-              { val: 6, suf: " AM", label: "Morning Delivery", delay: 0.8 },
+              { val: 2, suf: "x Daily", label: "Morning & Evening", delay: 0.8 },
             ].map((stat) => (
               <div key={stat.label} className="text-center">
                 <div className="text-[32px] md:text-[40px] font-black text-white mb-0.5" style={{ fontFamily: "'Outfit', sans-serif" }}>
-                  {stat.label === "Morning Delivery" ? (
+                  {stat.label === "Morning & Evening" ? (
                     <span>{stat.val}{stat.suf}</span>
                   ) : (
                     <Counter value={stat.val} suffix={stat.suf} delay={stat.delay} />
@@ -650,7 +650,7 @@ export default function LandingPage() {
                 step: "03",
                 icon: "🏠",
                 title: "Your Doorstep",
-                desc: "Before 7 AM, your order is packed and dispatched. Fresh milk, set curd, quality paneer — at your door, every single day.",
+                desc: "Twice daily, your order is packed and dispatched. Fresh milk, set curd, quality paneer — at your door, exactly when you need it.",
               },
             ].map(({ step, icon, title, desc }, i) => (
               <Reveal key={step} delay={i * 120} className="h-full">
@@ -755,7 +755,7 @@ export default function LandingPage() {
                 Everything Dairy, Curated Daily
               </h2>
               <p className="text-[#0a193b]/55 text-[16px] max-w-xl mx-auto mt-4 leading-relaxed">
-                Six premium categories. One trusted source. Delivered fresh every morning.
+                Six premium categories. One trusted source. Delivered fresh every morning and evening.
               </p>
             </div>
           </Reveal>
@@ -832,7 +832,7 @@ export default function LandingPage() {
                   <span style={{ color: "#c5a059" }}>Just a Tap Away</span>
                 </h2>
                 <p className="text-white/60 text-[15px] leading-relaxed mb-8 max-w-md">
-                  From farm-fresh milk to daily essentials — seamless doorstep delivery, every single day. Set your schedule, manage your order, and wake up to freshness.
+                  From farm-fresh milk to daily essentials — seamless doorstep delivery, twice daily. Set your schedule, manage your order, and enjoy freshness morning and evening.
                 </p>
 
                 {/* Trust line */}
