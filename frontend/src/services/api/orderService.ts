@@ -16,6 +16,9 @@ export interface Order {
   customerName?: string;
   customerPhone?: string;
   deliveryBoyName?: string;
+  orderType?: string;
+  scheduledDate?: string;
+  scheduledTimeSlot?: string;
 }
 
 export interface OrderItem {
@@ -47,7 +50,7 @@ export interface OrderDetail {
   orderDate: string;
   deliveryDate: string;
   timeSlot: string;
-  status: 'Out For Delivery' | 'Received' | 'Payment Pending' | 'Cancelled' | 'Rejected';
+  status: string;
   customerName: string;
   customerEmail: string;
   customerPhone: string;
@@ -61,6 +64,9 @@ export interface OrderDetail {
   paymentMethod: string;
   paymentStatus: string;
   deliveryAddress: DeliveryAddress;
+  orderType?: string;
+  scheduledDate?: string;
+  scheduledTimeSlot?: string;
 }
 
 export interface UpdateOrderStatusData {

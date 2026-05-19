@@ -18,6 +18,9 @@ export interface OrderNotificationData {
     shipping: number;
     createdAt: string;
     type?: string;
+    orderType?: string;
+    scheduledDate?: string;
+    scheduledTimeSlot?: string;
 }
 
 export interface AcceptOrderResponse {

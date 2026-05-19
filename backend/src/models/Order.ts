@@ -44,6 +44,7 @@ export interface IOrder extends Document {
   // Order Status
   status:
   | "Received"
+  | "Scheduled"
   | "Accepted"
   | "Confirmed"
   | "Pending"
@@ -52,16 +53,22 @@ export interface IOrder extends Document {
   | "On the way"
   | "Out for Delivery"
   | "Picked up"
+  | "Picked Up"
   | "Delivered"
   | "Cancelled"
   | "Rejected"
-  | "Returned";
+  | "Returned"
+  | "Ready for pickup"
+  | "Assigned"
+  | "In Transit"
+  | "Rider Assigned";
 
   // Delivery Assignment
   deliveryBoy?: mongoose.Types.ObjectId;
   deliveryBoyStatus?:
   | "Pending"
   | "Accepted"
+  | "Declined"
   | "Assigned"
   | "Picked Up"
   | "In Transit"
@@ -106,6 +113,9 @@ export interface IOrder extends Document {
   orderId?: string;
   invoiceNumber?: string;
   timeSlot?: string;
+  orderType?: "Instant" | "Scheduled";
+  scheduledDate?: Date;
+  scheduledTimeSlot?: "Morning" | "Evening";
 
   createdAt: Date;
   updatedAt: Date;
@@ -250,6 +260,7 @@ const OrderSchema = new Schema<IOrder>(
       type: String,
       enum: [
         "Received",
+        "Scheduled",
         "Accepted",
         "Confirmed",
         "Pending",
@@ -258,10 +269,15 @@ const OrderSchema = new Schema<IOrder>(
         "On the way",
         "Out for Delivery",
         "Picked up",
+        "Picked Up",
         "Delivered",
         "Cancelled",
         "Rejected",
         "Returned",
+        "Ready for pickup",
+        "Assigned",
+        "In Transit",
+        "Rider Assigned",
       ],
       default: "Received",
     },
@@ -273,7 +289,7 @@ const OrderSchema = new Schema<IOrder>(
     },
     deliveryBoyStatus: {
       type: String,
-      enum: ["Pending", "Accepted", "Assigned", "Picked Up", "In Transit", "Delivered", "Failed"],
+      enum: ["Pending", "Accepted", "Declined", "Assigned", "Picked Up", "In Transit", "Delivered", "Failed"],
     },
     assignedAt: {
       type: Date,
@@ -384,6 +400,18 @@ const OrderSchema = new Schema<IOrder>(
       trim: true,
       required: [true, "Time slot is required"],
     },
+    orderType: {
+      type: String,
+      enum: ["Instant", "Scheduled"],
+      default: "Instant",
+    },
+    scheduledDate: {
+      type: Date,
+    },
+    scheduledTimeSlot: {
+      type: String,
+      enum: ["Morning", "Evening"],
+    },
   },
   {
     timestamps: true,
@@ -408,6 +436,8 @@ OrderSchema.index({ status: 1 });
 OrderSchema.index({ orderDate: -1 });
 OrderSchema.index({ deliveryBoy: 1 });
 OrderSchema.index({ orderNumber: 1 });
+OrderSchema.index({ orderType: 1, scheduledDate: 1 });
+OrderSchema.index({ customer: 1, orderType: 1, scheduledDate: 1 });
 
 const Order = mongoose.model<IOrder>("Order", OrderSchema);
 

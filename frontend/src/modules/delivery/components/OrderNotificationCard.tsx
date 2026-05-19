@@ -105,15 +105,44 @@ export default function OrderNotificationCard({
             audio.removeEventListener('error', handleAudioError);
             audio.removeEventListener('abort', handleAudioAbort);
             audio.removeEventListener('stalled', handleAudioStalled);
+            
+            // 1. Pause the local audio object directly to guarantee it stops!
+            try {
+                audio.pause();
+                audio.currentTime = 0;
+            } catch (err) {
+                console.error('Error pausing local audio:', err);
+            }
+
+            // 2. Pause audioRef.current just in case
             if (audioRef.current) {
-                audioRef.current.pause();
+                try {
+                    audioRef.current.pause();
+                    audioRef.current.currentTime = 0;
+                } catch (err) {
+                    console.error('Error pausing audioRef.current:', err);
+                }
                 audioRef.current = null;
+            }
+
+            // 3. Stop vibration
+            if ('vibrate' in navigator) {
+                try {
+                    navigator.vibrate(0);
+                } catch (err) {
+                    console.error('Error stopping vibration:', err);
+                }
             }
         };
     }, [vibrate]);
 
     // Play audio on user interaction with better error handling
-    const handleUserInteraction = async () => {
+    const handleUserInteraction = async (e?: React.SyntheticEvent) => {
+        if (isProcessing) return;
+        if (e?.target && (e.target as HTMLElement).closest('button')) {
+            return;
+        }
+
         if (!hasUserInteracted && audioRef.current) {
             try {
                 // Ensure audio is loaded
@@ -136,17 +165,8 @@ export default function OrderNotificationCard({
         }
     };
 
-    // Stop audio when component unmounts or notification is dismissed
-    useEffect(() => {
-        return () => {
-            if (audioRef.current) {
-                audioRef.current.pause();
-                audioRef.current.currentTime = 0;
-            }
-        };
-    }, []);
-
-    const handleAccept = async () => {
+    const handleAccept = async (e: React.MouseEvent) => {
+        e.stopPropagation();
         if (isProcessing) return;
 
         setIsProcessing(true);
@@ -186,7 +206,8 @@ export default function OrderNotificationCard({
         }
     };
 
-    const handleReject = async () => {
+    const handleReject = async (e: React.MouseEvent) => {
+        e.stopPropagation();
         if (isProcessing) return;
 
         setIsProcessing(true);
@@ -255,7 +276,8 @@ export default function OrderNotificationCard({
                             <div className="absolute inset-0 w-3 h-3 bg-red-500 rounded-full animate-ping opacity-75"></div>
                         </div>
                         <h3 className="text-base sm:text-lg font-bold text-neutral-900">
-                            {notification.type === 'ASSIGNMENT_OFFER' ? 'Assignment Offer!' : 'New Order!'}
+                            {notification.type === 'ASSIGNMENT_OFFER' ? 'Assignment Offer!' : 
+                             notification.orderType === 'Scheduled' ? 'Scheduled Order Offer!' : 'New Order!'}
                         </h3>
                     </div>
                     {(audioError || !hasUserInteracted) && (
@@ -267,6 +289,18 @@ export default function OrderNotificationCard({
 
                 {/* Order Information */}
                 <div className="space-y-3 mb-4">
+                    {notification.orderType === 'Scheduled' && (
+                        <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                            <p className="text-xs font-bold text-blue-700 uppercase tracking-wider mb-1">Scheduled Delivery</p>
+                            <p className="text-sm font-semibold text-neutral-800">
+                                {notification.scheduledDate ? new Date(notification.scheduledDate).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A'}
+                            </p>
+                            <p className="text-xs font-medium text-neutral-600 mt-0.5">
+                                Slot: {notification.scheduledTimeSlot || 'N/A'}
+                            </p>
+                        </div>
+                    )}
+
                     <div>
                         <p className="text-xs sm:text-sm text-neutral-600">Order Number</p>
                         <p className="text-base sm:text-lg font-semibold text-neutral-900 break-all">{notification.orderNumber}</p>

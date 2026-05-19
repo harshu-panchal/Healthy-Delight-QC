@@ -85,7 +85,7 @@ const Icons = {
     )
 };
 
-type DeliveryOrderStatus = 'Pending' | 'Ready for pickup' | 'Picked up' | 'Out for Delivery' | 'Delivered' | 'Cancelled' | 'Returned';
+type DeliveryOrderStatus = 'Pending' | 'Ready for pickup' | 'Picked up' | 'Out for Delivery' | 'Delivered' | 'Cancelled' | 'Returned' | 'Scheduled' | 'Rider Assigned';
 
 export default function DeliveryOrderDetail() {
     const { id } = useParams();
@@ -540,14 +540,30 @@ export default function DeliveryOrderDetail() {
         );
     }
 
-    const statusFlow: DeliveryOrderStatus[] = ['Pending', 'Ready for pickup', 'Picked up', 'Out for Delivery', 'Delivered'];
+    const getStatusIndexAndFlow = () => {
+        // Both scheduled and instant orders follow the exact same status flow once accepted/started
+        const flow: DeliveryOrderStatus[] = ['Pending', 'Ready for pickup', 'Picked up', 'Out for Delivery', 'Delivered'];
+        let index = -1;
 
-    let currentStatusIndex = statusFlow.indexOf(order.status as DeliveryOrderStatus);
-    // Handle cases where status might not be in the flow (e.g. Cancelled)
-    if (currentStatusIndex === -1 && (order.status === 'Cancelled' || order.status === 'Returned')) {
-        // Maybe show a different UI for cancelled/returned orders
-        currentStatusIndex = -1;
-    }
+        const currentStatus = order.status;
+        if (
+            currentStatus === 'Pending' || 
+            currentStatus === 'Scheduled' || 
+            currentStatus === 'Rider Assigned' || 
+            currentStatus === 'Received' || 
+            currentStatus === 'Accepted'
+        ) {
+            index = 0;
+        } 
+        else if (currentStatus === 'Ready for pickup') index = 1;
+        else if (currentStatus === 'Picked up' || currentStatus === 'Picked Up') index = 2;
+        else if (currentStatus === 'Out for Delivery') index = 3;
+        else if (currentStatus === 'Delivered') index = 4;
+
+        return { flow, index };
+    };
+
+    const { flow: statusFlow, index: currentStatusIndex } = getStatusIndexAndFlow();
 
     const handleStatusChange = async (newStatus: DeliveryOrderStatus) => {
         if (!id) return;
@@ -599,14 +615,36 @@ export default function DeliveryOrderDetail() {
 
                 <div className="ml-auto">
                     <span className={`px-3 py-1 rounded-full text-xs font-semibold ${order.status === 'Delivered' ? 'bg-green-100 text-green-700' :
-                        order.status === 'Picked up' ? 'bg-indigo-100 text-indigo-700' :
+                        (order.status === 'Picked up' || order.status === 'Picked Up') ? 'bg-indigo-100 text-indigo-700' :
                             order.status === 'Ready for pickup' ? 'bg-yellow-100 text-yellow-700' :
-                                'bg-orange-100 text-orange-700'
+                                order.status === 'Scheduled' ? 'bg-blue-100 text-blue-700' :
+                                    order.status === 'Rider Assigned' ? 'bg-teal-100 text-teal-700' :
+                                        'bg-orange-100 text-orange-700'
                         }`}>
                         {order.status}
                     </span>
                 </div>
             </div>
+
+            {/* Scheduled Order Banner */}
+            {order.orderType === "Scheduled" && (
+                <div className="mx-4 mt-4 p-4 rounded-xl bg-blue-50 border border-blue-200 flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center text-blue-600">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                            <line x1="16" y1="2" x2="16" y2="6"></line>
+                            <line x1="8" y1="2" x2="8" y2="6"></line>
+                            <line x1="3" y1="10" x2="21" y2="10"></line>
+                        </svg>
+                    </div>
+                    <div>
+                        <span className="text-xs font-black text-blue-700 uppercase tracking-wider block">Scheduled Delivery</span>
+                        <span className="text-sm font-bold text-neutral-800 font-sans">
+                            Deliver on {order.scheduledDate ? new Date(order.scheduledDate).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : 'N/A'} ({order.scheduledTimeSlot || order.timeSlot})
+                        </span>
+                    </div>
+                </div>
+            )}
 
             {/* Location Error Warning */}
             {locationError && (
@@ -874,6 +912,22 @@ export default function DeliveryOrderDetail() {
                                 {new Date(order.createdAt).toLocaleDateString()}
                             </p>
                         </div>
+                        {order.orderType === 'Scheduled' && (
+                            <>
+                                <div className="p-3 bg-blue-50/50 rounded-lg col-span-2">
+                                    <p className="text-xs text-neutral-500 mb-1 font-medium">Scheduled Delivery Date</p>
+                                    <p className="text-sm font-black text-blue-600">
+                                        {order.scheduledDate ? new Date(order.scheduledDate).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A'}
+                                    </p>
+                                </div>
+                                <div className="p-3 bg-blue-50/50 rounded-lg col-span-2">
+                                    <p className="text-xs text-neutral-500 mb-1 font-medium">Scheduled Time Slot</p>
+                                    <p className="text-sm font-black text-blue-600">
+                                        {order.scheduledTimeSlot || order.timeSlot || 'N/A'}
+                                    </p>
+                                </div>
+                            </>
+                        )}
                     </div>
                 </div>
 

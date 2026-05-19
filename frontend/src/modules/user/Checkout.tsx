@@ -35,6 +35,7 @@ import { getProducts } from "../../services/api/customerProductService";
 import { addToWishlist } from "../../services/api/customerWishlistService";
 import { updateProfile } from "../../services/api/customerService";
 import { calculateProductPrice } from "../../utils/priceUtils";
+import { updateScheduledOrderItems } from "../../services/api/customerOrderService";
 
 // const STORAGE_KEY = 'saved_address'; // Removed
 
@@ -88,6 +89,26 @@ export default function Checkout() {
   const [pendingOrderId, setPendingOrderId] = useState<string | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<"COD" | "Online">("Online");
   const [timeSlot, setTimeSlot] = useState<string>("");
+  const [isPlacedOrderScheduled, setIsPlacedOrderScheduled] = useState<boolean>(false);
+
+  // Load scheduled order data from sessionStorage
+  const [scheduledDateStr, setScheduledDateStr] = useState<string | null>(() => {
+    return sessionStorage.getItem("scheduledDeliveryDate");
+  });
+  const [scheduledTimeSlot, setScheduledTimeSlot] = useState<string | null>(() => {
+    return sessionStorage.getItem("scheduledTimeSlot");
+  });
+
+  // Map scheduledTimeSlot to timeSlot on mount/change
+  useEffect(() => {
+    if (scheduledDateStr && scheduledTimeSlot) {
+      if (scheduledTimeSlot === "Morning") {
+        setTimeSlot("Morning (6:00 AM - 9:00 AM)");
+      } else if (scheduledTimeSlot === "Evening") {
+        setTimeSlot("Evening (6:00 PM - 9:00 PM)");
+      }
+    }
+  }, [scheduledDateStr, scheduledTimeSlot]);
 
   // Profile completion modal state
   const [showProfileModal, setShowProfileModal] = useState(false);
@@ -488,7 +509,7 @@ export default function Checkout() {
       .substr(2, 6)
       .toUpperCase()}`;
 
-    const order: Order = {
+    const order: Order & { orderType?: string; scheduledDate?: string; scheduledTimeSlot?: string } = {
       id: orderId,
       items: cart.items,
       totalItems: cart.itemCount,
@@ -501,17 +522,27 @@ export default function Checkout() {
       address: addressWithLocation,
       timeSlot,
       paymentMethod: paymentMethod,
-      status: "Placed",
+      status: scheduledDateStr ? "Scheduled" : "Placed",
       createdAt: new Date().toISOString(),
       tipAmount: finalTipAmount,
       gstin: gstin || undefined,
       couponCode: selectedCoupon?.code || undefined,
       giftPackaging: giftPackaging,
+      ...(scheduledDateStr ? {
+        orderType: "Scheduled",
+        scheduledDate: scheduledDateStr,
+        scheduledTimeSlot: scheduledTimeSlot || undefined,
+      } : {})
     };
 
     try {
       const placedId = await addOrder(order);
       if (placedId) {
+        setIsPlacedOrderScheduled(!!scheduledDateStr);
+        // Clear schedule keys from sessionStorage on order success
+        sessionStorage.removeItem("scheduledDeliveryDate");
+        sessionStorage.removeItem("scheduledTimeSlot");
+        
         if (paymentMethod === "Online") {
           setPendingOrderId(placedId);
           setShowRazorpayCheckout(true);
@@ -523,7 +554,40 @@ export default function Checkout() {
       }
     } catch (error: any) {
       console.error("Order placement failed", error);
-      // Show user-friendly error message
+      if (error.response?.status === 409 && error.response?.data?.canModify) {
+        const confirmMerge = window.confirm(
+          `You already have a scheduled delivery for ${new Date(scheduledDateStr || "").toLocaleDateString("en-US", {
+            weekday: "long",
+          })}. Would you like to modify it? (This will merge/update your existing scheduled order)`
+        );
+        if (confirmMerge) {
+          try {
+            const existingOrderId = error.response.data.existingOrderId;
+            const itemsToMerge = cart.items.map((item) => ({
+              product: item.product.id || (item.product as any)._id,
+              quantity: item.quantity,
+              variant: item.variant,
+            }));
+            const mergeResult = await updateScheduledOrderItems(existingOrderId, {
+              items: itemsToMerge,
+            });
+            if (mergeResult.success) {
+              setIsPlacedOrderScheduled(true);
+              sessionStorage.removeItem("scheduledDeliveryDate");
+              sessionStorage.removeItem("scheduledTimeSlot");
+              clearCart();
+              setPlacedOrderId(existingOrderId);
+              setShowOrderSuccess(true);
+              return;
+            }
+          } catch (mergeError: any) {
+            console.error("Merge order failed:", mergeError);
+            alert(mergeError.response?.data?.message || "Failed to update your existing scheduled order.");
+          }
+        }
+        return;
+      }
+      
       const errorMessage =
         error.message ||
         error.response?.data?.message ||
@@ -533,7 +597,9 @@ export default function Checkout() {
   };
 
   const handleGoToOrders = () => {
-    if (placedOrderId) {
+    if (isPlacedOrderScheduled) {
+      navigate("/manage-schedule");
+    } else if (placedOrderId) {
       navigate(`/orders/${placedOrderId}`);
     } else {
       navigate("/orders");
@@ -923,7 +989,11 @@ export default function Checkout() {
               <h3 className="text-3xl font-bold text-[#0a193b] mb-2">
                 Order Placed!
               </h3>
-              <p className="text-gray-600">Your order is on the way</p>
+              <p className="text-gray-600">
+                {isPlacedOrderScheduled
+                  ? "Your delivery has been scheduled successfully!"
+                  : "Your order is on the way"}
+              </p>
             </div>
 
             {/* Action Button */}
@@ -931,7 +1001,7 @@ export default function Checkout() {
               onClick={handleGoToOrders}
               className="mt-10 bg-[#0a193b] hover:bg-[#0a193b]/90 text-white font-semibold py-4 px-12 rounded-xl shadow-lg transition-all hover:shadow-xl hover:scale-105"
               style={{ animation: "slideUp 0.5s ease-out 1s both" }}>
-              Track Your Order
+              {isPlacedOrderScheduled ? "See Scheduled Orders" : "Track Your Order"}
             </button>
           </div>
         </div>
@@ -1131,6 +1201,34 @@ export default function Checkout() {
                   : "Set Exact Location on Map"}
             </button>
           </div>
+        </div>
+      )}
+
+      {/* Scheduled Delivery Indicator */}
+      {scheduledDateStr && scheduledTimeSlot && (
+        <div className="mx-4 md:mx-6 lg:mx-8 mt-4 p-4 rounded-3xl bg-blue-50/80 border border-blue-100 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-blue-100/50 flex items-center justify-center text-blue-600">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="16" y1="2" x2="16" y2="6"></line>
+                <line x1="8" y1="2" x2="8" y2="6"></line>
+                <line x1="3" y1="10" x2="21" y2="10"></line>
+              </svg>
+            </div>
+            <div>
+              <p className="text-xs font-black text-[#0a193b]">Scheduled Delivery</p>
+              <p className="text-[10px] text-neutral-600 font-semibold mt-0.5">
+                {new Date(scheduledDateStr).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })} • {scheduledTimeSlot === "Morning" ? "Morning (6-9 AM)" : "Evening (5-8 PM)"}
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => navigate('/manage-schedule')}
+            className="text-[10px] font-black text-blue-600 hover:underline uppercase bg-white px-3 py-1.5 rounded-xl border border-blue-100 shadow-sm"
+          >
+            Change
+          </button>
         </div>
       )}
 
@@ -1380,7 +1478,8 @@ export default function Checkout() {
       )}
 
       {/* Required Selection: Shift Time */}
-      <div className="px-4 md:px-6 lg:px-8 py-6 bg-white border-b border-neutral-100">
+      {!scheduledDateStr && (
+        <div className="px-4 md:px-6 lg:px-8 py-6 bg-white border-b border-neutral-100">
         <div className="flex items-center justify-between mb-4">
           <div className="flex flex-col">
             <h3 className="text-sm font-bold text-neutral-900 tracking-tight">Delivery Shift</h3>
@@ -1430,6 +1529,7 @@ export default function Checkout() {
           </div>
         )}
       </div>
+      )}
 
       {/* Optional Add-ons Group */}
       <div className="px-4 md:px-6 lg:px-8 py-6 bg-white border-b border-neutral-100 space-y-6">
@@ -2144,6 +2244,9 @@ export default function Checkout() {
               phone: user.phone || "",
             }}
             onSuccess={(paymentId) => {
+              // Clear schedule keys from sessionStorage on order success
+              sessionStorage.removeItem("scheduledDeliveryDate");
+              sessionStorage.removeItem("scheduledTimeSlot");
               setShowRazorpayCheckout(false);
               setPlacedOrderId(pendingOrderId);
               setPendingOrderId(null);

@@ -81,8 +81,18 @@ export const getTodayOrders = asyncHandler(async (req: Request, res: Response) =
     const orders = await Order.find({
         deliveryBoy: deliveryId,
         $or: [
-            { createdAt: { $gte: todayStart, $lte: todayEnd } }, // Created today
-            { updatedAt: { $gte: todayStart, $lte: todayEnd } }  // OR Updated today
+            {
+                orderType: { $ne: "Scheduled" },
+                $or: [
+                    { createdAt: { $gte: todayStart, $lte: todayEnd } },
+                    { updatedAt: { $gte: todayStart, $lte: todayEnd } }
+                ]
+            },
+            {
+                orderType: "Scheduled",
+                scheduledDate: { $gte: todayStart, $lte: todayEnd },
+                deliveryBoyStatus: "Accepted"
+            }
         ]
     })
         .populate("items")
@@ -97,11 +107,10 @@ export const getTodayOrders = asyncHandler(async (req: Request, res: Response) =
 
         address: `${order.deliveryAddress?.address || ''}, ${order.deliveryAddress?.city || ''}`,
         deliveryAddress: order.deliveryAddress,
-        items: mapOrderItems(order.items), // Real items
+        items: mapOrderItems(order.items),
         totalAmount: order.total,
         estimatedDeliveryTime: order.estimatedDeliveryDate ? new Date(order.estimatedDeliveryDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A',
         createdAt: order.createdAt,
-        // Distance calculation to be implemented. sending null/undefined for now to avoid fake data
         distance: null
     }));
 
@@ -117,13 +126,25 @@ export const getTodayOrders = asyncHandler(async (req: Request, res: Response) =
 export const getPendingOrders = asyncHandler(async (req: Request, res: Response) => {
     const deliveryId = req.user?.userId;
 
-    // Pending statuses: Ready for pickup, Out for delivery, Picked Up, Assigned, In Transit
-    // OR if it's a new assignment offer (deliveryBoyStatus: Pending)
+    const todayEnd = new Date();
+    todayEnd.setHours(23, 59, 59, 999);
+
     const orders = await Order.find({
         deliveryBoy: deliveryId,
         $or: [
-            { status: { $in: ["Ready for pickup", "Out for Delivery", "Picked Up", "Assigned", "In Transit"] } },
-            { deliveryBoyStatus: "Pending" }
+            {
+                orderType: { $ne: "Scheduled" },
+                $or: [
+                    { status: { $in: ["Ready for pickup", "Out for Delivery", "Picked Up", "Assigned", "In Transit"] } },
+                    { deliveryBoyStatus: "Pending" }
+                ]
+            },
+            {
+                orderType: "Scheduled",
+                scheduledDate: { $lte: todayEnd },
+                deliveryBoyStatus: "Accepted",
+                status: { $in: ["Rider Assigned", "Ready for pickup", "Out for Delivery", "Picked Up", "In Transit"] }
+            }
         ]
     })
         .populate("items")
@@ -137,7 +158,7 @@ export const getPendingOrders = asyncHandler(async (req: Request, res: Response)
         status: order.status,
         deliveryBoyStatus: order.deliveryBoyStatus,
         address: `${order.deliveryAddress?.address || ''}, ${order.deliveryAddress?.city || ''}`,
-        items: mapOrderItems(order.items), // Real items
+        items: mapOrderItems(order.items),
         totalAmount: order.total,
         estimatedDeliveryTime: order.estimatedDeliveryDate ? new Date(order.estimatedDeliveryDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A',
         createdAt: order.createdAt,
@@ -174,6 +195,10 @@ export const getOrderDetails = asyncHandler(async (req: Request, res: Response) 
         items: mapOrderItems(order.items), // Real populated items
         totalAmount: order.total,
         createdAt: order.createdAt,
+        orderType: order.orderType,
+        scheduledDate: order.scheduledDate,
+        scheduledTimeSlot: order.scheduledTimeSlot,
+        timeSlot: order.scheduledTimeSlot || order.timeSlot,
         distance: null
     };
 
@@ -778,7 +803,7 @@ export const acceptAssignment = asyncHandler(async (req: Request, res: Response)
  * Reject delivery assignment
  */
 export const rejectAssignment = asyncHandler(async (req: Request, res: Response) => {
-    const { id } = req.params; // orderId
+    const { id } = req.params;
     const deliveryId = req.user?.userId;
 
     const order = await Order.findById(id);
@@ -790,13 +815,19 @@ export const rejectAssignment = asyncHandler(async (req: Request, res: Response)
         return res.status(403).json({ success: false, message: "This assignment is not for you" });
     }
 
-    // Remove rider from order and reset status
-    order.deliveryBoy = undefined;
-    order.deliveryBoyStatus = undefined;
-    order.assignedAt = undefined;
+    const isScheduled = order.orderType === "Scheduled";
+    if (isScheduled) {
+        order.status = "Accepted";
+        order.deliveryBoyStatus = "Declined";
+        order.deliveryBoy = undefined;
+        order.assignedAt = undefined;
+    } else {
+        order.deliveryBoy = undefined;
+        order.deliveryBoyStatus = undefined;
+        order.assignedAt = undefined;
+    }
     await order.save();
 
-    // Update delivery assignment record
     await DeliveryAssignment.findOneAndUpdate(
         { order: id, deliveryBoy: deliveryId },
         { 
@@ -805,7 +836,6 @@ export const rejectAssignment = asyncHandler(async (req: Request, res: Response)
         }
     );
 
-    // Notify seller via Socket.io
     const io = (req.app as any).get("io");
     if (io) {
         const orderItems = await OrderItem.find({ order: id }).distinct("seller");
@@ -813,7 +843,9 @@ export const rejectAssignment = asyncHandler(async (req: Request, res: Response)
             io.to(`seller-${sellerId}`).emit("assignment-rejected", {
                 orderId: id,
                 orderNumber: order.orderNumber,
-                message: "Delivery rider rejected the assignment. Please assign another rider."
+                message: isScheduled 
+                    ? "Delivery rider declined the scheduled assignment. Please assign another rider."
+                    : "Delivery rider rejected the assignment. Please assign another rider."
             });
         });
     }
@@ -821,5 +853,41 @@ export const rejectAssignment = asyncHandler(async (req: Request, res: Response)
     return res.status(200).json({
         success: true,
         message: "Assignment rejected successfully"
+    });
+});
+
+/**
+ * Get Scheduled Deliveries assigned to this delivery rider
+ */
+export const getScheduledOrders = asyncHandler(async (req: Request, res: Response) => {
+    const deliveryId = req.user?.userId;
+
+    const orders = await Order.find({
+        deliveryBoy: deliveryId,
+        orderType: "Scheduled",
+        deliveryBoyStatus: { $in: ["Pending", "Accepted"] }
+    })
+        .populate("items")
+        .sort({ scheduledDate: 1 });
+
+    const formattedOrders = orders.map(order => ({
+        id: order._id,
+        orderId: order.orderNumber,
+        customerName: order.customerName,
+        customerPhone: order.customerPhone,
+        status: order.status,
+        deliveryBoyStatus: order.deliveryBoyStatus,
+        scheduledDate: order.scheduledDate,
+        scheduledTimeSlot: order.scheduledTimeSlot,
+        address: `${order.deliveryAddress?.address || ''}, ${order.deliveryAddress?.city || ''}`,
+        deliveryAddress: order.deliveryAddress,
+        items: mapOrderItems(order.items),
+        totalAmount: order.total,
+        createdAt: order.createdAt,
+    }));
+
+    return res.status(200).json({
+        success: true,
+        data: formattedOrders
     });
 });

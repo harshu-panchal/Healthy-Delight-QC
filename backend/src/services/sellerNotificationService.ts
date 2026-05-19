@@ -8,7 +8,7 @@ import mongoose from 'mongoose';
 export async function notifySellersOfOrderUpdate(
     io: SocketIOServer,
     order: any,
-    type: 'NEW_ORDER' | 'STATUS_UPDATE' | 'ORDER_CANCELLED'
+    type: 'NEW_ORDER' | 'NEW_SCHEDULED_ORDER' | 'STATUS_UPDATE' | 'ORDER_CANCELLED'
 ): Promise<void> {
     try {
         if (!io) {
@@ -53,7 +53,10 @@ export async function notifySellersOfOrderUpdate(
                     variation: item.variation
                 })),
                 totalAmount: sellerSpecificItems.reduce((acc: number, item: any) => acc + item.total, 0),
-                timestamp: new Date()
+                timestamp: new Date(),
+                orderType: order.orderType,
+                scheduledDate: order.scheduledDate,
+                scheduledTimeSlot: order.scheduledTimeSlot
             };
 
             // Emit to seller-specific room

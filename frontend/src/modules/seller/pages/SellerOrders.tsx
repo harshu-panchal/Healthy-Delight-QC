@@ -122,6 +122,10 @@ export default function SellerOrders() {
     switch (status) {
       case 'Pending':
         return 'bg-yellow-100 text-yellow-800';
+      case 'Scheduled':
+        return 'bg-blue-100 text-blue-800';
+      case 'Rider Assigned':
+        return 'bg-purple-100 text-purple-800';
       case 'Accepted':
         return 'bg-cream text-neutral-900 border border-primary/40';
       case 'On the way':
@@ -224,6 +228,8 @@ export default function SellerOrders() {
                 >
                   <option>All Status</option>
                   <option>Pending</option>
+                  <option>Scheduled</option>
+                  <option>Rider Assigned</option>
                   <option>Accepted</option>
                   <option>On the way</option>
                   <option>Delivered</option>

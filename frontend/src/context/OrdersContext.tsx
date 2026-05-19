@@ -121,6 +121,9 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
           deliveryFee: order.fees?.deliveryFee || 0,
           platformFee: order.fees?.platformFee || 0,
         },
+        orderType: (order as any).orderType,
+        scheduledDate: (order as any).scheduledDate,
+        scheduledTimeSlot: (order as any).scheduledTimeSlot,
       };
 
       const response = await createOrder(payload);
@@ -144,8 +147,9 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
           console.error("Validation details:", errorDetails);
         }
         // Re-throw with more details
-        const enhancedError = new Error(errorMessage) as Error & { details?: unknown };
+        const enhancedError = new Error(errorMessage) as Error & { details?: unknown; response?: any };
         enhancedError.details = errorDetails;
+        enhancedError.response = apiError.response;
         throw enhancedError;
       }
       throw error;

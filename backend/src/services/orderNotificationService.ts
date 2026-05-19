@@ -559,4 +559,43 @@ export function clearNotificationState(orderId: string): void {
     notificationStates.delete(orderId);
 }
 
+/**
+ * Notify a specific rider about a scheduled delivery assignment
+ */
+export async function notifyRiderOfScheduledAssignment(
+    io: SocketIOServer,
+    order: any,
+    deliveryBoyId: string
+): Promise<void> {
+    try {
+        const roomName = `delivery-${deliveryBoyId}`;
+        const orderData = {
+            orderId: order._id.toString(),
+            orderNumber: order.orderNumber,
+            customerName: order.customerName,
+            customerPhone: order.customerPhone,
+            deliveryAddress: {
+                address: order.deliveryAddress?.address || "",
+                city: order.deliveryAddress?.city || "",
+                state: order.deliveryAddress?.state || "",
+                pincode: order.deliveryAddress?.pincode || "",
+                landmark: order.deliveryAddress?.landmark || "",
+            },
+            total: order.total,
+            subtotal: order.subtotal,
+            shipping: order.shipping || 0,
+            createdAt: order.createdAt,
+            scheduledDate: order.scheduledDate,
+            scheduledTimeSlot: order.scheduledTimeSlot,
+            orderType: order.orderType,
+            type: "SCHEDULED_ASSIGNMENT"
+        };
+
+        io.to(roomName).emit("new-scheduled-order", orderData);
+        console.log(`📤 Emitted new-scheduled-order notification to rider room: ${roomName}`);
+    } catch (error) {
+        console.error('Error notifying rider of scheduled assignment:', error);
+    }
+}
+
 

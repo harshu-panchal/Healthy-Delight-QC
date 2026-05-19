@@ -4,7 +4,7 @@ import { useAuth } from '../../../context/AuthContext';
 import { getSocketBaseURL } from '../../../services/api/config';
 
 export interface SellerNotification {
-    type: 'NEW_ORDER' | 'STATUS_UPDATE';
+    type: 'NEW_ORDER' | 'NEW_SCHEDULED_ORDER' | 'STATUS_UPDATE';
     orderId: string;
     orderNumber: string;
     status: string;
@@ -30,6 +30,9 @@ export interface SellerNotification {
     }>;
     totalAmount: number;
     timestamp: Date;
+    orderType?: string;
+    scheduledDate?: string;
+    scheduledTimeSlot?: string;
 }
 
 export const useSellerSocket = (onNotificationReceived?: (notification: SellerNotification) => void) => {

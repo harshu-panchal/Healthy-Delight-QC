@@ -47,6 +47,7 @@ export interface MyOrdersParams {
     page?: number;
     limit?: number;
     status?: string;
+    orderType?: string;
 }
 
 /**
@@ -102,5 +103,22 @@ export const cancelOrder = async (id: string, reason: string): Promise<OrderResp
  */
 export const updateOrderNotes = async (id: string, data: { deliveryInstructions?: string; specialRequests?: string }): Promise<OrderResponse> => {
     const response = await api.patch<OrderResponse>(`/customer/orders/${id}/notes`, data);
+    return response.data;
+};
+
+/**
+ * Update scheduled order items
+ */
+export const updateScheduledOrderItems = async (
+    id: string,
+    data: {
+        items: {
+            product: string;
+            quantity: number;
+            variant?: string;
+        }[];
+    }
+): Promise<OrderResponse> => {
+    const response = await api.put<OrderResponse>(`/customer/orders/${id}/scheduled-items`, data);
     return response.data;
 };

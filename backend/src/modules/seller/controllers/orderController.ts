@@ -18,6 +18,7 @@ export const getOrders = asyncHandler(
       dateTo,
       status,
       search,
+      orderType,
       page = "1",
       limit = "10",
       sortBy = "orderDate",
@@ -46,13 +47,19 @@ export const getOrders = asyncHandler(
       // Map frontend status to backend status
       const statusMapping: Record<string, string> = {
         'Pending': 'Pending',
+        'Scheduled': 'Scheduled',
         'Accepted': 'Accepted',
+        'Rider Assigned': 'Rider Assigned',
         'On the way': 'On the way',
         'Delivered': 'Delivered',
         'Cancelled': 'Cancelled',
         'Rejected': 'Rejected',
       };
       query.status = statusMapping[status as string] || status;
+    }
+
+    if (orderType) {
+      query.orderType = orderType;
     }
 
     // Search filter
@@ -91,13 +98,18 @@ export const getOrders = asyncHandler(
       orderId: order.orderNumber,
       deliveryDate: order.estimatedDeliveryDate
         ? order.estimatedDeliveryDate.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })
-        : order.orderDate.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }),
+        : (order.scheduledDate
+            ? order.scheduledDate.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })
+            : order.orderDate.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })),
       orderDate: order.orderDate.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }),
       status: order.status === 'On the way' ? 'On the way' : order.status,
       amount: order.total,
       customerName: (order.customer as any)?.name || order.customerName || '',
       customerPhone: (order.customer as any)?.phone || order.customerPhone || '',
       deliveryBoyName: (order.deliveryBoy as any)?.name || '',
+      orderType: order.orderType || 'Instant',
+      scheduledDate: order.scheduledDate,
+      scheduledTimeSlot: order.scheduledTimeSlot,
     }));
 
     return res.status(200).json({
@@ -206,7 +218,11 @@ export const getOrderById = asyncHandler(
       id: order._id,
       invoiceNumber: order.invoiceNumber || order.orderNumber || 'N/A',
       orderDate: order.orderDate ? order.orderDate.toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-      deliveryDate: order.estimatedDeliveryDate ? order.estimatedDeliveryDate.toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+      deliveryDate: order.orderType === "Scheduled" && order.scheduledDate 
+        ? order.scheduledDate.toISOString().split('T')[0] 
+        : order.estimatedDeliveryDate 
+          ? order.estimatedDeliveryDate.toISOString().split('T')[0] 
+          : new Date().toISOString().split('T')[0],
       timeSlot: order.timeSlot || 'N/A',
       status: order.status === 'On the way' ? 'Out For Delivery' : order.status,
       customerName: (order.customer as any)?.name || order.customerName || '',
@@ -222,6 +238,9 @@ export const getOrderById = asyncHandler(
       paymentMethod: order.paymentMethod || 'N/A',
       paymentStatus: order.paymentStatus || 'Pending',
       deliveryAddress: order.deliveryAddress || {},
+      orderType: order.orderType || 'Instant',
+      scheduledDate: order.scheduledDate ? order.scheduledDate.toISOString().split('T')[0] : undefined,
+      scheduledTimeSlot: order.scheduledTimeSlot || undefined,
     };
 
     return res.status(200).json({
@@ -295,8 +314,8 @@ export const updateOrderStatus = asyncHandler(
       });
     }
 
-    // Trigger delivery notification if seller accepts the order
-    if (status === 'Accepted' && previousStatus !== 'Accepted') {
+    // Trigger delivery notification if seller accepts the order (only for instant orders)
+    if (status === 'Accepted' && previousStatus !== 'Accepted' && order.orderType !== 'Scheduled') {
       try {
         const io: SocketIOServer = (req.app.get("io") as SocketIOServer);
         if (io) {

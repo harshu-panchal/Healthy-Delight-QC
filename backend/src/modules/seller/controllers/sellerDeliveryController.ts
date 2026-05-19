@@ -4,6 +4,7 @@ import Delivery from "../../../models/Delivery";
 import Order from "../../../models/Order";
 import OrderItem from "../../../models/OrderItem";
 import DeliveryAssignment from "../../../models/DeliveryAssignment";
+import { notifyRiderOfScheduledAssignment } from "../../../services/orderNotificationService";
 
 /**
  * Get available delivery boys for sellers
@@ -86,6 +87,11 @@ export const assignDeliveryBoy = asyncHandler(
     order.deliveryBoy = deliveryBoyId as any;
     order.deliveryBoyStatus = "Pending";
     order.assignedAt = new Date();
+    
+    const isScheduled = order.orderType === "Scheduled";
+    if (isScheduled) {
+      order.status = "Rider Assigned";
+    }
     await order.save();
 
     // Create or update delivery assignment
@@ -101,32 +107,39 @@ export const assignDeliveryBoy = asyncHandler(
       { upsert: true, new: true }
     );
 
-    // Prepare order data for notification (matching the format in orderNotificationService)
-    const orderData = {
-      orderId: order._id.toString(),
-      orderNumber: order.orderNumber,
-      customerName: order.customerName,
-      customerPhone: order.customerPhone,
-      deliveryAddress: {
-        address: order.deliveryAddress?.address || "",
-        city: order.deliveryAddress?.city || "",
-        state: order.deliveryAddress?.state || "",
-        pincode: order.deliveryAddress?.pincode || "",
-        landmark: order.deliveryAddress?.landmark || "",
-      },
-      total: order.total,
-      subtotal: order.subtotal,
-      shipping: order.shipping || 0,
-      createdAt: order.createdAt,
-      type: "ASSIGNMENT_OFFER"
-    };
-
-    // Emit socket event to delivery boy
     const io = (req.app as any).get("io");
-    if (io) {
-      const roomName = `delivery-${deliveryBoyId.toString()}`;
-      io.to(roomName).emit("new-order", orderData);
-      console.log(`📤 Emitted new-order (assignment offer) to rider room: ${roomName}`);
+    if (isScheduled) {
+      // Notify rider of scheduled assignment (socket)
+      if (io) {
+        await notifyRiderOfScheduledAssignment(io, order, deliveryBoyId);
+      }
+    } else {
+      // Prepare order data for notification (matching the format in orderNotificationService)
+      const orderData = {
+        orderId: order._id.toString(),
+        orderNumber: order.orderNumber,
+        customerName: order.customerName,
+        customerPhone: order.customerPhone,
+        deliveryAddress: {
+          address: order.deliveryAddress?.address || "",
+          city: order.deliveryAddress?.city || "",
+          state: order.deliveryAddress?.state || "",
+          pincode: order.deliveryAddress?.pincode || "",
+          landmark: order.deliveryAddress?.landmark || "",
+        },
+        total: order.total,
+        subtotal: order.subtotal,
+        shipping: order.shipping || 0,
+        createdAt: order.createdAt,
+        type: "ASSIGNMENT_OFFER"
+      };
+
+      // Emit socket event to delivery boy
+      if (io) {
+        const roomName = `delivery-${deliveryBoyId.toString()}`;
+        io.to(roomName).emit("new-order", orderData);
+        console.log(`📤 Emitted new-order (assignment offer) to rider room: ${roomName}`);
+      }
     }
 
     return res.status(200).json({

@@ -61,6 +61,15 @@ export const getPendingOrders = async () => {
     return response.data.data;
 };
 
+export const getScheduledOrders = async () => {
+    try {
+        const response = await api.get(`${BASE_URL}/orders/scheduled`);
+        return response.data.data;
+    } catch (error) {
+        throw handleApiError(error);
+    }
+};
+
 export const getOrderDetails = async (id: string) => {
     try {
         const response = await api.get(`${BASE_URL}/orders/${id}`);

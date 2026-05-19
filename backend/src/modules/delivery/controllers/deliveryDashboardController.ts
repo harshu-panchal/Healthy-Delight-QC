@@ -42,16 +42,50 @@ export const getDashboardStats = asyncHandler(async (req: Request, res: Response
         {
             $match: {
                 deliveryBoy: objectId,
-                // We consider orders active or touching today
             }
         },
         {
             $group: {
                 _id: null,
-                // Pending: Active statuses
+                // Pending: Active statuses or Pending assignment
                 pendingOrders: {
                     $sum: {
-                        $cond: [{ $in: ["$status", ["Ready for pickup", "Out for Delivery", "Picked Up", "Assigned", "In Transit"]] }, 1, 0]
+                        $cond: [
+                            {
+                                $or: [
+                                    {
+                                        $and: [
+                                            { $ne: ["$orderType", "Scheduled"] },
+                                            {
+                                                $or: [
+                                                    { $in: ["$status", ["Ready for pickup", "Out for Delivery", "Picked Up", "Assigned", "In Transit"]] },
+                                                    { $eq: ["$deliveryBoyStatus", "Pending"] }
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        $and: [
+                                            { $eq: ["$orderType", "Scheduled"] },
+                                            {
+                                                $or: [
+                                                    { $eq: ["$deliveryBoyStatus", "Pending"] },
+                                                    {
+                                                        $and: [
+                                                            { $lte: ["$scheduledDate", todayEnd] },
+                                                            { $eq: ["$deliveryBoyStatus", "Accepted"] },
+                                                            { $in: ["$status", ["Rider Assigned", "Ready for pickup", "Out for Delivery", "Picked Up", "In Transit"]] }
+                                                        ]
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            1,
+                            0
+                        ]
                     }
                 },
                 // All Orders Today: Created today OR Updated today
@@ -134,7 +168,26 @@ export const getDashboardStats = asyncHandler(async (req: Request, res: Response
     // Fetch list of Pending Orders for the "Today's Pending Order" section
     const pendingOrdersList = await Order.find({
         deliveryBoy: deliveryId,
-        status: { $in: ["Ready for pickup", "Out for Delivery", "Picked Up", "Assigned", "In Transit"] }
+        $or: [
+            {
+                orderType: { $ne: "Scheduled" },
+                $or: [
+                    { status: { $in: ["Ready for pickup", "Out for Delivery", "Picked Up", "Assigned", "In Transit"] } },
+                    { deliveryBoyStatus: "Pending" }
+                ]
+            },
+            {
+                orderType: "Scheduled",
+                $or: [
+                    { deliveryBoyStatus: "Pending" },
+                    {
+                        scheduledDate: { $lte: todayEnd },
+                        deliveryBoyStatus: "Accepted",
+                        status: { $in: ["Rider Assigned", "Ready for pickup", "Out for Delivery", "Picked Up", "In Transit"] }
+                    }
+                ]
+            }
+        ]
     })
         .select("orderNumber customerName deliveryAddress status total estimatedDeliveryDate") // Select necessary fields
         .sort({ createdAt: -1 })
@@ -146,10 +199,17 @@ export const getDashboardStats = asyncHandler(async (req: Request, res: Response
         orderId: order.orderNumber,
         customerName: order.customerName,
         status: order.status, // Map backend status to frontend status if needed
-        address: `${order.deliveryAddress.address}, ${order.deliveryAddress.city}`, // Simplify address
+        address: `${order.deliveryAddress?.address || ''}, ${order.deliveryAddress?.city || ''}`, // Simplify address
         totalAmount: order.total,
         estimatedDeliveryTime: order.estimatedDeliveryDate ? new Date(order.estimatedDeliveryDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A'
     }));
+
+    // Calculate count of active/pending scheduled orders
+    const scheduledOrdersCount = await Order.countDocuments({
+        deliveryBoy: deliveryId,
+        orderType: "Scheduled",
+        deliveryBoyStatus: { $in: ["Pending", "Accepted"] }
+    });
 
     return res.status(200).json({
         success: true,
@@ -160,6 +220,7 @@ export const getDashboardStats = asyncHandler(async (req: Request, res: Response
             allOrders: result.allOrdersToday,
             returnOrders: result.returnOrdersToday,
             returnItems: 0, // Need 'OrderItem' logic for this, keeping 0 for now
+            scheduledOrders: scheduledOrdersCount,
             todayEarning: todayEarning,
             totalEarning: totalEarning,
             pendingOrdersList: formattedPendingList

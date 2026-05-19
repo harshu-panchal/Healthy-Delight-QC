@@ -29,6 +29,7 @@ router.get("/help", deliveryDashboardController.getHelpSupport);
 router.get("/orders/history", deliveryOrderController.getAllOrdersHistory);
 router.get("/orders/today", deliveryOrderController.getTodayOrders);
 router.get("/orders/pending", deliveryOrderController.getPendingOrders);
+router.get("/orders/scheduled", deliveryOrderController.getScheduledOrders);
 router.get("/orders/returns", deliveryOrderController.getReturnOrders);
 router.get("/orders/:id", deliveryOrderController.getOrderDetails); // Specific order details
 router.get("/orders/:id/seller-locations", deliveryOrderController.getSellerLocationsForOrder);

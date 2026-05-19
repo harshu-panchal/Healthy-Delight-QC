@@ -116,14 +116,38 @@ export const useDeliveryOrderNotifications = () => {
 
         const onJoinedRoom = (data: any) => console.log('✅ Successfully joined notifications room:', data);
 
+        const onOrderCancelled = (data: { orderId: string; message?: string }) => {
+            console.log('❌ Order cancelled:', data);
+            alert(data.message || 'An assigned order has been cancelled by the customer.');
+            // Trigger a custom event so dashboard/orders list can refresh immediately
+            window.dispatchEvent(new CustomEvent('refresh-orders'));
+            
+            // Also dismiss if it's currently popping up
+            setState(prev => {
+                if (prev.currentNotification?.orderId === data.orderId) {
+                    const nextNotification = prev.notificationQueue[0] || null;
+                    return {
+                        ...prev,
+                        currentNotification: nextNotification,
+                        notificationQueue: prev.notificationQueue.slice(1)
+                    };
+                }
+                return { ...prev, notificationQueue: prev.notificationQueue.filter(notif => notif.orderId !== data.orderId) };
+            });
+        };
+
         socket.on('new-order', onNewOrder);
+        socket.on('new-scheduled-order', onNewOrder);
         socket.on('order-accepted', onOrderAccepted);
+        socket.on('order-cancelled', onOrderCancelled);
         socket.on('joined-notifications-room', onJoinedRoom);
 
         return () => {
             console.log('🧹 useDeliveryOrderNotifications: Cleaning up listeners');
             socket.off('new-order', onNewOrder);
+            socket.off('new-scheduled-order', onNewOrder);
             socket.off('order-accepted', onOrderAccepted);
+            socket.off('order-cancelled', onOrderCancelled);
             socket.off('joined-notifications-room', onJoinedRoom);
         };
     }, [connectSocket]);

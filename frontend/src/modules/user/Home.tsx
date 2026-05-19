@@ -33,6 +33,19 @@ export default function Home() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const deliveryData: Record<string, "delivered" | "upcoming" | "vacation" | "onhold"> = {};
 
+  // Sync selected calendar date on Home with sessionStorage
+  useEffect(() => {
+    if (isToday(selectedDate)) {
+      sessionStorage.removeItem("scheduledDeliveryDate");
+      sessionStorage.removeItem("scheduledTimeSlot");
+    } else {
+      sessionStorage.setItem("scheduledDeliveryDate", selectedDate.toISOString());
+      if (!sessionStorage.getItem("scheduledTimeSlot")) {
+        sessionStorage.setItem("scheduledTimeSlot", "Morning");
+      }
+    }
+  }, [selectedDate]);
+
   // State for dynamic data
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

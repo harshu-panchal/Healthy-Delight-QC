@@ -16,6 +16,7 @@ import { ensureDefaultAdmin } from "./utils/ensureDefaultAdmin";
 import { seedHeaderCategories } from "./utils/seedHeaderCategories";
 import { initializeSocket } from "./socket/socketService";
 import mongoose from "mongoose";
+import { startScheduledOrderPromotionJob } from "./jobs/scheduledOrderPromotion";
 
 const app: Application = express();
 const httpServer = createServer(app);
@@ -96,6 +97,9 @@ app.use(express.urlencoded({ extended: true }));
 // Initialize Socket.io
 const io = initializeSocket(httpServer);
 app.set("io", io);
+
+// Start scheduled order promotion job
+startScheduledOrderPromotionJob(io);
 
 // Routes
 app.get("/", (_req: Request, res: Response) => {

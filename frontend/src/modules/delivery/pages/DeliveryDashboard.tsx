@@ -27,6 +27,11 @@ export default function DeliveryDashboard() {
     };
 
     fetchStats();
+
+    window.addEventListener('refresh-orders', fetchStats);
+    return () => {
+      window.removeEventListener('refresh-orders', fetchStats);
+    };
   }, []);
 
   // Icons for dashboard cards (Keep existing SVGs)
@@ -228,6 +233,35 @@ export default function DeliveryDashboard() {
             value={stats?.returnItems || 0}
             accentColor="#3b82f6"
           />
+        </div>
+
+        {/* Scheduled Deliveries Navigation Card */}
+        <div
+          onClick={() => navigate('/delivery/orders?tab=scheduled')}
+          className="p-4 rounded-2xl bg-blue-50 border border-blue-100 hover:bg-blue-100/80 cursor-pointer transition-all active:scale-[0.99] flex items-center justify-between shadow-sm"
+        >
+          <div className="flex items-center gap-3">
+            <div className="p-3 bg-blue-500 text-white rounded-xl shadow-sm">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="16" y1="2" x2="16" y2="6"></line>
+                <line x1="8" y1="2" x2="8" y2="6"></line>
+                <line x1="3" y1="10" x2="21" y2="10"></line>
+              </svg>
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-neutral-800">Scheduled Deliveries</h3>
+              <p className="text-xs text-neutral-500 font-medium">Manage your accepted & pending scheduled orders</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-extrabold text-blue-600 bg-blue-100 px-3 py-1.5 rounded-full">
+              {stats?.scheduledOrders || 0}
+            </span>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-blue-400">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </div>
         </div>
 
         {/* Today's Earning & Total Earning Bar */}

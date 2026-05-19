@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { createOrder, getMyOrders, getOrderById, refreshDeliveryOtp } from "../modules/customer/controllers/customerOrderController";
+import { createOrder, getMyOrders, getOrderById, refreshDeliveryOtp, updateScheduledOrderItems } from "../modules/customer/controllers/customerOrderController";
 import { authenticate } from "../middleware/auth";
 
 const router = Router();
@@ -12,6 +12,7 @@ router.use(authenticate);
 router.post("/", createOrder);
 router.get("/", getMyOrders);
 router.get("/:id", getOrderById);
+router.put("/:id/scheduled-items", updateScheduledOrderItems);
 router.post("/:id/refresh-otp", refreshDeliveryOtp);
 
 export default router;
