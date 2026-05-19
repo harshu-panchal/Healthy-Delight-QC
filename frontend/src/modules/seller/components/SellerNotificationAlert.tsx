@@ -24,9 +24,9 @@ const SellerNotificationAlert: React.FC<SellerNotificationAlertProps> = ({ notif
       if (status === 'Accepted') {
          navigate(`/seller/orders/${notification.orderId}`);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating status:', error);
-      alert('Failed to update order status');
+      alert(error.response?.data?.message || 'Failed to update order status');
     } finally {
       setLoading(false);
     }

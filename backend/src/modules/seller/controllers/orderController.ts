@@ -241,6 +241,8 @@ export const updateOrderStatus = asyncHandler(
     const { id } = req.params;
     const { status } = req.body;
 
+    console.log(`[OrderUpdate] Seller ${sellerId} attempting to update order ${id} to ${status}`);
+
     // Validate allowed status updates for seller
     const allowedStatuses = ['Accepted', 'On the way', 'Delivered', 'Cancelled', 'Rejected'];
     if (!allowedStatuses.includes(status)) {
@@ -254,6 +256,7 @@ export const updateOrderStatus = asyncHandler(
     const sellerItems = await OrderItem.findOne({ order: id, seller: sellerId });
 
     if (!sellerItems) {
+      console.warn(`[OrderUpdate] Seller ${sellerId} NOT authorized for order ${id}`);
       return res.status(404).json({
         success: false,
         message: "Order not found or you are not authorized to manage this order",
@@ -279,7 +282,18 @@ export const updateOrderStatus = asyncHandler(
 
     const previousStatus = order.status;
     order.status = status;
-    await order.save();
+    
+    try {
+      await order.save();
+      console.log(`[OrderUpdate] Order ${id} status updated successfully from ${previousStatus} to ${status}`);
+    } catch (saveError: any) {
+      console.error(`[OrderUpdate] Failed to save order ${id}:`, saveError);
+      return res.status(500).json({
+        success: false,
+        message: "Failed to update order status in database",
+        error: saveError.message
+      });
+    }
 
     // Trigger delivery notification if seller accepts the order
     if (status === 'Accepted' && previousStatus !== 'Accepted') {

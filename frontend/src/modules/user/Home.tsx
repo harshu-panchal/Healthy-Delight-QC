@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from "react";
-import { format } from "date-fns";
+import { format, isToday } from "date-fns";
 import { useNavigate } from "react-router-dom";
 import HomeHero from "./components/HomeHero";
 import HomeBannerCarousel from "./components/HomeBannerCarousel";
@@ -31,12 +31,7 @@ export default function Home() {
 
   // Calendar State
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [deliveryData] = useState<Record<string, "delivered" | "upcoming" | "vacation" | "onhold">>({
-    "2026-04-24": "delivered",
-    "2026-04-25": "upcoming",
-    "2026-04-26": "upcoming",
-    "2026-04-27": "vacation",
-  });
+  const deliveryData: Record<string, "delivered" | "upcoming" | "vacation" | "onhold"> = {};
 
   // State for dynamic data
   const [loading, setLoading] = useState(true);
@@ -322,12 +317,14 @@ export default function Home() {
                       : "Manage your delivery schedule"}
                   </p>
                 </div>
-                <button 
-                  onClick={() => navigate(deliveryData[format(selectedDate, "yyyy-MM-dd")] ? '/orders' : '/categories')}
-                  className="bg-[#0a193b] text-white px-4 py-2.5 rounded-xl text-xs font-bold shadow-md whitespace-nowrap"
-                >
-                  {deliveryData[format(selectedDate, "yyyy-MM-dd")] ? "View Details" : "Add Products"}
-                </button>
+                {(deliveryData[format(selectedDate, "yyyy-MM-dd")] || !isToday(selectedDate)) && (
+                  <button
+                    onClick={() => navigate(deliveryData[format(selectedDate, "yyyy-MM-dd")] ? '/orders' : '/categories')}
+                    className="bg-[#0a193b] text-white px-4 py-2.5 rounded-xl text-xs font-bold shadow-md whitespace-nowrap"
+                  >
+                    {deliveryData[format(selectedDate, "yyyy-MM-dd")] ? "View Details" : "Add Products"}
+                  </button>
+                )}
               </motion.div>
             )}
           </div>

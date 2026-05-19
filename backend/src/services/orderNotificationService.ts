@@ -192,8 +192,8 @@ export async function findDeliveryBoysNearSellerLocations(
         // Get unique seller IDs from order items
         const sellerIds = [...new Set(
             order.items
-                ?.map((item: any) => item.seller?.toString())
-                .filter((id: string) => id) || []
+                ?.map((item: any) => item.seller?._id?.toString() || item.seller?.toString())
+                .filter((id: string) => id && id !== '[object Object]') || []
         )];
 
         if (sellerIds.length === 0) {
@@ -276,9 +276,10 @@ export async function notifyDeliveryBoysOfNewOrder(
         let nearbyDeliveryBoyIds = await findDeliveryBoysNearSellerLocations(order);
 
         if (nearbyDeliveryBoyIds.length === 0) {
-            console.log('No available delivery boys to notify (including fallback)');
+            console.log(`[OrderNotification] No available delivery boys to notify for order ${order.orderNumber}`);
             return;
         }
+        console.log(`[OrderNotification] Found ${nearbyDeliveryBoyIds.length} nearby delivery boys for order ${order.orderNumber}`);
 
         // --- FILTER BUSY DELIVERY BOYS ---
         // Check if any of these delivery boys already have an active order
@@ -299,11 +300,12 @@ export async function notifyDeliveryBoysOfNewOrder(
             console.log(`ℹ️ Filtered out ${originalCount - nearbyDeliveryBoyIds.length} busy delivery boys. Active: ${nearbyDeliveryBoyIds.length}`);
 
             if (nearbyDeliveryBoyIds.length === 0) {
-                console.log('⚠️ All nearby delivery boys are currently busy with other orders.');
+                console.log(`[OrderNotification] All nearby delivery boys are busy for order ${order.orderNumber}`);
                 // Optionally: could emit to admin or retry later
                 return;
             }
         }
+        console.log(`[OrderNotification] ${nearbyDeliveryBoyIds.length} delivery boys available after filtering busy ones`);
         // ---------------------------------
 
         // Prepare order data for notification
@@ -379,8 +381,8 @@ export async function handleOrderAcceptance(
 
         // 1. In-Memory Check (Preferred)
         if (state) {
-            // Check if already accepted in memory
-            if (state.acceptedBy) {
+            // Check if already accepted in memory (by someone else)
+            if (state.acceptedBy && state.acceptedBy !== normalizedDeliveryBoyId) {
                 return { success: false, message: 'Order already accepted by another delivery boy' };
             }
 
@@ -410,8 +412,8 @@ export async function handleOrderAcceptance(
             return { success: false, message: 'Order not found' };
         }
 
-        // Check if order already has a delivery boy assigned
-        if (order.deliveryBoy) {
+        // Check if order already has a delivery boy assigned (but not to this person)
+        if (order.deliveryBoy && order.deliveryBoy.toString() !== normalizedDeliveryBoyId) {
             return { success: false, message: 'Order already assigned to another delivery boy' };
         }
 

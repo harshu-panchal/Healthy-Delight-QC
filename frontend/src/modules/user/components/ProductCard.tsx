@@ -248,7 +248,7 @@ export default function ProductCard({
                 e.stopPropagation();
                 toggleWishlist(e);
               }}
-              className={`absolute top-2 left-2 z-30 w-8 h-8 rounded-full bg-white/95 backdrop-blur-md flex items-center justify-center transition-all shadow-md group/heart border border-black/[0.04] active:scale-90 ${isWishlisted ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}
+              className={`absolute top-2 left-2 z-30 w-8 h-8 rounded-full bg-white/95 backdrop-blur-md flex items-center justify-center transition-all shadow-md group/heart border border-black/[0.04] active:scale-90 opacity-100`}
               aria-label={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}
             >
               <svg

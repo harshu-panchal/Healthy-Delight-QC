@@ -370,7 +370,7 @@ export default function HomeHero({
   return (
     <div
       ref={heroRef}
-      className="fixed md:hidden top-0 left-0 w-full z-50 overflow-hidden transition-all duration-300"
+      className="fixed md:hidden top-0 left-0 w-full z-50 overflow-hidden transition-all duration-300 pt-3"
       style={{
         background: isHeaderSolid
           ? '#0a193b'

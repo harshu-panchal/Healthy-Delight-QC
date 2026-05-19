@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Suspense, lazy, startTransition, useEffect } from "react";
 import { CartProvider } from "./context/CartContext";
 import { OrdersProvider } from "./context/OrdersContext";
@@ -261,6 +261,15 @@ const AdminBillingSettings = lazy(
 
 import { initializePushNotifications, setupForegroundNotificationHandler, registerFCMToken } from "./services/pushNotificationService";
 
+function RootRoute() {
+  const { isAuthenticated } = useAuth();
+  return isAuthenticated ? (
+    <Navigate to="/user" replace />
+  ) : (
+    <Navigate to="/user/login" replace />
+  );
+}
+
 function AppContent() {
   const { isAuthenticated } = useAuth();
 
@@ -297,6 +306,17 @@ function AppContent() {
                       <Routes>
                         {/* ... (rest of the routes) */}
                         {/* Public Routes */}
+                        <Route
+                          path="/user/login"
+                          element={
+                            <PublicRoute>
+                              <Suspense fallback={<IconLoader forceShow />}>
+                                <Login />
+                              </Suspense>
+                            </PublicRoute>
+                          }
+                        />
+
                         <Route
                           path="/login"
                           element={

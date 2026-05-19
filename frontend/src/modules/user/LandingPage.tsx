@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence, useMotionValue, useSpring, useTransform, animate } from "framer-motion";
+import { useAuth } from "../../context/AuthContext";
 import logo from "../../../assets/logo.png";
 import bg from "../../../assets/bg.png";
 import heroVideo from "../../../assets/landing/Hero_bg.mp4";
@@ -377,8 +378,21 @@ function FAQSection() {
 // ─── Main Component ──────────────────────────────────────────────────────────
 export default function LandingPage() {
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
   const [navSolid, setNavSolid] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const handleGetStarted = (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    if (isAuthenticated) {
+      navigate("/user");
+    } else {
+      navigate("/user/login");
+    }
+  };
 
   useEffect(() => {
     const onScroll = () => setNavSolid(window.scrollY > 40);
@@ -420,13 +434,13 @@ export default function LandingPage() {
             <a href="#products" className="text-white/70 hover:text-white text-[14px] font-medium transition-colors">Products</a>
             <a href="#story" className="text-white/70 hover:text-white text-[14px] font-medium transition-colors">Our Story</a>
             <Link
-              to="/login"
+              to="/user/login"
               className="text-white/80 hover:text-white text-[14px] font-semibold transition-colors border border-white/20 rounded-xl px-4 py-2 hover:border-white/40"
             >
               Sign In
             </Link>
             <button
-              onClick={() => navigate("/user")}
+              onClick={() => handleGetStarted()}
               className="text-[14px] font-bold px-5 py-2.5 rounded-xl transition-all duration-200 hover:scale-105 active:scale-95"
               style={{ background: "#c5a059", color: "#0a193b" }}
             >
@@ -468,9 +482,9 @@ export default function LandingPage() {
                 {label}
               </a>
             ))}
-            <Link to="/login" onClick={() => setMobileMenuOpen(false)} className="text-white/80 text-[15px] font-semibold py-2.5 border-b border-white/10">Sign In</Link>
+            <Link to="/user/login" onClick={() => setMobileMenuOpen(false)} className="text-white/80 text-[15px] font-semibold py-2.5 border-b border-white/10">Sign In</Link>
             <button
-              onClick={() => { setMobileMenuOpen(false); navigate("/user"); }}
+              onClick={(e) => { setMobileMenuOpen(false); handleGetStarted(e); }}
               className="mt-1 py-3 rounded-xl font-bold text-[15px] w-full"
               style={{ background: "#c5a059", color: "#0a193b" }}
             >
@@ -546,7 +560,7 @@ export default function LandingPage() {
           {/* CTAs */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <button
-              onClick={() => navigate("/user")}
+              onClick={() => handleGetStarted()}
               className="group relative overflow-hidden flex items-center gap-3 px-8 py-4 rounded-2xl font-bold text-[16px] transition-all duration-200 hover:scale-105 active:scale-95 shadow-xl"
               style={{ background: "#c5a059", color: "#0a193b", boxShadow: "0 16px 48px rgba(197,160,89,0.35)" }}
             >
@@ -764,7 +778,7 @@ export default function LandingPage() {
             {PRODUCTS.map((p, i) => (
               <Reveal key={p.label} delay={i * 80} className="h-full">
                 <button
-                  onClick={() => navigate("/user")}
+                  onClick={() => handleGetStarted()}
                   className="group relative h-full flex flex-col text-left rounded-[1.5rem] md:rounded-3xl bg-white border border-[#0a193b]/6 hover:border-[#c5a059]/40 transition-all duration-500 hover:shadow-2xl hover:-translate-y-2 active:scale-[0.98] overflow-hidden"
                   style={{ boxShadow: "0 10px 30px rgba(0,0,0,0.04)" }}
                 >

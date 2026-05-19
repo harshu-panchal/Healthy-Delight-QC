@@ -64,10 +64,44 @@ const api: AxiosInstance = axios.create({
 api.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     const role = getCurrentRoleFromPath();
-    const token =
-      localStorage.getItem(getTokenStorageKey(role)) ||
-      // Fallback to legacy key if still present
-      localStorage.getItem("authToken");
+    const apiUrl = config.url || "";
+
+    // 1. Try to get token for the detected role from path
+    let token = localStorage.getItem(getTokenStorageKey(role));
+
+    // 2. If no token found for current path role, try to guess based on API endpoint
+    if (!token) {
+      if (
+        apiUrl.includes("/seller/") ||
+        apiUrl.includes("/orders") ||
+        apiUrl.includes("/returns") ||
+        apiUrl.includes("/products")
+      ) {
+        token = localStorage.getItem(getTokenStorageKey("Seller"));
+      } else if (apiUrl.includes("/delivery/")) {
+        token = localStorage.getItem(getTokenStorageKey("Delivery"));
+      } else if (apiUrl.includes("/admin/")) {
+        token = localStorage.getItem(getTokenStorageKey("Admin"));
+      }
+    }
+
+    // 3. Fallback: If still no token, try to find ANY role-specific token
+    // (Useful if user is on a generic page like /profile but is a Seller)
+    if (!token) {
+      const roles: UserRole[] = ["Admin", "Seller", "Delivery", "Customer"];
+      for (const r of roles) {
+        const t = localStorage.getItem(getTokenStorageKey(r));
+        if (t) {
+          token = t;
+          break;
+        }
+      }
+    }
+
+    // 4. Ultimate fallback to legacy key
+    if (!token) {
+      token = localStorage.getItem("authToken");
+    }
 
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;

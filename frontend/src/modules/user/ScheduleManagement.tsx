@@ -1,11 +1,12 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { format, addMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay } from "date-fns";
+import { format, addMonths, startOfMonth, endOfMonth, eachDayOfInterval, isBefore, startOfTomorrow, isSameDay } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function ScheduleManagement() {
   const navigate = useNavigate();
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   
   const days = eachDayOfInterval({
     start: startOfMonth(currentMonth),
@@ -53,24 +54,51 @@ export default function ScheduleManagement() {
           {["S", "M", "T", "W", "T", "F", "S"].map(d => (
             <span key={d} className="text-[10px] font-black text-neutral-300 uppercase">{d}</span>
           ))}
-          {days.map(day => (
-            <div key={day.toString()} className="flex items-center justify-center py-2">
-              <button 
-                className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold transition-all ${
-                  isSameDay(day, new Date()) 
-                    ? "bg-[#3b82f6] text-white shadow-md" 
-                    : "text-[#0a193b] hover:bg-neutral-50"
-                }`}
-              >
-                {format(day, "d")}
-              </button>
-            </div>
-          ))}
+          {days.map(day => {
+            const isInactive = isBefore(day, startOfTomorrow());
+            const isSelected = selectedDate ? isSameDay(day, selectedDate) : false;
+            return (
+              <div key={day.toString()} className="flex items-center justify-center py-2">
+                <button 
+                  disabled={isInactive}
+                  onClick={() => setSelectedDate(day)}
+                  className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold transition-all ${
+                    isInactive 
+                      ? "text-neutral-300 opacity-50 cursor-not-allowed" 
+                      : isSelected
+                        ? "bg-[#3b82f6] text-white shadow-md scale-105"
+                        : "text-[#0a193b] hover:bg-neutral-50 hover:shadow-sm"
+                  }`}
+                >
+                  {format(day, "d")}
+                </button>
+              </div>
+            );
+          })}
         </div>
       </div>
 
+      {/* Add Products Button */}
+      <div className="mb-6">
+        <button 
+          onClick={() => selectedDate && navigate('/categories')}
+          disabled={!selectedDate}
+          className={`w-full py-4 rounded-xl font-bold text-[16px] transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-lg flex justify-center items-center gap-2 ${
+            selectedDate 
+              ? "bg-[#0a193b] text-white cursor-pointer" 
+              : "bg-neutral-200 text-neutral-400 cursor-not-allowed opacity-60 shadow-none"
+          }`}
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          Add Products
+        </button>
+      </div>
+
       {/* Options */}
-      <div className="space-y-4">
+      <div className="space-y-4 mb-8">
         <button className="w-full bg-white p-5 rounded-[24px] flex items-center justify-between border border-neutral-100 shadow-sm group">
           <div className="flex items-center gap-4 text-left">
             <div className="w-12 h-12 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-500">
@@ -97,6 +125,7 @@ export default function ScheduleManagement() {
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="text-neutral-200 group-hover:text-[#0a193b] transition-colors"><path d="M9 18l6-6-6-6" /></svg>
         </button>
       </div>
+
     </div>
   );
 }
