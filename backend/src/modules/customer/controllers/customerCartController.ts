@@ -163,7 +163,11 @@ export const getCart = async (req: Request, res: Response) => {
             path: 'items',
             populate: {
                 path: 'product',
-                select: 'productName price mainImage stock pack mrp category seller status publish discPrice variations'
+                select: 'productName price mainImage stock pack mrp category seller status publish discPrice variations tax',
+                populate: {
+                    path: 'tax',
+                    select: 'name percentage'
+                }
             }
         });
 
@@ -299,7 +303,11 @@ export const addToCart = async (req: Request, res: Response) => {
             path: 'items',
             populate: {
                 path: 'product',
-                select: 'productName price mainImage stock pack mrp category seller status publish discPrice variations'
+                select: 'productName price mainImage stock pack mrp category seller status publish discPrice variations tax',
+                populate: {
+                    path: 'tax',
+                    select: 'name percentage'
+                }
             }
         });
 

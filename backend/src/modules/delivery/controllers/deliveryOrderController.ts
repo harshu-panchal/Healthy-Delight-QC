@@ -91,7 +91,7 @@ export const getTodayOrders = asyncHandler(async (req: Request, res: Response) =
             {
                 orderType: "Scheduled",
                 scheduledDate: { $gte: todayStart, $lte: todayEnd },
-                deliveryBoyStatus: "Accepted"
+                deliveryBoyStatus: { $in: ["Accepted", "Assigned"] }
             }
         ]
     })
@@ -142,7 +142,7 @@ export const getPendingOrders = asyncHandler(async (req: Request, res: Response)
             {
                 orderType: "Scheduled",
                 scheduledDate: { $lte: todayEnd },
-                deliveryBoyStatus: "Accepted",
+                deliveryBoyStatus: { $in: ["Accepted", "Assigned"] },
                 status: { $in: ["Rider Assigned", "Ready for pickup", "Out for Delivery", "Picked Up", "In Transit"] }
             }
         ]
@@ -345,7 +345,7 @@ export const getSellerLocationsForOrder = asyncHandler(async (req: Request, res:
 
     // Get seller details including locations
     const sellers = await Seller.find({ _id: { $in: sellerIds } })
-        .select('storeName address city latitude longitude');
+        .select('storeName address city mobile latitude longitude');
 
     // Format seller locations
     const sellerLocations = sellers
@@ -355,6 +355,7 @@ export const getSellerLocationsForOrder = asyncHandler(async (req: Request, res:
             storeName: seller.storeName,
             address: seller.address,
             city: seller.city,
+            mobile: seller.mobile,
             latitude: parseFloat(seller.latitude || '0'),
             longitude: parseFloat(seller.longitude || '0'),
         }));
@@ -865,7 +866,7 @@ export const getScheduledOrders = asyncHandler(async (req: Request, res: Respons
     const orders = await Order.find({
         deliveryBoy: deliveryId,
         orderType: "Scheduled",
-        deliveryBoyStatus: { $in: ["Pending", "Accepted"] }
+        deliveryBoyStatus: { $in: ["Pending", "Accepted", "Assigned"] }
     })
         .populate("items")
         .sort({ scheduledDate: 1 });

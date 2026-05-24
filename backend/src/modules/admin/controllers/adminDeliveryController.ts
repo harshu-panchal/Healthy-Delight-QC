@@ -356,8 +356,14 @@ export const collectCash = asyncHandler(async (req: Request, res: Response) => {
     });
   }
 
-  // Update cash collected
-  deliveryBoy.cashCollected -= amount;
+  // Update COD liability trackers
+  // cashCollected = cash currently in hand with delivery boy
+  // pendingAdminPayout = COD payable to admin
+  deliveryBoy.cashCollected = Math.max(0, (deliveryBoy.cashCollected || 0) - amount);
+  deliveryBoy.pendingAdminPayout = Math.max(
+    0,
+    (deliveryBoy.pendingAdminPayout || 0) - amount
+  );
   // LOGIC FIX: When cash is collected (paid to admin), balance (amount owed to delivery boy) should logicly NOT increase? 
   // However, looking at the previous developer's logic: 
   // "balance" might mean "amount delivery boy OWES admin"?? Or "amount Admin OWES delivery boy"?

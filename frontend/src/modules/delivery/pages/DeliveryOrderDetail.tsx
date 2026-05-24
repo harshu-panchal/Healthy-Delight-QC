@@ -85,7 +85,26 @@ const Icons = {
     )
 };
 
-type DeliveryOrderStatus = 'Pending' | 'Ready for pickup' | 'Picked up' | 'Out for Delivery' | 'Delivered' | 'Cancelled' | 'Returned' | 'Scheduled' | 'Rider Assigned';
+const formatOrderFriendly = (orderNumber?: string, orderId?: string) => {
+  if (orderNumber && orderNumber !== 'N/A') {
+    if (orderNumber.startsWith('ORD')) {
+      const numericPart = orderNumber.replace('ORD', '');
+      if (numericPart.length > 6) {
+        return `ORD-${numericPart.slice(-6)}`;
+      }
+      return orderNumber;
+    }
+    return orderNumber.length > 10 ? orderNumber.slice(0, 8) : orderNumber;
+  }
+  if (orderId) {
+    const cleanId = orderId.includes('-') ? orderId.split('-').slice(-1)[0] : orderId;
+    if (cleanId.length > 6) {
+      return `ORD-${cleanId.slice(-6).toUpperCase()}`;
+    }
+    return `ORD-${cleanId.toUpperCase()}`;
+  }
+  return 'Unknown';
+};
 
 export default function DeliveryOrderDetail() {
     const { id } = useParams();
@@ -542,7 +561,7 @@ export default function DeliveryOrderDetail() {
 
     const getStatusIndexAndFlow = () => {
         // Both scheduled and instant orders follow the exact same status flow once accepted/started
-        const flow: DeliveryOrderStatus[] = ['Pending', 'Ready for pickup', 'Picked up', 'Out for Delivery', 'Delivered'];
+        const flow: string[] = ['Pending', 'Ready for pickup', 'Picked up', 'Out for Delivery', 'Delivered'];
         let index = -1;
 
         const currentStatus = order.status;
@@ -565,7 +584,7 @@ export default function DeliveryOrderDetail() {
 
     const { flow: statusFlow, index: currentStatusIndex } = getStatusIndexAndFlow();
 
-    const handleStatusChange = async (newStatus: DeliveryOrderStatus) => {
+    const handleStatusChange = async (newStatus: string) => {
         if (!id) return;
         try {
             setLoading(true); // Or use a separate loading state for the action
@@ -845,7 +864,7 @@ export default function DeliveryOrderDetail() {
                             </div>
                             <div>
                                 <p className="font-medium text-neutral-900">{order.customerName}</p>
-                                <p className="text-sm text-neutral-500">Customer</p>
+                                <p className="text-sm text-neutral-500">{order.customerPhone || 'N/A'}</p>
                             </div>
                             <button
                                 onClick={() => window.open(`tel:${order.customerPhone}`, '_system')}
@@ -904,7 +923,7 @@ export default function DeliveryOrderDetail() {
                     <div className="grid grid-cols-2 gap-4">
                         <div className="p-3 bg-neutral-50 rounded-lg">
                             <p className="text-xs text-neutral-500 mb-1">Order ID</p>
-                            <p className="text-sm font-bold text-neutral-900">{order.orderId}</p>
+                            <p className="text-sm font-bold text-neutral-900">{formatOrderFriendly(order.orderId)}</p>
                         </div>
                         <div className="p-3 bg-neutral-50 rounded-lg">
                             <p className="text-xs text-neutral-500 mb-1">Order Date</p>
@@ -933,8 +952,8 @@ export default function DeliveryOrderDetail() {
 
             </div>
 
-            {/* Customer Delivery OTP Section - Shown immediately when assigned and not yet delivered */}
-            {!['Delivered', 'Cancelled', 'Returned', 'Rejected'].includes(order.status) && order.deliveryBoyStatus !== 'Pending' && (
+            {/* Customer Delivery OTP Section - Shown only when order is Out for Delivery */}
+            {order.status === 'Out for Delivery' && order.deliveryBoyStatus !== 'Pending' && (
                 <div className="fixed bottom-24 left-6 right-6 z-30">
                     <div className="bg-white rounded-2xl p-4 shadow-2xl border border-neutral-200">
                         <p className="text-sm font-semibold text-neutral-900 mb-3">Customer Delivery OTP</p>

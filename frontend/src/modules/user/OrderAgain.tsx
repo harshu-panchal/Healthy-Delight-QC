@@ -6,6 +6,27 @@ import { useCart } from '../../context/CartContext';
 import { useLocation } from '../../hooks/useLocation';
 import logo from '../../../assets/logo.png';
 
+const formatOrderFriendly = (orderNumber?: string, orderId?: string) => {
+  if (orderNumber && orderNumber !== 'N/A') {
+    if (orderNumber.startsWith('ORD')) {
+      const numericPart = orderNumber.replace('ORD', '');
+      if (numericPart.length > 6) {
+        return `ORD-${numericPart.slice(-6)}`;
+      }
+      return orderNumber;
+    }
+    return orderNumber.length > 10 ? orderNumber.slice(0, 8) : orderNumber;
+  }
+  if (orderId) {
+    const cleanId = orderId.includes('-') ? orderId.split('-').slice(-1)[0] : orderId;
+    if (cleanId.length > 6) {
+      return `ORD-${cleanId.slice(-6).toUpperCase()}`;
+    }
+    return `ORD-${cleanId.toUpperCase()}`;
+  }
+  return 'Unknown';
+};
+
 const formatDate = (dateString: string) => {
   const date = new Date(dateString);
   return date.toLocaleDateString('en-IN', {
@@ -181,7 +202,6 @@ export default function OrderAgain() {
             </div>
             <div className="flex flex-col gap-4">
               {orders.map((order) => {
-                const shortId = order.id.split('-').slice(-1)[0];
                 const previewItems = order.items.slice(0, 4);
 
                 return (
@@ -196,7 +216,7 @@ export default function OrderAgain() {
                       {/* Top Row: Order ID & Status */}
                       <div className="flex items-center justify-between gap-4">
                         <div className="text-[14px] md:text-[15px] font-medium text-[#0f172a] group-hover:text-[#0a193b] transition-colors">
-                          Order #{shortId}
+                          Order #{formatOrderFriendly(order.orderNumber, order.id)}
                         </div>
                         <span
                           className={`px-2.5 py-1 rounded-full text-[10px] md:text-[11px] font-bold uppercase tracking-wider flex-shrink-0 ${getStatusColor(

@@ -3,6 +3,8 @@ import Delivery from '../models/Delivery';
 import Order from '../models/Order';
 import Seller from '../models/Seller';
 import DeliveryTracking from '../models/DeliveryTracking';
+import OrderItem from '../models/OrderItem';
+import DeliveryAssignment from '../models/DeliveryAssignment';
 import mongoose from 'mongoose';
 import { notifySellersOfOrderUpdate } from './sellerNotificationService';
 
@@ -471,8 +473,55 @@ export async function handleOrderRejection(
     try {
         const state = notificationStates.get(orderId);
 
+        const normalizedDeliveryBoyId = String(deliveryBoyId).trim();
+
         if (!state) {
-            return { success: false, message: 'Order notification not found', allRejected: false };
+            console.log(`⚠️ Notification state missing for order ${orderId} rejection. Checking DB for targeted assignment...`);
+            const order = await Order.findById(orderId);
+            if (!order) {
+                return { success: false, message: 'Order not found', allRejected: false };
+            }
+
+            if (order.deliveryBoy?.toString() !== normalizedDeliveryBoyId) {
+                return { success: false, message: 'You are not assigned to this order', allRejected: false };
+            }
+
+            const isScheduled = order.orderType === "Scheduled";
+            if (isScheduled) {
+                order.status = "Accepted";
+                order.deliveryBoyStatus = "Declined";
+                order.deliveryBoy = undefined;
+                order.assignedAt = undefined;
+            } else {
+                order.deliveryBoy = undefined;
+                order.deliveryBoyStatus = undefined;
+                order.assignedAt = undefined;
+            }
+            await order.save();
+
+            // Clean up delivery assignment model if exists
+            await DeliveryAssignment.findOneAndUpdate(
+                { order: orderId, deliveryBoy: normalizedDeliveryBoyId },
+                { 
+                    status: "Cancelled",
+                    failureReason: "Rejected by delivery boy"
+                }
+            );
+
+            // Notify sellers/restaurants of assignment rejection
+            const sellerIds = await OrderItem.find({ order: orderId }).distinct("seller");
+            sellerIds.forEach(sellerId => {
+                io.to(`seller-${sellerId}`).emit("assignment-rejected", {
+                    orderId,
+                    orderNumber: order.orderNumber,
+                    message: isScheduled 
+                        ? "Delivery rider declined the scheduled assignment. Please assign another rider."
+                        : "Delivery rider rejected the assignment. Please assign another rider."
+                });
+            });
+
+            console.log(`✅ Targeted assignment rejected via socket for order ${orderId} by rider ${normalizedDeliveryBoyId}`);
+            return { success: true, message: 'Order rejected successfully', allRejected: false };
         }
 
         // Check if already accepted
@@ -481,7 +530,6 @@ export async function handleOrderRejection(
         }
 
         // Check if this delivery boy was notified
-        const normalizedDeliveryBoyId = String(deliveryBoyId).trim();
         if (!state.notifiedDeliveryBoys.has(normalizedDeliveryBoyId)) {
             console.warn(`⚠️ Delivery boy ${normalizedDeliveryBoyId} not in notified list for order ${orderId}. Notified:`, Array.from(state.notifiedDeliveryBoys));
             return { success: false, message: 'You were not notified about this order', allRejected: false };

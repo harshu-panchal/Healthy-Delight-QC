@@ -46,5 +46,9 @@ export interface Product {
   maxReturnDays?: number;
   sellerId?: string;
   isAvailable?: boolean;
+  tax?: {
+    name: string;
+    percentage: number;
+  };
 }
 

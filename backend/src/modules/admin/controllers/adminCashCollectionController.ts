@@ -3,6 +3,7 @@ import { asyncHandler } from "../../../utils/asyncHandler";
 import CashCollection from "../../../models/CashCollection";
 import Delivery from "../../../models/Delivery";
 import Order from "../../../models/Order";
+import PlatformWallet from "../../../models/PlatformWallet";
 
 /**
  * Get all cash collections
@@ -114,10 +115,10 @@ export const createCashCollection = asyncHandler(
     async (req: Request, res: Response) => {
         const { deliveryBoyId, orderId, amount, remark } = req.body;
 
-        if (!deliveryBoyId || !orderId || !amount) {
+        if (!deliveryBoyId || !amount) {
             return res.status(400).json({
                 success: false,
-                message: "Delivery boy ID, order ID, and amount are required",
+                message: "Delivery boy ID and amount are required",
             });
         }
 
@@ -130,28 +131,51 @@ export const createCashCollection = asyncHandler(
             });
         }
 
-        // Verify order exists
-        const order = await Order.findById(orderId);
-        if (!order) {
-            return res.status(404).json({
-                success: false,
-                message: "Order not found",
-            });
+        // Verify order exists only when orderId is provided
+        if (orderId) {
+            const order = await Order.findById(orderId);
+            if (!order) {
+                return res.status(404).json({
+                    success: false,
+                    message: "Order not found",
+                });
+            }
         }
 
         // Create cash collection
         const collection = await CashCollection.create({
             deliveryBoy: deliveryBoyId,
-            order: orderId,
+            ...(orderId ? { order: orderId } : {}),
             amount,
             remark,
             collectedBy: req.user?.userId,
             collectedAt: new Date(),
         });
 
-        // Update delivery boy's cash collected
-        deliveryBoy.cashCollected = (deliveryBoy.cashCollected || 0) - amount;
+        // Update delivery boy's cash tracking
+        // cashCollected = cash still in hand with rider
+        // pendingAdminPayout = COD payable to admin
+        deliveryBoy.cashCollected = Math.max(
+            0,
+            (deliveryBoy.cashCollected || 0) - amount
+        );
+        deliveryBoy.pendingAdminPayout = Math.max(
+            0,
+            (deliveryBoy.pendingAdminPayout || 0) - amount
+        );
         await deliveryBoy.save();
+
+        // Keep platform wallet in sync for admin dashboard cards
+        try {
+            const platformWallet = await PlatformWallet.getWallet();
+            platformWallet.pendingFromDeliveryBoy = Math.max(
+                0,
+                (platformWallet.pendingFromDeliveryBoy || 0) - amount
+            );
+            await platformWallet.save();
+        } catch (pwError) {
+            console.error("Error updating platform wallet in createCashCollection:", pwError);
+        }
 
         const populatedCollection = await CashCollection.findById(collection._id)
             .populate("deliveryBoy", "name mobile")
@@ -190,7 +214,22 @@ export const updateCashCollection = asyncHandler(
                 const difference = collection.amount - amount;
                 deliveryBoy.cashCollected =
                     (deliveryBoy.cashCollected || 0) + difference;
+                deliveryBoy.pendingAdminPayout = Math.max(
+                    0,
+                    (deliveryBoy.pendingAdminPayout || 0) + difference
+                );
                 await deliveryBoy.save();
+
+                try {
+                    const platformWallet = await PlatformWallet.getWallet();
+                    platformWallet.pendingFromDeliveryBoy = Math.max(
+                        0,
+                        (platformWallet.pendingFromDeliveryBoy || 0) + difference
+                    );
+                    await platformWallet.save();
+                } catch (pwError) {
+                    console.error("Error updating platform wallet in updateCashCollection:", pwError);
+                }
             }
             collection.amount = amount;
         }
@@ -235,7 +274,18 @@ export const deleteCashCollection = asyncHandler(
         if (deliveryBoy) {
             deliveryBoy.cashCollected =
                 (deliveryBoy.cashCollected || 0) + collection.amount;
+            deliveryBoy.pendingAdminPayout =
+                (deliveryBoy.pendingAdminPayout || 0) + collection.amount;
             await deliveryBoy.save();
+
+            try {
+                const platformWallet = await PlatformWallet.getWallet();
+                platformWallet.pendingFromDeliveryBoy =
+                    (platformWallet.pendingFromDeliveryBoy || 0) + collection.amount;
+                await platformWallet.save();
+            } catch (pwError) {
+                console.error("Error updating platform wallet in deleteCashCollection:", pwError);
+            }
         }
 
         await CashCollection.findByIdAndDelete(id);

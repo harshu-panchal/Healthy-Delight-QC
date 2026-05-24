@@ -124,6 +124,8 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
         orderType: (order as any).orderType,
         scheduledDate: (order as any).scheduledDate,
         scheduledTimeSlot: (order as any).scheduledTimeSlot,
+        tipAmount: order.tipAmount,
+        gstin: (order as any).gstin,
       };
 
       const response = await createOrder(payload);
@@ -171,9 +173,14 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
           ...response.data,
           id: response.data._id || response.data.id,
         };
-        // Optionally update the orders list
+        // Update the orders list
         setOrders((prev) => {
-          if (prev.find((o) => o.id === mappedOrder.id)) return prev;
+          const index = prev.findIndex((o) => o.id === mappedOrder.id);
+          if (index !== -1) {
+            const newOrders = [...prev];
+            newOrders[index] = mappedOrder;
+            return newOrders;
+          }
           return [...prev, mappedOrder];
         });
         return mappedOrder;

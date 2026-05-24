@@ -23,6 +23,18 @@ export const processOrderStatusTransition = async (
     clearOrderCache(orderId);
   }
 
+  // Update and save status FIRST so case-specific actions (like commission calculations)
+  // see the correct, updated order state in database
+  order.status = newStatus as any;
+  if (newStatus === "Delivered") {
+    order.deliveredAt = new Date();
+    order.paymentStatus = "Paid";
+    if (order.deliveryBoy) {
+      order.deliveryBoyStatus = "Delivered";
+    }
+  }
+  await order.save();
+
   // Handle status-specific logic
   switch (newStatus) {
     case "Cancelled":

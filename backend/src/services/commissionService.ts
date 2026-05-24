@@ -51,8 +51,9 @@ export const getOrderItemCommissionRate = async (
         // 4. Check Seller specific rate
         const finalSellerId = sellerId || product.seller.toString();
         const seller = await Seller.findById(finalSellerId);
-        if (seller?.commissionRate && seller.commissionRate > 0) {
-            return seller.commissionRate;
+        const sellerCommission = seller ? (seller.commissionRate !== undefined && seller.commissionRate > 0 ? seller.commissionRate : seller.commission) : 0;
+        if (sellerCommission && sellerCommission > 0) {
+            return sellerCommission;
         }
 
         // 5. Global Default
@@ -77,8 +78,9 @@ export const getSellerCommissionRate = async (
         }
 
         // Use individual rate if set, otherwise use global default
-        if (seller.commissionRate !== undefined && seller.commissionRate !== null) {
-            return seller.commissionRate;
+        const sellerCommission = seller.commissionRate !== undefined && seller.commissionRate !== null ? seller.commissionRate : seller.commission;
+        if (sellerCommission !== undefined && sellerCommission !== null && sellerCommission > 0) {
+            return sellerCommission;
         }
 
         const settings = await AppSettings.findOne();
@@ -411,33 +413,9 @@ export const distributeCommissions = async (orderId: string) => {
                 );
 
                 // Calculate Commission Logic
-                let commissionAmount = 0;
-                let commissionRate = 0;
-                let usedDistanceBased = false;
-
-                try {
-                    // @ts-ignore
-                    const settings = await AppSettings.getSettings();
-                    if (
-                        settings &&
-                        settings.deliveryConfig?.isDistanceBased === true &&
-                        settings.deliveryConfig?.deliveryBoyKmRate &&
-                        order.deliveryDistanceKm &&
-                        order.deliveryDistanceKm > 0
-                    ) {
-                        commissionRate = settings.deliveryConfig.deliveryBoyKmRate;
-                        commissionAmount = order.deliveryDistanceKm * commissionRate;
-                        usedDistanceBased = true;
-                    }
-                } catch (err) {
-                    console.error("Error checking settings for commission:", err);
-                }
-
-                if (!usedDistanceBased) {
-                    // Fallback to percentage based logic
-                    commissionRate = await getDeliveryBoyCommissionRate(deliveryBoyId);
-                    commissionAmount = (order.subtotal * commissionRate) / 100;
-                }
+                // Delivery boy always gets 100% of the delivery charge!
+                const commissionAmount = order.shipping || 0;
+                const commissionRate = 100;
 
                 // Create Commission Record
                 const newComm = await Commission.create(
@@ -446,9 +424,7 @@ export const distributeCommissions = async (orderId: string) => {
                             order: order._id,
                             deliveryBoy: order.deliveryBoy,
                             type: "DELIVERY_BOY",
-                            orderAmount: usedDistanceBased
-                                ? order.deliveryDistanceKm || 0
-                                : order.subtotal,
+                            orderAmount: order.shipping || 0,
                             commissionRate,
                             commissionAmount: Math.round(commissionAmount * 100) / 100,
                             status: "Paid",
@@ -574,8 +550,8 @@ export const processPendingCODPayouts = async (
 
             if (!deliveryComm) continue;
 
-            // Amount delivery boy owes for this order = Total - Delivery Commission
-            const orderAdminPayoutPart = Math.round((order.total - deliveryComm.commissionAmount) * 100) / 100;
+            // Amount delivery boy owes for this order = Total - Delivery Commission - Tip
+            const orderAdminPayoutPart = Math.round((order.total - deliveryComm.commissionAmount - (order.tipAmount || 0)) * 100) / 100;
 
             // We process the commission if the amount paid covers this order's part (with small epsilon)
             if (remainingAmount >= orderAdminPayoutPart - 0.01) {
@@ -639,16 +615,19 @@ export const getCommissionSummary = async (
         const query =
             userType === "SELLER" ? { seller: userId } : { deliveryBoy: userId };
 
-        const commissions = await Commission.find(query).sort({ createdAt: -1 });
+        const commissions = await Commission.find(query)
+            .sort({ createdAt: -1 })
+            .populate('order', 'orderNumber');
 
         const summary = {
             total: 0,
             paid: 0,
             pending: 0,
             count: commissions.length,
-            commissions: commissions.map((c) => ({
+            commissions: commissions.map((c: any) => ({
                 id: c._id,
-                orderId: c.order,
+                orderId: c.order?._id || c.order,
+                orderNumber: c.order?.orderNumber || 'N/A',
                 amount: c.commissionAmount,
                 rate: c.commissionRate,
                 orderAmount: c.orderAmount,
@@ -840,45 +819,27 @@ export const calculateOrderBreakdown = async (
         }
 
         // 2. Calculate Delivery Commission Split
+        // Admin gets 0% of the delivery fee. It goes 100% to the delivery rider.
         if (order.deliveryBoy) {
-            const settings = await AppSettings.getSettings();
-
-            // Check if distance-based delivery is enabled
-            if (
-                settings?.deliveryConfig?.isDistanceBased &&
-                settings.deliveryConfig.deliveryBoyKmRate &&
-                order.deliveryDistanceKm &&
-                order.deliveryDistanceKm > 0
-            ) {
-                // Distance-based calculation
-                const deliveryBoyKmRate = settings.deliveryConfig.deliveryBoyKmRate;
-                breakdown.deliveryBoyCommission = order.deliveryDistanceKm * deliveryBoyKmRate;
-
-                // Admin gets the rest of the delivery charge
-                breakdown.adminDeliveryCommission = breakdown.totalDeliveryCharge - breakdown.deliveryBoyCommission;
-            } else {
-                // Fallback: If no distance-based config, use percentage of order subtotal
-                const deliveryBoy = await Delivery.findById(order.deliveryBoy).session(session || null);
-                const deliveryBoyRate = deliveryBoy?.commissionRate || 5;
-
-                breakdown.deliveryBoyCommission = (order.subtotal * deliveryBoyRate) / 100;
-                breakdown.adminDeliveryCommission = Math.max(0, breakdown.totalDeliveryCharge);
-            }
-
+            breakdown.deliveryBoyCommission = breakdown.totalDeliveryCharge;
+            breakdown.adminDeliveryCommission = 0;
         } else {
-            // No delivery boy assigned, all delivery charge goes to admin
+            // No delivery boy assigned, all delivery charge goes to admin for now
             breakdown.adminDeliveryCommission = breakdown.totalDeliveryCharge;
         }
 
         // 3. Calculate Total Admin Earning
+        // Includes product commission, platform/handling fee, admin's delivery portion (0), and taxes
         breakdown.totalAdminEarning =
             breakdown.adminProductCommission +
             breakdown.platformFee +
-            breakdown.adminDeliveryCommission;
+            breakdown.adminDeliveryCommission +
+            (order.tax || 0);
 
         // 4. Calculate Amount Delivery Boy Owes Admin
+        // Delivery boy keeps their deliveryBoyCommission + any tipAmount
         breakdown.amountDeliveryBoyOwesAdmin =
-            breakdown.totalOrderAmount - breakdown.deliveryBoyCommission;
+            breakdown.totalOrderAmount - breakdown.deliveryBoyCommission - (order.tipAmount || 0);
 
         return breakdown;
     } catch (error: any) {
@@ -983,6 +944,7 @@ export const processCODOrderDelivery = async (
                 for (const item of orderItems) {
                     const commRate = item.commissionRate || await getOrderItemCommissionRate(item.product.toString(), item.seller.toString());
                     const itemCommission = (item.total * commRate) / 100;
+                    const netEarning = item.total - itemCommission;
 
                     const sellerCommission = new Commission({
                         order: orderId,
@@ -992,10 +954,21 @@ export const processCODOrderDelivery = async (
                         orderAmount: item.total,
                         commissionRate: commRate,
                         commissionAmount: itemCommission,
-                        status: "Pending",
-                        paidAt: null,
+                        status: "Paid",
+                        paidAt: new Date(),
                     });
                     await sellerCommission.save({ session });
+
+                    // Credit Wallet Immediately upon successful COD delivery
+                    await creditWallet(
+                        sellerId,
+                        "SELLER",
+                        netEarning,
+                        `Sale proceeds for COD order ${order.orderNumber}`,
+                        orderId,
+                        sellerCommission._id.toString(),
+                        session
+                    );
                 }
             }
         }

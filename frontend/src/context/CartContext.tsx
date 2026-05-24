@@ -83,6 +83,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
           pack: item.product.pack || '1 unit',
           categoryId: item.product.category || '',
           description: item.product.description,
+          tax: item.product.tax,
           variantId: item.variation // Preserving variation ID/value
         },
         quantity: item.quantity,

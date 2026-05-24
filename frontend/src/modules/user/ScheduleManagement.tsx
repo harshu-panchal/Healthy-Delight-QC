@@ -4,6 +4,27 @@ import { format, addMonths, startOfMonth, endOfMonth, eachDayOfInterval, isBefor
 import { motion, AnimatePresence } from "framer-motion";
 import { getMyOrders } from "../../services/api/customerOrderService";
 
+const formatOrderFriendly = (orderNumber?: string, orderId?: string) => {
+  if (orderNumber && orderNumber !== 'N/A') {
+    if (orderNumber.startsWith('ORD')) {
+      const numericPart = orderNumber.replace('ORD', '');
+      if (numericPart.length > 6) {
+        return `ORD-${numericPart.slice(-6)}`;
+      }
+      return orderNumber;
+    }
+    return orderNumber.length > 10 ? orderNumber.slice(0, 8) : orderNumber;
+  }
+  if (orderId) {
+    const cleanId = orderId.includes('-') ? orderId.split('-').slice(-1)[0] : orderId;
+    if (cleanId.length > 6) {
+      return `ORD-${cleanId.slice(-6).toUpperCase()}`;
+    }
+    return `ORD-${cleanId.toUpperCase()}`;
+  }
+  return 'Unknown';
+};
+
 export default function ScheduleManagement() {
   const navigate = useNavigate();
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -238,7 +259,6 @@ export default function ScheduleManagement() {
         ) : (
           <div className="space-y-4">
             {scheduledOrders.map((order) => {
-              const shortId = order.id.split('-').slice(-1)[0];
               const previewItems = order.items.slice(0, 4);
               
               return (
@@ -251,7 +271,7 @@ export default function ScheduleManagement() {
                     {/* Top Row: Order ID & Status */}
                     <div className="flex items-center justify-between gap-4">
                       <div className="text-sm font-bold text-neutral-800 group-hover:text-[#0a193b] transition-colors">
-                        Order #{shortId}
+                        Order #{formatOrderFriendly(order.orderNumber, order.id)}
                       </div>
                       <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${getStatusColor(order.status)}`}>
                         {order.status}

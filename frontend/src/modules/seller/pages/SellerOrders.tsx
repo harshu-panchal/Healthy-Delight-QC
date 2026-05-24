@@ -6,6 +6,23 @@ import { getOrders, Order, GetOrdersParams } from '../../../services/api/orderSe
 type SortField = 'orderId' | 'deliveryDate' | 'orderDate' | 'status' | 'amount';
 type SortDirection = 'asc' | 'desc';
 
+const formatOrderFriendly = (orderNumber?: string, orderId?: string) => {
+  if (orderNumber && orderNumber !== 'N/A') {
+    if (orderNumber.startsWith('ORD')) {
+      const numericPart = orderNumber.replace('ORD', '');
+      if (numericPart.length > 6) {
+        return `ORD-${numericPart.slice(-6)}`;
+      }
+      return orderNumber;
+    }
+    return orderNumber.length > 10 ? orderNumber.slice(0, 8) : orderNumber;
+  }
+  if (orderId) {
+    return `ORD-${orderId.substring(0, 6).toUpperCase()}`;
+  }
+  return 'Unknown';
+};
+
 export default function SellerOrders() {
   const navigate = useNavigate();
   const [orders, setOrders] = useState<Order[]>([]);
@@ -494,7 +511,7 @@ export default function SellerOrders() {
                     paginatedOrders.map((order) => (
                       <tr key={order.id} className="hover:bg-neutral-50 transition-colors">
                         <td className="px-3 sm:px-4 md:px-6 py-3 text-xs sm:text-sm text-neutral-900">
-                          {order.orderId}
+                          {formatOrderFriendly(order.orderId)}
                         </td>
                         <td className="px-3 sm:px-4 md:px-6 py-3 text-xs sm:text-sm text-neutral-700">
                           {order.deliveryDate}

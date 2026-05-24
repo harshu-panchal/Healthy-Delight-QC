@@ -315,7 +315,7 @@ export default function AdminWallet() {
                         <th className="py-3 px-4 font-medium">Source</th>
                         <th className="py-3 px-4 font-medium">Description</th>
                         <th className="py-3 px-4 font-medium">Status</th>
-                        <th className="py-3 px-4 font-medium text-right">Commission</th>
+                        <th className="py-3 px-4 font-medium text-right">Admin Earning</th>
                       </tr>
                     </thead>
                     <tbody>

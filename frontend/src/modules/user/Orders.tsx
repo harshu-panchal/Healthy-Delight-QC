@@ -1,6 +1,27 @@
 import { Link } from 'react-router-dom';
 import { useOrders } from '../../hooks/useOrders';
 
+const formatOrderFriendly = (orderNumber?: string, orderId?: string) => {
+  if (orderNumber && orderNumber !== 'N/A') {
+    if (orderNumber.startsWith('ORD')) {
+      const numericPart = orderNumber.replace('ORD', '');
+      if (numericPart.length > 6) {
+        return `ORD-${numericPart.slice(-6)}`;
+      }
+      return orderNumber;
+    }
+    return orderNumber.length > 10 ? orderNumber.slice(0, 8) : orderNumber;
+  }
+  if (orderId) {
+    const cleanId = orderId.includes('-') ? orderId.split('-').slice(-1)[0] : orderId;
+    if (cleanId.length > 6) {
+      return `ORD-${cleanId.slice(-6).toUpperCase()}`;
+    }
+    return `ORD-${cleanId.toUpperCase()}`;
+  }
+  return 'Unknown';
+};
+
 const getStatusColor = (status: string) => {
   switch (status) {
     case 'Delivered':
@@ -57,7 +78,6 @@ export default function Orders() {
 
       <div className="px-4 md:px-6 lg:px-8 space-y-4 md:space-y-6">
         {orders.map((order) => {
-          const shortId = order.id.split('-').slice(-1)[0];
           return (
             <Link
               key={order.id}
@@ -67,7 +87,7 @@ export default function Orders() {
               <div className="flex items-start justify-between mb-3">
                 <div>
                   <div className="text-sm font-semibold text-neutral-900 mb-1">
-                    Order #{shortId}
+                    Order #{formatOrderFriendly(order.orderNumber, order.id)}
                   </div>
                   <div className="text-xs text-neutral-500">{formatDate(order.createdAt)}</div>
                 </div>

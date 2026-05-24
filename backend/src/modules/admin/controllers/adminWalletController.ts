@@ -4,14 +4,27 @@ import Commission from '../../../models/Commission';
 import WalletTransaction from '../../../models/WalletTransaction';
 import WithdrawRequest from '../../../models/WithdrawRequest';
 import PlatformWallet from '../../../models/PlatformWallet';
+import Order from '../../../models/Order';
 import { asyncHandler } from '../../../utils/asyncHandler';
 import { approveWithdrawal, rejectWithdrawal, completeWithdrawal } from './adminWithdrawalController';
+import { creditWallet, debitWallet } from '../../../services/walletManagementService';
 
 /**
  * Get Financial Dashboard Stats
  */
 export const getFinancialDashboard = asyncHandler(async (_req: Request, res: Response) => {
   const wallet = await PlatformWallet.getWallet();
+  const [sellerBalanceAgg, deliveryPendingAgg] = await Promise.all([
+    mongoose.model('Seller').aggregate([
+      { $group: { _id: null, total: { $sum: '$balance' } } }
+    ]),
+    mongoose.model('Delivery').aggregate([
+      { $group: { _id: null, total: { $sum: '$pendingAdminPayout' } } }
+    ])
+  ]);
+
+  const sellerPendingPayoutsLive = sellerBalanceAgg[0]?.total || 0;
+  const pendingFromDeliveryBoyLive = deliveryPendingAgg[0]?.total || 0;
 
   // We still calculate some things on the fly or just use wallet
   // It's better to use wallet for consistency with our new sync logic
@@ -22,9 +35,9 @@ export const getFinancialDashboard = asyncHandler(async (_req: Request, res: Res
       totalGMV: wallet.totalPlatformEarning,
       currentAccountBalance: wallet.currentPlatformBalance,
       totalAdminEarnings: wallet.totalAdminEarning,
-      sellerPendingPayouts: wallet.sellerPendingPayouts,
+      sellerPendingPayouts: sellerPendingPayoutsLive,
       deliveryPendingPayouts: wallet.deliveryBoyPendingPayouts,
-      pendingFromDeliveryBoy: wallet.pendingFromDeliveryBoy,
+      pendingFromDeliveryBoy: pendingFromDeliveryBoyLive,
       pendingWithdrawalsCount: await WithdrawRequest.countDocuments({ status: 'Pending' })
     }
   });
@@ -36,46 +49,81 @@ export const getFinancialDashboard = asyncHandler(async (_req: Request, res: Res
 export const getAdminEarnings = asyncHandler(async (req: Request, res: Response) => {
   const { page = 1, limit = 20, status, dateFrom, dateTo } = req.query;
 
-  const query: any = {};
-  if (status) query.status = status;
+  const match: any = {
+    type: 'SELLER',
+    status: { $ne: 'Cancelled' }
+  };
+  if (status) {
+    match.status = status;
+  }
   if (dateFrom || dateTo) {
-    query.createdAt = {};
-    if (dateFrom) query.createdAt.$gte = new Date(dateFrom as string);
-    if (dateTo) query.createdAt.$lte = new Date(dateTo as string);
+    match.createdAt = {};
+    if (dateFrom) match.createdAt.$gte = new Date(dateFrom as string);
+    if (dateTo) match.createdAt.$lte = new Date(dateTo as string);
   }
 
   const skip = (Number(page) - 1) * Number(limit);
 
-  const earnings = await Commission.find(query)
-    .populate('order', 'orderNumber')
-    .populate('seller', 'storeName sellerName')
-    .populate('deliveryBoy', 'name mobile')
-    .sort({ createdAt: -1 })
-    .skip(skip)
-    .limit(Number(limit));
-
-  const total = await Commission.countDocuments(query);
-
-  // Format data for frontend
-  const formattedEarnings = earnings.map(e => {
-    let sourceName = 'Unknown';
-    if (e.type === 'SELLER' && e.seller) {
-      sourceName = (e.seller as any).storeName || (e.seller as any).sellerName;
-    } else if (e.type === 'DELIVERY_BOY' && e.deliveryBoy) {
-      sourceName = (e.deliveryBoy as any).name;
+  const aggregated = await Commission.aggregate([
+    { $match: match },
+    {
+      $group: {
+        _id: '$order',
+        sellerCommission: { $sum: '$commissionAmount' },
+        statuses: { $addToSet: '$status' },
+        lastCommissionAt: { $max: '$createdAt' }
+      }
+    },
+    {
+      $lookup: {
+        from: Order.collection.name,
+        localField: '_id',
+        foreignField: '_id',
+        as: 'order'
+      }
+    },
+    { $unwind: '$order' },
+    {
+      $match: {
+        'order.status': { $nin: ['Cancelled', 'Rejected', 'Returned'] }
+      }
+    },
+    {
+      $addFields: {
+        platformFee: { $ifNull: ['$order.platformFee', 0] },
+        tax: { $ifNull: ['$order.tax', 0] },
+      }
+    },
+    {
+      $addFields: {
+        amount: { $add: ['$sellerCommission', '$platformFee', '$tax'] },
+        status: {
+          $cond: [{ $in: ['Pending', '$statuses'] }, 'Pending', 'Paid']
+        }
+      }
+    },
+    { $sort: { 'order.createdAt': -1 } },
+    {
+      $facet: {
+        rows: [{ $skip: skip }, { $limit: Number(limit) }],
+        totalCount: [{ $count: 'count' }]
+      }
     }
+  ]);
 
-    return {
-      id: e._id,
-      source: sourceName,
-      sourceType: e.type,
-      amount: e.commissionAmount,
-      date: e.createdAt,
-      status: e.status,
-      description: `Order #${(e.order as any)?.orderNumber || 'Unknown'}`,
-      orderId: (e.order as any)?._id
-    };
-  });
+  const rows = aggregated[0]?.rows || [];
+  const total = aggregated[0]?.totalCount?.[0]?.count || 0;
+
+  const formattedEarnings = rows.map((r: any) => ({
+    id: r._id,
+    source: 'Order',
+    sourceType: 'ORDER',
+    amount: r.amount || 0,
+    date: r.order?.createdAt || r.lastCommissionAt,
+    status: r.status,
+    description: `Order #${r.order?.orderNumber || 'Unknown'} (Fee: ₹${(r.platformFee || 0).toFixed(2)} + Tax: ₹${(r.tax || 0).toFixed(2)} + Seller Comm: ₹${(r.sellerCommission || 0).toFixed(2)})`,
+    orderId: r.order?._id
+  }));
 
   return res.status(200).json({
     success: true,
@@ -96,11 +144,22 @@ export const getAdminEarnings = asyncHandler(async (req: Request, res: Response)
  * Get All Wallet Transactions (Sellers & Delivery Boys)
  */
 export const getWalletTransactions = asyncHandler(async (req: Request, res: Response) => {
-  const { page = 1, limit = 20, type, userType, search: _search } = req.query;
+  const { page = 1, limit = 20, type, userType, userId, dateFrom, dateTo, search: _search } = req.query;
 
   const query: any = {};
   if (type) query.type = type;
   if (userType) query.userType = userType;
+  if (userId) query.userId = userId;
+
+  if (dateFrom || dateTo) {
+    query.createdAt = {};
+    if (dateFrom) query.createdAt.$gte = new Date(dateFrom as string);
+    if (dateTo) {
+      const end = new Date(dateTo as string);
+      end.setHours(23, 59, 59, 999);
+      query.createdAt.$lte = end;
+    }
+  }
 
   // Search handling not fully implemented for cross-collection ref
 
@@ -126,8 +185,8 @@ export const getWalletTransactions = asyncHandler(async (req: Request, res: Resp
   });
 
   const [sellers, deliveryBoys] = await Promise.all([
-    mongoose.model('Seller').find({ _id: { $in: sellerIds } }).select('storeName sellerName mobile email'),
-    mongoose.model('Delivery').find({ _id: { $in: deliveryIds } }).select('name firstName lastName mobile email')
+    mongoose.model('Seller').find({ _id: { $in: sellerIds } }).select('storeName sellerName mobile email balance'),
+    mongoose.model('Delivery').find({ _id: { $in: deliveryIds } }).select('name firstName lastName mobile email balance')
   ]);
 
   const sellerMap = new Map(sellers.map(s => [s._id.toString(), s]));
@@ -213,4 +272,52 @@ export const processWithdrawalWrapper = asyncHandler(async (req: Request, res: R
       message: 'Invalid action. Must be "Approve", "Reject", or "Complete"'
     });
   }
+});
+
+/**
+ * Create Manual Fund Transfer (Credit/Debit) for Sellers or Delivery Boys
+ */
+export const createManualFundTransfer = asyncHandler(async (req: Request, res: Response) => {
+  const { userId, userType, amount, type, description } = req.body;
+
+  if (!userId || !userType || !amount || !type || !description) {
+    return res.status(400).json({
+      success: false,
+      message: 'All fields (userId, userType, amount, type, description) are required'
+    });
+  }
+
+  if (amount <= 0) {
+    return res.status(400).json({
+      success: false,
+      message: 'Amount must be greater than zero'
+    });
+  }
+
+  if (!['SELLER', 'DELIVERY_BOY'].includes(userType)) {
+    return res.status(400).json({
+      success: false,
+      message: 'userType must be SELLER or DELIVERY_BOY'
+    });
+  }
+
+  if (!['Credit', 'Debit'].includes(type)) {
+    return res.status(400).json({
+      success: false,
+      message: 'type must be Credit or Debit'
+    });
+  }
+
+  let result;
+  if (type === 'Credit') {
+    result = await creditWallet(userId, userType, amount, description);
+  } else {
+    result = await debitWallet(userId, userType, amount, description);
+  }
+
+  if (!result.success) {
+    return res.status(400).json(result);
+  }
+
+  return res.status(201).json(result);
 });

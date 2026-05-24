@@ -25,6 +25,7 @@ export interface OrderFees {
 
 export interface Order {
   id: string;
+  orderNumber?: string;
   items: CartItem[];
   totalItems: number;
   subtotal: number;
@@ -35,6 +36,7 @@ export interface Order {
   status: OrderStatus;
   paymentMethod?: string;
   createdAt: string;
+  deliveredAt?: string;
   tipAmount?: number;
   donationAmount?: number;
   gstin?: string;

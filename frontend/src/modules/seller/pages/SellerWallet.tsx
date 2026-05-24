@@ -11,6 +11,35 @@ import {
 
 type Tab = 'transactions' | 'withdrawals' | 'commissions';
 
+const formatOrderFriendly = (orderNumber?: string, orderId?: string) => {
+  if (orderNumber && orderNumber !== 'N/A') {
+    if (orderNumber.startsWith('ORD')) {
+      const numericPart = orderNumber.replace('ORD', '');
+      if (numericPart.length > 6) {
+        return `ORD-${numericPart.slice(-6)}`;
+      }
+      return orderNumber;
+    }
+    return orderNumber.length > 10 ? orderNumber.slice(0, 8) : orderNumber;
+  }
+  if (orderId) {
+    return `ORD-${orderId.substring(0, 6).toUpperCase()}`;
+  }
+  return 'Unknown';
+};
+
+const formatDescriptionFriendly = (desc: string) => {
+  if (!desc) return '';
+  const orderRegex = /(?:Order\s*#|order\s+)(ORD\d+|\w{24})/i;
+  const match = desc.match(orderRegex);
+  if (match) {
+    const rawId = match[1];
+    const friendlyId = formatOrderFriendly(rawId.startsWith('ORD') ? rawId : undefined, !rawId.startsWith('ORD') ? rawId : undefined);
+    return desc.replace(rawId, friendlyId);
+  }
+  return desc;
+};
+
 export default function SellerWallet() {
   const { showToast } = useToast();
   const [activeTab, setActiveTab] = useState<Tab>('transactions');
@@ -155,7 +184,7 @@ export default function SellerWallet() {
                     .filter((c: any) => c.status === 'Pending')
                     .map((c: any) => ({
                       _id: c.id || c._id,
-                      description: `Order #${c.orderId?.substring(0, 8) || 'Unknown'} (Pending)`,
+                      description: `Order #${formatOrderFriendly(c.orderNumber, c.orderId)} (Pending)`,
                       amount: c.orderAmount - c.amount, // Calculate Net Earning: Order Amount - Commission Fee
                       type: 'Credit',
                       createdAt: c.createdAt,
@@ -172,7 +201,9 @@ export default function SellerWallet() {
                   <div key={item._id} className="flex justify-between items-start p-3 bg-gray-50 rounded-lg">
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
-                        <p className="font-medium text-gray-900">{item.description}</p>
+                        <p className="font-medium text-gray-900">
+                          {item.source === 'transaction' ? formatDescriptionFriendly(item.description) : item.description}
+                        </p>
                         {item.status === 'Pending' && (
                           <span className="bg-orange-100 text-orange-700 text-xs px-2 py-0.5 rounded-full font-medium">
                             Pending
@@ -255,7 +286,9 @@ export default function SellerWallet() {
                   <div key={comm.id} className="p-3 bg-gray-50 rounded-lg">
                     <div className="flex justify-between items-start mb-2">
                       <div>
-                        <p className="font-medium text-gray-900">Order Commission</p>
+                        <p className="font-medium text-gray-900">
+                          Order Commission (#{formatOrderFriendly(comm.orderNumber, comm.orderId)})
+                        </p>
                         <p className="text-xs text-gray-600">Rate: {comm.rate}%</p>
                       </div>
                       <p className="font-bold text-neutral-900">₹{comm.amount.toFixed(2)}</p>

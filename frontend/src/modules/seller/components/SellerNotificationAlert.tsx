@@ -8,14 +8,48 @@ interface SellerNotificationAlertProps {
   onClose: () => void;
 }
 
+const formatOrderFriendly = (orderNumber?: string, orderId?: string) => {
+  if (orderNumber && orderNumber !== 'N/A') {
+    if (orderNumber.startsWith('ORD')) {
+      const numericPart = orderNumber.replace('ORD', '');
+      if (numericPart.length > 6) {
+        return `ORD-${numericPart.slice(-6)}`;
+      }
+      return orderNumber;
+    }
+    return orderNumber.length > 10 ? orderNumber.slice(0, 8) : orderNumber;
+  }
+  if (orderId) {
+    const cleanId = orderId.includes('-') ? orderId.split('-').slice(-1)[0] : orderId;
+    if (cleanId.length > 6) {
+      return `ORD-${cleanId.slice(-6).toUpperCase()}`;
+    }
+    return `ORD-${cleanId.toUpperCase()}`;
+  }
+  return 'Unknown';
+};
+
 const SellerNotificationAlert: React.FC<SellerNotificationAlertProps> = ({ notification, onClose }) => {
   const [volume, setVolume] = useState(0.8);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [hasUserInteracted, setHasUserInteracted] = useState(false);
+  const [audioError, setAudioError] = useState<string | null>(null);
 
   const handleStatusUpdate = async (status: string) => {
     if (!notification) return;
+    
+    // Stop sound immediately
+    if (audioRef.current) {
+      try {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+      } catch (err) {
+        console.error('Error pausing sound:', err);
+      }
+    }
+
     setLoading(true);
     try {
       await updateOrderStatus(notification.orderId, { status: status as any });
@@ -32,13 +66,60 @@ const SellerNotificationAlert: React.FC<SellerNotificationAlertProps> = ({ notif
     }
   };
 
+  const handleUserInteraction = async () => {
+    if (!hasUserInteracted && audioRef.current) {
+      try {
+        await audioRef.current.play();
+        setHasUserInteracted(true);
+        setAudioError(null);
+      } catch (err) {
+        console.error('Interaction play failed:', err);
+      }
+    }
+  };
+
   useEffect(() => {
     if (notification) {
-      // Play sound when notification arrives
-      if (audioRef.current) {
-        audioRef.current.volume = volume;
-        audioRef.current.play().catch(err => console.error('Error playing sound:', err));
-      }
+      setHasUserInteracted(false);
+      setAudioError(null);
+      
+      console.log('🔊 Initializing programmatic audio for seller alert');
+      const audio = new Audio('/assets/sound/seller_alert.mp3');
+      audio.loop = true;
+      audio.volume = volume;
+      audioRef.current = audio;
+
+      const playAudio = async () => {
+        try {
+          await audio.play();
+          console.log('▶️ Alert sound started automatically');
+          setHasUserInteracted(true);
+          setAudioError(null);
+        } catch (err: any) {
+          console.error('⚠️ Autoplay blocked by browser:', err);
+          if (err.name === 'NotAllowedError') {
+            setAudioError('Tap to enable sound');
+          } else {
+            setAudioError('Sound blocked');
+          }
+        }
+      };
+
+      // Play as soon as audio object is set up
+      playAudio();
+
+      return () => {
+        console.log('⏸️ Cleaning up and pausing alert sound');
+        try {
+          audio.pause();
+          audio.currentTime = 0;
+        } catch (err) {
+          console.error('Error pausing audio in cleanup:', err);
+        }
+        if (audioRef.current === audio) {
+          audioRef.current = null;
+        }
+      };
     }
   }, [notification]);
 
@@ -51,14 +132,16 @@ const SellerNotificationAlert: React.FC<SellerNotificationAlertProps> = ({ notif
   if (!notification) return null;
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md">
-      <audio
-        ref={audioRef}
-        src="/assets/sound/seller_alert.mp3"
-        loop
-      />
-
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in duration-300 border border-white/20">
+    <div 
+      onClick={handleUserInteraction}
+      onMouseEnter={handleUserInteraction}
+      onTouchStart={handleUserInteraction}
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md"
+    >
+      <div 
+        onClick={(e) => e.stopPropagation()}
+        className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in duration-300 border border-white/20"
+      >
         {/* Header */}
         <div className="px-6 py-5 flex items-center justify-between bg-primary relative overflow-hidden">
           {/* Subtle background glow */}
@@ -77,9 +160,16 @@ const SellerNotificationAlert: React.FC<SellerNotificationAlertProps> = ({ notif
                   ? 'New Order Received!' 
                   : notification.type === 'NEW_SCHEDULED_ORDER'
                     ? 'New Scheduled Order!'
-                    : 'Order Status Updated'}
+                    : `Order ${notification.status ? notification.status.split(/[-_]/).map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ') : 'Updated'}`}
               </h2>
-              <p className="text-xs font-semibold text-white/70 tracking-widest uppercase">#{notification.orderNumber}</p>
+              <div className="flex items-center gap-2 mt-0.5">
+                <p className="text-xs font-semibold text-white/70 tracking-widest uppercase">#{formatOrderFriendly(notification.orderNumber, notification.orderId)}</p>
+                {audioError && (
+                  <span className="text-[10px] bg-amber-500 text-white font-bold px-2 py-0.5 rounded-full animate-pulse">
+                    {audioError}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
           <button
@@ -220,7 +310,7 @@ const SellerNotificationAlert: React.FC<SellerNotificationAlertProps> = ({ notif
               <button
                 onClick={() => handleStatusUpdate('Accepted')}
                 disabled={loading}
-                className="flex-1 py-4.5 bg-primary hover:bg-neutral-900 border-2 border-primary hover:border-neutral-900 text-white rounded-2xl font-black text-sm uppercase tracking-widest shadow-[0_8px_20px_-6px_rgba(10,25,59,0.3)] hover:shadow-lg transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 py-4 bg-primary hover:bg-neutral-900 border-2 border-primary hover:border-neutral-900 text-white rounded-2xl font-black text-sm uppercase tracking-widest shadow-[0_8px_20px_-6px_rgba(10,25,59,0.3)] hover:shadow-lg transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? 'Processing...' : 'Accept Order'}
               </button>
@@ -231,7 +321,7 @@ const SellerNotificationAlert: React.FC<SellerNotificationAlertProps> = ({ notif
                   }
                 }}
                 disabled={loading}
-                className="flex-1 py-4.5 bg-white hover:bg-red-50 border-2 border-red-500 text-red-500 rounded-2xl font-black text-sm uppercase tracking-widest shadow-sm transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 py-4 bg-white hover:bg-red-50 border-2 border-red-500 text-red-500 rounded-2xl font-black text-sm uppercase tracking-widest shadow-sm transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? 'Processing...' : 'Reject Order'}
               </button>
@@ -239,7 +329,7 @@ const SellerNotificationAlert: React.FC<SellerNotificationAlertProps> = ({ notif
           ) : (
             <button
               onClick={onClose}
-              className="w-full py-4.5 bg-primary hover:bg-neutral-900 text-white rounded-2xl font-black text-sm uppercase tracking-widest shadow-lg transition-all active:scale-95"
+              className="w-full py-4 bg-primary hover:bg-neutral-900 text-white rounded-2xl font-black text-sm uppercase tracking-widest shadow-lg transition-all active:scale-95"
             >
               Acknowledge & Dismiss
             </button>

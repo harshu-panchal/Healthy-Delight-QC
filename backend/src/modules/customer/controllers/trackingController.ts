@@ -285,7 +285,7 @@ export const getSellerLocationsForOrder = asyncHandler(
 
     // Get seller details including locations
     const sellers = await Seller.find({ _id: { $in: sellerIds } }).select(
-      "storeName address city latitude longitude"
+      "storeName address city mobile latitude longitude"
     );
 
     // Format seller locations
@@ -296,6 +296,7 @@ export const getSellerLocationsForOrder = asyncHandler(
         storeName: seller.storeName,
         address: seller.address,
         city: seller.city,
+        mobile: seller.mobile,
         latitude: parseFloat(seller.latitude || "0"),
         longitude: parseFloat(seller.longitude || "0"),
       }));

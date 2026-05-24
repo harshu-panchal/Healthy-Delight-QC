@@ -14,6 +14,9 @@ interface DeliveryPartnerCardProps {
     distance: number
     isTracking: boolean
     deliveryOtp?: string
+    status?: string
+    deliveredAt?: string | Date
+    createdAt?: string | Date
     onCall?: () => void
     onMessage?: () => void
 }
@@ -24,6 +27,9 @@ export default function DeliveryPartnerCard({
     distance,
     isTracking,
     deliveryOtp,
+    status,
+    deliveredAt,
+    createdAt,
     onCall,
     onMessage
 }: DeliveryPartnerCardProps) {
@@ -58,6 +64,21 @@ export default function DeliveryPartnerCard({
         return `${hours}h ${mins}m`
     }
 
+    const getDeliveryTimeDuration = useCallback((): string => {
+        if (!deliveredAt || !createdAt) return 'under 15 mins';
+        const start = new Date(createdAt).getTime();
+        const end = new Date(deliveredAt).getTime();
+        const diffMs = end - start;
+        if (isNaN(diffMs) || diffMs <= 0) return 'under 15 mins';
+        const diffMins = Math.round(diffMs / 60000);
+        if (diffMins < 60) {
+            return `${diffMins} mins`;
+        }
+        const hours = Math.floor(diffMins / 60);
+        const mins = diffMins % 60;
+        return `${hours}h ${mins}m`;
+    }, [deliveredAt, createdAt]);
+
     return (
         <motion.div
             className="mx-4 mt-4 bg-white rounded-xl shadow-sm overflow-hidden"
@@ -91,17 +112,25 @@ export default function DeliveryPartnerCard({
                                 🏍️ {partner.vehicleNumber}
                             </p>
                         )}
-                        {isTracking && (
+                        {status === 'Delivered' ? (
                             <div className="flex items-center gap-1 mt-1">
-                                <motion.div
-                                    className="w-2 h-2 rounded-full bg-green-500"
-                                    animate={{ opacity: [1, 0.3, 1] }}
-                                    transition={{ duration: 2, repeat: Infinity }}
-                                />
-                                <span className="text-xs text-green-600 font-medium">
-                                    On the way
+                                <span className="text-xs text-emerald-600 font-bold flex items-center gap-1 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">
+                                    <span>✓</span> Delivered
                                 </span>
                             </div>
+                        ) : (
+                            isTracking && (
+                                <div className="flex items-center gap-1 mt-1">
+                                    <motion.div
+                                        className="w-2 h-2 rounded-full bg-green-500"
+                                        animate={{ opacity: [1, 0.3, 1] }}
+                                        transition={{ duration: 2, repeat: Infinity }}
+                                    />
+                                    <span className="text-xs text-green-600 font-medium">
+                                        On the way
+                                    </span>
+                                </div>
+                            )
                         )}
                     </div>
 
@@ -122,7 +151,7 @@ export default function DeliveryPartnerCard({
             </div>
 
             {/* Live Metrics */}
-            {isTracking && (
+            {isTracking && status !== 'Delivered' && (
                 <div className="grid grid-cols-2 border-t border-gray-100">
                     {/* ETA */}
                     <div className="p-4 border-r border-gray-100">
@@ -153,7 +182,7 @@ export default function DeliveryPartnerCard({
             )}
 
             {/* Progress Bar */}
-            {isTracking && distance > 0 && (
+            {isTracking && distance > 0 && status !== 'Delivered' && (
                 <div className="px-4 pb-4">
                     <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
                         <motion.div
@@ -166,8 +195,28 @@ export default function DeliveryPartnerCard({
                 </div>
             )}
 
+            {/* Delivered Duration Metrics */}
+            {status === 'Delivered' && (
+                <div className="p-4 border-t border-gray-100 bg-emerald-50/20 flex items-center justify-between">
+                    <div className="flex items-center gap-3.5">
+                        <div className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center shadow-sm">
+                            <span className="text-lg">⏱️</span>
+                        </div>
+                        <div className="text-left">
+                            <p className="text-xs text-gray-500 font-semibold uppercase tracking-wider">Delivery Time</p>
+                            <p className="text-sm font-extrabold text-[#0a193b] mt-0.5">
+                                Delivered in {getDeliveryTimeDuration()}
+                            </p>
+                        </div>
+                    </div>
+                    <span className="text-xs font-extrabold text-emerald-600 uppercase tracking-widest bg-emerald-50 px-3 py-1 rounded-xl border border-emerald-100">
+                        Delivered
+                    </span>
+                </div>
+            )}
+
             {/* Delivery OTP Section - Permanent OTP, no expiry */}
-            {deliveryOtp && (
+            {deliveryOtp && status !== 'Delivered' && (
                 <div className="mx-4 mb-4 p-3 bg-neutral-50 rounded-xl border border-dashed border-neutral-200">
                     <div className="flex items-center justify-between mb-2">
                         <div>

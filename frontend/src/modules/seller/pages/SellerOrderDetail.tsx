@@ -11,6 +11,23 @@ import { useSellerSocket } from "../hooks/useSellerSocket";
 import { useToast } from "../../../context/ToastContext";
 import jsPDF from "jspdf";
 
+const formatOrderFriendly = (orderNumber?: string, orderId?: string) => {
+  if (orderNumber && orderNumber !== 'N/A') {
+    if (orderNumber.startsWith('ORD')) {
+      const numericPart = orderNumber.replace('ORD', '');
+      if (numericPart.length > 6) {
+        return `ORD-${numericPart.slice(-6)}`;
+      }
+      return orderNumber;
+    }
+    return orderNumber.length > 10 ? orderNumber.slice(0, 8) : orderNumber;
+  }
+  if (orderId) {
+    return `ORD-${orderId.substring(0, 6).toUpperCase()}`;
+  }
+  return 'Unknown';
+};
+
 export default function SellerOrderDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -273,9 +290,9 @@ export default function SellerOrderDetail() {
     yPos += 6;
     doc.text("Phone: 8956656429", margin, yPos);
     yPos += 6;
-    doc.text("Email: info@kosil.com", margin, yPos);
+    doc.text("Email: info@healthydelight.com", margin, yPos);
     yPos += 6;
-    doc.text("Website: https://kosil.com", margin, yPos);
+    doc.text("Website: https://healthydelight.com", margin, yPos);
     yPos += 12;
 
     // Invoice Details (Right aligned)
@@ -543,25 +560,11 @@ export default function SellerOrderDetail() {
                   )}
                 </div>
               ) : (
-                <select
-                  value={orderStatus}
-                  onChange={(e) => handleStatusUpdate(e.target.value)}
-                  className="w-full sm:w-64 px-4 py-2 border border-neutral-300 rounded-lg text-sm text-neutral-900 bg-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
-                  disabled={
-                    orderStatus === "Rejected" ||
-                    orderStatus === "Cancelled" ||
-                    orderStatus === "Delivered"
-                  }>
-                  <option value="Accepted">Accepted</option>
-                  <option value="Processed">Processed</option>
-                  <option value="Rider Assigned">Rider Assigned</option>
-                  <option value="On the way">On the way</option>
-                  <option value="Delivered">Delivered</option>
-                  <option value="Cancelled">Cancelled</option>
-                  {orderStatus === "Rejected" && (
-                    <option value="Rejected">Rejected</option>
-                  )}
-                </select>
+                <div className="inline-flex items-center gap-2.5 px-4 py-2 bg-white border border-neutral-300 rounded-lg text-sm font-bold text-neutral-700 shadow-sm">
+                  <span className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse" />
+                  <span>Order Status:</span>
+                  <span className="text-[#0a193b] font-black uppercase tracking-wider">{orderStatus}</span>
+                </div>
               )}
             </div>
 
@@ -725,11 +728,11 @@ export default function SellerOrderDetail() {
                   <span className="font-medium">Phone:</span> 8956656429
                 </div>
                 <div>
-                  <span className="font-medium">Email:</span> info@kosil.com
+                  <span className="font-medium">Email:</span> info@healthydelight.com
                 </div>
                 <div>
                   <span className="font-medium">Website:</span>{" "}
-                  https://kosil.com
+                  https://healthydelight.com
                 </div>
               </div>
             </div>
@@ -741,10 +744,10 @@ export default function SellerOrderDetail() {
                 {formatDate(orderDetail.orderDate)}
               </div>
               <div className="text-lg font-semibold text-neutral-900 mb-1">
-                Invoice #{orderDetail.invoiceNumber}
+                Invoice #{formatOrderFriendly(orderDetail.invoiceNumber)}
               </div>
               <div className="text-sm text-neutral-600 mb-1">
-                <span className="font-medium">Order ID:</span> {orderDetail.id}
+                <span className="font-medium">Order ID:</span> {formatOrderFriendly(orderDetail.invoiceNumber || orderDetail.id)}
               </div>
               <div className="text-sm text-neutral-600 mb-1">
                 <span className="font-medium">Delivery Date:</span>{" "}

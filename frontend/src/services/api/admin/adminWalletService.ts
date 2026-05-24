@@ -84,7 +84,16 @@ export const getAdminEarnings = async (
  * Get Wallet Transactions (Platform Level)
  */
 export const getWalletTransactions = async (
-  params?: { page?: number; limit?: number; type?: string; status?: string; userType?: string }
+  params?: {
+    page?: number;
+    limit?: number;
+    type?: string;
+    status?: string;
+    userType?: string;
+    userId?: string;
+    dateFrom?: string;
+    dateTo?: string;
+  }
 ): Promise<ApiResponse<WalletTransaction[]>> => {
   const response = await api.get<ApiResponse<WalletTransaction[]>>(
     "/admin/wallet/transactions",
@@ -149,6 +158,23 @@ export const getSellerTransactions = async (
   const response = await api.get<ApiResponse<any[]>>(
     `/admin/wallet/seller/${sellerId}`,
     { params }
+  );
+  return response.data;
+};
+
+/**
+ * Create Manual Fund Transfer (Credit/Debit) for Sellers or Delivery Boys
+ */
+export const createManualFundTransfer = async (data: {
+  userId: string;
+  userType: "SELLER" | "DELIVERY_BOY";
+  amount: number;
+  type: "Credit" | "Debit";
+  description: string;
+}): Promise<ApiResponse<any>> => {
+  const response = await api.post<ApiResponse<any>>(
+    "/admin/wallet/fund-transfer",
+    data
   );
   return response.data;
 };

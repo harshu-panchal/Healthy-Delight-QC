@@ -9,6 +9,7 @@
     "dev": "tsx watch src/server.ts",
     "test": "tsx test-auth.ts",
     "test:auth": "tsx src/scripts/testAuth.ts",
+    "reconcile:platform-wallet": "tsx src/scripts/reconcilePlatformWallet.ts",
     "test:integration": "tsx src/scripts/test-frontend-backend-auth.ts",
     "test:vendor-approval": "tsx src/scripts/test-vendor-approval.ts",
     "seed:grocery-kitchen": "tsx src/scripts/seedGroceryKitchen.ts",

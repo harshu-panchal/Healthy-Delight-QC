@@ -167,27 +167,19 @@ export const capturePayment = async (
         // Keep status as Placed/Received or whatever was set.
         // Usually, online payment orders start as 'Pending' and move to 'Received'
         if (order.status === 'Pending') {
-            order.status = 'Received';
+            order.status = order.orderType === 'Scheduled' ? 'Scheduled' : 'Received';
         }
         await order.save({ session });
 
-        // Trigger creation of Pending commissions
+        await session.commitTransaction();
+
+        // Trigger creation of Pending commissions (post-commit to avoid transaction lock/deadlock)
         try {
             const { createPendingCommissions } = await import('./commissionService');
             await createPendingCommissions(orderId);
         } catch (commError) {
             console.error("Failed to create pending commissions after payment:", commError);
         }
-
-        // Trigger creation of Pending commissions
-        // Note: We do this inside the transaction or right after. Ideally inside but createPendingCommissions might not support session passing yet.
-        // For safety/simplicity in this refactor step, we'll do it post-commit or ensure createPendingCommissions is safe.
-        // Given existing architecture, let's do it part of the flow but loosely coupled if needed.
-        // Actually, for data integrity, let's run it.
-        const { createPendingCommissions } = await import('./commissionService');
-        await createPendingCommissions(orderId); // This creates them as 'Pending'
-
-        await session.commitTransaction();
 
         return {
             success: true,
@@ -338,11 +330,16 @@ const handlePaymentCaptured = async (payload: any) => {
             payment.paidAt = new Date();
             await payment.save();
 
-            // Update order
-            await Order.findByIdAndUpdate(payment.order, {
-                paymentStatus: 'Paid',
-                paymentId: razorpayPaymentId,
-            });
+            // Find order and update its status
+            const order = await Order.findById(payment.order);
+            if (order) {
+                order.paymentStatus = 'Paid';
+                order.paymentId = razorpayPaymentId;
+                if (order.status === 'Pending') {
+                    order.status = order.orderType === 'Scheduled' ? 'Scheduled' : 'Received';
+                }
+                await order.save();
+            }
         }
     } catch (error) {
         console.error('Error handling payment captured:', error);

@@ -3,6 +3,7 @@ import { authenticate, requireUserType } from '../middleware/auth';
 import { Request, Response } from 'express';
 import { createRazorpayOrder, capturePayment, handleWebhook } from '../services/paymentService';
 import Order from '../models/Order';
+import { notifySellersOfOrderUpdate } from '../services/sellerNotificationService';
 
 const router = Router();
 
@@ -91,6 +92,20 @@ router.post('/verify', authenticate, requireUserType('Customer'), async (req: Re
 
         if (!result.success) {
             return res.status(400).json(result);
+        }
+
+        // Emit notification to sellers and delivery boys since payment succeeded!
+        try {
+            const io = req.app.get("io");
+            if (io) {
+                const savedOrder = await Order.findById(orderId).lean();
+                if (savedOrder) {
+                    const eventType = savedOrder.orderType === 'Scheduled' ? 'NEW_SCHEDULED_ORDER' : 'NEW_ORDER';
+                    await notifySellersOfOrderUpdate(io, savedOrder, eventType);
+                }
+            }
+        } catch (notificationError) {
+            console.error("Error notifying sellers after payment verification:", notificationError);
         }
 
         return res.status(200).json(result);

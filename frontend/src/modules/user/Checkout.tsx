@@ -36,6 +36,7 @@ import { addToWishlist } from "../../services/api/customerWishlistService";
 import { updateProfile } from "../../services/api/customerService";
 import { calculateProductPrice } from "../../utils/priceUtils";
 import { updateScheduledOrderItems } from "../../services/api/customerOrderService";
+import { verifyPayment } from "../../services/api/paymentService";
 
 // const STORAGE_KEY = 'saved_address'; // Removed
 
@@ -90,6 +91,7 @@ export default function Checkout() {
   const [paymentMethod, setPaymentMethod] = useState<"COD" | "Online">("Online");
   const [timeSlot, setTimeSlot] = useState<string>("");
   const [isPlacedOrderScheduled, setIsPlacedOrderScheduled] = useState<boolean>(false);
+  const [isVerifyingPayment, setIsVerifyingPayment] = useState<boolean>(false);
 
   // Load scheduled order data from sessionStorage
   const [scheduledDateStr, setScheduledDateStr] = useState<string | null>(() => {
@@ -140,6 +142,50 @@ export default function Checkout() {
       navigate("/");
     }
   }, [cart.items.length, cartLoading, navigate, showOrderSuccess]);
+
+  // Handle Razorpay payment redirect verification
+  useEffect(() => {
+    const verifyRedirectPayment = async () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const razorpayPaymentId = urlParams.get("razorpay_payment_id");
+      const razorpayOrderId = urlParams.get("razorpay_order_id");
+      const razorpaySignature = urlParams.get("razorpay_signature");
+      const savedPendingOrderId = localStorage.getItem("pendingOrderId");
+
+      if (razorpayPaymentId && razorpayOrderId && razorpaySignature && savedPendingOrderId) {
+        setIsVerifyingPayment(true);
+        try {
+          const verificationResponse = await verifyPayment({
+            orderId: savedPendingOrderId,
+            razorpayOrderId,
+            razorpayPaymentId,
+            razorpaySignature,
+          });
+
+          if (verificationResponse.success) {
+            // Remove the query parameters from the URL
+            window.history.replaceState({}, document.title, window.location.pathname);
+            
+            localStorage.removeItem("pendingOrderId");
+            setPlacedOrderId(savedPendingOrderId);
+            clearCart();
+            setShowOrderSuccess(true);
+          } else {
+            alert(`Payment verification failed: ${verificationResponse.message || "Unknown error"}`);
+            localStorage.removeItem("pendingOrderId");
+          }
+        } catch (err: any) {
+          console.error("Redirect verification error:", err);
+          alert(`Payment verification failed: ${err.message || "Unknown error"}`);
+          localStorage.removeItem("pendingOrderId");
+        } finally {
+          setIsVerifyingPayment(false);
+        }
+      }
+    };
+
+    verifyRedirectPayment();
+  }, [clearCart]);
 
   // Load addresses and coupons
   useEffect(() => {
@@ -242,19 +288,19 @@ export default function Checkout() {
           if (catId) {
             response = await getProducts({
               category: catId,
-              limit: 10,
+              limit: 30,
               ...locationParams,
             });
           } else {
             response = await getProducts({
-              limit: 10,
+              limit: 30,
               sort: "popular",
               ...locationParams,
             });
           }
         } else {
           response = await getProducts({
-            limit: 10,
+            limit: 30,
             sort: "popular",
             ...locationParams,
           });
@@ -264,21 +310,31 @@ export default function Checkout() {
           // Filter out items already in cart
           let filtered = (response.data || [])
             .filter((p: any) => !itemsInCartIds.has(p.id || p._id))
-            .map(mapToCardProduct)
-            .slice(0, 6);
+            .map(mapToCardProduct);
 
-          // Fallback: if category-based list becomes empty, show popular products
-          if (filtered.length === 0) {
+          // If we have less than 5 items, fetch additional popular products to fill the recommendation list to at least 5
+          if (filtered.length < 5) {
             const popular = await getProducts({
-              limit: 12,
+              limit: 30,
               sort: "popular",
               ...locationParams,
             });
-            filtered = (popular?.data || [])
+            const popularMapped = (popular?.data || [])
               .filter((p: any) => !itemsInCartIds.has(p.id || p._id))
-              .map(mapToCardProduct)
-              .slice(0, 6);
+              .map(mapToCardProduct);
+            
+            // Merge unique items
+            const seenIds = new Set(filtered.map(p => p.id));
+            for (const p of popularMapped) {
+              if (!seenIds.has(p.id)) {
+                filtered.push(p);
+                seenIds.add(p.id);
+              }
+            }
           }
+
+          // Slice to show a good amount of options (e.g. up to 8)
+          filtered = filtered.slice(0, 8);
 
           setSimilarProducts(filtered);
         }
@@ -294,6 +350,18 @@ export default function Checkout() {
     selectedAddress?.latitude,
     selectedAddress?.longitude,
   ]);
+
+  if (isVerifyingPayment) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="flex flex-col items-center">
+          <div className="w-12 h-12 border-4 border-[#0a193b] border-t-transparent rounded-full animate-spin mb-4"></div>
+          <p className="text-lg font-semibold text-neutral-800 mb-2">Verifying Payment...</p>
+          <p className="text-sm text-neutral-500">Please do not close this window or refresh.</p>
+        </div>
+      </div>
+    );
+  }
 
   if (cartLoading || ((cart?.items?.length || 0) === 0 && !showOrderSuccess)) {
     return (
@@ -345,11 +413,19 @@ export default function Checkout() {
   const handlingCharge = cart.platformFee ?? appConfig.platformFee;
   const deliveryCharge = cart.estimatedDeliveryFee ?? (displayCart.total >= threshold ? 0 : appConfig.deliveryFee);
 
+  // Calculate tax amount dynamically from cart items
+  const taxTotal = displayItems.reduce((sum, item) => {
+    if (!item?.product) return sum;
+    const { displayPrice } = calculateProductPrice(item.product, item.variant);
+    const taxPercentage = (item.product as any).tax?.percentage || 0;
+    return sum + (displayPrice * (taxPercentage / 100)) * (item.quantity || 0);
+  }, 0);
+
   // Recalculate or use validated discount
   // If we have a selected coupon, we should re-validate if cart total changes,
   // but for simplicity, we'll re-calculate locally if possible or trust the previous validation if acceptable (better to re-validate)
   const subtotalBeforeCoupon =
-    discountedTotal + handlingCharge + deliveryCharge;
+    discountedTotal + handlingCharge + deliveryCharge + taxTotal;
 
   // Local calculation for immediate feedback, relying on backend validation on Apply
   let currentCouponDiscount = 0;
@@ -385,6 +461,7 @@ export default function Checkout() {
     discountedTotal +
     handlingCharge +
     deliveryCharge +
+    taxTotal +
     finalTipAmount +
     giftPackagingFee -
     currentCouponDiscount
@@ -544,6 +621,7 @@ export default function Checkout() {
         sessionStorage.removeItem("scheduledTimeSlot");
         
         if (paymentMethod === "Online") {
+          localStorage.setItem("pendingOrderId", placedId);
           setPendingOrderId(placedId);
           setShowRazorpayCheckout(true);
         } else {
@@ -1357,64 +1435,7 @@ export default function Checkout() {
         </div>
       </div>
 
-      {/* Get FREE delivery banner - Themed */}
-      {deliveryCharge > 0 && (
-        <div className="px-4 py-2 bg-amber-50/50 border-b border-amber-100">
-          <div className="flex items-center gap-2 mb-1.5">
-            <svg
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg">
-              <path
-                d="M5 13h14M5 13l4-4m-4 4l4 4"
-                stroke="#8A6642"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <circle cx="18" cy="5" r="2" fill="#8A6642" />
-            </svg>
-            <div className="flex-1">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-[#8A6642]">
-                  Get FREE delivery
-                </span>
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg">
-                  <path
-                    d="M9 18l6-6-6-6"
-                    stroke="#8A6642"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </div>
-              <p className="text-[10px] text-[#8A6642]/80 mt-0.5">
-                Add products worth ₹{amountNeededForFreeDelivery.toLocaleString('en-IN')} more
-              </p>
-            </div>
-          </div>
-          {/* Progress bar */}
-          <div className="w-full h-1 bg-[#E6D5C3] rounded-full overflow-hidden">
-            <div
-              className="h-full bg-[#8A6642] transition-all duration-300"
-              style={{
-                width: `${Math.min(
-                  100,
-                  ((199 - amountNeededForFreeDelivery) / 199) * 100
-                )}%`,
-              }}
-            />
-          </div>
-        </div>
-      )}
+
 
       {/* Coupon Section */}
       {selectedCoupon ? (
@@ -1453,29 +1474,7 @@ export default function Checkout() {
             </button>
           </div>
         </div>
-      ) : (
-        <div className="px-4 py-1.5 flex justify-end border-b border-neutral-200">
-          <button
-            onClick={() => setShowCouponSheet(true)}
-            className="text-xs text-neutral-600 flex items-center gap-1">
-            See all coupons
-            <svg
-              width="12"
-              height="12"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg">
-              <path
-                d="M9 18l6-6-6-6"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </button>
-        </div>
-      )}
+      ) : null}
 
       {/* Required Selection: Shift Time */}
       {!scheduledDateStr && (
@@ -1600,24 +1599,7 @@ export default function Checkout() {
           )}
         </div>
 
-        {/* Improved Gift Packaging UI */}
-        <button
-          onClick={() => setGiftPackaging(!giftPackaging)}
-          className={`w-full flex items-center justify-between p-4 rounded-2xl border transition-all ${giftPackaging ? "bg-[#0a193b]/5 border-[#0a193b]/20 shadow-sm" : "bg-neutral-50/50 border-neutral-100"
-            }`}>
-          <div className="flex items-center gap-4">
-            <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${giftPackaging ? "bg-[#0a193b]/10 text-[#0a193b]" : "bg-neutral-100 text-neutral-400"}`}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 12V8H4v4M2 12h20M7 8V5c0-1.7 1.3-3 3-3h4c1.7 0 3 1.3 3 3v3M12 2v20M2 12v6c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2v-6" /></svg>
-            </div>
-            <div className="text-left">
-              <p className="text-xs font-bold text-neutral-900">Gift Packaging</p>
-              <p className="text-[10px] text-neutral-500 font-medium tracking-tight">Add an elegant gift wrap for only ₹30</p>
-            </div>
-          </div>
-          <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${giftPackaging ? "bg-[#0a193b] border-[#0a193b] scale-110" : "border-neutral-200 bg-white"}`}>
-            {giftPackaging && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>}
-          </div>
-        </button>
+
 
         {/* Cancellation Policy */}
         <div className="pt-2">
@@ -1708,13 +1690,35 @@ export default function Checkout() {
                   }`}>
                 {deliveryCharge === 0 ? "FREE" : `₹${deliveryCharge}`}
               </span>
-              {deliveryCharge > 0 && (
-                <span className="text-[10px] text-orange-600 mt-0.5">
-                  Shop for ₹{amountNeededForFreeDelivery} more to get FREE delivery
-                </span>
-              )}
+
             </div>
           </div>
+
+          {/* Taxes */}
+          {taxTotal > 0 && (
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg">
+                  <path
+                    d="M9 14l6-6M9 8h.01M15 14h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+                <span className="text-xs text-neutral-700">Taxes</span>
+              </div>
+              <span className="text-xs font-medium text-neutral-900">
+                ₹{Math.round(taxTotal * 100) / 100}
+              </span>
+            </div>
+          )}
 
           {/* Coupon discount */}
           {selectedCoupon && currentCouponDiscount > 0 && (

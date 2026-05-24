@@ -243,6 +243,7 @@ router.get("/wallet/earnings", walletController.getAdminEarnings);
 router.get("/wallet/transactions", walletController.getWalletTransactions);
 router.get("/wallet/withdrawals", withdrawalController.getAllWithdrawals);
 router.post("/wallet/withdrawal/process", walletController.processWithdrawalWrapper);
+router.post("/wallet/fund-transfer", walletController.createManualFundTransfer);
 
 // Direct withdrawal routes (if used elsewhere)
 router.put("/withdrawals/:id/approve", withdrawalController.approveWithdrawal);

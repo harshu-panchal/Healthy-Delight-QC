@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { useAuth } from '../context/AuthContext';
-import { OrderNotificationData, acceptOrder as acceptOrderService, rejectOrder as rejectOrderService, AcceptOrderResponse, RejectOrderResponse } from '../services/api/delivery/deliveryOrderNotificationService';
+import { OrderNotificationData, acceptOrder as acceptOrderService, rejectOrder as rejectOrderService, rejectAssignmentRest, AcceptOrderResponse, RejectOrderResponse } from '../services/api/delivery/deliveryOrderNotificationService';
 import { getSocketBaseURL, getAuthToken } from '../services/api/config';
 import { NavigateFunction } from 'react-router-dom';
 
@@ -180,11 +180,16 @@ export const useDeliveryOrderNotifications = () => {
         }
 
         try {
+            const isScheduled = state.currentNotification?.orderId === orderId && state.currentNotification?.orderType === 'Scheduled';
             const response = await acceptOrderService(socketRef.current, orderId, user.id);
             if (response.success) {
                 clearCurrentNotification();
                 if (navigate) {
-                    navigate(`/delivery/orders/${orderId}`);
+                    if (isScheduled) {
+                        navigate('/delivery/orders?tab=scheduled');
+                    } else {
+                        navigate(`/delivery/orders/${orderId}`);
+                    }
                 }
             }
             return response;
@@ -192,7 +197,7 @@ export const useDeliveryOrderNotifications = () => {
             console.error('Accept order error:', error);
             return { success: false, message: error.message || 'An error occurred while accepting the order' };
         }
-    }, [user?.id, clearCurrentNotification]);
+    }, [user?.id, clearCurrentNotification, state.currentNotification]);
 
     const rejectOrder = useCallback(async (orderId: string): Promise<RejectOrderResponse> => {
         if (!socketRef.current || !user?.id) {
@@ -200,7 +205,21 @@ export const useDeliveryOrderNotifications = () => {
         }
 
         try {
-            const response = await rejectOrderService(socketRef.current, orderId, user.id);
+            const isTargeted = state.currentNotification?.type === 'ASSIGNMENT_OFFER' || 
+                               state.currentNotification?.type === 'SCHEDULED_ASSIGNMENT' || 
+                               state.currentNotification?.type === 'SCHEDULED_ORDER';
+            
+            let response;
+            if (isTargeted) {
+                response = await rejectAssignmentRest(orderId);
+            } else {
+                response = await rejectOrderService(socketRef.current, orderId, user.id);
+                if (!response.success && response.message === 'Order notification not found') {
+                    console.log('🔄 Socket rejection returned not found. Trying REST fallback...');
+                    response = await rejectAssignmentRest(orderId);
+                }
+            }
+
             if (response.success) {
                 clearCurrentNotification();
             }
@@ -213,7 +232,7 @@ export const useDeliveryOrderNotifications = () => {
                 allRejected: false
             };
         }
-    }, [user?.id, clearCurrentNotification]);
+    }, [user?.id, clearCurrentNotification, state.currentNotification]);
 
     return {
         ...state,

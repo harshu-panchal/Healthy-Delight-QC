@@ -192,7 +192,7 @@ export const getProducts = asyncHandler(async (req: Request, res: Response) => {
     .populate("category", "name")
     .populate("subcategory", "name")
     .populate("brand", "name")
-    .populate("tax", "name rate")
+    .populate("tax", "name percentage")
     .sort(sort)
     .skip(skip)
     .limit(limitNum);
@@ -234,7 +234,7 @@ export const getProductById = asyncHandler(
       .populate("subcategory", "subcategoryName")
       .populate("headerCategoryId", "name slug")
       .populate("brand", "name")
-      .populate("tax", "name rate");
+      .populate("tax", "name percentage");
 
     if (!product) {
       return res.status(404).json({
@@ -380,7 +380,7 @@ export const updateProduct = asyncHandler(
       .populate("subcategory", "subcategoryName")
       .populate("headerCategoryId", "name slug")
       .populate("brand", "name")
-      .populate("tax", "name rate");
+      .populate("tax", "name percentage");
 
     console.log("DEBUG updateProduct: product updated successfully");
 

@@ -34,6 +34,7 @@ export interface IOrder extends Document {
   discount: number;
   commissionRate?: number; // Added field
   couponCode?: string;
+  tipAmount?: number;
   total: number;
 
   // Payment
@@ -112,6 +113,7 @@ export interface IOrder extends Document {
   grandTotal?: number;
   orderId?: string;
   invoiceNumber?: string;
+  gstin?: string;
   timeSlot?: string;
   orderType?: "Instant" | "Scheduled";
   scheduledDate?: Date;
@@ -232,6 +234,11 @@ const OrderSchema = new Schema<IOrder>(
     couponCode: {
       type: String,
       trim: true,
+    },
+    tipAmount: {
+      type: Number,
+      default: 0,
+      min: [0, "Tip amount cannot be negative"],
     },
     total: {
       type: Number,
@@ -392,6 +399,10 @@ const OrderSchema = new Schema<IOrder>(
       trim: true,
     },
     invoiceNumber: {
+      type: String,
+      trim: true,
+    },
+    gstin: {
       type: String,
       trim: true,
     },

@@ -25,6 +25,7 @@ export interface DeliveryBoy {
   maxAmount?: number;
   balance: number;
   cashCollected: number;
+  pendingAdminPayout?: number;
   status: "Active" | "Inactive";
   available: "Available" | "Not Available";
   currentLocation?: {
@@ -94,7 +95,7 @@ export interface CashCollection {
 
 export interface CreateCashCollectionData {
   deliveryBoyId: string;
-  orderId: string;
+  orderId?: string;
   amount: number;
   remark?: string;
 }

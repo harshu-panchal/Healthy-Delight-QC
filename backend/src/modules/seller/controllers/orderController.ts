@@ -6,6 +6,7 @@ import Seller from "../../../models/Seller";
 import WalletTransaction from "../../../models/WalletTransaction";
 import { notifyDeliveryBoysOfNewOrder } from "../../../services/orderNotificationService";
 import { Server as SocketIOServer } from "socket.io";
+import { processOrderStatusTransition } from "../../../services/orderService";
 
 /**
  * Get seller's orders with filters, sorting, and pagination
@@ -300,13 +301,12 @@ export const updateOrderStatus = asyncHandler(
     }
 
     const previousStatus = order.status;
-    order.status = status;
     
     try {
-      await order.save();
+      await processOrderStatusTransition(id, status, previousStatus);
       console.log(`[OrderUpdate] Order ${id} status updated successfully from ${previousStatus} to ${status}`);
     } catch (saveError: any) {
-      console.error(`[OrderUpdate] Failed to save order ${id}:`, saveError);
+      console.error(`[OrderUpdate] Failed to transition order ${id}:`, saveError);
       return res.status(500).json({
         success: false,
         message: "Failed to update order status in database",
@@ -341,37 +341,12 @@ export const updateOrderStatus = asyncHandler(
       }
     }
 
-    // If order is delivered, credit seller's balance
-    if (status === 'Delivered' && previousStatus !== 'Delivered') {
-      const seller = await Seller.findById(sellerId);
-      if (seller) {
-        // Calculate net earning (sale amount - commission)
-        // Commission is stored in seller model
-        const commissionRate = (seller.commission || 0) / 100;
-        const commissionAmount = order.grandTotal * commissionRate;
-        const netEarning = order.grandTotal - commissionAmount;
-
-        seller.balance = (seller.balance || 0) + netEarning;
-        await seller.save();
-
-        // Log transaction
-        await WalletTransaction.create({
-          sellerId,
-          amount: netEarning,
-          type: 'Credit',
-          description: `Earnings from Order #${order.orderId}`,
-          reference: `ORD-${order.orderId}-${Date.now()}`,
-          status: 'Completed'
-        });
-      }
-    }
-
     return res.status(200).json({
       success: true,
       message: "Order status updated successfully",
       data: {
         id: order._id,
-        status: order.status,
+        status: status,
       },
     });
   }

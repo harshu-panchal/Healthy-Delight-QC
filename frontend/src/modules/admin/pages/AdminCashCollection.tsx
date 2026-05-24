@@ -24,69 +24,71 @@ export default function AdminCashCollection() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [formData, setFormData] = useState<CreateCashCollectionData>({
+    deliveryBoyId: "",
+    amount: 0,
+    remark: "",
+  });
 
-  // Fetch delivery boys and cash collections on component mount
-  useEffect(() => {
+  const loadData = async () => {
     if (!isAuthenticated || !token) {
       setLoading(false);
       return;
     }
+    try {
+      setLoading(true);
+      setError(null);
 
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        // Fetch delivery boys for the dropdown
-        const deliveryBoysResponse = await getDeliveryBoys({
-          status: "Active",
-          limit: 100,
-        });
-        if (deliveryBoysResponse.success) {
-          setDeliveryBoys(deliveryBoysResponse.data);
-        }
-
-        // Fetch cash collections
-        const params: any = {
-          page: currentPage,
-          limit: entriesPerPage,
-        };
-
-        if (selectedDeliveryBoy !== "all") {
-          params.deliveryBoyId = selectedDeliveryBoy;
-        }
-
-        if (fromDate) {
-          params.fromDate = fromDate;
-        }
-
-        if (toDate) {
-          params.toDate = toDate;
-        }
-
-        if (searchTerm) {
-          params.search = searchTerm;
-        }
-
-        const cashResponse = await getCashCollections(params);
-
-        if (cashResponse.success) {
-          setCashCollections(cashResponse.data);
-        } else {
-          setError("Failed to load cash collections");
-        }
-      } catch (err: any) {
-        console.error("Error fetching data:", err);
-        setError(
-          err.response?.data?.message ||
-          "Failed to load data. Please try again."
-        );
-      } finally {
-        setLoading(false);
+      const deliveryBoysResponse = await getDeliveryBoys({
+        limit: 100,
+      });
+      if (deliveryBoysResponse.success) {
+        setDeliveryBoys(deliveryBoysResponse.data);
       }
-    };
 
-    fetchData();
+      const params: any = {
+        page: currentPage,
+        limit: entriesPerPage,
+      };
+
+      if (selectedDeliveryBoy !== "all") {
+        params.deliveryBoyId = selectedDeliveryBoy;
+      }
+
+      if (fromDate) {
+        params.fromDate = fromDate;
+      }
+
+      if (toDate) {
+        params.toDate = toDate;
+      }
+
+      if (searchTerm) {
+        params.search = searchTerm;
+      }
+
+      const cashResponse = await getCashCollections(params);
+      if (cashResponse.success) {
+        setCashCollections(cashResponse.data);
+      } else {
+        setError("Failed to load cash collections");
+      }
+    } catch (err: any) {
+      console.error("Error fetching data:", err);
+      setError(
+        err.response?.data?.message ||
+        "Failed to load data. Please try again."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch delivery boys and cash collections on component mount
+  useEffect(() => {
+    loadData();
   }, [
     isAuthenticated,
     token,
@@ -116,8 +118,37 @@ export default function AdminCashCollection() {
   const endIndex = startIndex + entriesPerPage;
 
   const handleAddCollection = async () => {
-    // For now, just show an alert. In a real app, this would open a modal to add a cash collection
-    alert("Add cash collection functionality would be implemented here");
+    setSubmitError(null);
+    setFormData({
+      deliveryBoyId: "",
+      amount: 0,
+      remark: "",
+    });
+    setShowAddModal(true);
+  };
+
+  const handleCreateCollection = async () => {
+    if (!formData.deliveryBoyId || formData.amount <= 0) {
+      setSubmitError("Delivery boy and amount are required.");
+      return;
+    }
+    try {
+      setSubmitting(true);
+      setSubmitError(null);
+      const response = await createCashCollection(formData);
+      if (!response.success) {
+        setSubmitError("Failed to create cash collection.");
+        return;
+      }
+      setShowAddModal(false);
+      await loadData();
+    } catch (err: any) {
+      setSubmitError(
+        err.response?.data?.message || "Failed to create cash collection."
+      );
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleExport = () => {
@@ -164,6 +195,21 @@ export default function AdminCashCollection() {
   };
 
   const methods = ["All", "Cash", "Card", "Online"];
+  const pendingCollections = deliveryBoys
+    .filter(
+      (boy) =>
+        (boy.pendingAdminPayout && boy.pendingAdminPayout > 0) ||
+        (boy.cashCollected && boy.cashCollected > 0)
+    )
+    .sort(
+      (a, b) =>
+        (b.pendingAdminPayout || b.cashCollected || 0) -
+        (a.pendingAdminPayout || a.cashCollected || 0)
+    );
+  const totalPendingCollection = pendingCollections.reduce(
+    (sum, boy) => sum + (boy.pendingAdminPayout || boy.cashCollected || 0),
+    0
+  );
 
   return (
     <div className="space-y-4 sm:space-y-6 -mx-3 sm:-mx-4 md:-mx-6 -mt-3 sm:-mt-4 md:-mt-6">
@@ -183,6 +229,49 @@ export default function AdminCashCollection() {
 
       {/* Main Content */}
       <div className="px-3 sm:px-4 md:px-6">
+        <div className="bg-white rounded-lg shadow-sm border border-neutral-200 overflow-hidden mb-4 sm:mb-6">
+          <div className="bg-neutral-50 border-b border-neutral-200 px-4 sm:px-6 py-3">
+            <div className="flex items-center justify-between gap-2 flex-wrap">
+              <h2 className="text-base sm:text-lg font-semibold text-neutral-800">
+                Pending COD To Collect From Delivery Boys
+              </h2>
+              <span className="text-sm font-semibold text-neutral-900">
+                Total Pending: ₹{totalPendingCollection.toFixed(2)}
+              </span>
+            </div>
+          </div>
+          <div className="p-4 sm:p-6">
+            {pendingCollections.length === 0 ? (
+              <p className="text-sm text-neutral-500 italic">
+                No pending COD cash with delivery boys.
+              </p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[700px] border-collapse">
+                  <thead>
+                    <tr className="bg-neutral-100 border-b border-neutral-200">
+                      <th className="px-4 py-3 text-left text-xs font-bold text-neutral-600 uppercase">Delivery Boy</th>
+                      <th className="px-4 py-3 text-left text-xs font-bold text-neutral-600 uppercase">Mobile</th>
+                      <th className="px-4 py-3 text-left text-xs font-bold text-neutral-600 uppercase">Pending COD</th>
+                      <th className="px-4 py-3 text-left text-xs font-bold text-neutral-600 uppercase">Cash In Hand</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-neutral-200">
+                    {pendingCollections.map((boy) => (
+                      <tr key={boy._id} className="hover:bg-neutral-50">
+                        <td className="px-4 py-3 text-sm font-medium text-neutral-900">{boy.name}</td>
+                        <td className="px-4 py-3 text-sm text-neutral-700">{boy.mobile}</td>
+                        <td className="px-4 py-3 text-sm font-semibold text-red-600">₹{(boy.pendingAdminPayout || 0).toFixed(2)}</td>
+                        <td className="px-4 py-3 text-sm font-semibold text-neutral-900">₹{(boy.cashCollected || 0).toFixed(2)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </div>
+
         <div className="bg-white rounded-lg shadow-sm border border-neutral-200 overflow-hidden">
           {/* Banner */}
           <div className="bg-neutral-50 border-b border-neutral-200 px-4 sm:px-6 py-2 sm:py-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
@@ -441,7 +530,7 @@ export default function AdminCashCollection() {
                         </div>
                       </td>
                       <td className="px-6 py-4 text-sm text-neutral-700">
-                        {collection.orderId}
+                        {collection.orderId || "-"}
                       </td>
                       <td className="px-6 py-4 text-sm text-neutral-500">
                         ₹{collection.total.toFixed(2)}
@@ -537,6 +626,86 @@ export default function AdminCashCollection() {
           Healthy Delight
         </a>
       </div>
+
+      {showAddModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl w-full max-w-md p-6">
+            <h3 className="text-lg font-semibold text-neutral-900 mb-4">
+              Add Cash Collection
+            </h3>
+            <div className="space-y-3">
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-1">
+                  Delivery Boy
+                </label>
+                <select
+                  value={formData.deliveryBoyId}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, deliveryBoyId: e.target.value }))
+                  }
+                  className="w-full px-3 py-2 border border-neutral-300 rounded text-sm"
+                >
+                  <option value="">Select delivery boy</option>
+                  {deliveryBoys.map((boy) => (
+                    <option key={boy._id} value={boy._id}>
+                      {boy.name} ({boy.mobile})
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-1">
+                  Amount
+                </label>
+                <input
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  value={formData.amount || ""}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, amount: Number(e.target.value) }))
+                  }
+                  placeholder="Enter collected amount"
+                  className="w-full px-3 py-2 border border-neutral-300 rounded text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-1">
+                  Remark (Optional)
+                </label>
+                <input
+                  type="text"
+                  value={formData.remark || ""}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, remark: e.target.value }))
+                  }
+                  placeholder="Any notes"
+                  className="w-full px-3 py-2 border border-neutral-300 rounded text-sm"
+                />
+              </div>
+              {submitError && (
+                <p className="text-sm text-red-600">{submitError}</p>
+              )}
+            </div>
+            <div className="mt-5 flex items-center justify-end gap-2">
+              <button
+                onClick={() => setShowAddModal(false)}
+                className="px-4 py-2 border border-neutral-300 rounded text-sm"
+                disabled={submitting}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleCreateCollection}
+                className="px-4 py-2 bg-neutral-900 text-white rounded text-sm"
+                disabled={submitting}
+              >
+                {submitting ? "Saving..." : "Save Collection"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

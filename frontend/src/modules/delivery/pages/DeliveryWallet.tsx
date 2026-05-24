@@ -13,6 +13,35 @@ import {
 } from "../../../services/api/deliveryWalletService";
 import { useAuth } from "../../../context/AuthContext";
 
+const formatOrderFriendly = (orderNumber?: string, orderId?: string) => {
+    if (orderNumber && orderNumber !== 'N/A') {
+        if (orderNumber.startsWith('ORD')) {
+            const numericPart = orderNumber.replace('ORD', '');
+            if (numericPart.length > 6) {
+                return `ORD-${numericPart.slice(-6)}`;
+            }
+            return orderNumber;
+        }
+        return orderNumber.length > 10 ? orderNumber.slice(0, 8) : orderNumber;
+    }
+    if (orderId) {
+        return `ORD-${orderId.substring(0, 6).toUpperCase()}`;
+    }
+    return 'Unknown';
+};
+
+const formatDescriptionFriendly = (desc: string) => {
+    if (!desc) return '';
+    const orderRegex = /(?:Order\s*#|order\s+)(ORD\d+|\w{24})/i;
+    const match = desc.match(orderRegex);
+    if (match) {
+        const rawId = match[1];
+        const friendlyId = formatOrderFriendly(rawId.startsWith('ORD') ? rawId : undefined, !rawId.startsWith('ORD') ? rawId : undefined);
+        return desc.replace(rawId, friendlyId);
+    }
+    return desc;
+};
+
 type Tab = "transactions" | "withdrawals" | "commissions";
 
 export default function DeliveryWallet() {
@@ -43,6 +72,31 @@ export default function DeliveryWallet() {
 
     useEffect(() => {
         fetchWalletData();
+    }, []);
+
+    useEffect(() => {
+        const handleRefresh = () => {
+            fetchWalletData();
+        };
+
+        const handleVisibilityChange = () => {
+            if (document.visibilityState === "visible") {
+                fetchWalletData();
+            }
+        };
+
+        const interval = window.setInterval(() => {
+            fetchWalletData();
+        }, 30000);
+
+        window.addEventListener("focus", handleRefresh);
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+
+        return () => {
+            window.clearInterval(interval);
+            window.removeEventListener("focus", handleRefresh);
+            document.removeEventListener("visibilitychange", handleVisibilityChange);
+        };
     }, []);
 
     const fetchWalletData = async () => {
@@ -309,19 +363,6 @@ export default function DeliveryWallet() {
                         </div>
                         <p className="text-xs font-bold text-neutral-500 uppercase tracking-tight">Owed to Admin</p>
                         <h3 className="text-xl font-black text-orange-600 mt-1">₹{pendingAdminPayout.toLocaleString('en-IN')}</h3>
-
-                        <button
-                            onClick={() => {
-                                setPayoutAmount(pendingAdminPayout.toString());
-                                setShowPayoutModal(true);
-                            }}
-                            disabled={pendingAdminPayout <= 0}
-                            className={`mt-4 w-full py-2 rounded-lg text-xs font-bold transition-all ${pendingAdminPayout > 0
-                                    ? "bg-orange-600 text-white hover:bg-orange-700 active:scale-95 shadow-lg shadow-orange-200"
-                                    : "bg-neutral-100 text-neutral-400 cursor-not-allowed"
-                                }`}>
-                            Pay to Admin
-                        </button>
                     </div>
                 </motion.div>
             </div>
@@ -392,7 +433,7 @@ export default function DeliveryWallet() {
                                         className="flex justify-between items-start p-3 bg-gray-50 rounded-lg">
                                         <div className="flex-1">
                                             <p className="font-medium text-gray-900">
-                                                {txn.description}
+                                                {formatDescriptionFriendly(txn.description)}
                                             </p>
                                             <p className="text-xs text-gray-500 mt-1">
                                                 {new Date(txn.createdAt).toLocaleDateString("en-IN", {
@@ -482,7 +523,7 @@ export default function DeliveryWallet() {
                                         <div className="flex justify-between items-start mb-2">
                                             <div>
                                                 <p className="font-medium text-gray-900">
-                                                    Delivery Commission
+                                                    Delivery Commission (#{formatOrderFriendly(comm.orderNumber, comm.orderId)})
                                                 </p>
                                                 <p className="text-xs text-gray-600">
                                                     Rate: {comm.rate}%
