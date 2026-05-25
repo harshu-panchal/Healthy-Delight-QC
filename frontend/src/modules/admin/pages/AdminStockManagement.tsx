@@ -718,7 +718,7 @@ export default function AdminStockManagement() {
 
       {/* Footer */}
       <footer className="text-center py-4 text-sm text-neutral-600 border-t border-neutral-200 bg-white">
-        Copyright © 2026. Developed By{" "}
+        Copyright © {new Date().getFullYear()}. Developed By{" "}
         <a href="#" className="text-primary-dark hover:underline">
           Healthy Delight
         </a>

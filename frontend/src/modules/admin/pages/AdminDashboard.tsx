@@ -21,8 +21,11 @@ import {
   type TodaySales,
 } from "../../../services/api/admin/adminDashboardService";
 
+import { useNavigate } from "react-router-dom";
+
 export default function AdminDashboard() {
   const { isAuthenticated, token } = useAuth();
+  const navigate = useNavigate();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [newOrders, setNewOrders] = useState<RecentOrder[]>([]);
   const [topSellers, setTopSellers] = useState<TopSeller[]>([]);
@@ -583,17 +586,17 @@ export default function AdminDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         <ErrorBoundary fallback={<div className="text-sm text-red-600 p-4">Chart failed to load</div>}>
           <OrderChart
-            title="Order - Dec 2025"
+            title={`Order - ${new Date().toLocaleString('default', { month: 'short' })} ${new Date().getFullYear()}`}
             data={orderDataDec2025}
-            maxValue={3}
+            maxValue={Math.max(...orderDataDec2025.map((d: any) => d.value), 5)}
             height={400}
           />
         </ErrorBoundary>
         <ErrorBoundary fallback={<div className="text-sm text-red-600 p-4">Chart failed to load</div>}>
           <OrderChart
-            title="Order - 2025"
+            title={`Order - ${new Date().getFullYear()}`}
             data={orderData2025}
-            maxValue={80}
+            maxValue={Math.max(...orderData2025.map((d: any) => d.value), 20)}
             height={400}
           />
         </ErrorBoundary>
@@ -747,6 +750,7 @@ export default function AdminDashboard() {
                       </td>
                       <td className="px-4 sm:px-6 py-3">
                         <button
+                          onClick={() => navigate(`/admin/orders/${order.id}`)}
                           className="bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white p-1.5 rounded transition-all active:scale-95"
                           aria-label="View order">
                           <svg
@@ -950,6 +954,7 @@ export default function AdminDashboard() {
                       </td>
                       <td className="px-4 sm:px-6 py-3">
                         <button
+                          onClick={() => navigate('/admin/manage-seller/list', { state: { search: seller.sellerName } })}
                           className="bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white p-1.5 rounded transition-all active:scale-95"
                           aria-label="View seller">
                           <svg

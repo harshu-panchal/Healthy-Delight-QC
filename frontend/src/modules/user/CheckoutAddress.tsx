@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useJsApiLoader } from '@react-google-maps/api';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
@@ -9,6 +9,10 @@ import { getAddresses, addAddress, updateAddress, Address } from '../../services
 import { appConfig } from '../../services/configService';
 import { calculateProductPrice } from '../../utils/priceUtils';
 import GoogleMapsLocationPicker from '../../components/GoogleMapsLocationPicker';
+import LocationPickerMap from '../../components/LocationPickerMap';
+
+type Libraries = ("places" | "drawing" | "geometry" | "visualization")[];
+const googleLibraries: Libraries = ['places'];
 
 export default function CheckoutAddress() {
   const { cart } = useCart();
@@ -43,10 +47,86 @@ export default function CheckoutAddress() {
 
   const { isLoaded } = useJsApiLoader({
     id: 'google-map-script',
-    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || ''
+    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '',
+    libraries: googleLibraries
   });
 
   // Get user's current location on mount
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setSelectedLatitude(position.coords.latitude);
+          setSelectedLongitude(position.coords.longitude);
+        },
+        (error) => {
+          console.warn("Geolocation permission or retrieval failed, defaulting to Indore center:", error);
+          setSelectedLatitude(22.7196);
+          setSelectedLongitude(75.8577);
+        }
+      );
+    } else {
+      setSelectedLatitude(22.7196);
+      setSelectedLongitude(75.8577);
+    }
+  }, []);
+
+  const handleLocationSelect = useCallback(async (lat: number, lng: number) => {
+    setSelectedLatitude(lat);
+    setSelectedLongitude(lng);
+
+    if (isLoaded) {
+      try {
+        const geocoder = new google.maps.Geocoder();
+        geocoder.geocode({ location: { lat, lng } }, (results, status) => {
+          if (status === 'OK' && results && results[0]) {
+            const addressComponents = results[0].address_components;
+            
+            let streetNumber = '';
+            let route = '';
+            let sublocality = '';
+            let city = '';
+            let state = '';
+            let pincode = '';
+
+            for (const component of addressComponents) {
+              const types = component.types;
+              if (types.includes('street_number')) {
+                streetNumber = component.long_name;
+              }
+              if (types.includes('route')) {
+                route = component.long_name;
+              }
+              if (types.includes('sublocality') || types.includes('sublocality_level_1') || types.includes('neighborhood')) {
+                sublocality = component.long_name;
+              }
+              if (types.includes('locality')) {
+                city = component.long_name;
+              }
+              if (types.includes('administrative_area_level_1')) {
+                state = component.long_name;
+              }
+              if (types.includes('postal_code')) {
+                pincode = component.long_name;
+              }
+            }
+
+            const streetArea = [streetNumber, route, sublocality].filter(Boolean).join(', ');
+
+            setAddress(prev => ({
+              ...prev,
+              street: streetArea || prev.street,
+              city: city || prev.city,
+              state: state || prev.state,
+              pincode: pincode || prev.pincode,
+            }));
+          }
+        });
+      } catch (e) {
+        console.error("Reverse geocoding error:", e);
+      }
+    }
+  }, [isLoaded]);
 
 
   // Fetch all addresses on mount
@@ -311,6 +391,24 @@ export default function CheckoutAddress() {
         </label>
       </div>
 
+      {/* Live Map Location Picker */}
+      <div className="p-4 bg-neutral-50 border-b border-neutral-200">
+        <p className="text-xs font-bold text-[#0a193b] mb-2 uppercase tracking-wider flex items-center gap-1.5">
+          📍 Locate your address on the map
+        </p>
+        <div className="h-[220px] w-full rounded-2xl overflow-hidden shadow-sm border border-neutral-200">
+          <LocationPickerMap
+            initialLat={selectedLatitude}
+            initialLng={selectedLongitude}
+            onLocationSelect={handleLocationSelect}
+            height="100%"
+          />
+        </div>
+        <p className="text-[10px] text-neutral-400 mt-1.5 font-medium">
+          Drag the map to place the red pin precisely on your delivery location. Address fields below will auto-fill.
+        </p>
+      </div>
+
       {/* Who you are ordering for? */}
       <div className="px-4 py-2.5 border-b border-neutral-200">
         <p className="text-xs font-medium text-neutral-700 mb-2">Who you are ordering for?</p>
@@ -322,10 +420,10 @@ export default function CheckoutAddress() {
               value="myself"
               checked={orderingFor === 'myself'}
               onChange={(e) => setOrderingFor(e.target.value as 'myself' | 'someone-else')}
-              className="w-4 h-4 appearance-none border-2 border-neutral-300 rounded-full bg-white checked:bg-white checked:border-green-600 focus:ring-2 focus:ring-green-500 focus:ring-offset-0"
+              className="w-4 h-4 appearance-none border-2 border-neutral-300 rounded-full bg-white checked:bg-white checked:border-[#0a193b] focus:ring-2 focus:ring-[#0a193b] focus:ring-offset-0"
               style={{
                 backgroundImage: orderingFor === 'myself'
-                  ? 'radial-gradient(circle, rgb(22, 163, 74) 35%, transparent 40%)'
+                  ? 'radial-gradient(circle, rgb(10, 25, 59) 35%, transparent 40%)'
                   : 'none',
                 backgroundSize: '40%',
                 backgroundPosition: 'center',
@@ -341,10 +439,10 @@ export default function CheckoutAddress() {
               value="someone-else"
               checked={orderingFor === 'someone-else'}
               onChange={(e) => setOrderingFor(e.target.value as 'myself' | 'someone-else')}
-              className="w-4 h-4 appearance-none border-2 border-neutral-300 rounded-full bg-white checked:bg-white checked:border-green-600 focus:ring-2 focus:ring-green-500 focus:ring-offset-0"
+              className="w-4 h-4 appearance-none border-2 border-neutral-300 rounded-full bg-white checked:bg-white checked:border-[#0a193b] focus:ring-2 focus:ring-[#0a193b] focus:ring-offset-0"
               style={{
                 backgroundImage: orderingFor === 'someone-else'
-                  ? 'radial-gradient(circle, rgb(22, 163, 74) 35%, transparent 40%)'
+                  ? 'radial-gradient(circle, rgb(10, 25, 59) 35%, transparent 40%)'
                   : 'none',
                 backgroundSize: '40%',
                 backgroundPosition: 'center',
@@ -373,7 +471,7 @@ export default function CheckoutAddress() {
                 key={type.id}
                 onClick={() => setAddressType(type.id as typeof addressType)}
                 className={`px-3 py-1.5 rounded-lg border-2 text-xs font-medium transition-colors flex items-center gap-1.5 ${addressType === type.id
-                  ? 'border-green-600 bg-green-50 text-green-700'
+                  ? 'border-[#0a193b] bg-blue-50/50 text-[#0a193b]'
                   : 'border-neutral-200 bg-white text-neutral-700 hover:border-neutral-300'
                   }`}
               >
@@ -395,7 +493,7 @@ export default function CheckoutAddress() {
             type="text"
             value={address.name}
             onChange={(e) => handleInputChange('name', e.target.value)}
-            className={`w-full px-3 py-2 bg-white border rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 transition-colors ${errors.name ? 'border-red-500' : 'border-neutral-200'
+            className={`w-full px-3 py-2 bg-white border rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-[#0a193b] focus:border-[#0a193b] transition-colors ${errors.name ? 'border-red-500' : 'border-neutral-200'
               }`}
             placeholder="Enter your name"
           />
@@ -410,7 +508,7 @@ export default function CheckoutAddress() {
             type="tel"
             value={address.phone}
             onChange={(e) => handleInputChange('phone', e.target.value.replace(/\D/g, ''))}
-            className={`w-full px-3 py-2 bg-white border rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 transition-colors ${errors.phone ? 'border-red-500' : 'border-neutral-200'
+            className={`w-full px-3 py-2 bg-white border rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-[#0a193b] focus:border-[#0a193b] transition-colors ${errors.phone ? 'border-red-500' : 'border-neutral-200'
               }`}
             placeholder="Enter mobile number"
             maxLength={10}
@@ -426,7 +524,7 @@ export default function CheckoutAddress() {
             type="text"
             value={address.flat}
             onChange={(e) => handleInputChange('flat', e.target.value)}
-            className={`w-full px-3 py-2 bg-white border rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 transition-colors ${errors.flat ? 'border-red-500' : 'border-neutral-200'
+            className={`w-full px-3 py-2 bg-white border rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-[#0a193b] focus:border-[#0a193b] transition-colors ${errors.flat ? 'border-red-500' : 'border-neutral-200'
               }`}
             placeholder="Flat/House No."
           />
@@ -441,7 +539,7 @@ export default function CheckoutAddress() {
             type="text"
             value={address.street}
             onChange={(e) => handleInputChange('street', e.target.value)}
-            className={`w-full px-3 py-2 bg-white border rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 transition-colors ${errors.street ? 'border-red-500' : 'border-neutral-200'
+            className={`w-full px-3 py-2 bg-white border rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-[#0a193b] focus:border-[#0a193b] transition-colors ${errors.street ? 'border-red-500' : 'border-neutral-200'
               }`}
             placeholder="Street/Area"
           />
@@ -456,7 +554,7 @@ export default function CheckoutAddress() {
             type="text"
             value={address.city}
             onChange={(e) => handleInputChange('city', e.target.value)}
-            className={`w-full px-3 py-2 bg-white border rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 transition-colors ${errors.city ? 'border-red-500' : 'border-neutral-200'
+            className={`w-full px-3 py-2 bg-white border rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-[#0a193b] focus:border-[#0a193b] transition-colors ${errors.city ? 'border-red-500' : 'border-neutral-200'
               }`}
             placeholder="City"
           />
@@ -471,7 +569,7 @@ export default function CheckoutAddress() {
             type="text"
             value={address.state || ''}
             onChange={(e) => handleInputChange('state', e.target.value)}
-            className={`w-full px-3 py-2 bg-white border rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 transition-colors ${errors.state ? 'border-red-500' : 'border-neutral-200'
+            className={`w-full px-3 py-2 bg-white border rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-[#0a193b] focus:border-[#0a193b] transition-colors ${errors.state ? 'border-red-500' : 'border-neutral-200'
               }`}
             placeholder="State"
           />
@@ -486,7 +584,7 @@ export default function CheckoutAddress() {
             type="text"
             value={address.pincode}
             onChange={(e) => handleInputChange('pincode', e.target.value.replace(/\D/g, ''))}
-            className={`w-full px-3 py-2 bg-white border rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 transition-colors ${errors.pincode ? 'border-red-500' : 'border-neutral-200'
+            className={`w-full px-3 py-2 bg-white border rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-[#0a193b] focus:border-[#0a193b] transition-colors ${errors.pincode ? 'border-red-500' : 'border-neutral-200'
               }`}
             placeholder="Pincode"
             maxLength={6}
@@ -530,7 +628,7 @@ export default function CheckoutAddress() {
             </div>
             <div className="flex justify-between text-xs text-neutral-700">
               <span>Delivery Charges</span>
-              <span className={`font-medium ${deliveryFee === 0 ? 'text-green-600' : ''}`}>
+              <span className={`font-medium ${deliveryFee === 0 ? 'text-[#0a193b]' : ''}`}>
                 {deliveryFee === 0 ? 'Free' : `₹${deliveryFee}`}
               </span>
             </div>
@@ -550,7 +648,7 @@ export default function CheckoutAddress() {
           onClick={handleSaveAddress}
           disabled={!isFormValid || isSaving}
           className={`w-full py-3 px-4 font-semibold text-sm transition-colors ${isFormValid && !isSaving
-            ? 'bg-green-600 text-white hover:bg-green-700'
+            ? 'bg-[#0a193b] text-white hover:bg-[#0a193b]/90'
             : 'bg-neutral-300 text-neutral-500 cursor-not-allowed'
             }`}
         >

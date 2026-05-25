@@ -2,6 +2,8 @@ import { Server as SocketIOServer } from 'socket.io';
 import OrderItem from '../models/OrderItem';
 import mongoose from 'mongoose';
 
+import { getOrderItemCommissionRate } from './commissionService';
+
 /**
  * Notify all sellers involved in an order about a new order or status change
  */
@@ -21,7 +23,7 @@ export async function notifySellersOfOrderUpdate(
         let orderItems = order.items;
 
         // If items are just IDs, fetch the full OrderItem details to get seller IDs
-        if (orderItems.length > 0 && typeof orderItems[0] === 'string' || orderItems[0] instanceof mongoose.Types.ObjectId) {
+        if (orderItems.length > 0 && (typeof orderItems[0] === 'string' || orderItems[0] instanceof mongoose.Types.ObjectId)) {
             orderItems = await OrderItem.find({ order: order._id });
         }
 
@@ -32,6 +34,26 @@ export async function notifySellersOfOrderUpdate(
         for (const sellerId of sellerIds) {
             // Get only items belonging to this seller
             const sellerSpecificItems = orderItems.filter((item: any) => item.seller.toString() === sellerId);
+
+            const mappedItems = await Promise.all(sellerSpecificItems.map(async (item: any) => {
+                const commissionRate = item.commissionRate || await getOrderItemCommissionRate(item.product ? (item.product as any).toString() : '', sellerId as any);
+                const commissionAmount = (item.total * commissionRate) / 100;
+                const netEarning = item.total - commissionAmount;
+                return {
+                    productName: item.productName,
+                    quantity: item.quantity,
+                    price: item.unitPrice,
+                    total: item.total,
+                    variation: item.variation,
+                    commissionRate,
+                    commissionAmount,
+                    netEarning
+                };
+            }));
+
+            const totalAmount = mappedItems.reduce((acc: number, item: any) => acc + item.total, 0);
+            const totalCommission = mappedItems.reduce((acc: number, item: any) => acc + item.commissionAmount, 0);
+            const netEarnings = mappedItems.reduce((acc: number, item: any) => acc + item.netEarning, 0);
 
             const notificationData = {
                 type,
@@ -45,14 +67,10 @@ export async function notifySellersOfOrderUpdate(
                     phone: order.customerPhone,
                     address: order.deliveryAddress
                 },
-                items: sellerSpecificItems.map((item: any) => ({
-                    productName: item.productName,
-                    quantity: item.quantity,
-                    price: item.unitPrice,
-                    total: item.total,
-                    variation: item.variation
-                })),
-                totalAmount: sellerSpecificItems.reduce((acc: number, item: any) => acc + item.total, 0),
+                items: mappedItems,
+                totalAmount,
+                totalCommission,
+                netEarnings,
                 timestamp: new Date(),
                 orderType: order.orderType,
                 scheduledDate: order.scheduledDate,

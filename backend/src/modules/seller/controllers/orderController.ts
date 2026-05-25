@@ -7,6 +7,7 @@ import WalletTransaction from "../../../models/WalletTransaction";
 import { notifyDeliveryBoysOfNewOrder } from "../../../services/orderNotificationService";
 import { Server as SocketIOServer } from "socket.io";
 import { processOrderStatusTransition } from "../../../services/orderService";
+import { getOrderItemCommissionRate } from "../../../services/commissionService";
 
 /**
  * Get seller's orders with filters, sorting, and pagination
@@ -164,8 +165,7 @@ export const getOrderById = asyncHandler(
     const orderItems = sellerItems;
 
     // Format order items for frontend
-    // Format order items for frontend
-    const formattedItems = orderItems.map(item => {
+    const formattedItems = await Promise.all(orderItems.map(async (item) => {
       let unit = item.variation || 'N/A';
       let variationMatched = false;
 
@@ -201,6 +201,10 @@ export const getOrderById = asyncHandler(
         }
       }
 
+      const commissionRate = item.commissionRate || await getOrderItemCommissionRate(item.product ? (item.product as any)._id.toString() : '', sellerId);
+      const commissionAmount = ((item.total || 0) * commissionRate) / 100;
+      const netEarning = (item.total || 0) - commissionAmount;
+
       return {
         srNo: item._id.toString().slice(-4), // Use last 4 chars of ID as srNo
         product: item.productName || 'Unknown Product',
@@ -211,8 +215,15 @@ export const getOrderById = asyncHandler(
         taxPercent: 0,
         qty: item.quantity || 0,
         subtotal: item.total || 0,
+        commissionRate,
+        commissionAmount,
+        netEarning
       };
-    });
+    }));
+
+    const sellerTotalSubtotal = formattedItems.reduce((sum, item) => sum + item.subtotal, 0);
+    const sellerTotalCommission = formattedItems.reduce((sum, item) => sum + item.commissionAmount, 0);
+    const sellerNetEarnings = formattedItems.reduce((sum, item) => sum + item.netEarning, 0);
 
     // Format order data for frontend
     const orderDetail = {
@@ -233,9 +244,11 @@ export const getOrderById = asyncHandler(
       deliveryBoyPhone: (order.deliveryBoy as any)?.mobile || '',
       deliveryBoyStatus: order.deliveryBoyStatus || '',
       items: formattedItems,
-      subtotal: order.subtotal || 0,
+      subtotal: sellerTotalSubtotal,
+      totalCommission: sellerTotalCommission,
+      netEarnings: sellerNetEarnings,
       tax: order.tax || 0,
-      grandTotal: order.total || 0,
+      grandTotal: sellerTotalSubtotal,
       paymentMethod: order.paymentMethod || 'N/A',
       paymentStatus: order.paymentStatus || 'Pending',
       deliveryAddress: order.deliveryAddress || {},

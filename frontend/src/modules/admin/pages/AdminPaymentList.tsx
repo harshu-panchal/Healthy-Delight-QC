@@ -289,7 +289,7 @@ export default function AdminPaymentList() {
 
       {/* Footer */}
       <div className="text-center text-sm text-neutral-500 py-4">
-        Copyright © 2026. Developed By{" "}
+        Copyright © {new Date().getFullYear()}. Developed By{" "}
         <a href="#" className="text-primary hover:text-primary-dark">
           Healthy Delight
         </a>

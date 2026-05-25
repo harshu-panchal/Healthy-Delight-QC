@@ -154,15 +154,6 @@ export default function SellerHeader({
             Orders
           </button>
           <button
-            onClick={() => navigate("/seller/return-order")}
-            className={`px-3 lg:px-4 py-2 text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${
-              isActive("/seller/return-order")
-                ? "text-neutral-900"
-                : "text-neutral-600 hover:text-neutral-900"
-            }`}>
-            Return Order
-          </button>
-          <button
             onClick={() => navigate("/seller/wallet")}
             className={`px-3 lg:px-4 py-2 text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${
               isActive("/seller/wallet")

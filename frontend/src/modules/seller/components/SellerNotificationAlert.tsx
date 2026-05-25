@@ -292,12 +292,43 @@ const SellerNotificationAlert: React.FC<SellerNotificationAlertProps> = ({ notif
                   </div>
                 ))}
 
-                <div className="pt-5 mt-4 border-t border-neutral-200">
-                  <div className="flex justify-between items-end">
-                    <span className="text-sm font-black text-neutral-500 uppercase tracking-widest">Total (Your Items)</span>
-                    <span className="text-3xl font-black text-primary tracking-tighter">₹{notification.totalAmount.toFixed(2)}</span>
-                  </div>
-                </div>
+                {(() => {
+                  const commission = notification.totalCommission !== undefined 
+                    ? notification.totalCommission 
+                    : (notification.totalAmount * 0.1);
+                  
+                  const netEarnings = notification.netEarnings !== undefined 
+                    ? notification.netEarnings 
+                    : (notification.totalAmount * 0.9);
+
+                  const effectiveRate = notification.totalAmount > 0 
+                    ? Math.round((commission / notification.totalAmount) * 100) 
+                    : 10;
+
+                  return (
+                    <div className="pt-5 mt-4 border-t border-neutral-200 space-y-3">
+                      <div className="flex justify-between items-center text-neutral-600 text-sm font-semibold">
+                        <span>Items Subtotal</span>
+                        <span>₹{notification.totalAmount.toFixed(2)}</span>
+                      </div>
+                      
+                      <div className="flex justify-between items-center text-red-500 text-sm font-semibold">
+                        <span>Platform Commission ({effectiveRate}%)</span>
+                        <span>-₹{commission.toFixed(2)}</span>
+                      </div>
+
+                      <div className="pt-3 border-t border-dashed border-neutral-200 flex justify-between items-end">
+                        <div>
+                          <span className="block text-[10px] font-black text-neutral-400 uppercase tracking-widest">Your Earnings</span>
+                          <span className="text-[10px] text-neutral-400 font-bold">(Net Credited to Wallet)</span>
+                        </div>
+                        <span className="text-3xl font-black text-emerald-600 tracking-tighter">
+                          ₹{netEarnings.toFixed(2)}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
             </div>
           </section>

@@ -32,6 +32,22 @@ export interface UpdateProfileResponse {
   data: CustomerProfile;
 }
 
+export interface CustomerFAQ {
+  _id: string;
+  question: string;
+  answer: string;
+  category?: string;
+  order?: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface GetCustomerFAQsResponse {
+  success: boolean;
+  message: string;
+  data: CustomerFAQ[];
+}
+
 /**
  * Get customer profile
  */
@@ -45,6 +61,14 @@ export const getProfile = async (): Promise<GetProfileResponse> => {
  */
 export const updateProfile = async (data: UpdateProfileData): Promise<UpdateProfileResponse> => {
   const response = await api.put<UpdateProfileResponse>('/customer/profile', data);
+  return response.data;
+};
+
+/**
+ * Get customer FAQs (managed by admin)
+ */
+export const getCustomerFAQs = async (): Promise<GetCustomerFAQsResponse> => {
+  const response = await api.get<GetCustomerFAQsResponse>('/customer/faqs');
   return response.data;
 };
 

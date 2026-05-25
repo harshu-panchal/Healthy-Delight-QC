@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react";
+import { useToast } from "../../../context/ToastContext";
 import {
   getSellerTransactions,
+  getWalletTransactions,
+  createManualFundTransfer,
   type SellerTransaction,
 } from "../../../services/api/admin/adminWalletService";
 import { getAllSellers as getSellers } from "../../../services/api/sellerService";
@@ -10,26 +13,25 @@ interface Transaction {
   id: string;
   sellerName: string;
   sellerId: string;
-  orderId?: string;
-  orderItemId?: string;
-  productName?: string;
-  variation?: string;
-  flag: string;
   amount: number;
-  remark?: string;
+  flag: string;
   date: string;
   type: string;
   status: string;
+  remark?: string;
 }
 
 interface Seller {
   _id: string;
   sellerName: string;
   storeName: string;
+  balance?: number;
 }
 
 export default function AdminSellerTransaction() {
   const { isAuthenticated, token } = useAuth();
+  const { showToast } = useToast();
+
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
   const [selectedSeller, setSelectedSeller] = useState("all");
@@ -39,12 +41,22 @@ export default function AdminSellerTransaction() {
   const [currentPage, setCurrentPage] = useState(1);
   const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+
+  // API Data States
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [sellers, setSellers] = useState<Seller[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch sellers on component mount
+  // Add Fund Modal States
+  const [isOpenModal, setIsOpenModal] = useState(false);
+  const [formSeller, setFormSeller] = useState("");
+  const [formType, setFormType] = useState<"Credit" | "Debit">("Credit");
+  const [formAmount, setFormAmount] = useState("");
+  const [formDescription, setFormDescription] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Fetch approved sellers on mount
   useEffect(() => {
     if (!isAuthenticated || !token) {
       setLoading(false);
@@ -60,6 +72,7 @@ export default function AdminSellerTransaction() {
               _id: seller._id,
               sellerName: seller.sellerName,
               storeName: seller.storeName,
+              balance: seller.balance,
             }))
           );
         }
@@ -72,108 +85,75 @@ export default function AdminSellerTransaction() {
     fetchSellers();
   }, [isAuthenticated, token]);
 
-  // Fetch transactions based on selected seller
-  useEffect(() => {
-    if (!isAuthenticated || !token) {
-      setLoading(false);
-      return;
-    }
+  // Fetch Transactions matching criteria
+  const fetchTransactions = async () => {
+    try {
+      setLoading(true);
+      setError(null);
 
-    const fetchTransactions = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        if (selectedSeller === "all") {
-          // Fetch transactions for all sellers
-          const allTransactions: Transaction[] = [];
-
-          // For now, we'll fetch from the first few sellers
-          // In a real implementation, you might want a separate endpoint for all transactions
-          const sellersToFetch = sellers.slice(0, 10); // Limit to first 10 sellers
-
-          for (const seller of sellersToFetch) {
-            try {
-              const response = await getSellerTransactions(seller._id, {
-                page: 1,
-                limit: 50,
-              });
-
-              if (response.success && response.data) {
-                const sellerTransactions: Transaction[] = response.data.map(
-                  (tx: SellerTransaction) => ({
-                    id: tx.id,
-                    sellerName: seller.sellerName,
-                    sellerId: seller._id,
-                    amount: tx.amount,
-                    flag: tx.transactionType,
-                    date: tx.date,
-                    type: tx.type,
-                    status: tx.status,
-                    remark: tx.description,
-                  })
-                );
-                allTransactions.push(...sellerTransactions);
-              }
-            } catch (err) {
-              console.error(
-                `Error fetching transactions for seller ${seller._id}:`,
-                err
-              );
-            }
-          }
-
-          // Sort by date (newest first)
-          allTransactions.sort(
-            (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-          );
-          setTransactions(allTransactions);
-        } else {
-          // Fetch transactions for specific seller
-          const response = await getSellerTransactions(selectedSeller, {
-            page: currentPage,
-            limit: entriesPerPage,
-          });
-
-          if (response.success && response.data) {
-            const seller = sellers.find((s) => s._id === selectedSeller);
-            const sellerTransactions: Transaction[] = response.data.map(
-              (tx: SellerTransaction) => ({
-                id: tx.id,
-                sellerName: seller?.sellerName || "Unknown Seller",
-                sellerId: selectedSeller,
-                amount: tx.amount,
-                flag: tx.transactionType,
-                date: tx.date,
-                type: tx.type,
-                status: tx.status,
-                remark: tx.description,
-              })
-            );
-            setTransactions(sellerTransactions);
-          } else {
-            setTransactions([]);
-          }
+      let dataToProcess = [];
+      if (selectedSeller === "all") {
+        const response = await getWalletTransactions({
+          page: currentPage,
+          limit: 100, // Fetch a good chunk for search/filtering
+          userType: "SELLER",
+          type: selectedMethod !== "all" ? selectedMethod : undefined,
+          dateFrom: fromDate || undefined,
+          dateTo: toDate || undefined,
+        });
+        if (response.success && response.data) {
+          dataToProcess = response.data;
         }
-      } catch (err) {
-        console.error("Error fetching transactions:", err);
-        setError("Failed to load transactions. Please try again.");
-        setTransactions([]);
-      } finally {
-        setLoading(false);
+      } else {
+        const response = await getSellerTransactions(selectedSeller, {
+          page: currentPage,
+          limit: entriesPerPage,
+        });
+        if (response.success && response.data) {
+          dataToProcess = response.data;
+        }
       }
-    };
 
-    if (selectedSeller !== "all" || sellers.length > 0) {
+      const mappedTransactions: Transaction[] = dataToProcess.map((tx: any) => {
+        const sellerObj = sellers.find(
+          (s) => s._id === (tx.userId?._id || tx.userId)
+        );
+        return {
+          id: tx.reference || tx._id || tx.id,
+          sellerName: tx.userName || sellerObj?.sellerName || "Unknown Seller",
+          sellerId: tx.userId?._id || tx.userId,
+          amount: tx.amount,
+          flag: tx.type ? tx.type.toLowerCase() : "credit",
+          date: tx.createdAt || tx.date,
+          type: tx.type || (tx.type ? tx.type : "Credit"),
+          status: tx.status,
+          remark: tx.description || tx.remark,
+        };
+      });
+      setTransactions(mappedTransactions);
+    } catch (err) {
+      console.error("Error fetching transactions:", err);
+      setError("Failed to load transactions. Please try again.");
+      setTransactions([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isAuthenticated && token && (selectedSeller !== "all" || sellers.length > 0)) {
       fetchTransactions();
     }
   }, [
     selectedSeller,
+    selectedMethod,
+    fromDate,
+    toDate,
     currentPage,
     entriesPerPage,
+    sellers,
     isAuthenticated,
     token,
-    sellers,
   ]);
 
   const handleSort = (column: string) => {
@@ -185,16 +165,59 @@ export default function AdminSellerTransaction() {
     }
   };
 
+  const handleAddFundTransfer = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formSeller) {
+      showToast("Please select a seller", "error");
+      return;
+    }
+    const amountNum = parseFloat(formAmount);
+    if (isNaN(amountNum) || amountNum <= 0) {
+      showToast("Please enter a valid amount greater than 0", "error");
+      return;
+    }
+    if (!formDescription.trim()) {
+      showToast("Please enter remarks/message", "error");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const res = await createManualFundTransfer({
+        userId: formSeller,
+        userType: "SELLER",
+        amount: amountNum,
+        type: formType,
+        description: formDescription,
+      });
+
+      if (res.success) {
+        showToast("Fund transfer processed successfully", "success");
+        setIsOpenModal(false);
+        setFormSeller("");
+        setFormAmount("");
+        setFormDescription("");
+        setFormType("Credit");
+        // Reload transactions
+        fetchTransactions();
+      } else {
+        showToast(res.message || "Failed to process fund transfer", "error");
+      }
+    } catch (err: any) {
+      console.error(err);
+      showToast(
+        err.response?.data?.message || "Failed to process fund transfer",
+        "error"
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   // Filter transactions based on search term
   const filteredTransactions = transactions.filter(
     (transaction) =>
       transaction.sellerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (transaction.orderId &&
-        transaction.orderId.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (transaction.productName &&
-        transaction.productName
-          .toLowerCase()
-          .includes(searchTerm.toLowerCase())) ||
       transaction.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (transaction.remark &&
         transaction.remark.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -219,10 +242,6 @@ export default function AdminSellerTransaction() {
           aValue = new Date(a.date).getTime();
           bValue = new Date(b.date).getTime();
           break;
-        case "status":
-          aValue = a.status;
-          bValue = b.status;
-          break;
         default:
           return 0;
       }
@@ -242,24 +261,56 @@ export default function AdminSellerTransaction() {
   );
 
   const handleExport = () => {
-    alert("Export functionality will be implemented here");
+    if (filteredTransactions.length === 0) {
+      showToast("No transaction data to export", "info");
+      return;
+    }
+    const headers = ["Transaction ID", "Seller Name", "Amount", "Type", "Description", "Date"];
+    const rows = filteredTransactions.map((t) => [
+      t.id,
+      t.sellerName,
+      `₹${t.amount.toFixed(2)}`,
+      t.type,
+      t.remark || "",
+      new Date(t.date).toLocaleDateString(),
+    ]);
+
+    const csvContent =
+      "data:text/csv;charset=utf-8," +
+      [headers.join(","), ...rows.map((e) => e.map((val) => `"${val}"`).join(","))].join("\n");
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute(
+      "download",
+      `Seller_Fund_Transfers_${new Date().toISOString().split("T")[0]}.csv`
+    );
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    showToast("Transactions exported successfully", "success");
   };
 
   const handleClearDate = () => {
     setFromDate("");
     setToDate("");
+    setCurrentPage(1);
   };
 
-  const methods = ["All", "Credit", "Debit", "Bank Transfer"];
+  const methods = ["All", "Credit", "Debit"];
 
   return (
     <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="bg-primary border-primary text-neutral-900 px-4 sm:px-6 py-4 rounded-t-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
-        <h1 className="text-white text-xl sm:text-2xl font-semibold">
-          View Seller List
+      <div className="bg-neutral-50 border border-neutral-200 px-4 sm:px-6 py-4 rounded-t-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
+        <h1 className="text-neutral-800 text-xl sm:text-2xl font-semibold">
+          View Fund Transfer
         </h1>
-        <button className="bg-white text-primary border-2 border-neutral-800 hover:bg-cream px-4 py-2 rounded text-sm font-medium flex items-center gap-2 transition-colors">
+        <button
+          onClick={() => setIsOpenModal(true)}
+          className="bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white px-4 py-2 rounded text-sm font-semibold flex items-center gap-2 transition-all active:scale-95 shadow-sm"
+        >
           <svg
             width="16"
             height="16"
@@ -268,7 +319,8 @@ export default function AdminSellerTransaction() {
             stroke="currentColor"
             strokeWidth="2"
             strokeLinecap="round"
-            strokeLinejoin="round">
+            strokeLinejoin="round"
+          >
             <line x1="12" y1="5" x2="12" y2="19"></line>
             <line x1="5" y1="12" x2="19" y2="12"></line>
           </svg>
@@ -299,23 +351,20 @@ export default function AdminSellerTransaction() {
                       strokeWidth="2"
                       strokeLinecap="round"
                       strokeLinejoin="round"
-                      className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400">
-                      <rect
-                        x="3"
-                        y="4"
-                        width="18"
-                        height="18"
-                        rx="2"
-                        ry="2"></rect>
+                      className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400 pointer-events-none"
+                    >
+                      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
                       <line x1="16" y1="2" x2="16" y2="6"></line>
                       <line x1="8" y1="2" x2="8" y2="6"></line>
                       <line x1="3" y1="10" x2="21" y2="10"></line>
                     </svg>
                     <input
-                      type="text"
+                      type="date"
                       value={fromDate}
-                      onChange={(e) => setFromDate(e.target.value)}
-                      placeholder="MM/DD/YYYY"
+                      onChange={(e) => {
+                        setFromDate(e.target.value);
+                        setCurrentPage(1);
+                      }}
                       className="pl-10 pr-3 py-2 border border-neutral-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary min-w-[140px]"
                     />
                   </div>
@@ -330,29 +379,27 @@ export default function AdminSellerTransaction() {
                       strokeWidth="2"
                       strokeLinecap="round"
                       strokeLinejoin="round"
-                      className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400">
-                      <rect
-                        x="3"
-                        y="4"
-                        width="18"
-                        height="18"
-                        rx="2"
-                        ry="2"></rect>
+                      className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400 pointer-events-none"
+                    >
+                      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
                       <line x1="16" y1="2" x2="16" y2="6"></line>
                       <line x1="8" y1="2" x2="8" y2="6"></line>
                       <line x1="3" y1="10" x2="21" y2="10"></line>
                     </svg>
                     <input
-                      type="text"
+                      type="date"
                       value={toDate}
-                      onChange={(e) => setToDate(e.target.value)}
-                      placeholder="MM/DD/YYYY"
+                      onChange={(e) => {
+                        setToDate(e.target.value);
+                        setCurrentPage(1);
+                      }}
                       className="pl-10 pr-3 py-2 border border-neutral-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary min-w-[140px]"
                     />
                   </div>
                   <button
                     onClick={handleClearDate}
-                    className="px-3 py-2 bg-neutral-700 hover:bg-neutral-800 text-white rounded text-sm transition-colors">
+                    className="px-3 py-2 bg-neutral-200 hover:bg-neutral-300 text-neutral-700 rounded text-sm transition-all active:scale-95 shadow-sm"
+                  >
                     Clear
                   </button>
                 </div>
@@ -370,7 +417,8 @@ export default function AdminSellerTransaction() {
                     setCurrentPage(1);
                   }}
                   disabled={loading}
-                  className="px-3 py-2 border border-neutral-300 rounded text-sm bg-white focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary min-w-[130px] disabled:bg-neutral-100 disabled:cursor-not-allowed">
+                  className="px-3 py-2 border border-neutral-300 rounded text-sm bg-white focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary min-w-[180px] disabled:bg-neutral-100 disabled:cursor-not-allowed"
+                >
                   <option value="all">All Sellers</option>
                   {sellers.map((seller) => (
                     <option key={seller._id} value={seller._id}>
@@ -391,11 +439,10 @@ export default function AdminSellerTransaction() {
                     setSelectedMethod(e.target.value);
                     setCurrentPage(1);
                   }}
-                  className="px-3 py-2 border border-neutral-300 rounded text-sm bg-white focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary min-w-[100px]">
+                  className="px-3 py-2 border border-neutral-300 rounded text-sm bg-white focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary min-w-[100px]"
+                >
                   {methods.map((method) => (
-                    <option
-                      key={method}
-                      value={method === "All" ? "all" : method}>
+                    <option key={method} value={method === "All" ? "all" : method}>
                       {method}
                     </option>
                   ))}
@@ -414,7 +461,8 @@ export default function AdminSellerTransaction() {
                     setEntriesPerPage(Number(e.target.value));
                     setCurrentPage(1);
                   }}
-                  className="px-2 py-1 border border-neutral-300 rounded text-sm bg-white focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary">
+                  className="px-2 py-1 border border-neutral-300 rounded text-sm bg-white focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
+                >
                   <option value={10}>10</option>
                   <option value={25}>25</option>
                   <option value={50}>50</option>
@@ -425,7 +473,8 @@ export default function AdminSellerTransaction() {
               {/* Export Button */}
               <button
                 onClick={handleExport}
-                className="bg-primary border-primary text-neutral-900 hover:bg-neutral-900 text-white px-4 py-2 rounded text-sm font-medium flex items-center gap-2 transition-colors">
+                className="bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white px-4 py-2 rounded text-sm font-semibold flex items-center gap-2 transition-all active:scale-95 shadow-sm"
+              >
                 <svg
                   width="16"
                   height="16"
@@ -434,23 +483,13 @@ export default function AdminSellerTransaction() {
                   stroke="currentColor"
                   strokeWidth="2"
                   strokeLinecap="round"
-                  strokeLinejoin="round">
+                  strokeLinejoin="round"
+                >
                   <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                   <polyline points="7 10 12 15 17 10"></polyline>
                   <line x1="12" y1="15" x2="12" y2="3"></line>
                 </svg>
                 Export
-                <svg
-                  width="10"
-                  height="10"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round">
-                  <polyline points="6 9 12 15 18 9"></polyline>
-                </svg>
               </button>
 
               {/* Search */}
@@ -463,7 +502,7 @@ export default function AdminSellerTransaction() {
                     setSearchTerm(e.target.value);
                     setCurrentPage(1);
                   }}
-                  placeholder="Search:"
+                  placeholder="Search ledger..."
                   className="px-3 py-2 border border-neutral-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary min-w-[150px]"
                 />
               </div>
@@ -472,21 +511,49 @@ export default function AdminSellerTransaction() {
         </div>
 
         {/* Table */}
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[1400px]">
+        <div className="overflow-x-auto relative">
+          {loading && (
+            <div className="absolute inset-0 bg-white/70 backdrop-blur-sm z-10 flex items-center justify-center">
+              <svg
+                className="animate-spin h-8 w-8 text-primary"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="3"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                ></circle>
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                ></path>
+              </svg>
+            </div>
+          )}
+
+          <table className="w-full min-w-[800px]">
             <thead className="bg-neutral-50 border-b border-neutral-200">
               <tr>
                 <th
                   className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider cursor-pointer hover:bg-neutral-100"
-                  onClick={() => handleSort("id")}>
+                  onClick={() => handleSort("id")}
+                >
                   <div className="flex items-center gap-2">
-                    Id
+                    Reference ID
                     <svg
                       width="12"
                       height="12"
                       viewBox="0 0 24 24"
                       fill="none"
-                      className="text-neutral-400">
+                      className="text-neutral-400"
+                    >
                       <path
                         d="M7 10L12 5L17 10M7 14L12 19L17 14"
                         stroke="currentColor"
@@ -499,7 +566,8 @@ export default function AdminSellerTransaction() {
                 </th>
                 <th
                   className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider cursor-pointer hover:bg-neutral-100"
-                  onClick={() => handleSort("sellerName")}>
+                  onClick={() => handleSort("sellerName")}
+                >
                   <div className="flex items-center gap-2">
                     Seller Name
                     <svg
@@ -507,7 +575,8 @@ export default function AdminSellerTransaction() {
                       height="12"
                       viewBox="0 0 24 24"
                       fill="none"
-                      className="text-neutral-400">
+                      className="text-neutral-400"
+                    >
                       <path
                         d="M7 10L12 5L17 10M7 14L12 19L17 14"
                         stroke="currentColor"
@@ -518,17 +587,22 @@ export default function AdminSellerTransaction() {
                     </svg>
                   </div>
                 </th>
+                <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">
+                  Type
+                </th>
                 <th
                   className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider cursor-pointer hover:bg-neutral-100"
-                  onClick={() => handleSort("orderId")}>
+                  onClick={() => handleSort("amount")}
+                >
                   <div className="flex items-center gap-2">
-                    Order Id
+                    Amount (₹)
                     <svg
                       width="12"
                       height="12"
                       viewBox="0 0 24 24"
                       fill="none"
-                      className="text-neutral-400">
+                      className="text-neutral-400"
+                    >
                       <path
                         d="M7 10L12 5L17 10M7 14L12 19L17 14"
                         stroke="currentColor"
@@ -539,135 +613,13 @@ export default function AdminSellerTransaction() {
                     </svg>
                   </div>
                 </th>
-                <th
-                  className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider cursor-pointer hover:bg-neutral-100"
-                  onClick={() => handleSort("orderItemId")}>
-                  <div className="flex items-center gap-2">
-                    Order Item Id
-                    <svg
-                      width="12"
-                      height="12"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      className="text-neutral-400">
-                      <path
-                        d="M7 10L12 5L17 10M7 14L12 19L17 14"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </div>
+                <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">
+                  Remarks / Message
                 </th>
                 <th
                   className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider cursor-pointer hover:bg-neutral-100"
-                  onClick={() => handleSort("productName")}>
-                  <div className="flex items-center gap-2">
-                    Product Name
-                    <svg
-                      width="12"
-                      height="12"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      className="text-neutral-400">
-                      <path
-                        d="M7 10L12 5L17 10M7 14L12 19L17 14"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </div>
-                </th>
-                <th
-                  className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider cursor-pointer hover:bg-neutral-100"
-                  onClick={() => handleSort("variation")}>
-                  <div className="flex items-center gap-2">
-                    Variation
-                    <svg
-                      width="12"
-                      height="12"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      className="text-neutral-400">
-                      <path
-                        d="M7 10L12 5L17 10M7 14L12 19L17 14"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </div>
-                </th>
-                <th
-                  className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider cursor-pointer hover:bg-neutral-100"
-                  onClick={() => handleSort("flag")}>
-                  <div className="flex items-center gap-2">
-                    Flag
-                    <svg
-                      width="12"
-                      height="12"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      className="text-neutral-400">
-                      <path
-                        d="M7 10L12 5L17 10M7 14L12 19L17 14"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </div>
-                </th>
-                <th
-                  className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider cursor-pointer hover:bg-neutral-100"
-                  onClick={() => handleSort("amount")}>
-                  <div className="flex items-center gap-2">
-                    Amount
-                    <svg
-                      width="12"
-                      height="12"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      className="text-neutral-400">
-                      <path
-                        d="M7 10L12 5L17 10M7 14L12 19L17 14"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </div>
-                </th>
-                <th
-                  className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider cursor-pointer hover:bg-neutral-100"
-                  onClick={() => handleSort("remark")}>
-                  <div className="flex items-center gap-2">
-                    Remark
-                    <svg
-                      width="12"
-                      height="12"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      className="text-neutral-400">
-                      <path
-                        d="M7 10L12 5L17 10M7 14L12 19L17 14"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </div>
-                </th>
-                <th
-                  className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider cursor-pointer hover:bg-neutral-100"
-                  onClick={() => handleSort("date")}>
+                  onClick={() => handleSort("date")}
+                >
                   <div className="flex items-center gap-2">
                     Date
                     <svg
@@ -675,7 +627,8 @@ export default function AdminSellerTransaction() {
                       height="12"
                       viewBox="0 0 24 24"
                       fill="none"
-                      className="text-neutral-400">
+                      className="text-neutral-400"
+                    >
                       <path
                         d="M7 10L12 5L17 10M7 14L12 19L17 14"
                         stroke="currentColor"
@@ -689,69 +642,46 @@ export default function AdminSellerTransaction() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-neutral-200">
-              {loading ? (
+              {error ? (
                 <tr>
-                  <td colSpan={10} className="px-4 sm:px-6 py-8 text-center">
-                    <div className="flex items-center justify-center">
-                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-neutral-800 mr-2"></div>
-                      Loading transactions...
-                    </div>
-                  </td>
-                </tr>
-              ) : error ? (
-                <tr>
-                  <td
-                    colSpan={10}
-                    className="px-4 sm:px-6 py-8 text-center text-red-600">
+                  <td colSpan={6} className="px-4 sm:px-6 py-8 text-center text-red-600">
                     {error}
                   </td>
                 </tr>
               ) : displayedTransactions.length === 0 ? (
                 <tr>
-                  <td
-                    colSpan={10}
-                    className="px-4 sm:px-6 py-8 text-center text-sm text-neutral-500">
+                  <td colSpan={6} className="px-4 sm:px-6 py-8 text-center text-sm text-neutral-500">
                     No transactions found
                   </td>
                 </tr>
               ) : (
                 displayedTransactions.map((transaction) => (
                   <tr key={transaction.id} className="hover:bg-neutral-50">
-                    <td className="px-4 sm:px-6 py-3 text-sm text-neutral-900">
-                      {transaction.id.slice(-6)}
+                    <td className="px-4 sm:px-6 py-3 text-sm text-neutral-900 font-mono font-medium">
+                      {transaction.id.slice(-8).toUpperCase()}
                     </td>
                     <td className="px-4 sm:px-6 py-3 text-sm text-neutral-900 font-medium">
                       {transaction.sellerName}
                     </td>
-                    <td className="px-4 sm:px-6 py-3 text-sm text-neutral-600">
-                      {transaction.orderId || "-"}
-                    </td>
-                    <td className="px-4 sm:px-6 py-3 text-sm text-neutral-600">
-                      {transaction.orderItemId || "-"}
-                    </td>
-                    <td className="px-4 sm:px-6 py-3 text-sm text-neutral-600">
-                      {transaction.productName || transaction.type}
-                    </td>
-                    <td className="px-4 sm:px-6 py-3 text-sm text-neutral-600">
-                      {transaction.variation || "-"}
-                    </td>
                     <td className="px-4 sm:px-6 py-3">
                       <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${transaction.flag === "credit"
-                          ? "bg-cream text-neutral-800"
-                          : transaction.flag === "debit"
-                            ? "bg-red-100 text-red-800"
-                            : "bg-yellow-100 text-yellow-800"
-                          }`}>
-                        {transaction.flag.charAt(0).toUpperCase() +
-                          transaction.flag.slice(1)}
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${
+                          transaction.type === "Credit"
+                            ? "bg-emerald-100 text-emerald-800"
+                            : "bg-rose-100 text-rose-800"
+                        }`}
+                      >
+                        {transaction.type}
                       </span>
                     </td>
-                    <td className="px-4 sm:px-6 py-3 text-sm text-neutral-900 font-medium">
+                    <td className="px-4 sm:px-6 py-3 text-sm text-neutral-900 font-semibold">
                       ₹{transaction.amount.toFixed(2)}
                     </td>
-                    <td className="px-4 sm:px-6 py-3 text-sm text-neutral-600">
-                      {transaction.remark || transaction.status}
+                    <td
+                      className="px-4 sm:px-6 py-3 text-sm text-neutral-600 max-w-[300px] truncate"
+                      title={transaction.remark}
+                    >
+                      {transaction.remark || "N/A"}
                     </td>
                     <td className="px-4 sm:px-6 py-3 text-sm text-neutral-600">
                       {new Date(transaction.date).toLocaleDateString()}
@@ -766,25 +696,28 @@ export default function AdminSellerTransaction() {
         {/* Pagination Footer */}
         <div className="px-4 sm:px-6 py-3 border-t border-neutral-200 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-0">
           <div className="text-xs sm:text-sm text-neutral-700">
-            Showing {startIndex + 1} to{" "}
-            {Math.min(endIndex, filteredTransactions.length)} of{" "}
+            Showing {Math.min(filteredTransactions.length, startIndex + 1)} to{" "}
+            {Math.min(filteredTransactions.length, endIndex)} of{" "}
             {filteredTransactions.length} entries
           </div>
           <div className="flex items-center gap-2">
             <button
               onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
               disabled={currentPage === 1 || totalPages === 0}
-              className={`p-2 border border-neutral-300 rounded ${currentPage === 1 || totalPages === 0
-                ? "text-neutral-400 cursor-not-allowed bg-neutral-50"
-                : "text-neutral-700 hover:bg-neutral-50"
-                }`}
-              aria-label="Previous page">
+              className={`p-2 border border-neutral-300 rounded ${
+                currentPage === 1 || totalPages === 0
+                  ? "text-neutral-400 cursor-not-allowed bg-neutral-50"
+                  : "text-neutral-700 hover:bg-neutral-50"
+              }`}
+              aria-label="Previous page"
+            >
               <svg
                 width="16"
                 height="16"
                 viewBox="0 0 24 24"
                 fill="none"
-                xmlns="http://www.w3.org/2000/svg">
+                xmlns="http://www.w3.org/2000/svg"
+              >
                 <path
                   d="M15 18L9 12L15 6"
                   stroke="currentColor"
@@ -794,22 +727,26 @@ export default function AdminSellerTransaction() {
                 />
               </svg>
             </button>
+            <span className="text-sm font-medium text-neutral-700 px-2">
+              Page {currentPage} of {totalPages || 1}
+            </span>
             <button
-              onClick={() =>
-                setCurrentPage((prev) => Math.min(totalPages, prev + 1))
-              }
+              onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
               disabled={currentPage === totalPages || totalPages === 0}
-              className={`p-2 border border-neutral-300 rounded ${currentPage === totalPages || totalPages === 0
-                ? "text-neutral-400 cursor-not-allowed bg-neutral-50"
-                : "text-neutral-700 hover:bg-neutral-50"
-                }`}
-              aria-label="Next page">
+              className={`p-2 border border-neutral-300 rounded ${
+                currentPage === totalPages || totalPages === 0
+                  ? "text-neutral-400 cursor-not-allowed bg-neutral-50"
+                  : "text-neutral-700 hover:bg-neutral-50"
+              }`}
+              aria-label="Next page"
+            >
               <svg
                 width="16"
                 height="16"
                 viewBox="0 0 24 24"
                 fill="none"
-                xmlns="http://www.w3.org/2000/svg">
+                xmlns="http://www.w3.org/2000/svg"
+              >
                 <path
                   d="M9 18L15 12L9 6"
                   stroke="currentColor"
@@ -823,9 +760,177 @@ export default function AdminSellerTransaction() {
         </div>
       </div>
 
+      {/* Add Fund Transfer Modal */}
+      {isOpenModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-neutral-900/60 backdrop-blur-sm transition-all duration-300">
+          <div className="bg-white rounded-xl shadow-2xl border border-neutral-200 w-full max-w-lg overflow-hidden transform scale-100 transition-all duration-300">
+            {/* Modal Header */}
+            <div className="bg-neutral-50 border-b border-neutral-200 px-6 py-4 flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-neutral-800">Add Fund Transfer</h2>
+              <button
+                onClick={() => setIsOpenModal(false)}
+                className="text-neutral-400 hover:text-neutral-600 transition-all"
+              >
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </div>
+
+            {/* Modal Form */}
+            <form onSubmit={handleAddFundTransfer} className="p-6 space-y-4">
+              {/* Seller Selection */}
+              <div className="space-y-1">
+                <label className="block text-sm font-medium text-neutral-700">
+                  Seller <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={formSeller}
+                  onChange={(e) => setFormSeller(e.target.value)}
+                  className="w-full px-3 py-2 border border-neutral-300 rounded focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary text-sm bg-white"
+                  required
+                >
+                  <option value="">Select Seller</option>
+                  {sellers.map((seller) => (
+                    <option key={seller._id} value={seller._id}>
+                      {seller.sellerName} ({seller.storeName}) - Balance: ₹
+                      {(seller.balance || 0).toFixed(2)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Transfer Type */}
+              <div className="space-y-1">
+                <label className="block text-sm font-medium text-neutral-700">
+                  Type <span className="text-red-500">*</span>
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setFormType("Credit")}
+                    className={`py-2 text-sm font-semibold rounded border transition-all ${
+                      formType === "Credit"
+                        ? "bg-primary/10 border-primary text-primary"
+                        : "bg-white border-neutral-300 text-neutral-600 hover:bg-neutral-50"
+                    }`}
+                  >
+                    Credit (Add Balance)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFormType("Debit")}
+                    className={`py-2 text-sm font-semibold rounded border transition-all ${
+                      formType === "Debit"
+                        ? "bg-rose-50 border-rose-500 text-rose-600"
+                        : "bg-white border-neutral-300 text-neutral-600 hover:bg-neutral-50"
+                    }`}
+                  >
+                    Debit (Deduct Balance)
+                  </button>
+                </div>
+              </div>
+
+              {/* Amount */}
+              <div className="space-y-1">
+                <label className="block text-sm font-medium text-neutral-700">
+                  Amount (₹) <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400 text-sm">
+                    ₹
+                  </span>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={formAmount}
+                    onChange={(e) => setFormAmount(e.target.value)}
+                    placeholder="0.00"
+                    className="w-full pl-7 pr-3 py-2 border border-neutral-300 rounded focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary text-sm"
+                    required
+                    min="0.01"
+                  />
+                </div>
+              </div>
+
+              {/* Remarks / Description */}
+              <div className="space-y-1">
+                <label className="block text-sm font-medium text-neutral-700">
+                  Message / Remarks <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  value={formDescription}
+                  onChange={(e) => setFormDescription(e.target.value)}
+                  placeholder="Reason for manual adjustment (e.g. Incentive, Cash collection correction)"
+                  rows={3}
+                  className="w-full px-3 py-2 border border-neutral-300 rounded focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary text-sm resize-none"
+                  required
+                />
+              </div>
+
+              {/* Action Buttons */}
+              <div className="pt-4 border-t border-neutral-100 flex items-center justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsOpenModal(false)}
+                  disabled={isSubmitting}
+                  className="px-4 py-2 border border-neutral-300 hover:bg-neutral-50 text-neutral-700 rounded text-sm font-semibold transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="px-4 py-2 bg-primary hover:bg-primary/90 text-white rounded text-sm font-semibold transition-all flex items-center gap-2 disabled:opacity-50"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <svg
+                        className="animate-spin h-4 w-4 text-white"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="3"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
+                      </svg>
+                      Processing...
+                    </>
+                  ) : (
+                    "Submit Transfer"
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* Footer */}
       <div className="text-center text-sm text-neutral-500 py-4">
-        Copyright © 2025. Developed By{" "}
+        Copyright © {new Date().getFullYear()}. Developed By{" "}
         <a href="#" className="text-primary hover:text-primary-dark">
           Healthy Delight
         </a>

@@ -333,7 +333,7 @@ export default function Account() {
               </svg>
             </div>
             <div className="text-[11px] font-black uppercase text-[#0a193b] tracking-widest">
-              Support
+              FAQs
             </div>
           </button>
         </div>

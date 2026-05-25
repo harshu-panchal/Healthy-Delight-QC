@@ -184,7 +184,7 @@ export default function AdminUsers() {
     };
 
     return (
-        <div className="flex flex-col h-full bg-gray-50">
+        <div className="flex flex-col min-h-screen bg-gray-50">
             {/* Page Header */}
             <div className="p-6 pb-0">
                 <div className="flex justify-between items-center mb-6">
@@ -289,15 +289,12 @@ export default function AdminUsers() {
                                             Total Spent <SortIcon column="totalSpent" />
                                         </div>
                                     </th>
-                                    <th className="p-4">
-                                        Action
-                                    </th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {loading ? (
                                     <tr>
-                                        <td colSpan={11} className="p-8 text-center">
+                                        <td colSpan={10} className="p-8 text-center">
                                             <div className="flex items-center justify-center">
                                                 <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-neutral-800 mr-2"></div>
                                                 Loading users...
@@ -306,13 +303,13 @@ export default function AdminUsers() {
                                     </tr>
                                 ) : error ? (
                                     <tr>
-                                        <td colSpan={11} className="p-8 text-center text-red-600">
+                                        <td colSpan={10} className="p-8 text-center text-red-600">
                                             {error}
                                         </td>
                                     </tr>
                                 ) : displayedUsers.length === 0 ? (
                                     <tr>
-                                        <td colSpan={11} className="p-8 text-center text-neutral-400">
+                                        <td colSpan={10} className="p-8 text-center text-neutral-400">
                                             No users found.
                                         </td>
                                     </tr>
@@ -344,29 +341,6 @@ export default function AdminUsers() {
                                             <td className="p-4 align-middle">₹{user.walletAmount.toFixed(2)}</td>
                                             <td className="p-4 align-middle">{user.totalOrders}</td>
                                             <td className="p-4 align-middle">₹{user.totalSpent.toFixed(2)}</td>
-                                            <td className="p-4 align-middle">
-                                                <div className="flex items-center gap-2">
-                                                    <button
-                                                        onClick={() => handleStatusChange(user._id, user.status === 'Active' ? 'Suspended' : 'Active')}
-                                                        className={`p-1.5 text-white rounded transition-colors ${user.status === 'Active'
-                                                            ? 'bg-red-600 hover:bg-red-700'
-                                                            : 'bg-neutral-900 hover:bg-neutral-800'
-                                                            }`}
-                                                        title={user.status === 'Active' ? 'Suspend User' : 'Activate User'}
-                                                    >
-                                                        {user.status === 'Active' ? (
-                                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                                                <circle cx="12" cy="12" r="10"></circle>
-                                                                <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line>
-                                                            </svg>
-                                                        ) : (
-                                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                                                <polyline points="20 6 9 17 4 12"></polyline>
-                                                            </svg>
-                                                        )}
-                                                    </button>
-                                                </div>
-                                            </td>
                                         </tr>
                                     ))
                                 )}

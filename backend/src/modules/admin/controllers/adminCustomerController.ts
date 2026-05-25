@@ -44,10 +44,38 @@ export const getAllCustomers = asyncHandler(
       Customer.countDocuments(query),
     ]);
 
+    const customerIds = customers.map((c) => c._id);
+    const orderAggregates = await Order.aggregate([
+      { $match: { customer: { $in: customerIds }, status: { $ne: "Cancelled" } } },
+      {
+        $group: {
+          _id: "$customer",
+          totalOrders: { $sum: 1 },
+          totalSpent: { $sum: "$total" },
+        },
+      },
+    ]);
+
+    const aggregateMap = new Map<string, { totalOrders: number; totalSpent: number }>();
+    orderAggregates.forEach((agg) => {
+      aggregateMap.set(agg._id.toString(), {
+        totalOrders: agg.totalOrders,
+        totalSpent: agg.totalSpent,
+      });
+    });
+
+    const enrichedCustomers = customers.map((customer) => {
+      const agg = aggregateMap.get(customer._id.toString()) || { totalOrders: 0, totalSpent: 0 };
+      const customerObj = customer.toObject();
+      customerObj.totalOrders = agg.totalOrders;
+      customerObj.totalSpent = agg.totalSpent;
+      return customerObj;
+    });
+
     return res.status(200).json({
       success: true,
       message: "Customers fetched successfully",
-      data: customers,
+      data: enrichedCustomers,
       pagination: {
         page: parseInt(page as string),
         limit: parseInt(limit as string),
@@ -74,10 +102,26 @@ export const getCustomerById = asyncHandler(
       });
     }
 
+    const orderAggregates = await Order.aggregate([
+      { $match: { customer: customer._id, status: { $ne: "Cancelled" } } },
+      {
+        $group: {
+          _id: "$customer",
+          totalOrders: { $sum: 1 },
+          totalSpent: { $sum: "$total" },
+        },
+      },
+    ]);
+
+    const agg = orderAggregates[0] || { totalOrders: 0, totalSpent: 0 };
+    const customerObj = customer.toObject();
+    customerObj.totalOrders = agg.totalOrders;
+    customerObj.totalSpent = agg.totalSpent;
+
     return res.status(200).json({
       success: true,
       message: "Customer fetched successfully",
-      data: customer,
+      data: customerObj,
     });
   }
 );

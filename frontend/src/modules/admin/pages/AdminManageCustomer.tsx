@@ -201,6 +201,7 @@ export default function AdminManageCustomer() {
             : "",
           customer.status,
           customer.refCode,
+          customer.walletAmount || 0,
           customer.totalOrders,
           customer.totalSpent.toFixed(2),
         ].join(",")
@@ -396,14 +397,13 @@ export default function AdminManageCustomer() {
                       Total Spent <SortIcon field="totalSpent" />
                     </div>
                   </th>
-                  <th className="p-4 border border-neutral-200">Action</th>
                 </tr>
               </thead>
               <tbody>
                 {loading ? (
                   <tr>
                     <td
-                      colSpan={11}
+                      colSpan={10}
                       className="p-8 text-center text-neutral-400 border border-neutral-200">
                       Loading customers...
                     </td>
@@ -411,7 +411,7 @@ export default function AdminManageCustomer() {
                 ) : error ? (
                   <tr>
                     <td
-                      colSpan={11}
+                      colSpan={10}
                       className="p-8 text-center text-red-600 border border-neutral-200">
                       {error}
                     </td>
@@ -419,7 +419,7 @@ export default function AdminManageCustomer() {
                 ) : displayedCustomers.length === 0 ? (
                   <tr>
                     <td
-                      colSpan={11}
+                      colSpan={10}
                       className="p-8 text-center text-neutral-400 border border-neutral-200">
                       No customers found.
                     </td>
@@ -463,38 +463,6 @@ export default function AdminManageCustomer() {
                       </td>
                       <td className="p-4 border border-neutral-200">
                         ₹{customer.totalSpent.toFixed(2)}
-                      </td>
-                      <td className="p-4 border border-neutral-200">
-                        <div className="flex items-center gap-2">
-                          <button
-                            className="p-1.5 bg-neutral-900 hover:bg-neutral-800 text-white rounded transition-colors"
-                            title="View Details">
-                            <svg
-                              width="14"
-                              height="14"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2">
-                              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                              <circle cx="12" cy="12" r="3"></circle>
-                            </svg>
-                          </button>
-                          <button
-                            className="p-1.5 bg-primary hover:bg-primary-dark text-neutral-900 rounded transition-colors"
-                            title="Edit">
-                            <svg
-                              width="14"
-                              height="14"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2">
-                              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                            </svg>
-                          </button>
-                        </div>
                       </td>
                     </tr>
                   ))

@@ -142,9 +142,6 @@ const SellerWallet = lazy(() => import("./modules/seller/pages/SellerWallet"));
 const SellerSalesReport = lazy(
   () => import("./modules/seller/pages/SellerSalesReport"),
 );
-const SellerReturnRequest = lazy(
-  () => import("./modules/seller/pages/SellerReturnRequest"),
-);
 const SellerAccountSettings = lazy(
   () => import("./modules/seller/pages/SellerAccountSettings"),
 );
@@ -272,7 +269,7 @@ function RootRoute() {
 }
 
 function AppContent() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
 
   // Initialize push notifications (service worker registration only)
   useEffect(() => {
@@ -280,13 +277,12 @@ function AppContent() {
     setupForegroundNotificationHandler();
   }, []);
 
-  // NOTE: FCM token registration is handled in individual login flows
-  // (DeliveryLogin, SellerLogin, AdminLogin, CustomerLogin)
-  // This prevents duplicate notifications from being sent on:
-  // - Page refresh
-  // - Tab switching
-  // - Component re-renders
-  // - Auth state rehydration
+  // Register customer token after auth so admin customer notifications can be pushed.
+  // Duplicates are avoided by localStorage checks inside registerFCMToken().
+  useEffect(() => {
+    if (!isAuthenticated || user?.userType !== "Customer") return;
+    registerFCMToken();
+  }, [isAuthenticated, user?.userType]);
 
   return (
     <ErrorBoundary>
@@ -510,14 +506,6 @@ function AppContent() {
                                     <Route
                                       path="product/stock"
                                       element={<SellerStockManagement />}
-                                    />
-                                    <Route
-                                      path="return"
-                                      element={<SellerReturnRequest />}
-                                    />
-                                    <Route
-                                      path="return-order"
-                                      element={<SellerReturnRequest />}
                                     />
                                     <Route
                                       path="wallet"
@@ -767,6 +755,10 @@ function AppContent() {
                                   />
                                   <Route
                                     path="/account"
+                                    element={<Account />}
+                                  />
+                                  <Route
+                                    path="/profile"
                                     element={<Account />}
                                   />
                                   <Route

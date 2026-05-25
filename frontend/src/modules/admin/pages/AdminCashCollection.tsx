@@ -621,7 +621,7 @@ export default function AdminCashCollection() {
 
       {/* Footer */}
       <div className="text-center py-6 text-xs sm:text-sm text-neutral-600">
-        Copyright © 2025. Developed By{" "}
+        Copyright © {new Date().getFullYear()}. Developed By{" "}
         <a href="#" className="font-semibold text-primary hover:text-neutral-900 transition-colors">
           Healthy Delight
         </a>

@@ -1,6 +1,62 @@
 import { Request, Response } from "express";
 import { asyncHandler } from "../../../utils/asyncHandler";
 import Notification from "../../../models/Notification";
+import Customer from "../../../models/Customer";
+import { sendPushNotification } from "../../../services/firebaseAdmin";
+
+const sendPushForNotification = async (notification: any) => {
+  if (!notification) return { attempted: 0, successCount: 0, failureCount: 0 };
+
+  const shouldSendToCustomers =
+    notification.recipientType === "Customer" ||
+    notification.recipientType === "All";
+
+  if (!shouldSendToCustomers) {
+    return { attempted: 0, successCount: 0, failureCount: 0 };
+  }
+
+  const customerQuery: any = {};
+  if (
+    notification.recipientType === "Customer" &&
+    notification.recipientId
+  ) {
+    customerQuery._id = notification.recipientId;
+  }
+
+  const customers = await Customer.find(customerQuery).select(
+    "fcmTokens fcmTokenMobile"
+  );
+
+  const tokens = new Set<string>();
+  for (const customer of customers) {
+    for (const token of customer.fcmTokens || []) tokens.add(token);
+    for (const token of customer.fcmTokenMobile || []) tokens.add(token);
+  }
+
+  const allTokens = Array.from(tokens);
+  if (allTokens.length === 0) {
+    return { attempted: 0, successCount: 0, failureCount: 0 };
+  }
+
+  const response: any = await sendPushNotification(allTokens, {
+    title: notification.title,
+    body: notification.message,
+    data: {
+      type: "admin_notification",
+      notificationId: String(notification._id),
+      recipientType: String(notification.recipientType),
+      createdAt: notification.createdAt
+        ? new Date(notification.createdAt).toISOString()
+        : new Date().toISOString(),
+    },
+  });
+
+  return {
+    attempted: allTokens.length,
+    successCount: response?.successCount ?? 0,
+    failureCount: response?.failureCount ?? 0,
+  };
+};
 
 /**
  * Create a new notification
@@ -40,10 +96,15 @@ export const createNotification = asyncHandler(
       isRead: false,
     });
 
+    const pushResult = await sendPushForNotification(notification);
+    notification.sentAt = new Date();
+    await notification.save();
+
     return res.status(201).json({
       success: true,
       message: "Notification created successfully",
       data: notification,
+      push: pushResult,
     });
   }
 );
@@ -205,8 +266,7 @@ export const sendNotification = asyncHandler(
       });
     }
 
-    // Logic to send push notification would go here
-    // e.g. await pushNotificationService.send(notification);
+    const pushResult = await sendPushForNotification(notification);
 
     notification.sentAt = new Date();
     await notification.save();
@@ -215,6 +275,7 @@ export const sendNotification = asyncHandler(
       success: true,
       message: "Notification sent successfully",
       data: notification,
+      push: pushResult,
     });
   }
 );

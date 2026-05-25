@@ -31,6 +31,9 @@ export interface OrderItem {
   taxPercent: number;
   qty: number;
   subtotal: number;
+  commissionRate?: number;
+  commissionAmount?: number;
+  netEarning?: number;
 }
 
 export interface DeliveryAddress {
@@ -40,6 +43,7 @@ export interface DeliveryAddress {
   city: string;
   state: string;
   pincode: string;
+  landmark?: string;
   latitude?: number;
   longitude?: number;
 }
@@ -59,6 +63,8 @@ export interface OrderDetail {
   deliveryBoyStatus: 'Pending' | 'Accepted' | 'Assigned' | 'Picked Up' | 'In Transit' | 'Delivered' | 'Failed';
   items: OrderItem[];
   subtotal: number;
+  totalCommission?: number;
+  netEarnings?: number;
   tax: number;
   grandTotal: number;
   paymentMethod: string;

@@ -713,7 +713,7 @@ export default function AdminReceivedOrders() {
 
       {/* Footer */}
       <div className="text-center py-4 text-xs sm:text-sm text-neutral-600">
-        Copyright © 2026. Developed By{' '}
+        Copyright © {new Date().getFullYear()}. Developed By{' '}
         <Link to="/" className="text-primary-dark hover:text-neutral-900">
           Healthy Delight
         </Link>

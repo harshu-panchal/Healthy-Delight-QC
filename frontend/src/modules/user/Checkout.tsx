@@ -81,6 +81,7 @@ export default function Checkout() {
   const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
   const [couponError, setCouponError] = useState<string | null>(null);
   const [validatedDiscount, setValidatedDiscount] = useState<number>(0);
+  const [couponCodeInput, setCouponCodeInput] = useState<string>("");
   const [similarProducts, setSimilarProducts] = useState<any[]>([]);
   const [showGstinSheet, setShowGstinSheet] = useState(false);
   const [gstin, setGstin] = useState<string>("");
@@ -516,6 +517,38 @@ export default function Checkout() {
     setSelectedCoupon(null);
     setValidatedDiscount(0);
     setCouponError(null);
+  };
+
+  const handleApplyCouponByCode = async (code: string) => {
+    setIsValidatingCoupon(true);
+    setCouponError(null);
+    try {
+      const result = await validateCoupon(code, subtotalBeforeCoupon);
+      if (result.success && result.data?.isValid) {
+        const isFirstTime = !hasAppliedCouponBefore;
+        const resData = result.data as any;
+        const applied = resData?.coupon || {
+          code: code.toUpperCase(),
+          title: `Coupon ${code.toUpperCase()}`,
+          description: `Saves ₹${resData?.discountAmount}`,
+          discountType: resData?.coupon?.discountType || "Fixed",
+          discountValue: resData?.coupon?.discountValue || resData?.discountAmount
+        };
+        setSelectedCoupon(applied);
+        setValidatedDiscount(result.data.discountAmount);
+        setCouponCodeInput("");
+        if (isFirstTime) {
+          setHasAppliedCouponBefore(true);
+          setShowPartyPopper(true);
+        }
+      } else {
+        setCouponError(result.message || "Invalid coupon code");
+      }
+    } catch (err: any) {
+      setCouponError(err.response?.data?.message || "Failed to apply coupon");
+    } finally {
+      setIsValidatingCoupon(false);
+    }
   };
 
   const handleMoveToWishlist = async (product: any, variantId?: string, variantTitle?: string) => {
@@ -1462,43 +1495,91 @@ export default function Checkout() {
 
 
       {/* Coupon Section */}
-      {selectedCoupon ? (
-        <div className="px-4 py-1.5 border-b border-neutral-200">
-          <div className="flex items-center justify-between bg-[#0a193b]/5 rounded-lg p-2 border border-[#0a193b]/20">
-            <div className="flex items-center gap-2 flex-1 min-w-0">
-              <div className="w-6 h-6 rounded-full bg-[#0a193b] flex items-center justify-center flex-shrink-0">
+      <div className="px-4 py-4 bg-white border-b border-neutral-100">
+        {selectedCoupon ? (
+          <div className="flex items-center justify-between bg-[#0a193b]/5 rounded-2xl p-4 border border-[#0a193b]/20">
+            <div className="flex items-center gap-3 flex-1 min-w-0">
+              <div className="w-10 h-10 rounded-full bg-[#0a193b] flex items-center justify-center flex-shrink-0">
                 <svg
-                  width="14"
-                  height="14"
+                  width="20"
+                  height="20"
                   viewBox="0 0 24 24"
                   fill="none"
-                  xmlns="http://www.w3.org/2000/svg">
-                  <path
-                    d="M20 6L9 17l-5-5"
-                    stroke="white"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
+                  stroke="white"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  strokeLinejoin="round">
+                  <polyline points="20 6 9 17 4 12" />
                 </svg>
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-semibold text-[#0a193b] truncate">
+                <p className="text-xs font-black text-[#0a193b] tracking-wide">
                   {selectedCoupon.code}
                 </p>
-                <p className="text-[10px] text-[#0a193b]/80 truncate">
-                  {selectedCoupon.title}
+                <p className="text-[10px] text-[#0a193b]/80 font-bold mt-0.5">
+                  Applied successfully! Saved ₹{currentCouponDiscount}
                 </p>
               </div>
             </div>
             <button
               onClick={handleRemoveCoupon}
-              className="text-xs text-[#0a193b] font-bold ml-2 flex-shrink-0">
+              className="text-xs text-red-600 font-extrabold ml-2 flex-shrink-0 hover:text-red-700 transition-colors uppercase tracking-wider">
               Remove
             </button>
           </div>
-        </div>
-      ) : null}
+        ) : (
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex flex-col">
+                <h3 className="text-sm font-bold text-neutral-900 tracking-tight">Promo & Coupons</h3>
+                <p className="text-[10px] font-medium text-neutral-500 uppercase tracking-widest mt-0.5">Apply discount code</p>
+              </div>
+              <button
+                onClick={() => setShowCouponSheet(true)}
+                className="text-[10px] font-extrabold text-[#0a193b] hover:text-[#0a193b]/80 uppercase tracking-widest transition-colors flex items-center gap-1">
+                View Available
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6" /></svg>
+              </button>
+            </div>
+            
+            <div className="flex items-center gap-2.5">
+              <div className="relative flex-1">
+                <input
+                  type="text"
+                  placeholder="Enter Coupon Code (e.g. SAVE50)"
+                  value={couponCodeInput}
+                  onChange={(e) => {
+                    setCouponCodeInput(e.target.value.toUpperCase());
+                    setCouponError(null);
+                  }}
+                  className="w-full pl-4 pr-16 py-3 bg-neutral-50 border border-neutral-200 rounded-2xl text-xs font-black uppercase placeholder:text-neutral-400 placeholder:normal-case focus:outline-none focus:ring-2 focus:ring-[#0a193b]/10 focus:border-[#0a193b] transition-all"
+                />
+                <button
+                  onClick={() => {
+                    if (couponCodeInput.trim()) {
+                      const found = availableCoupons.find(c => c.code.toUpperCase() === couponCodeInput.trim().toUpperCase());
+                      if (found) {
+                        handleApplyCoupon(found);
+                      } else {
+                        handleApplyCouponByCode(couponCodeInput.trim());
+                      }
+                    }
+                  }}
+                  disabled={!couponCodeInput.trim() || isValidatingCoupon}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-extrabold text-[#0a193b] disabled:text-neutral-300 hover:text-[#0a193b]/85 transition-colors uppercase tracking-wider">
+                  {isValidatingCoupon ? "..." : "Apply"}
+                </button>
+              </div>
+            </div>
+
+            {couponError && (
+              <p className="text-[10px] font-bold text-red-600 px-1">
+                ⚠️ {couponError}
+              </p>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* Required Selection: Shift Time */}
       {!scheduledDateStr && (

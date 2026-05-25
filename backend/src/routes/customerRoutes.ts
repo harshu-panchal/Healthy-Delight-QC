@@ -1,5 +1,6 @@
 import { Router } from "express";
 import * as customerController from "../modules/customer/controllers/customerController";
+import * as customerFAQController from "../modules/customer/controllers/customerFAQController";
 import { authenticate } from "../middleware/auth";
 
 const router = Router();
@@ -18,5 +19,8 @@ router.get("/location", authenticate, customerController.getLocation);
 
 // Get customer wallet transactions (protected route)
 router.get("/wallet/transactions", authenticate, customerController.getWalletTransactions);
+
+// Get FAQs for customer app (protected route)
+router.get("/faqs", authenticate, customerFAQController.getFAQs);
 
 export default router;

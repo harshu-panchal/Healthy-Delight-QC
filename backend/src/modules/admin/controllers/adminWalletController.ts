@@ -275,6 +275,16 @@ export const processWithdrawalWrapper = asyncHandler(async (req: Request, res: R
 });
 
 /**
+ * Get Seller Transactions by Seller ID (Admin endpoint)
+ */
+export const getSellerTransactions = asyncHandler(async (req: Request, res: Response, next) => {
+  const { sellerId } = req.params;
+  req.query.userType = 'SELLER';
+  req.query.userId = sellerId;
+  return getWalletTransactions(req, res, next);
+});
+
+/**
  * Create Manual Fund Transfer (Credit/Debit) for Sellers or Delivery Boys
  */
 export const createManualFundTransfer = asyncHandler(async (req: Request, res: Response) => {

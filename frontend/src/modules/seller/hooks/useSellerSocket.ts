@@ -27,8 +27,13 @@ export interface SellerNotification {
         price: number;
         total: number;
         variation?: string;
+        commissionRate?: number;
+        commissionAmount?: number;
+        netEarning?: number;
     }>;
     totalAmount: number;
+    totalCommission?: number;
+    netEarnings?: number;
     timestamp: Date;
     orderType?: string;
     scheduledDate?: string;

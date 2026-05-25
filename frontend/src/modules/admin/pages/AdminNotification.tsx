@@ -233,7 +233,7 @@ export default function AdminNotification() {
   };
 
   return (
-    <div className="flex flex-col h-full bg-gray-50">
+    <div className="flex flex-col min-h-screen bg-gray-50">
       {/* Page Content */}
       <div className="flex-1 p-6">
         {/* Header with Title and Breadcrumb */}
@@ -246,7 +246,7 @@ export default function AdminNotification() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Left Panel: Send Notification */}
           <div className="bg-white rounded-lg shadow-sm border border-neutral-200 flex flex-col">
             <div className="bg-neutral-50 border-b border-neutral-200 px-6 py-4 rounded-t-lg">
@@ -602,7 +602,7 @@ export default function AdminNotification() {
 
       {/* Footer */}
       <footer className="text-center py-4 text-sm text-neutral-600 border-t border-neutral-200 bg-white">
-        Copyright © 2025. Developed By{" "}
+        Copyright © {new Date().getFullYear()}. Developed By{" "}
         <a href="#" className="text-primary-dark hover:underline">
           Healthy Delight
         </a>

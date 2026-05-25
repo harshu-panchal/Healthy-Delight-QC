@@ -9,6 +9,7 @@ import mongoose from "mongoose";
 import { isWholesaleEligible, getVariationPrice } from "../../../utils/wholesaleHelper";
 import { calculateDistance } from "../../../utils/locationHelper";
 import { notifySellersOfOrderUpdate } from "../../../services/sellerNotificationService";
+import { getOrderItemCommissionRate } from "../../../services/commissionService";
 import { generateDeliveryOtp } from "../../../services/deliveryOtpService";
 import { Server as SocketIOServer } from "socket.io";
 
@@ -227,7 +228,10 @@ export const createOrder = async (req: Request, res: Response) => {
             let product;
             // The frontend sends variation info as 'variant' or 'variation'
             // In the product model, it's stored in 'variations' array
-            const variationValue = item.variant || item.variation;
+            let variationValue = item.variant || item.variation;
+            if (variationValue === "Variation" || variationValue === "Standard" || variationValue === "Default") {
+                variationValue = undefined;
+            }
 
             if (variationValue) {
                 // Try to decrement stock for the specific variation first
@@ -269,9 +273,15 @@ export const createOrder = async (req: Request, res: Response) => {
                 const checkProduct = await Product.findById(item.product.id);
 
                 if (checkProduct && checkProduct.variations && checkProduct.variations.length > 0) {
-                    // Product has variations, but we didn't match one.
                     // If a variation was provided, it means that specific variation is out of stock.
-                    if (variationValue) {
+                    // We only throw if it matches an actual variation in the product variations catalog (not a generic placeholder).
+                    const hasMatchingVariation = checkProduct.variations.some((v: any) =>
+                        (v._id && v._id.toString() === variationValue) ||
+                        v.value === variationValue ||
+                        v.title === variationValue ||
+                        v.pack === variationValue
+                    );
+                    if (variationValue && hasMatchingVariation) {
                         throw new Error(`Insufficient stock for variation: ${variationValue}`);
                     }
 
@@ -377,6 +387,8 @@ export const createOrder = async (req: Request, res: Response) => {
                 calculatedTax += itemTax;
             }
 
+            const commissionRate = await getOrderItemCommissionRate(product._id.toString(), product.seller.toString());
+
             // Create OrderItem
             const newOrderItemData = {
                 order: newOrder._id,
@@ -393,7 +405,8 @@ export const createOrder = async (req: Request, res: Response) => {
                 pricingType,
                 appliedMinWholesaleQty,
                 wholesalePrice,
-                retailPrice
+                retailPrice,
+                commissionRate
             };
 
             const newOrderItem = new OrderItem(newOrderItemData);
@@ -1158,7 +1171,10 @@ export const updateScheduledOrderItems = async (req: Request, res: Response) => 
             }
 
             let product;
-            const variationValue = item.variant || item.variation;
+            let variationValue = item.variant || item.variation;
+            if (variationValue === "Variation" || variationValue === "Standard" || variationValue === "Default") {
+                variationValue = undefined;
+            }
             if (variationValue) {
                 product = session
                     ? await Product.findOneAndUpdate(
@@ -1194,7 +1210,13 @@ export const updateScheduledOrderItems = async (req: Request, res: Response) => 
             if (!product) {
                 const checkProduct = await Product.findById(item.product.id);
                 if (checkProduct && checkProduct.variations && checkProduct.variations.length > 0) {
-                    if (variationValue) {
+                    const hasMatchingVariation = checkProduct.variations.some((v: any) =>
+                        (v._id && v._id.toString() === variationValue) ||
+                        v.value === variationValue ||
+                        v.title === variationValue ||
+                        v.pack === variationValue
+                    );
+                    if (variationValue && hasMatchingVariation) {
                         throw new Error(`Insufficient stock for variation: ${variationValue}`);
                     }
                     product = session
