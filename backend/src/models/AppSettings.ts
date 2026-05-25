@@ -76,6 +76,7 @@ export interface IAppSettings extends Document {
   refundPolicy?: string;
   customerAppPolicy?: string;
   deliveryAppPolicy?: string;
+  deliveryPrivacyPolicy?: string;
 
   // FAQ
   faq?: Array<{
@@ -308,6 +309,10 @@ const AppSettingsSchema = new Schema<IAppSettings>(
       trim: true,
     },
     deliveryAppPolicy: {
+      type: String,
+      trim: true,
+    },
+    deliveryPrivacyPolicy: {
       type: String,
       trim: true,
     },

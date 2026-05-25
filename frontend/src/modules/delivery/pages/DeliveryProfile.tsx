@@ -9,6 +9,7 @@ export default function DeliveryProfile() {
   const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
   const { userName, setUserName } = useDeliveryUser();
+  const [vehicleError, setVehicleError] = useState('');
 
   const [profileData, setProfileData] = useState({
     name: '',
@@ -56,20 +57,37 @@ export default function DeliveryProfile() {
   };
 
   const handleSave = async () => {
+    const vehNum = profileData.vehicleNumber.trim().toUpperCase().replace(/\s+/g, '');
+    if (vehNum && !/^[A-Z]{2}[0-9]{1,2}[A-Z]{1,3}[0-9]{4}$/.test(vehNum)) {
+      setVehicleError('Invalid format. Example: UP32AB1234');
+      return;
+    }
+
     try {
       await updateProfile({
         name: profileData.name,
         email: profileData.email,
         address: profileData.address,
-        vehicleNumber: profileData.vehicleNumber,
+        vehicleNumber: vehNum,
         vehicleType: profileData.vehicleType
       });
       setUserName(profileData.name);
       setIsEditing(false);
-      // You could add a toast notification here
+      setVehicleError('');
     } catch (error) {
       console.error("Failed to update profile", error);
       alert("Failed to update profile");
+    }
+  };
+
+  const handleVehicleNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const cleanVal = e.target.value.toUpperCase().replace(/\s+/g, '').replace(/[^A-Z0-9]/g, '');
+    handleInputChange('vehicleNumber', cleanVal);
+    
+    if (cleanVal && !/^[A-Z]{2}[0-9]{1,2}[A-Z]{1,3}[0-9]{4}$/.test(cleanVal)) {
+      setVehicleError('Invalid format. Example: UP32AB1234');
+    } else {
+      setVehicleError('');
     }
   };
 
@@ -104,19 +122,14 @@ export default function DeliveryProfile() {
 
         {/* Profile Card */}
         <div className="bg-white rounded-xl p-6 shadow-sm border border-neutral-200 mb-4">
-          <div className="flex flex-col items-center mb-6">
-            <div className="w-24 h-24 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center mb-4">
-              <span className="text-white text-3xl font-bold">
-                {profileData.name.split(' ').map(n => n[0]).join('')}
-              </span>
-            </div>
+          <div className="flex flex-col items-center">
             {isEditing ? (
-              <div className="w-full max-w-xs">
+              <div className="w-full max-w-xs space-y-2">
                 <input
                   type="text"
                   value={profileData.name}
                   onChange={(e) => handleInputChange('name', e.target.value)}
-                  className="w-full text-center text-neutral-900 text-xl font-semibold mb-2 px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  className="w-full text-center text-neutral-900 text-xl font-semibold px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
                 />
                 <input
                   type="tel"
@@ -126,20 +139,11 @@ export default function DeliveryProfile() {
                 />
               </div>
             ) : (
-              <>
+              <div className="text-center">
                 <h3 className="text-neutral-900 text-xl font-semibold mb-1">{profileData.name}</h3>
                 <p className="text-neutral-600 text-sm">{profileData.phone}</p>
-              </>
+              </div>
             )}
-            <div className="flex items-center gap-1 mt-2">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path
-                  d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"
-                  fill="#22c55e"
-                />
-              </svg>
-              <span className="text-neutral-900 font-semibold">{profileData.rating}</span>
-            </div>
           </div>
         </div>
 
@@ -178,12 +182,25 @@ export default function DeliveryProfile() {
             <div className="p-4">
               <p className="text-neutral-500 text-xs mb-1">Vehicle Number</p>
               {isEditing ? (
-                <input
-                  type="text"
-                  value={profileData.vehicleNumber}
-                  onChange={(e) => handleInputChange('vehicleNumber', e.target.value)}
-                  className="w-full text-neutral-900 text-sm px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
-                />
+                <div className="w-full">
+                  <input
+                    type="text"
+                    value={profileData.vehicleNumber}
+                    onChange={handleVehicleNumberChange}
+                    maxLength={10}
+                    placeholder="e.g. UP32AB1234"
+                    className={`w-full text-neutral-900 text-sm px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 ${
+                      vehicleError 
+                        ? 'border-red-500 focus:ring-red-500' 
+                        : 'border-neutral-300 focus:ring-orange-500'
+                    }`}
+                  />
+                  {vehicleError && (
+                    <p className="text-red-500 text-[10px] mt-1 animate-in fade-in duration-200 font-medium">
+                      {vehicleError}
+                    </p>
+                  )}
+                </div>
               ) : (
                 <p className="text-neutral-900 text-sm">{profileData.vehicleNumber}</p>
               )}

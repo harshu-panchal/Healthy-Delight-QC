@@ -49,18 +49,22 @@ export default function SellerSignUp() {
         ...prev,
         [name]: value.replace(/\D/g, "").slice(0, 10),
       }));
-    } else if (name === "sellerName" || name === "city") {
+    } else if (name === "sellerName" || name === "city" || name === "taxName") {
       setFormData((prev) => ({
         ...prev,
         [name]: value.replace(/[^a-zA-Z\s]/g, ""),
       }));
-    } else if (name === "panCard" || name === "ifsc") {
+    } else if (name === "panCard" || name === "ifsc" || name === "taxNumber") {
+      let maxLen = 10;
+      if (name === "ifsc") maxLen = 11;
+      else if (name === "taxNumber") maxLen = 15;
+
       setFormData((prev) => ({
         ...prev,
         [name]: value
           .replace(/[^a-zA-Z0-9]/g, "")
           .toUpperCase()
-          .slice(0, name === "ifsc" ? 11 : 10),
+          .slice(0, maxLen),
       }));
     } else if (name === "serviceRadiusKm") {
       // Allow only numbers and a single decimal point
@@ -113,12 +117,26 @@ export default function SellerSignUp() {
       setError("PAN Card cannot be empty");
       return;
     }
+    const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
+    if (!panRegex.test(formData.panCard.toUpperCase())) {
+      setError("Invalid PAN Card format. Must be 5 letters, 4 numbers, followed by 1 letter (e.g., ABCDE1234F)");
+      return;
+    }
     if (!formData.taxName) {
-      setError("Tax Name cannot be empty");
+      setError("Name as per GST/PAN cannot be empty");
       return;
     }
     if (!formData.taxNumber) {
-      setError("Tax Number cannot be empty");
+      setError("GSTIN cannot be empty");
+      return;
+    }
+    if (formData.taxNumber.length !== 15) {
+      setError("GSTIN must be exactly 15 characters");
+      return;
+    }
+    const gstinRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
+    if (!gstinRegex.test(formData.taxNumber.toUpperCase())) {
+      setError("Invalid GSTIN format. Enforce standard 15-character GSTIN format (e.g., 27AAAAA1111A1Z1)");
       return;
     }
     if (!formData.ifsc) {
@@ -402,21 +420,60 @@ export default function SellerSignUp() {
                       onClick={() => {
                         if (navigator.geolocation) {
                           setLoading(true);
-                          navigator.geolocation.getCurrentPosition(
+                           navigator.geolocation.getCurrentPosition(
                             (position) => {
                               const lat = position.coords.latitude;
                               const lng = position.coords.longitude;
-                              const locationStr = `${lat.toFixed(
-                                6
-                              )}, ${lng.toFixed(6)}`;
-                              setFormData((prev) => ({
-                                ...prev,
-                                latitude: lat.toString(),
-                                longitude: lng.toString(),
-                                searchLocation: locationStr,
-                                address: prev.address || locationStr, // Ensure address is not empty
-                              }));
-                              setLoading(false);
+                              
+                              const googleMaps = (window as any).google?.maps;
+                              if (googleMaps && googleMaps.Geocoder) {
+                                const geocoder = new googleMaps.Geocoder();
+                                geocoder.geocode({ location: { lat, lng } }, (results: any, status: any) => {
+                                  if (status === "OK" && results && results[0]) {
+                                    const address = results[0].formatted_address;
+                                    
+                                    // Parse city/locality
+                                    let city = "";
+                                    for (const component of results[0].address_components) {
+                                      if (component.types.includes("locality")) {
+                                        city = component.long_name;
+                                        break;
+                                      } else if (component.types.includes("administrative_area_level_2")) {
+                                        city = component.long_name;
+                                      }
+                                    }
+
+                                    setFormData((prev) => ({
+                                      ...prev,
+                                      latitude: lat.toString(),
+                                      longitude: lng.toString(),
+                                      searchLocation: address,
+                                      address: address,
+                                      city: city || prev.city,
+                                    }));
+                                  } else {
+                                    const locationStr = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+                                    setFormData((prev) => ({
+                                      ...prev,
+                                      latitude: lat.toString(),
+                                      longitude: lng.toString(),
+                                      searchLocation: locationStr,
+                                      address: locationStr,
+                                    }));
+                                  }
+                                  setLoading(false);
+                                });
+                              } else {
+                                const locationStr = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  latitude: lat.toString(),
+                                  longitude: lng.toString(),
+                                  searchLocation: locationStr,
+                                  address: locationStr,
+                                }));
+                                setLoading(false);
+                              }
                             },
                             (error) => {
                               console.error(error);
@@ -461,11 +518,44 @@ export default function SellerSignUp() {
                         initialLat={parseFloat(formData.latitude)}
                         initialLng={parseFloat(formData.longitude)}
                         onLocationSelect={(lat, lng) => {
-                          setFormData((prev) => ({
-                            ...prev,
-                            latitude: lat.toString(),
-                            longitude: lng.toString(),
-                          }));
+                          const googleMaps = (window as any).google?.maps;
+                          if (googleMaps && googleMaps.Geocoder) {
+                            const geocoder = new googleMaps.Geocoder();
+                            geocoder.geocode({ location: { lat, lng } }, (results: any, status: any) => {
+                              if (status === "OK" && results && results[0]) {
+                                const address = results[0].formatted_address;
+                                let city = "";
+                                for (const component of results[0].address_components) {
+                                  if (component.types.includes("locality")) {
+                                    city = component.long_name;
+                                    break;
+                                  } else if (component.types.includes("administrative_area_level_2")) {
+                                    city = component.long_name;
+                                  }
+                                }
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  latitude: lat.toString(),
+                                  longitude: lng.toString(),
+                                  searchLocation: address,
+                                  address: address,
+                                  city: city || prev.city,
+                                }));
+                              } else {
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  latitude: lat.toString(),
+                                  longitude: lng.toString(),
+                                }));
+                              }
+                            });
+                          } else {
+                            setFormData((prev) => ({
+                              ...prev,
+                              latitude: lat.toString(),
+                              longitude: lng.toString(),
+                            }));
+                          }
                         }}
                       />
                       <p className="mt-1 text-xs text-neutral-500 text-center">
@@ -556,9 +646,11 @@ export default function SellerSignUp() {
                       name="panCard"
                       value={formData.panCard}
                       onChange={handleInputChange}
-                      placeholder="PAN Card Number"
+                      placeholder="e.g. ABCDE1234F"
                       required
                       maxLength={10}
+                      pattern="[A-Za-z]{5}[0-9]{4}[A-Za-z]{1}"
+                      title="Enforce standard PAN format: 5 letters, 4 numbers, 1 letter (e.g. ABCDE1234F)"
                       className="w-full px-3 py-2.5 text-sm border border-neutral-300 rounded-lg focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary-200"
                       disabled={loading}
                     />
@@ -566,15 +658,17 @@ export default function SellerSignUp() {
 
                   <div>
                     <label className="block text-sm font-medium text-neutral-700 mb-2">
-                      Tax Name <span className="text-red-500">*</span>
+                      Name as per GST/PAN <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
                       name="taxName"
                       value={formData.taxName}
                       onChange={handleInputChange}
-                      placeholder="Tax Name"
+                      placeholder="Name as per GST/PAN"
                       required
+                      pattern="[A-Za-z\s]+"
+                      title="Name can only contain alphabetical letters and spaces"
                       className="w-full px-3 py-2.5 text-sm border border-neutral-300 rounded-lg focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary-200"
                       disabled={loading}
                     />
@@ -582,15 +676,19 @@ export default function SellerSignUp() {
 
                   <div>
                     <label className="block text-sm font-medium text-neutral-700 mb-2">
-                      Tax Number <span className="text-red-500">*</span>
+                      GSTIN <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
                       name="taxNumber"
                       value={formData.taxNumber}
                       onChange={handleInputChange}
-                      placeholder="Tax Number"
+                      placeholder="e.g. 27AAAAA1111A1Z1"
                       required
+                      maxLength={15}
+                      minLength={15}
+                      pattern="[0-9]{2}[A-Za-z]{5}[0-9]{4}[A-Za-z]{1}[1-9A-Za-z]{1}Z[0-9A-Za-z]{1}"
+                      title="Enforce 15-character alphanumeric GSTIN format (e.g. 27AAAAA1111A1Z1)"
                       className="w-full px-3 py-2.5 text-sm border border-neutral-300 rounded-lg focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary-200"
                       disabled={loading}
                     />
@@ -701,7 +799,20 @@ export default function SellerSignUp() {
 
       {/* Footer Text */}
       <p className="mt-6 text-xs text-neutral-500 text-center max-w-md">
-        By continuing, you agree to Healthy Delight's Terms of Service and Privacy Policy
+        By continuing, you agree to Healthy Delight's{" "}
+        <span
+          onClick={() => navigate('/seller/terms-of-service')}
+          className="text-primary hover:text-primary-dark hover:underline font-semibold cursor-pointer"
+        >
+          Terms of Service
+        </span>{" "}
+        and{" "}
+        <span
+          onClick={() => navigate('/seller/privacy-policy')}
+          className="text-primary hover:text-primary-dark hover:underline font-semibold cursor-pointer"
+        >
+          Privacy Policy
+        </span>
       </p>
     </div>
   );

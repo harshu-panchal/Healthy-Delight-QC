@@ -113,6 +113,12 @@ const DeliveryLogin = lazy(
 const DeliverySignUp = lazy(
   () => import("./modules/delivery/pages/DeliverySignUp"),
 );
+const DeliveryTerms = lazy(
+  () => import("./modules/delivery/pages/DeliveryTerms"),
+);
+const DeliveryPrivacy = lazy(
+  () => import("./modules/delivery/pages/DeliveryPrivacy"),
+);
 
 // Lazy load seller routes
 const SellerLayout = lazy(
@@ -241,6 +247,9 @@ const AdminCancelledOrders = lazy(
 );
 const AdminCustomerAppPolicy = lazy(
   () => import("./modules/admin/pages/AdminCustomerAppPolicy"),
+);
+const AdminDeliveryPrivacyPolicy = lazy(
+  () => import("./modules/admin/pages/AdminDeliveryPrivacyPolicy"),
 );
 const AdminDeliveryAppPolicy = lazy(
   () => import("./modules/admin/pages/AdminDeliveryAppPolicy"),
@@ -376,7 +385,27 @@ function AppContent() {
                             </PublicRoute>
                           }
                         />
+                        
                         <Route
+                          path="/delivery/terms"
+                          element={
+                            <PublicRoute>
+                              <Suspense fallback={<IconLoader forceShow />}>
+                                <DeliveryTerms />
+                              </Suspense>
+                            </PublicRoute>
+                          }
+                        />
+                        <Route
+                          path="/delivery/privacy"
+                          element={
+                            <PublicRoute>
+                              <Suspense fallback={<IconLoader forceShow />}>
+                                <DeliveryPrivacy />
+                              </Suspense>
+                            </PublicRoute>
+                          }
+                        /><Route
                           path="/admin/login"
                           element={
                             <PublicRoute>
@@ -647,6 +676,10 @@ function AppContent() {
                                     <Route
                                       path="delivery-app-policy"
                                       element={<AdminDeliveryAppPolicy />}
+                                     />
+                                     <Route
+                                       path="delivery-privacy-policy"
+                                       element={<AdminDeliveryPrivacyPolicy />}
                                     />
                                     <Route
                                       path="billing-settings"

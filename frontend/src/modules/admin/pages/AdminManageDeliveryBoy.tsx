@@ -24,6 +24,13 @@ export default function AdminManageDeliveryBoy() {
     const [totalPages, setTotalPages] = useState(1);
     const [totalDeliveryBoys, setTotalDeliveryBoys] = useState(0);
     const [successMessage, setSuccessMessage] = useState('');
+    const [selectedDeliveryBoy, setSelectedDeliveryBoy] = useState<DeliveryBoy | null>(null);
+    const [showDetailsModal, setShowDetailsModal] = useState(false);
+
+    const handleViewDetails = (deliveryBoy: DeliveryBoy) => {
+        setSelectedDeliveryBoy(deliveryBoy);
+        setShowDetailsModal(true);
+    };
 
     // Debounce search term and fetch delivery boys
     useEffect(() => {
@@ -562,6 +569,16 @@ export default function AdminManageDeliveryBoy() {
                                             <td className="p-4 align-middle">
                                                 <div className="flex items-center gap-2">
                                                     <button
+                                                        onClick={() => handleViewDetails(deliveryBoy)}
+                                                        className="p-1.5 text-teal-600 hover:bg-teal-50 rounded transition-colors"
+                                                        title="View Rider Profile Details"
+                                                    >
+                                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                                            <circle cx="12" cy="12" r="3"></circle>
+                                                        </svg>
+                                                    </button>
+                                                    <button
                                                         onClick={() => handleStatusChange(deliveryBoy._id, deliveryBoy.status === 'Active' ? 'Inactive' : 'Active')}
                                                         disabled={processing === deliveryBoy._id}
                                                         className={`p-1.5 rounded transition-colors ${deliveryBoy.status === 'Active'
@@ -702,6 +719,219 @@ export default function AdminManageDeliveryBoy() {
                     </div>
                 </div>
             </div>
+
+            {/* Delivery Boy Details Modal */}
+            {showDetailsModal && selectedDeliveryBoy && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4 backdrop-blur-sm transition-opacity">
+                    <div className="bg-white rounded-xl shadow-2xl border border-neutral-200 w-full max-w-3xl max-h-[90vh] overflow-y-auto transform scale-100 transition-all duration-300">
+                        {/* Modal Header */}
+                        <div className="sticky top-0 bg-neutral-50 border-b border-neutral-200 px-6 py-4 flex items-center justify-between z-10">
+                            <div>
+                                <h3 className="text-lg font-bold text-neutral-800 flex items-center gap-2">
+                                    <span>Rider Profile: {selectedDeliveryBoy.name}</span>
+                                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${selectedDeliveryBoy.status === 'Active'
+                                        ? 'bg-cream text-neutral-800 border border-primary/20'
+                                        : 'bg-red-50 text-red-700 border border-red-200'
+                                        }`}>
+                                        {selectedDeliveryBoy.status}
+                                    </span>
+                                </h3>
+                                <p className="text-xs text-neutral-500 mt-0.5">ID: {selectedDeliveryBoy._id}</p>
+                            </div>
+                            <button
+                                onClick={() => {
+                                    setShowDetailsModal(false);
+                                    setSelectedDeliveryBoy(null);
+                                }}
+                                className="text-neutral-500 hover:text-neutral-800 p-1.5 hover:bg-neutral-100 rounded-lg transition-colors font-bold text-xl"
+                                type="button"
+                            >
+                                ×
+                            </button>
+                        </div>
+
+                        {/* Modal Body */}
+                        <div className="p-6 space-y-6 text-left">
+                            {/* Personal Details */}
+                            <div className="bg-neutral-50/50 p-5 rounded-xl border border-neutral-200/60">
+                                <h4 className="text-sm font-bold text-teal-800 uppercase tracking-wider mb-4 flex items-center gap-2">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                                        <circle cx="12" cy="7" r="4" />
+                                    </svg>
+                                    Personal Information
+                                </h4>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 text-sm">
+                                    <div>
+                                        <span className="block text-xs font-semibold text-neutral-400 uppercase">Full Name</span>
+                                        <span className="font-semibold text-neutral-800">{selectedDeliveryBoy.name}</span>
+                                    </div>
+                                    <div>
+                                        <span className="block text-xs font-semibold text-neutral-400 uppercase">Phone Number</span>
+                                        <a href={`tel:${selectedDeliveryBoy.mobile}`} className="font-semibold text-teal-600 hover:underline">
+                                            {selectedDeliveryBoy.mobile}
+                                        </a>
+                                    </div>
+                                    <div>
+                                        <span className="block text-xs font-semibold text-neutral-400 uppercase">Email Address</span>
+                                        <a href={`mailto:${selectedDeliveryBoy.email}`} className="font-semibold text-teal-600 hover:underline">
+                                            {selectedDeliveryBoy.email}
+                                        </a>
+                                    </div>
+                                    <div>
+                                        <span className="block text-xs font-semibold text-neutral-400 uppercase">Date of Birth</span>
+                                        <span className="font-medium text-neutral-800">
+                                            {selectedDeliveryBoy.dateOfBirth 
+                                                ? new Date(selectedDeliveryBoy.dateOfBirth).toLocaleDateString('en-US', {
+                                                    day: 'numeric',
+                                                    month: 'long',
+                                                    year: 'numeric'
+                                                  })
+                                                : 'N/A'}
+                                        </span>
+                                    </div>
+                                    <div className="md:col-span-2">
+                                        <span className="block text-xs font-semibold text-neutral-400 uppercase">Full Address</span>
+                                        <span className="font-medium text-neutral-800">
+                                            {selectedDeliveryBoy.address}, {selectedDeliveryBoy.city} {selectedDeliveryBoy.pincode ? `- ${selectedDeliveryBoy.pincode}` : ''}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Bank Account Details */}
+                            <div className="bg-neutral-50/50 p-5 rounded-xl border border-neutral-200/60">
+                                <h4 className="text-sm font-bold text-teal-800 uppercase tracking-wider mb-4 flex items-center gap-2">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                        <rect x="2" y="4" width="20" height="16" rx="2" ry="2" />
+                                        <line x1="12" y1="18" x2="12.01" y2="18" />
+                                    </svg>
+                                    Bank Account Details
+                                </h4>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 text-sm">
+                                    <div>
+                                        <span className="block text-xs font-semibold text-neutral-400 uppercase">Account Holder Name</span>
+                                        <span className="font-semibold text-neutral-800">{selectedDeliveryBoy.accountName || 'N/A'}</span>
+                                    </div>
+                                    <div>
+                                        <span className="block text-xs font-semibold text-neutral-400 uppercase">Bank Name</span>
+                                        <span className="font-semibold text-neutral-800">{selectedDeliveryBoy.bankName || 'N/A'}</span>
+                                    </div>
+                                    <div>
+                                        <span className="block text-xs font-semibold text-neutral-400 uppercase">Account Number</span>
+                                        <span className="font-mono font-bold text-neutral-800 tracking-wider">
+                                            {selectedDeliveryBoy.bankAccountNumber || (selectedDeliveryBoy as any).accountNumber || 'N/A'}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <span className="block text-xs font-semibold text-neutral-400 uppercase">IFSC Code</span>
+                                        <span className="font-semibold text-neutral-800">{selectedDeliveryBoy.ifscCode || 'N/A'}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Documents Uploaded */}
+                            <div>
+                                <h4 className="text-sm font-bold text-neutral-800 uppercase tracking-wider mb-4 flex items-center gap-2">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                                        <polyline points="14 2 14 8 20 8" />
+                                        <line x1="16" y1="13" x2="8" y2="13" />
+                                        <line x1="16" y1="17" x2="8" y2="17" />
+                                        <polyline points="10 9 9 9 8 9" />
+                                    </svg>
+                                    Uploaded Documents
+                                </h4>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    {/* Driving License */}
+                                    <div className="border border-neutral-200 rounded-xl p-4 flex flex-col justify-between bg-white shadow-sm">
+                                        <div>
+                                            <span className="block text-xs font-bold text-neutral-400 uppercase tracking-wider mb-2">Driving License</span>
+                                            {selectedDeliveryBoy.drivingLicense ? (
+                                                <div className="relative group overflow-hidden rounded-lg border border-neutral-200 bg-neutral-50 h-40 flex items-center justify-center">
+                                                    <img 
+                                                        src={selectedDeliveryBoy.drivingLicense} 
+                                                        alt="Driving License" 
+                                                        className="max-h-full max-w-full object-contain transition-transform duration-300 group-hover:scale-105"
+                                                    />
+                                                </div>
+                                            ) : (
+                                                <div className="h-40 bg-neutral-50 border border-dashed border-neutral-300 rounded-lg flex flex-col items-center justify-center text-neutral-400">
+                                                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="mb-2">
+                                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                                        <polyline points="17 8 12 3 7 8" />
+                                                        <line x1="12" y1="3" x2="12" y2="15" />
+                                                    </svg>
+                                                    <span className="text-xs font-medium">No document uploaded</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                        {selectedDeliveryBoy.drivingLicense && (
+                                            <a 
+                                                href={selectedDeliveryBoy.drivingLicense} 
+                                                target="_blank" 
+                                                rel="noopener noreferrer" 
+                                                className="mt-3 w-full text-center bg-teal-600 text-white hover:bg-teal-700 py-1.5 rounded-lg text-xs font-semibold transition-colors shadow-sm inline-block"
+                                            >
+                                                View Full Document
+                                            </a>
+                                        )}
+                                    </div>
+
+                                    {/* National Identity Card */}
+                                    <div className="border border-neutral-200 rounded-xl p-4 flex flex-col justify-between bg-white shadow-sm">
+                                        <div>
+                                            <span className="block text-xs font-bold text-neutral-400 uppercase tracking-wider mb-2">National Identity Card</span>
+                                            {selectedDeliveryBoy.nationalIdentityCard ? (
+                                                <div className="relative group overflow-hidden rounded-lg border border-neutral-200 bg-neutral-50 h-40 flex items-center justify-center">
+                                                    <img 
+                                                        src={selectedDeliveryBoy.nationalIdentityCard} 
+                                                        alt="National Identity Card" 
+                                                        className="max-h-full max-w-full object-contain transition-transform duration-300 group-hover:scale-105"
+                                                    />
+                                                </div>
+                                            ) : (
+                                                <div className="h-40 bg-neutral-50 border border-dashed border-neutral-300 rounded-lg flex flex-col items-center justify-center text-neutral-400">
+                                                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="mb-2">
+                                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                                        <polyline points="17 8 12 3 7 8" />
+                                                        <line x1="12" y1="3" x2="12" y2="15" />
+                                                    </svg>
+                                                    <span className="text-xs font-medium">No document uploaded</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                        {selectedDeliveryBoy.nationalIdentityCard && (
+                                            <a 
+                                                href={selectedDeliveryBoy.nationalIdentityCard} 
+                                                target="_blank" 
+                                                rel="noopener noreferrer" 
+                                                className="mt-3 w-full text-center bg-teal-600 text-white hover:bg-teal-700 py-1.5 rounded-lg text-xs font-semibold transition-colors shadow-sm inline-block"
+                                            >
+                                                View Full Document
+                                            </a>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Modal Footer */}
+                        <div className="sticky bottom-0 bg-neutral-50 border-t border-neutral-200 px-6 py-4 flex justify-end z-10 rounded-b-xl">
+                            <button
+                                onClick={() => {
+                                    setShowDetailsModal(false);
+                                    setSelectedDeliveryBoy(null);
+                                }}
+                                className="bg-neutral-800 text-white hover:bg-neutral-900 px-4 py-2 rounded-lg text-xs font-bold transition-all shadow-sm active:scale-95"
+                                type="button"
+                            >
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Footer */}
             <footer className="text-center py-4 text-sm text-neutral-600 border-t border-neutral-200 bg-white">

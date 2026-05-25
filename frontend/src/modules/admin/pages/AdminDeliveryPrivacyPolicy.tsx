@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { getAppSettings, updateAppSettings } from '../../../services/api/admin/adminSettingsService';
 
-export default function AdminDeliveryAppPolicy() {
+export default function AdminDeliveryPrivacyPolicy() {
   const [policyContent, setPolicyContent] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -12,10 +12,10 @@ export default function AdminDeliveryAppPolicy() {
       try {
         const response = await getAppSettings();
         if (response.success && response.data) {
-          setPolicyContent(response.data.deliveryAppPolicy || '');
+          setPolicyContent(response.data.deliveryPrivacyPolicy || '');
         }
       } catch (err: any) {
-        setError('Failed to load delivery app policy.');
+        setError('Failed to load delivery privacy policy.');
       } finally {
         setLoading(false);
       }
@@ -28,9 +28,9 @@ export default function AdminDeliveryAppPolicy() {
     setSaving(true);
     setError(null);
     try {
-      const response = await updateAppSettings({ deliveryAppPolicy: policyContent });
+      const response = await updateAppSettings({ deliveryPrivacyPolicy: policyContent });
       if (response.success) {
-        alert('Delivery App Policy updated successfully!');
+        alert('Delivery Privacy Policy updated successfully!');
       } else {
         setError('Failed to update policy.');
       }
@@ -44,7 +44,7 @@ export default function AdminDeliveryAppPolicy() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full min-h-[400px]">
-        <div className="text-neutral-500 font-medium">Loading Delivery App Policy...</div>
+        <div className="text-neutral-500 font-medium">Loading Delivery Privacy Policy...</div>
       </div>
     );
   }
@@ -55,10 +55,10 @@ export default function AdminDeliveryAppPolicy() {
       <div className="bg-white px-4 sm:px-6 py-4 border-b border-neutral-200">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-neutral-900">Delivery App Policy</h1>
+            <h1 className="text-xl sm:text-2xl font-bold text-neutral-900">Delivery Privacy Policy</h1>
           </div>
           <div className="text-sm text-neutral-600">
-            <span className="text-primary-dark">Home</span> / <span className="text-neutral-900">Delivery App Policy</span>
+            <span className="text-primary-dark">Home</span> / <span className="text-neutral-900">Delivery Privacy Policy</span>
           </div>
         </div>
       </div>
@@ -86,7 +86,7 @@ export default function AdminDeliveryAppPolicy() {
                     name="policyContent"
                     value={policyContent}
                     onChange={(e) => setPolicyContent(e.target.value)}
-                    placeholder="Enter Delivery App Policy content..."
+                    placeholder="Enter Delivery Privacy Policy content..."
                     rows={25}
                     required
                     className="w-full px-4 py-3 border border-neutral-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary resize-y font-mono"
@@ -136,4 +136,3 @@ export default function AdminDeliveryAppPolicy() {
     </div>
   );
 }
-

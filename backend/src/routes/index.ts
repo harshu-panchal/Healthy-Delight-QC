@@ -43,6 +43,8 @@ import {
   updateOrderNotes,
 } from "../modules/customer/controllers/customerOrderController";
 
+import AppSettings from "../models/AppSettings";
+
 const router = Router();
 
 // Health check route
@@ -52,6 +54,25 @@ router.get("/health", (_req, res) => {
     message: "API is healthy",
     timestamp: new Date().toISOString(),
   });
+});
+
+// Public App Settings
+router.get("/settings/public", async (_req, res) => {
+  try {
+    const settings = await AppSettings.findOne().select("appName contactEmail contactPhone privacyPolicy customerAppPolicy deliveryAppPolicy deliveryPrivacyPolicy");
+    return res.status(200).json({
+      success: true,
+      data: settings || {
+        deliveryAppPolicy: "",
+        deliveryPrivacyPolicy: ""
+      }
+    });
+  } catch (error: any) {
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Failed to fetch settings"
+    });
+  }
 });
 
 // Authentication routes

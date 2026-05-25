@@ -238,10 +238,6 @@ export default function DeliveryLogin() {
         </div>
       </div>
 
-      {/* Footer Text */}
-      <p className="mt-4 sm:mt-6 text-[10px] sm:text-xs text-neutral-500 text-center max-w-xs sm:max-w-md px-4">
-        By continuing, you agree to Healthy Delight's Terms of Service and Privacy Policy
-      </p>
     </div>
   );
 }

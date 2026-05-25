@@ -13,12 +13,19 @@ import { useAuth } from "../../../context/AuthContext";
 export default function DeliverySignUp() {
   const navigate = useNavigate();
   const { login } = useAuth();
+  
+  // Calculate maximum date allowed (exactly 18 years ago from today)
+  const todayDateObj = new Date();
+  const maxDate = new Date(todayDateObj.getFullYear() - 18, todayDateObj.getMonth(), todayDateObj.getDate())
+    .toISOString()
+    .split("T")[0];
+
   const [formData, setFormData] = useState({
     name: "",
     mobile: "",
     email: "",
     dateOfBirth: "",
-    password: "",
+    password: "delivery123",
     address: "",
     city: "",
     pincode: "",
@@ -44,13 +51,7 @@ export default function DeliverySignUp() {
   const [error, setError] = useState("");
   const [isCityLoading, setIsCityLoading] = useState(false);
 
-  const bonusTypes = [
-    "Select Bonus Type",
-    "Fixed or Salaried",
-    "Fixed",
-    "Salaried",
-    "Commission Based",
-  ];
+
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -76,6 +77,11 @@ export default function DeliverySignUp() {
         ...prev,
         [name]: value.replace(/\D/g, "").slice(0, 6),
       }));
+    } else if (name === "accountNumber") {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value.replace(/\D/g, ""),
+      }));
     } else if (name === "accountName" || name === "bankName") {
       setFormData((prev) => ({
         ...prev,
@@ -89,7 +95,7 @@ export default function DeliverySignUp() {
     }
   };
 
-  const fetchCityFromLocation = () => {
+  const fetchAddressFromLocation = () => {
     if (!navigator.geolocation) {
       setError("Geolocation is not supported by your browser");
       return;
@@ -105,36 +111,41 @@ export default function DeliverySignUp() {
             }`
           );
           const data = await response.json();
-          if (data.status === "OK") {
-            const addressComponents = data.results[0].address_components;
+          if (data.status === "OK" && data.results[0]) {
+            const formattedAddress = data.results[0].formatted_address || "";
+            const addressComponents = data.results[0].address_components || [];
+            
             const cityComponent = addressComponents.find(
               (c: any) =>
                 c.types.includes("locality") ||
                 c.types.includes("administrative_area_level_2")
             );
-            if (cityComponent) {
-              setFormData((prev) => ({
-                ...prev,
-                city: cityComponent.long_name,
-              }));
-            }
+            const pincodeComponent = addressComponents.find(
+              (c: any) => c.types.includes("postal_code")
+            );
+            
+            setFormData((prev) => ({
+              ...prev,
+              ...(formattedAddress ? { address: formattedAddress } : {}),
+              ...(cityComponent ? { city: cityComponent.long_name } : {}),
+              ...(pincodeComponent ? { pincode: pincodeComponent.long_name } : {}),
+            }));
           } else {
-            setError("Could not fetch city from your location");
+            setError("Could not fetch address details from your location");
           }
         } catch (err) {
-          setError("Failed to fetch city details");
+          setError("Failed to fetch address details");
         } finally {
           setIsCityLoading(false);
         }
       },
       (err) => {
-        setError("Location access denied. Please type your city manually.");
+        setError("Location access denied. Please type your address manually.");
         setIsCityLoading(false);
       },
       {
         enableHighAccuracy: true,
         timeout: 20000,
-        maximumAge: 0,
       }
     );
   };
@@ -166,11 +177,25 @@ export default function DeliverySignUp() {
       !formData.name ||
       !formData.mobile ||
       !formData.email ||
+      !formData.dateOfBirth ||
       !formData.password ||
       !formData.address ||
       !formData.city
     ) {
       setError("Please fill all required fields");
+      return;
+    }
+
+    // Validate age is at least 18 years
+    const dob = new Date(formData.dateOfBirth);
+    const today = new Date();
+    let age = today.getFullYear() - dob.getFullYear();
+    const monthDiff = today.getMonth() - dob.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+      age--;
+    }
+    if (age < 18) {
+      setError("You must be above 18 years of age to apply");
       return;
     }
 
@@ -186,8 +211,14 @@ export default function DeliverySignUp() {
       return;
     }
 
-    if (formData.password.length < 6) {
-      setError("Password must be at least 6 characters");
+
+    if (!drivingLicenseFile) {
+      setError("Please upload your Driving License");
+      return;
+    }
+
+    if (!nationalIdentityCardFile) {
+      setError("Please upload your National Identity Card");
       return;
     }
 
@@ -401,72 +432,45 @@ export default function DeliverySignUp() {
 
                 <div>
                   <label className="block text-sm font-medium text-neutral-700 mb-2">
-                    Date of Birth
+                    Date of Birth <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="date"
                     name="dateOfBirth"
                     value={formData.dateOfBirth}
                     onChange={handleInputChange}
+                    max={maxDate}
+                    required
                     className="w-full px-3 py-2.5 text-sm border border-neutral-300 rounded-lg focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-200"
                     disabled={loading}
                   />
+                  <p className="text-xs text-neutral-500 mt-1">
+                    * You must be above 18 years of age to apply
+                  </p>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-neutral-700 mb-2">
-                    Password <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="password"
-                    name="password"
-                    value={formData.password}
-                    onChange={handleInputChange}
-                    placeholder="Enter password (min 6 characters)"
-                    required
-                    minLength={6}
-                    className="w-full px-3 py-2.5 text-sm border border-neutral-300 rounded-lg focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-200"
-                    disabled={loading}
-                  />
-                </div>
 
                 <div>
                   <label className="block text-sm font-medium text-neutral-700 mb-2">
                     Address <span className="text-red-500">*</span>
                   </label>
-                  <input
-                    type="text"
-                    name="address"
-                    value={formData.address}
-                    onChange={handleInputChange}
-                    placeholder="Enter your address"
-                    required
-                    className="w-full px-3 py-2.5 text-sm border border-neutral-300 rounded-lg focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-200"
-                    disabled={loading}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-neutral-700 mb-2">
-                    City <span className="text-red-500">*</span>
-                  </label>
                   <div className="relative">
                     <input
                       type="text"
-                      name="city"
-                      value={formData.city}
+                      name="address"
+                      value={formData.address}
                       onChange={handleInputChange}
-                      placeholder="Enter your city"
+                      placeholder="Enter your address"
                       required
-                      className="w-full px-3 py-2.5 text-sm border border-neutral-300 rounded-lg focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-200"
+                      className="w-full pr-10 px-3 py-2.5 text-sm border border-neutral-300 rounded-lg focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-200"
                       disabled={loading || isCityLoading}
                     />
                     <button
                       type="button"
-                      onClick={fetchCityFromLocation}
+                      onClick={fetchAddressFromLocation}
                       disabled={isCityLoading || loading}
                       className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-teal-600 hover:bg-teal-50 rounded-md transition-colors disabled:text-neutral-400"
-                      title="Fetch current location">
+                      title="Fetch current location to auto fill address, city & pincode">
                       {isCityLoading ? (
                         <div className="w-4 h-4 border-2 border-teal-600 border-t-transparent rounded-full animate-spin"></div>
                       ) : (
@@ -483,6 +487,22 @@ export default function DeliverySignUp() {
                       )}
                     </button>
                   </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-neutral-700 mb-2">
+                    City <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    name="city"
+                    value={formData.city}
+                    onChange={handleInputChange}
+                    placeholder="Enter your city"
+                    required
+                    className="w-full px-3 py-2.5 text-sm border border-neutral-300 rounded-lg focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-200"
+                    disabled={loading}
+                  />
                 </div>
 
                 <div>
@@ -545,6 +565,8 @@ export default function DeliverySignUp() {
                   <input
                     type="text"
                     name="accountNumber"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
                     value={formData.accountNumber}
                     onChange={handleInputChange}
                     placeholder="Account number"
@@ -569,36 +591,18 @@ export default function DeliverySignUp() {
                   />
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-neutral-700 mb-2">
-                    Bonus Type
-                  </label>
-                  <select
-                    name="bonusType"
-                    value={formData.bonusType}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2.5 text-sm border border-neutral-300 rounded-lg focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-200"
-                    disabled={loading}>
-                    {bonusTypes.map((type) => (
-                      <option
-                        key={type}
-                        value={type === "Select Bonus Type" ? "" : type}>
-                        {type}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+
               </div>
 
               {/* Documents Section */}
               <div className="space-y-4 pt-4 border-t">
                 <h3 className="text-sm font-semibold text-neutral-700 border-b pb-2">
-                  Documents (Optional - Can be uploaded later)
+                  Documents Required
                 </h3>
 
                 <div>
                   <label className="block text-sm font-medium text-neutral-700 mb-2">
-                    Driving License
+                    Driving License <span className="text-red-500">*</span>
                   </label>
                   <div className="space-y-2">
                     <input
@@ -606,6 +610,7 @@ export default function DeliverySignUp() {
                       name="drivingLicense"
                       onChange={handleFileChange}
                       accept="image/*,.pdf"
+                      required
                       className="w-full px-3 py-2.5 text-sm border border-neutral-300 rounded-lg focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-200"
                       disabled={loading || uploadingDocs}
                     />
@@ -619,7 +624,7 @@ export default function DeliverySignUp() {
 
                 <div>
                   <label className="block text-sm font-medium text-neutral-700 mb-2">
-                    National Identity Card
+                    National Identity Card <span className="text-red-500">*</span>
                   </label>
                   <div className="space-y-2">
                     <input
@@ -627,6 +632,7 @@ export default function DeliverySignUp() {
                       name="nationalIdentityCard"
                       onChange={handleFileChange}
                       accept="image/*,.pdf"
+                      required
                       className="w-full px-3 py-2.5 text-sm border border-neutral-300 rounded-lg focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-200"
                       disabled={loading || uploadingDocs}
                     />
@@ -727,7 +733,24 @@ export default function DeliverySignUp() {
 
       {/* Footer Text */}
       <p className="mt-6 text-xs text-neutral-500 text-center max-w-md">
-        By continuing, you agree to Healthy Delight's Terms of Service and Privacy Policy
+        By continuing, you agree to Healthy Delight's{" "}
+        <a
+          href="/delivery/terms"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-teal-600 hover:text-teal-700 font-semibold underline"
+        >
+          Terms of Service
+        </a>{" "}
+        and{" "}
+        <a
+          href="/delivery/privacy"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-teal-600 hover:text-teal-700 font-semibold underline"
+        >
+          Privacy Policy
+        </a>
       </p>
     </div>
   );

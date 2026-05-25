@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import Delivery from "../../../models/Delivery";
+import Order from "../../../models/Order";
 import {
   sendSmsOtp as sendSmsOtpService,
   verifySmsOtp as verifySmsOtpService,
@@ -208,8 +209,17 @@ export const getProfile = asyncHandler(async (req: Request, res: Response) => {
     });
   }
 
+  // Calculate total completed deliveries dynamically from Order database
+  const totalDeliveredCount = await Order.countDocuments({
+    deliveryBoy: userId,
+    status: "Delivered",
+  });
+
+  const deliveryObj = delivery.toObject();
+  (deliveryObj as any).totalDeliveredCount = totalDeliveredCount;
+
   return res.status(200).json({
     success: true,
-    data: delivery,
+    data: deliveryObj,
   });
 });

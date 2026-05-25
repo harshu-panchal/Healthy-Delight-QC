@@ -4,6 +4,31 @@ import DeliveryHeader from '../components/DeliveryHeader';
 import DeliveryBottomNav from '../components/DeliveryBottomNav';
 import { getAllOrdersHistory } from '../../../services/api/delivery/deliveryService';
 
+const formatOrderFriendly = (orderNumber?: string, orderId?: string) => {
+  if (orderNumber && orderNumber !== 'N/A') {
+    if (orderNumber.startsWith('ORD')) {
+      const numericPart = orderNumber.replace('ORD', '');
+      if (numericPart.length > 6) {
+        return `ORD-${numericPart.slice(-6)}`;
+      }
+      return orderNumber;
+    }
+    return orderNumber.length > 10 ? orderNumber.slice(0, 8) : orderNumber;
+  }
+  if (orderId) {
+    const cleanId = orderId.includes('-') ? orderId.split('-').slice(-1)[0] : orderId;
+    if (cleanId.startsWith('ORD')) {
+      const numericPart = cleanId.replace('ORD', '');
+      if (numericPart.length > 6) {
+        return `ORD-${numericPart.slice(-6)}`;
+      }
+      return cleanId;
+    }
+    return cleanId.length > 8 ? `ORD-${cleanId.slice(-6).toUpperCase()}` : cleanId;
+  }
+  return 'Unknown';
+};
+
 export default function DeliveryAllOrders() {
   const navigate = useNavigate();
   const [orders, setOrders] = useState<any[]>([]);
@@ -87,7 +112,7 @@ export default function DeliveryAllOrders() {
               >
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex-1">
-                    <p className="text-neutral-900 font-semibold text-sm mb-1">{order.orderId}</p>
+                    <p className="text-neutral-900 font-semibold text-sm mb-1">{formatOrderFriendly(undefined, order.orderId)}</p>
                     <p className="text-neutral-600 text-xs mb-1">{order.customerName}</p>
                     <p className="text-neutral-500 text-xs">{order.customerPhone}</p>
                   </div>
@@ -105,11 +130,7 @@ export default function DeliveryAllOrders() {
                     </p>
                     <p className="text-neutral-900 font-bold">₹ {order.totalAmount}</p>
                   </div>
-                  {order.estimatedDeliveryTime && (
-                    <p className="text-neutral-500 text-xs">
-                      ETA: {order.estimatedDeliveryTime} {order.distance ? `• ${order.distance}` : ''}
-                    </p>
-                  )}
+
                   <p className="text-neutral-400 text-xs mt-2">
                     {new Date(order.createdAt).toLocaleString('en-IN', {
                       day: 'numeric',

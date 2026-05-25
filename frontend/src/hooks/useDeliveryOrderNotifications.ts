@@ -24,6 +24,20 @@ export const useDeliveryOrderNotifications = () => {
         error: null,
     });
 
+    const isMountedRef = useRef(true);
+    useEffect(() => {
+        isMountedRef.current = true;
+        return () => {
+            isMountedRef.current = false;
+        };
+    }, []);
+
+    const setStateSafe = useCallback((update: NotificationState | ((prev: NotificationState) => NotificationState)) => {
+        if (isMountedRef.current) {
+            setState(update);
+        }
+    }, []);
+
     const socketRef = useRef<Socket | null>(null);
     const reconnectAttemptsRef = useRef(0);
 
@@ -61,18 +75,22 @@ export const useDeliveryOrderNotifications = () => {
         socket.on('connect', () => {
             console.log('🔌 Delivery notification socket connected');
             reconnectAttemptsRef.current = 0;
-            setState(prev => ({ ...prev, isConnected: true, error: null }));
+            setStateSafe(prev => ({ ...prev, isConnected: true, error: null }));
             socket.emit('join-delivery-notifications', user.id);
         });
 
         socket.on('disconnect', (reason) => {
-            console.warn('⚠️ Delivery notification socket disconnected:', reason);
-            setState(prev => ({ ...prev, isConnected: false }));
+            if (reason === 'io client disconnect') {
+                console.log('🔌 Delivery notification socket disconnected intentionally');
+            } else {
+                console.warn('⚠️ Delivery notification socket disconnected:', reason);
+            }
+            setStateSafe(prev => ({ ...prev, isConnected: false }));
         });
 
         socket.on('connect_error', (error) => {
             console.error('❌ Notification socket connection error:', error.message);
-            setState(prev => ({
+            setStateSafe(prev => ({
                 ...prev,
                 isConnected: false,
                 error: `Connection unstable: ${error.message}`,
@@ -91,7 +109,7 @@ export const useDeliveryOrderNotifications = () => {
             console.log('📦 New order notification received:', orderData);
             const notificationWithMeta = { ...orderData, type: orderData.type || 'BROADCAST' };
 
-            setState(prev => {
+            setStateSafe(prev => {
                 if (prev.currentNotification) {
                     return { ...prev, notificationQueue: [...prev.notificationQueue, notificationWithMeta] };
                 }
@@ -101,7 +119,7 @@ export const useDeliveryOrderNotifications = () => {
 
         const onOrderAccepted = (data: { orderId: string; acceptedBy: string }) => {
             console.log('✅ Order accepted by another delivery boy:', data);
-            setState(prev => {
+            setStateSafe(prev => {
                 if (prev.currentNotification?.orderId === data.orderId) {
                     const nextNotification = prev.notificationQueue[0] || null;
                     return {
@@ -110,7 +128,7 @@ export const useDeliveryOrderNotifications = () => {
                         notificationQueue: prev.notificationQueue.slice(1)
                     };
                 }
-                return { ...prev, notificationQueue: prev.notificationQueue.filter(notif => notif.orderId !== data.orderId) };
+                return { ...prev, notificationQueue: prev.notificationQueue.filter((notif: OrderNotificationData) => notif.orderId !== data.orderId) };
             });
         };
 
@@ -123,7 +141,7 @@ export const useDeliveryOrderNotifications = () => {
             window.dispatchEvent(new CustomEvent('refresh-orders'));
             
             // Also dismiss if it's currently popping up
-            setState(prev => {
+            setStateSafe(prev => {
                 if (prev.currentNotification?.orderId === data.orderId) {
                     const nextNotification = prev.notificationQueue[0] || null;
                     return {
@@ -132,7 +150,7 @@ export const useDeliveryOrderNotifications = () => {
                         notificationQueue: prev.notificationQueue.slice(1)
                     };
                 }
-                return { ...prev, notificationQueue: prev.notificationQueue.filter(notif => notif.orderId !== data.orderId) };
+                return { ...prev, notificationQueue: prev.notificationQueue.filter((notif: OrderNotificationData) => notif.orderId !== data.orderId) };
             });
         };
 
@@ -160,19 +178,19 @@ export const useDeliveryOrderNotifications = () => {
     }, [disconnectSocket]);
 
     const showNextNotification = useCallback(() => {
-        setState(prev => ({
+        setStateSafe(prev => ({
             ...prev,
             currentNotification: prev.notificationQueue[0] || null,
             notificationQueue: prev.notificationQueue.slice(1),
         }));
-    }, []);
+    }, [setStateSafe]);
 
     const clearCurrentNotification = useCallback(() => {
-        setState(prev => ({
+        setStateSafe(prev => ({
             ...prev,
             currentNotification: null,
         }));
-    }, []);
+    }, [setStateSafe]);
 
     const acceptOrder = useCallback(async (orderId: string, navigate?: NavigateFunction): Promise<AcceptOrderResponse> => {
         if (!socketRef.current || !user?.id) {

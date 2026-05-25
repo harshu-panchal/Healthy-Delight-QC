@@ -92,6 +92,7 @@ export interface AppSettings {
   refundPolicy?: string;
   customerAppPolicy?: string;
   deliveryAppPolicy?: string;
+  deliveryPrivacyPolicy?: string;
   faq?: Array<{
     question: string;
     answer: string;

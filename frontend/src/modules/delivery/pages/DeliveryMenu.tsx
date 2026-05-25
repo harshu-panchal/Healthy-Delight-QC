@@ -12,7 +12,6 @@ export default function DeliveryMenu() {
     { id: 'menu-wallet', title: 'Wallet & Payouts', route: '/delivery/wallet' },
     { id: 'menu-3', title: 'Settings', route: '/delivery/settings' },
     { id: 'menu-4', title: 'Help & Support', route: '/delivery/help' },
-    { id: 'menu-5', title: 'About', route: '/delivery/about' },
     { id: 'menu-6', title: 'Logout', route: '/delivery/login' },
   ];
 
@@ -62,20 +61,7 @@ export default function DeliveryMenu() {
             <circle cx="12" cy="17" r="1" fill="currentColor" />
           </svg>
         );
-      case 'menu-5': // About
-        return (
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none" />
-            <path
-              d="M12 16V12M12 8H12.01"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              fill="none"
-            />
-          </svg>
-        );
+
       case 'menu-6': // Logout
         return (
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

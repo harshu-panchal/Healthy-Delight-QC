@@ -177,16 +177,16 @@ export const getDashboardStats = asyncHandler(async (req: Request, res: Response
                 ]
             },
             {
-                                                orderType: "Scheduled",
-                                                $or: [
-                                                    { deliveryBoyStatus: "Pending" },
-                                                    {
-                                                        scheduledDate: { $lte: todayEnd },
-                                                        deliveryBoyStatus: { $in: ["Accepted", "Assigned"] },
-                                                        status: { $in: ["Rider Assigned", "Ready for pickup", "Out for Delivery", "Picked Up", "In Transit"] }
-                                                    }
-                                                ]
-                                            }
+                orderType: "Scheduled",
+                $or: [
+                    { deliveryBoyStatus: "Pending" },
+                    {
+                        scheduledDate: { $lte: todayEnd },
+                        deliveryBoyStatus: { $in: ["Accepted", "Assigned"] },
+                        status: { $in: ["Rider Assigned", "Ready for pickup", "Out for Delivery", "Picked Up", "In Transit"] }
+                    }
+                ]
+            }
         ]
     })
         .select("orderNumber customerName deliveryAddress status total estimatedDeliveryDate") // Select necessary fields
@@ -240,11 +240,11 @@ export const getHelpSupport = asyncHandler(async (_req: Request, res: Response) 
         },
         {
             question: 'What should I do if I cannot deliver an order?',
-            answer: 'Contact the customer first. If unable to reach them, mark the order as "Unable to Deliver" and contact support.',
+            answer: 'Contact the customer first. If unable to reach them, contact support.',
         },
         {
             question: 'How are my earnings calculated?',
-            answer: 'You earn ₹25 per successful delivery. Additional bonuses may apply for special orders or peak hours.',
+            answer: 'You earn ₹12 per successful delivery. Additional bonuses may apply for special orders or peak hours.',
         },
         {
             question: 'How do I update my profile information?',
@@ -252,7 +252,7 @@ export const getHelpSupport = asyncHandler(async (_req: Request, res: Response) 
         },
         {
             question: 'What if I have a complaint or issue?',
-            answer: 'You can contact our support team through the Help & Support section or call our helpline at +91 7846940429.',
+            answer: 'You can contact our support team through the Help & Support section or call our helpline at +91 9111111111.',
         },
         {
             question: 'What are the delivery timings?',
@@ -261,9 +261,8 @@ export const getHelpSupport = asyncHandler(async (_req: Request, res: Response) 
     ];
 
     const contactOptions = [
-        { label: 'Call Support', value: '+91 7846940429', icon: 'phone' },
-        { label: 'Email Support', value: 'support@kosil.com', icon: 'email' },
-        { label: 'Live Chat', value: 'Available 24/7', icon: 'chat' },
+        { label: 'Call Support', value: '+91 9111111111', icon: 'phone' },
+        { label: 'Email Support', value: 'support@healthydelight.com', icon: 'email' },
     ];
 
     res.status(200).json({

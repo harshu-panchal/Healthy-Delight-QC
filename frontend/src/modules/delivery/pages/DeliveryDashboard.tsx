@@ -7,6 +7,31 @@ import DeliveryBottomNav from '../components/DeliveryBottomNav';
 import { getDashboardStats } from '../../../services/api/delivery/deliveryService';
 import { useDeliveryStatus } from '../context/DeliveryStatusContext';
 
+const formatOrderFriendly = (orderNumber?: string, orderId?: string) => {
+  if (orderNumber && orderNumber !== 'N/A') {
+    if (orderNumber.startsWith('ORD')) {
+      const numericPart = orderNumber.replace('ORD', '');
+      if (numericPart.length > 6) {
+        return `ORD-${numericPart.slice(-6)}`;
+      }
+      return orderNumber;
+    }
+    return orderNumber.length > 10 ? orderNumber.slice(0, 8) : orderNumber;
+  }
+  if (orderId) {
+    const cleanId = orderId.includes('-') ? orderId.split('-').slice(-1)[0] : orderId;
+    if (cleanId.startsWith('ORD')) {
+      const numericPart = cleanId.replace('ORD', '');
+      if (numericPart.length > 6) {
+        return `ORD-${numericPart.slice(-6)}`;
+      }
+      return cleanId;
+    }
+    return cleanId.length > 8 ? `ORD-${cleanId.slice(-6).toUpperCase()}` : cleanId;
+  }
+  return 'Unknown';
+};
+
 export default function DeliveryDashboard() {
   const navigate = useNavigate();
   const { isOnline, sellersInRangeCount, locationError } = useDeliveryStatus();
@@ -220,19 +245,7 @@ export default function DeliveryDashboard() {
             accentColor="#ef4444"
             onClick={() => navigate('/delivery/orders/all')}
           />
-          <DashboardCard
-            icon={returnOrderIcon}
-            title="Today's Return Order"
-            value={stats?.returnOrders || 0}
-            accentColor="#f97316"
-            onClick={() => navigate('/delivery/orders/return')}
-          />
-          <DashboardCard
-            icon={returnItemIcon}
-            title="Total return item have"
-            value={stats?.returnItems || 0}
-            accentColor="#3b82f6"
-          />
+
         </div>
 
         {/* Scheduled Deliveries Navigation Card */}
@@ -288,7 +301,7 @@ export default function DeliveryDashboard() {
                 >
                   <div className="flex items-start justify-between mb-2">
                     <div>
-                      <p className="text-neutral-900 font-semibold text-sm">{order.orderId}</p>
+                      <p className="text-neutral-900 font-semibold text-sm">{formatOrderFriendly(undefined, order.orderId)}</p>
                       <p className="text-neutral-600 text-xs mt-1">{order.customerName}</p>
                     </div>
                     <span
@@ -303,11 +316,6 @@ export default function DeliveryDashboard() {
                   <p className="text-neutral-600 text-xs mb-2">{order.address}</p>
                   <div className="flex items-center justify-between">
                     <p className="text-neutral-900 font-bold">₹ {order.totalAmount}</p>
-                    {order.estimatedDeliveryTime && (
-                      <p className="text-neutral-500 text-xs">
-                        ETA: {order.estimatedDeliveryTime}
-                      </p>
-                    )}
                   </div>
                 </div>
               ))}
