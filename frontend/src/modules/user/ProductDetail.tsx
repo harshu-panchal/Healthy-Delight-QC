@@ -15,12 +15,14 @@ import Badge from "../../components/ui/badge";
 import { getProductById } from "../../services/api/customerProductService";
 import WishlistButton from "../../components/WishlistButton";
 import { calculateProductPrice } from "../../utils/priceUtils";
+import { useAuth } from "../../context/AuthContext";
 
 export default function ProductDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const routerLocation = useRouterLocation();
   const { cart, addToCart, updateQuantity } = useCart();
+  const { user } = useAuth();
   const { location } = useLocation();
   const { startLoading, stopLoading } = useLoading();
   const addButtonRef = useRef<HTMLButtonElement>(null);
@@ -115,22 +117,65 @@ export default function ProductDetail() {
 
   // Get selected variant
   const selectedVariant = product?.variations?.[selectedVariantIndex] || null;
-  const {
-    displayPrice: variantPrice,
-    mrp: variantMrp,
-    discount,
-    hasDiscount,
-  } = calculateProductPrice(product, selectedVariantIndex);
-
-  const variantStock =
-    selectedVariant?.stock !== undefined
-      ? selectedVariant.stock
-      : product?.stock || 0;
   const variantTitle =
     selectedVariant?.title ||
     selectedVariant?.value ||
     product?.pack ||
     "Standard";
+
+  // Get quantity in cart - check by product ID and variant if available
+  const cartItem = product
+    ? cart.items.find((item) => {
+      if (!item?.product) return false;
+      const itemProductId = item.product.id || item.product._id;
+      const productId = product.id || product._id;
+
+      if (itemProductId !== productId) return false;
+
+      // If product has variations, we need to match the selected one
+      if (product.variations && product.variations.length > 0) {
+        if (selectedVariant) {
+          const itemVariantId =
+            (item.product as any).variantId ||
+            (item.product as any).selectedVariant?._id;
+          const itemVariantTitle =
+            (item.product as any).variantTitle || (item.product as any).pack;
+
+          return (
+            itemVariantId === selectedVariant._id ||
+            itemVariantTitle === variantTitle ||
+            (itemVariantId && itemVariantId === variantTitle)
+          );
+        }
+        // If product has variations but none selected (shouldn't happen), don't match
+        return false;
+      }
+
+      // If product has NO variations, any item with this product ID in cart is a match
+      return true;
+    })
+    : null;
+  const inCartQty = cartItem?.quantity || 0;
+
+  const isWholesaler = user?.customerType === 'wholesaler';
+  const hasWholesale = selectedVariant && typeof selectedVariant.wholesalePrice === 'number' && selectedVariant.wholesalePrice > 0;
+
+  let defaultQty = inCartQty;
+  if (defaultQty <= 0) {
+    defaultQty = (isWholesaler && hasWholesale) ? (selectedVariant?.minWholesaleQty || 1) : 1;
+  }
+
+  const {
+    displayPrice: variantPrice,
+    mrp: variantMrp,
+    discount,
+    hasDiscount,
+  } = calculateProductPrice(product, selectedVariantIndex, user?.customerType, defaultQty);
+
+  const variantStock =
+    selectedVariant?.stock !== undefined
+      ? selectedVariant.stock
+      : product?.stock || 0;
   const isVariantAvailable =
     selectedVariant?.status !== "Sold out" &&
     (variantStock > 0 || variantStock === 0); // 0 means unlimited
@@ -175,39 +220,7 @@ export default function ProductDetail() {
     }
   };
 
-  // Get quantity in cart - check by product ID and variant if available
-  const cartItem = product
-    ? cart.items.find((item) => {
-      if (!item?.product) return false;
-      const itemProductId = item.product.id || item.product._id;
-      const productId = product.id || product._id;
 
-      if (itemProductId !== productId) return false;
-
-      // If product has variations, we need to match the selected one
-      if (product.variations && product.variations.length > 0) {
-        if (selectedVariant) {
-          const itemVariantId =
-            (item.product as any).variantId ||
-            (item.product as any).selectedVariant?._id;
-          const itemVariantTitle =
-            (item.product as any).variantTitle || (item.product as any).pack;
-
-          return (
-            itemVariantId === selectedVariant._id ||
-            itemVariantTitle === variantTitle ||
-            (itemVariantId && itemVariantId === variantTitle)
-          );
-        }
-        // If product has variations but none selected (shouldn't happen), don't match
-        return false;
-      }
-
-      // If product has NO variations, any item with this product ID in cart is a match
-      return true;
-    })
-    : null;
-  const inCartQty = cartItem?.quantity || 0;
 
   if (loading && !product) {
     return null; // Let the global IconLoader handle this
@@ -434,7 +447,25 @@ export default function ProductDetail() {
                   </span>
                 </>
               )}
+              {isWholesaler && hasWholesale && (
+                <span className="bg-[#c5a059] text-white text-[10px] font-extrabold px-3 py-1 rounded-full uppercase tracking-widest shadow-sm">
+                  Wholesale Price
+                </span>
+              )}
             </div>
+
+            {/* Wholesale Info Message Box */}
+            {isWholesaler && hasWholesale && selectedVariant && (
+              <div className="p-3 bg-[#c5a059]/10 border border-[#c5a059]/30 rounded-2xl flex flex-col gap-1 text-[11px] text-[#0a193b]">
+                <div className="font-extrabold flex items-center gap-1.5">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                  Minimum Wholesale Order Quantity: {selectedVariant.minWholesaleQty || 1}
+                </div>
+                <div className="opacity-80">
+                  Adding this item will automatically set the quantity to {selectedVariant.minWholesaleQty || 1}. To order less, please sign up as retailer.
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Variant Selection */}

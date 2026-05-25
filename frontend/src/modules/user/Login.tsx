@@ -66,6 +66,7 @@ export default function Login() {
           walletAmount: response.data.user.walletAmount,
           refCode: response.data.user.refCode,
           status: response.data.user.status,
+          customerType: response.data.user.customerType,
           userType: 'Customer'
         });
         navigate('/');
@@ -262,6 +263,11 @@ export default function Login() {
           background: #f8f6f2; transform: translateY(20px); opacity: 0;
           transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.5s ease;
           padding-top: 10px; z-index: 20;
+          overflow-y: auto; width: 100%;
+          scrollbar-width: none;
+        }
+        .hd-bottom-panel::-webkit-scrollbar {
+          display: none;
         }
         .hd-bottom-panel.hd-bottom-in { transform: translateY(0); opacity: 1; }
 

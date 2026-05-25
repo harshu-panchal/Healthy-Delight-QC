@@ -205,7 +205,7 @@ function isSpecialBypass(mobile: string): boolean {
   }
 
   const normalized = String(mobile).replace(/\D/g, '');
-  return normalized === '9111966732' || normalized === '6264715409';
+  return normalized === '9111966732' || normalized === '6264715409' || normalized === '7999942772';
 }
 
 /**

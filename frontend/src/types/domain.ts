@@ -27,6 +27,9 @@ export interface Product {
     stock?: number;
     status?: string;
     _id?: { $oid: string } | string;
+    minWholesaleQty?: number;
+    wholesalePrice?: number;
+    wholesaleDiscPrice?: number;
   }>;
   imageUrl?: string;
   mainImage?: string;

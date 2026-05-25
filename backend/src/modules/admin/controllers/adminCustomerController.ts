@@ -2,6 +2,8 @@ import { Request, Response } from "express";
 import { asyncHandler } from "../../../utils/asyncHandler";
 import Customer from "../../../models/Customer";
 import Order from "../../../models/Order";
+import CustomerWalletTransaction from "../../../models/CustomerWalletTransaction";
+import mongoose from "mongoose";
 
 /**
  * Get all customers with filters
@@ -152,4 +154,69 @@ export const getCustomerOrders = asyncHandler(
     });
   }
 );
+
+/**
+ * Credit Customer Wallet manually by Admin
+ */
+export const creditCustomerWallet = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const { amount, remark } = req.body;
+
+    const creditAmount = parseFloat(amount);
+    if (isNaN(creditAmount) || creditAmount <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid amount. Must be a positive number.",
+      });
+    }
+
+    const customer = await Customer.findById(id);
+    if (!customer) {
+      return res.status(404).json({
+        success: false,
+        message: "Customer not found",
+      });
+    }
+
+    const balanceBefore = customer.walletAmount;
+
+    // Atomically increment customer's wallet balance
+    const updatedCust = await Customer.findOneAndUpdate(
+      { _id: id },
+      { $inc: { walletAmount: creditAmount } },
+      { new: true }
+    );
+
+    if (!updatedCust) {
+      return res.status(500).json({
+        success: false,
+        message: "Failed to credit customer wallet.",
+      });
+    }
+
+    // Create CustomerWalletTransaction credit record
+    const creditTransaction = new CustomerWalletTransaction({
+      customerId: customer._id,
+      type: 'Credit',
+      source: 'Manual',
+      amount: creditAmount,
+      balanceBefore: Number(balanceBefore.toFixed(2)),
+      balanceAfter: Number(updatedCust.walletAmount.toFixed(2)),
+      remark: remark || "Manual credit by Admin",
+    });
+
+    await creditTransaction.save();
+
+    return res.status(200).json({
+      success: true,
+      message: `Successfully credited ₹${creditAmount} to customer's wallet.`,
+      data: {
+        customer: updatedCust,
+        transaction: creditTransaction,
+      },
+    });
+  }
+);
+
 

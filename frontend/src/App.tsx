@@ -32,6 +32,7 @@ const Orders = lazy(() => import("./modules/user/Orders"));
 const OrderDetail = lazy(() => import("./modules/user/OrderDetail"));
 const OrderAgain = lazy(() => import("./modules/user/OrderAgain"));
 const Account = lazy(() => import("./modules/user/Account"));
+const WalletHistory = lazy(() => import("./modules/user/WalletHistory"));
 const Categories = lazy(() => import("./modules/user/Categories"));
 const Collection = lazy(() => import("./modules/user/Collection"));
 const Category = lazy(() => import("./modules/user/Category"));
@@ -767,6 +768,10 @@ function AppContent() {
                                   <Route
                                     path="/account"
                                     element={<Account />}
+                                  />
+                                  <Route
+                                    path="/wallet/history"
+                                    element={<WalletHistory />}
                                   />
                                   <Route
                                     path="/about-us"

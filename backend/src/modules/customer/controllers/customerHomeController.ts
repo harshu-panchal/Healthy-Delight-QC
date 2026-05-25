@@ -132,7 +132,7 @@ async function fetchSectionData(
         .sort({ createdAt: -1 }) // Show newest items first
         .limit(limit || 8)
         .select(
-          "productName mainImage price discPrice compareAtPrice mrp discount rating reviewsCount pack seller",
+          "productName mainImage price discPrice compareAtPrice mrp discount rating reviewsCount pack seller variations",
         )
         .lean();
 
@@ -170,6 +170,7 @@ async function fetchSectionData(
           type: "product",
           isAvailable,
           seller: p.seller,
+          variations: p.variations || [],
         };
       });
     }
@@ -323,7 +324,7 @@ export const getHomeContent = async (req: Request, res: Response) => {
       .populate({
         path: "product",
         select:
-          "productName mainImage price discPrice compareAtPrice discount status publish category subcategory seller",
+          "productName mainImage price discPrice compareAtPrice discount status publish category subcategory seller variations",
         match: {
           status: "Active",
           publish: true,
@@ -369,6 +370,7 @@ export const getHomeContent = async (req: Request, res: Response) => {
           publish: product.publish,
           isAvailable,
           seller: product.seller,
+          variations: product.variations || [],
         };
       });
 
@@ -624,7 +626,7 @@ export const getHomeContent = async (req: Request, res: Response) => {
         .populate("categoryCards.categoryId", "name slug image")
         .populate(
           "featuredProducts",
-          "productName mainImage mainImageUrl galleryImageUrls galleryImages price discPrice compareAtPrice mrp discount rating reviewsCount seller",
+          "productName mainImage mainImageUrl galleryImageUrls galleryImages price discPrice compareAtPrice mrp discount rating reviewsCount seller variations",
         )
         .sort({ order: 1 })
         .lean();

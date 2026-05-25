@@ -14,6 +14,10 @@ export interface IOrderItem extends Document {
   unitPrice: number;
   quantity: number;
   total: number;
+  pricingType?: 'retail' | 'wholesale';
+  appliedMinWholesaleQty?: number;
+  wholesalePrice?: number;
+  retailPrice?: number;
 
   // Variation
   variation?: string;
@@ -79,6 +83,20 @@ const OrderItemSchema = new Schema<IOrderItem>(
       type: Number,
       required: [true, "Total is required"],
       min: [0, "Total cannot be negative"],
+    },
+    pricingType: {
+      type: String,
+      enum: ['retail', 'wholesale'],
+      default: 'retail',
+    },
+    appliedMinWholesaleQty: {
+      type: Number,
+    },
+    wholesalePrice: {
+      type: Number,
+    },
+    retailPrice: {
+      type: Number,
     },
 
     // Variation

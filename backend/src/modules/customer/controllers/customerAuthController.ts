@@ -38,7 +38,7 @@ export const sendSmsOtp = asyncHandler(async (req: Request, res: Response) => {
  * Auto-creates customer if not exists
  */
 export const verifySmsOtp = asyncHandler(async (req: Request, res: Response) => {
-  const { mobile, otp, sessionId } = req.body;
+  const { mobile, otp, sessionId, name, customerType } = req.body;
 
   if (!mobile || !/^[0-9]{10}$/.test(mobile)) {
     return res.status(400).json({
@@ -75,10 +75,11 @@ export const verifySmsOtp = asyncHandler(async (req: Request, res: Response) => 
   let isNewUser = false;
 
   if (!customer) {
-    // Auto-create new customer with placeholder data
+    // Auto-create new customer with signup data
     customer = await Customer.create({
       phone: mobile,
-      name: "User",
+      name: name || "User",
+      customerType: customerType || "retailer",
       email: `${mobile}@kosil.temp`,
       status: "Active",
       walletAmount: 0,
@@ -86,6 +87,9 @@ export const verifySmsOtp = asyncHandler(async (req: Request, res: Response) => 
       totalSpent: 0,
     });
     isNewUser = true;
+  } else if (customerType && customer.customerType !== customerType) {
+    customer.customerType = customerType;
+    await customer.save();
   }
 
   // Generate JWT token
@@ -104,6 +108,7 @@ export const verifySmsOtp = asyncHandler(async (req: Request, res: Response) => 
         walletAmount: customer.walletAmount,
         refCode: customer.refCode,
         status: customer.status,
+        customerType: customer.customerType,
       },
       isNewUser,
     },

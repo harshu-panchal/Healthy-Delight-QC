@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useLocation } from "../../hooks/useLocation";
 import logo from "../../../assets/logo.png";
 
-type PlanId = "Quaterly" | "monthly" | "yearly";
+type PlanId = "weekly" | "monthly" | "Quaterly" | "yearly";
 
 export default function Subscription() {
   const userLocation = useLocation();
@@ -31,10 +31,22 @@ export default function Subscription() {
   const plans = useMemo(
     () => [
       {
+        id: "weekly" as const,
+        title: "Weekly",
+        price: "₹49",
+        cadence: "/ week",
+        perks: [
+          "Free delivery on all orders",
+          "10% extra savings on selected",
+          "Access to weekly trials",
+        ],
+        badge: "WEEKLY TRIAL",
+      },
+      {
         id: "monthly" as const,
         title: "Monthly",
         price: "₹149",
-        cadence: "/month",
+        cadence: "/ month",
         perks: [
           "Free delivery on all orders",
           "15% extra savings on selected",
@@ -46,7 +58,7 @@ export default function Subscription() {
         id: "Quaterly" as const,
         title: "Quaterly",
         price: "₹499",
-        cadence: "/quaterly",
+        cadence: "/quater",
         perks: [
           "Free delivery on all orders",
           "20% extra savings on selected",
@@ -59,7 +71,7 @@ export default function Subscription() {
         id: "yearly" as const,
         title: "Yearly",
         price: "₹999",
-        cadence: "/year",
+        cadence: "/ year",
         perks: [
           "Free delivery on all orders",
           "25% extra savings on selected",
@@ -193,10 +205,18 @@ export default function Subscription() {
       <div className="relative z-10 pb-20 px-5 md:px-10 lg:px-12 max-w-7xl mx-auto w-full">
 
         {/* Pricing Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
           {plans.map((p, idx) => {
             const isSelected = p.id === selectedPlan;
-            const isBestValue = p.id === "Quaterly";
+            const getBadgeColor = (id: PlanId) => {
+              switch (id) {
+                case "weekly": return "bg-teal-500/10 text-teal-600";
+                case "monthly": return "bg-blue-500/10 text-blue-600";
+                case "Quaterly": return "bg-amber-500/10 text-amber-600";
+                case "yearly": return "bg-purple-500/10 text-purple-600";
+                default: return "bg-slate-500/10 text-slate-600";
+              }
+            };
 
             return (
               <motion.button
@@ -207,11 +227,10 @@ export default function Subscription() {
                 whileTap={{ scale: 0.98 }}
                 type="button"
                 onClick={() => setSelectedPlan(p.id)}
-                className={`flex flex-col text-left p-8 rounded-[24px] transition-all duration-300 relative border-2 ${
-                  isSelected
-                    ? "bg-white border-[#0a193b] shadow-[0_20px_48px_rgba(10,25,59,0.12)] scale-[1.03] z-10"
-                    : "bg-white/60 border-transparent hover:bg-white hover:border-[#0a193b]/20 shadow-sm"
-                }`}
+                className={`flex flex-col text-left p-6 md:p-8 rounded-[24px] transition-all duration-300 relative border-2 ${isSelected
+                  ? "bg-white border-[#0a193b] shadow-[0_20px_48px_rgba(10,25,59,0.12)] scale-[1.03] z-10"
+                  : "bg-white/60 border-transparent hover:bg-white hover:border-[#0a193b]/20 shadow-sm"
+                  }`}
               >
                 {/* Visual Accent for Selected Plan */}
                 {isSelected && (
@@ -222,9 +241,7 @@ export default function Subscription() {
 
                 <div className="flex flex-col h-full">
                   <div className="flex items-center justify-between gap-3 mb-6">
-                    <span className={`text-[11px] font-black uppercase tracking-widest px-3 py-1 rounded-full ${
-                      isBestValue ? "bg-amber-500/10 text-amber-600" : "bg-slate-500/10 text-slate-600"
-                    }`}>
+                    <span className={`text-[11px] font-black uppercase tracking-widest px-3 py-1 rounded-full ${getBadgeColor(p.id)}`}>
                       {p.badge}
                     </span>
                     {isSelected && (
@@ -279,12 +296,12 @@ export default function Subscription() {
               <span className="text-xl font-black">{selected?.price}</span>
               <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M5 12h14M12 5l7 7-7 7"/>
+                  <path d="M5 12h14M12 5l7 7-7 7" />
                 </svg>
               </div>
             </div>
           </motion.button>
-          
+
           <p className="mt-8 text-xs text-slate-700 font-bold flex items-center gap-2">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" />

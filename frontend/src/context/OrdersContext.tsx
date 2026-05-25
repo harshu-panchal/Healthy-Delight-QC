@@ -126,6 +126,7 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
         scheduledTimeSlot: (order as any).scheduledTimeSlot,
         tipAmount: order.tipAmount,
         gstin: (order as any).gstin,
+        useWallet: (order as any).useWallet,
       };
 
       const response = await createOrder(payload);

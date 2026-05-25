@@ -67,6 +67,9 @@ export default function SellerAddProduct() {
     discPrice: "0",
     stock: "0",
     status: "Available" as "Available" | "Sold out",
+    minWholesaleQty: "1",
+    wholesalePrice: "",
+    wholesaleDiscPrice: "0",
   });
 
   const [mainImageFile, setMainImageFile] = useState<File | null>(null);
@@ -377,12 +380,31 @@ export default function SellerAddProduct() {
       return;
     }
 
+    // Wholesale parsing
+    const minWholesaleQty = parseInt(variationForm.minWholesaleQty || "1");
+    const wholesalePrice = variationForm.wholesalePrice ? parseFloat(variationForm.wholesalePrice) : undefined;
+    const wholesaleDiscPrice = variationForm.wholesaleDiscPrice ? parseFloat(variationForm.wholesaleDiscPrice) : 0;
+
+    if (wholesalePrice !== undefined) {
+      if (wholesalePrice <= 0) {
+        setUploadError("Wholesale price must be greater than 0");
+        return;
+      }
+      if (wholesaleDiscPrice > wholesalePrice) {
+        setUploadError("Wholesale discounted price cannot be greater than wholesale price");
+        return;
+      }
+    }
+
     const newVariation: ProductVariation = {
       title: variationForm.title,
       price,
       discPrice,
       stock,
       status: variationForm.status,
+      minWholesaleQty,
+      wholesalePrice,
+      wholesaleDiscPrice,
     };
 
     setVariations([...variations, newVariation]);
@@ -392,6 +414,9 @@ export default function SellerAddProduct() {
       discPrice: "0",
       stock: "0",
       status: "Available",
+      minWholesaleQty: "1",
+      wholesalePrice: "",
+      wholesaleDiscPrice: "0",
     });
     setUploadError("");
   };
@@ -870,7 +895,7 @@ export default function SellerAddProduct() {
               </div>
 
               {/* Variation Form */}
-              <div className="grid grid-cols-1 md:grid-cols-5 gap-4 p-4 bg-neutral-50 rounded-lg">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-neutral-50 rounded-lg">
                 <div>
                   <label className="block text-sm font-medium text-neutral-700 mb-2">
                     Title (e.g., 100g) <span className="text-red-500">*</span>
@@ -939,14 +964,79 @@ export default function SellerAddProduct() {
                     className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                   />
                 </div>
-                <div className="flex items-end">
-                  <button
-                    type="button"
-                    onClick={addVariation}
-                    className="w-full px-4 py-2 bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white transition-all active:scale-95 shadow-sm rounded-lg font-medium">
-                    Add Variation
-                  </button>
+              </div>
+
+              {/* Wholesale Pricing Option Row */}
+              <div className="p-4 bg-white border border-neutral-100 rounded-lg mt-3 space-y-3">
+                <h3 className="text-sm font-semibold text-[#0a193b] flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-[#c5a059]"></span>
+                  B2B Wholesale Settings (Optional)
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-xs font-medium text-neutral-600 mb-1">
+                      Min. Wholesale Qty <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      value={variationForm.minWholesaleQty}
+                      onChange={(e) =>
+                        setVariationForm({
+                          ...variationForm,
+                          minWholesaleQty: e.target.value,
+                        })
+                      }
+                      placeholder="10"
+                      className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-neutral-600 mb-1">
+                      Wholesale Price <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      value={variationForm.wholesalePrice}
+                      onChange={(e) =>
+                        setVariationForm({
+                          ...variationForm,
+                          wholesalePrice: e.target.value,
+                        })
+                      }
+                      placeholder="e.g. 70"
+                      className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-neutral-600 mb-1">
+                      Wholesale Discounted Price
+                    </label>
+                    <input
+                      type="number"
+                      value={variationForm.wholesaleDiscPrice}
+                      onChange={(e) =>
+                        setVariationForm({
+                          ...variationForm,
+                          wholesaleDiscPrice: e.target.value,
+                        })
+                      }
+                      placeholder="e.g. 60"
+                      className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
+                  </div>
                 </div>
+              </div>
+
+              <div className="flex justify-end mt-4">
+                <button
+                  type="button"
+                  onClick={addVariation}
+                  className="px-6 py-2 bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white transition-all active:scale-95 shadow-sm rounded-lg font-semibold flex items-center gap-2">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+                  </svg>
+                  Add Variation
+                </button>
               </div>
 
               {/* Variations List */}
@@ -956,16 +1046,21 @@ export default function SellerAddProduct() {
                     Added Variations:
                   </h3>
                   <div className="space-y-2">
-                    {variations.map((variation, index) => (
+                     {variations.map((variation, index) => (
                       <div
                         key={index}
                         className="flex items-center justify-between p-3 bg-white border border-neutral-200 rounded-lg">
                         <div className="flex-1">
                           <span className="font-medium">{variation.title}</span>{" "}
-                          - ₹{variation.price}
+                          - Retail: ₹{variation.price}
                           {variation.discPrice > 0 && (
-                            <span className="text-neutral-900 ml-2">
+                            <span className="text-neutral-500 ml-2 line-through">
                               (₹{variation.discPrice})
+                            </span>
+                          )}
+                          {variation.wholesalePrice && variation.wholesalePrice > 0 && (
+                            <span className="ml-3 text-xs bg-[#c5a059]/10 text-[#c5a059] px-2 py-0.5 rounded-full font-bold">
+                              Wholesale: ₹{variation.wholesaleDiscPrice || variation.wholesalePrice} (Min Qty: {variation.minWholesaleQty || 1})
                             </span>
                           )}
                           <span className="ml-4 text-sm text-neutral-600">

@@ -439,6 +439,30 @@ export default function OrderDetail() {
     }
   }, [orderStatus]);
 
+  // Check if order is eligible for customer cancellation
+  const isCancellable = () => {
+    if (!order) return false;
+    if (["Delivered", "Cancelled", "Returned", "Rejected", "Out for Delivery", "Shipped"].includes(orderStatus)) {
+      return false;
+    }
+    if (order.orderType === "Scheduled" && order.scheduledDate) {
+      try {
+        const isMorning = order.scheduledTimeSlot === "Morning";
+        const startHour = isMorning ? 6 : 18; // Morning: 6 AM, Evening: 6 PM
+        const deliveryStartTime = new Date(order.scheduledDate);
+        deliveryStartTime.setHours(startHour, 0, 0, 0);
+        
+        const oneHourBefore = new Date(deliveryStartTime.getTime() - 60 * 60 * 1000);
+        const now = new Date();
+        return now < oneHourBefore;
+      } catch (e) {
+        console.error("Scheduled cancellation window check error:", e);
+        return false;
+      }
+    }
+    return ["Placed", "Pending", "Received", "Accepted"].includes(orderStatus);
+  };
+
   // Handler functions
   const handleRefresh = async () => {
     if (!id) return;
@@ -978,9 +1002,14 @@ export default function OrderDetail() {
                 <ReceiptIcon className="w-5 h-5 text-[#0a193b]/80" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-bold text-slate-800 text-sm tracking-tight">
-                  Order Details
-                </p>
+                <div className="flex items-center justify-between">
+                  <p className="font-bold text-slate-800 text-sm tracking-tight">
+                    Order Details
+                  </p>
+                  <span className="text-xs font-black text-[#0a193b] mr-2 bg-[#0a193b]/5 px-2 py-0.5 rounded-lg border border-[#0a193b]/10">
+                    ₹{order.total?.toFixed(0) || "0"}
+                  </span>
+                </div>
                 <p className="text-xs font-semibold text-[#0a193b]/60 mt-0.5">
                   ID: #{formatOrderFriendly(order.orderNumber, order.id)}
                 </p>
@@ -1009,31 +1038,43 @@ export default function OrderDetail() {
 
         {/* Premium Quick Actions */}
         <motion.div
-          className="flex gap-3 pt-3"
+          className="flex flex-col gap-3 pt-3"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.85 }}>
-          {order?.invoiceEnabled ? (
-            <Link to={`/invoice/${id}`} className="flex-1">
-              <Button className="w-full bg-gradient-to-r from-[#0a193b] to-[#122b5e] hover:from-[#122b5e] hover:to-[#0a193b] text-white font-bold py-2.5 rounded-xl shadow-lg shadow-[#0a193b]/10 hover:shadow-xl transition-all duration-300 cursor-pointer">
-                View Invoice
+          
+          {isCancellable() && (
+            <Button
+              onClick={() => setShowCancelModal(true)}
+              className="w-full bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 font-bold py-2.5 rounded-xl transition-colors cursor-pointer"
+            >
+              Cancel Order
+            </Button>
+          )}
+
+          <div className="flex gap-3 w-full">
+            {order?.invoiceEnabled ? (
+              <Link to={`/invoice/${id}`} className="flex-1">
+                <Button className="w-full bg-gradient-to-r from-[#0a193b] to-[#122b5e] hover:from-[#122b5e] hover:to-[#0a193b] text-white font-bold py-2.5 rounded-xl shadow-lg shadow-[#0a193b]/10 hover:shadow-xl transition-all duration-300 cursor-pointer">
+                  View Invoice
+                </Button>
+              </Link>
+            ) : (
+              <div className="flex-1">
+                <Button
+                  className="w-full bg-slate-200 border border-slate-300 text-slate-400 font-semibold py-2.5 rounded-xl cursor-not-allowed"
+                  disabled
+                  title="Invoice will be available after delivery is completed">
+                  Invoice Unavailable
+                </Button>
+              </div>
+            )}
+            <Link to="/order-again" className="flex-1">
+              <Button variant="outline" className="w-full border-slate-200 hover:border-slate-300 hover:bg-slate-50 text-slate-700 font-bold py-2.5 rounded-xl transition-colors cursor-pointer">
+                All Orders
               </Button>
             </Link>
-          ) : (
-            <div className="flex-1">
-              <Button
-                className="w-full bg-slate-200 border border-slate-300 text-slate-400 font-semibold py-2.5 rounded-xl cursor-not-allowed"
-                disabled
-                title="Invoice will be available after delivery is completed">
-                Invoice Unavailable
-              </Button>
-            </div>
-          )}
-          <Link to="/order-again" className="flex-1">
-            <Button variant="outline" className="w-full border-slate-200 hover:border-slate-300 hover:bg-slate-50 text-slate-700 font-bold py-2.5 rounded-xl transition-colors cursor-pointer">
-              All Orders
-            </Button>
-          </Link>
+          </div>
         </motion.div>
       </div>
 

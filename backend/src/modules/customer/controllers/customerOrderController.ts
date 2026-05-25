@@ -3,8 +3,10 @@ import Order from "../../../models/Order";
 import Product from "../../../models/Product";
 import OrderItem from "../../../models/OrderItem";
 import Customer from "../../../models/Customer";
+import CustomerWalletTransaction from "../../../models/CustomerWalletTransaction";
 import Seller from "../../../models/Seller";
 import mongoose from "mongoose";
+import { isWholesaleEligible, getVariationPrice } from "../../../utils/wholesaleHelper";
 import { calculateDistance } from "../../../utils/locationHelper";
 import { notifySellersOfOrderUpdate } from "../../../services/sellerNotificationService";
 import { generateDeliveryOtp } from "../../../services/deliveryOtpService";
@@ -24,7 +26,7 @@ export const createOrder = async (req: Request, res: Response) => {
             session = null;
         }
 
-        const { items, address, paymentMethod, fees, timeSlot, orderType, scheduledDate, scheduledTimeSlot, tipAmount, gstin } = req.body;
+        const { items, address, paymentMethod, fees, timeSlot, orderType, scheduledDate, scheduledTimeSlot, tipAmount, gstin, useWallet } = req.body;
         const userId = req.user!.userId;
 
         // Log incoming request for debugging
@@ -332,11 +334,33 @@ export const createOrder = async (req: Request, res: Response) => {
                 selectedVariation = product.variations[0];
             }
 
-            const itemPrice = (selectedVariation?.discPrice && selectedVariation.discPrice > 0)
-                ? selectedVariation.discPrice
-                : (product.discPrice && product.discPrice > 0)
+            let pricingType: 'retail' | 'wholesale' = 'retail';
+            let appliedMinWholesaleQty: number | undefined = undefined;
+            let wholesalePrice: number | undefined = undefined;
+            let retailPrice: number | undefined = undefined;
+
+            if (selectedVariation) {
+                const isEligible = isWholesaleEligible({
+                    customerType: customer.customerType,
+                    quantity: qty,
+                    variation: selectedVariation
+                });
+                pricingType = isEligible ? 'wholesale' : 'retail';
+                appliedMinWholesaleQty = selectedVariation.minWholesaleQty || 1;
+                wholesalePrice = selectedVariation.wholesalePrice;
+                retailPrice = (selectedVariation.discPrice && selectedVariation.discPrice > 0)
+                    ? selectedVariation.discPrice
+                    : (selectedVariation.price || 0);
+            } else {
+                retailPrice = (product.discPrice && product.discPrice > 0)
                     ? product.discPrice
-                    : (selectedVariation?.price || product.price || 0);
+                    : (product.price || 0);
+            }
+
+            const itemPrice = selectedVariation
+                ? getVariationPrice(selectedVariation, qty, customer.customerType)
+                : (product.discPrice && product.discPrice > 0 ? product.discPrice : (product.price || 0));
+
             const itemTotal = itemPrice * qty;
             calculatedSubtotal += itemTotal;
 
@@ -365,7 +389,11 @@ export const createOrder = async (req: Request, res: Response) => {
                 quantity: qty,
                 total: itemTotal,
                 variation: variationValue,
-                status: 'Pending'
+                status: 'Pending',
+                pricingType,
+                appliedMinWholesaleQty,
+                wholesalePrice,
+                retailPrice
             };
 
             const newOrderItem = new OrderItem(newOrderItemData);
@@ -417,15 +445,89 @@ export const createOrder = async (req: Request, res: Response) => {
         const platformFee = Number(fees?.platformFee) || 0;
         const deliveryFee = Number(fees?.deliveryFee) || 0;
         const tipVal = Number(tipAmount) || 0;
-        const finalTotal = calculatedSubtotal + platformFee + deliveryFee + calculatedTax + tipVal;
+        const finalTotal = Number((calculatedSubtotal + platformFee + deliveryFee + calculatedTax + tipVal).toFixed(2));
+
+        const useWalletBool = !!useWallet;
+        let walletUsed = 0;
+
+        if (useWalletBool && customer.walletAmount > 0) {
+            walletUsed = Number(Math.min(customer.walletAmount, finalTotal).toFixed(2));
+        }
+
+        // Apply Wallet Deduction atomically
+        if (walletUsed > 0) {
+            // Atomically decrement Customer walletAmount, checking that the user still has enough balance
+            const updateQuery = { _id: userId, walletAmount: { $gte: walletUsed } };
+            const updateDoc = { $inc: { walletAmount: -walletUsed } };
+            const updateOpts = session ? { session, new: true } : { new: true };
+
+            const updatedCustomer = await Customer.findOneAndUpdate(updateQuery, updateDoc, updateOpts);
+
+            if (!updatedCustomer) {
+                throw new Error("Insufficient wallet balance due to concurrent transaction");
+            }
+
+            // Create customer wallet transaction (Debit)
+            const walletTransaction = new CustomerWalletTransaction({
+                customerId: new mongoose.Types.ObjectId(userId),
+                orderId: newOrder._id,
+                type: 'Debit',
+                source: 'Purchase',
+                amount: walletUsed,
+                balanceBefore: Number((updatedCustomer.walletAmount + walletUsed).toFixed(2)),
+                balanceAfter: Number(updatedCustomer.walletAmount.toFixed(2)),
+                remark: `Payment for Order #${newOrder.orderNumber || newOrder._id}`
+            });
+
+            if (session) {
+                await walletTransaction.save({ session });
+            } else {
+                await walletTransaction.save();
+            }
+        }
+
+        // Compute remaining amount
+        const remainingTotal = Number((finalTotal - walletUsed).toFixed(2));
 
         // Update Order with calculated values and items
         newOrder.subtotal = Number(calculatedSubtotal.toFixed(2));
         newOrder.tax = Number(calculatedTax.toFixed(2));
         newOrder.tipAmount = tipVal;
-        newOrder.total = Number(finalTotal.toFixed(2));
+        newOrder.total = remainingTotal;
         newOrder.items = orderItemIds;
 
+        // Set detailed payment breakdown fields
+        newOrder.grandTotal = finalTotal;
+        newOrder.walletAmountUsed = walletUsed;
+
+        if (remainingTotal === 0) {
+            // Order is fully covered by wallet!
+            newOrder.paymentMethod = 'Wallet';
+            newOrder.paymentStatus = 'Paid';
+            newOrder.onlineAmountPaid = 0;
+            newOrder.codAmount = 0;
+            newOrder.refundableAmount = walletUsed;
+            // Immediate active state instead of pending payment!
+            newOrder.status = isScheduled ? 'Scheduled' : 'Received';
+        } else {
+            // Mixed payment or standard payment
+            const method = paymentMethod || 'Online';
+            newOrder.paymentMethod = method;
+            newOrder.paymentStatus = 'Pending';
+
+            if (method === 'Online') {
+                newOrder.onlineAmountPaid = remainingTotal;
+                newOrder.codAmount = 0;
+                newOrder.refundableAmount = Number((walletUsed + remainingTotal).toFixed(2));
+                newOrder.status = 'Pending'; // Needs online payment gateway flow
+            } else {
+                // COD
+                newOrder.onlineAmountPaid = 0;
+                newOrder.codAmount = remainingTotal;
+                newOrder.refundableAmount = walletUsed; // Only wallet amount is refundable; COD hasn't been collected yet!
+                newOrder.status = isScheduled ? 'Scheduled' : 'Received';
+            }
+        }
 
         if (session) {
             await newOrder.save({ session });
@@ -737,6 +839,26 @@ export const cancelOrder = async (req: Request, res: Response) => {
             });
         }
 
+        // Enforce 1-hour cancellation limit for scheduled orders
+        if (order.orderType === "Scheduled" && order.scheduledDate) {
+            const isMorning = order.scheduledTimeSlot === "Morning";
+            const startHour = isMorning ? 6 : 18; // Morning: 6 AM, Evening: 6 PM
+
+            const deliveryStartTime = new Date(order.scheduledDate);
+            deliveryStartTime.setHours(startHour, 0, 0, 0);
+
+            const oneHourBefore = new Date(deliveryStartTime.getTime() - 60 * 60 * 1000);
+            const now = new Date();
+
+            if (now > oneHourBefore) {
+                if (session) await session.abortTransaction();
+                return res.status(400).json({
+                    success: false,
+                    message: "Scheduled orders can only be cancelled up to 1 hour before the delivery slot start time."
+                });
+            }
+        }
+
         // Restore stock
         for (const item of order.items) {
             const orderItem = session
@@ -784,6 +906,51 @@ export const cancelOrder = async (req: Request, res: Response) => {
         order.cancellationReason = reason;
         order.cancelledAt = new Date();
         order.cancelledBy = new mongoose.Types.ObjectId(userId); // Use Customer ID as canceller
+
+        // Check if a refund has already been processed for this order
+        if (!order.isRefundProcessed && order.refundableAmount > 0) {
+            const cust = session 
+                ? await Customer.findById(userId).session(session) 
+                : await Customer.findById(userId);
+
+            if (cust) {
+                const balanceBefore = cust.walletAmount;
+                const refundAmount = order.refundableAmount;
+
+                // Atomically increment customer's wallet balance
+                const updateQuery = { _id: userId };
+                const updateDoc = { $inc: { walletAmount: refundAmount } };
+                const updateOpts = session ? { session, new: true } : { new: true };
+
+                const updatedCust = await Customer.findOneAndUpdate(updateQuery, updateDoc, updateOpts);
+
+                if (updatedCust) {
+                    // Create CustomerWalletTransaction record (Credit)
+                    const refundTransaction = new CustomerWalletTransaction({
+                        customerId: new mongoose.Types.ObjectId(userId),
+                        orderId: order._id,
+                        type: 'Credit',
+                        source: 'Refund',
+                        amount: refundAmount,
+                        balanceBefore: Number(balanceBefore.toFixed(2)),
+                        balanceAfter: Number(updatedCust.walletAmount.toFixed(2)),
+                        remark: `Refund for Cancelled Order #${order.orderNumber || order._id}`
+                    });
+
+                    if (session) {
+                        await refundTransaction.save({ session });
+                    } else {
+                        await refundTransaction.save();
+                    }
+
+                    // Mark order refund status
+                    order.isRefundProcessed = true;
+                    order.refundedAt = new Date();
+                    order.refundTransactionId = refundTransaction._id;
+                    order.paymentStatus = 'Refunded';
+                }
+            }
+        }
 
         if (session) {
             await order.save({ session });

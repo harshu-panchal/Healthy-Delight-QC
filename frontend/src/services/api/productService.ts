@@ -22,6 +22,9 @@ export interface ProductVariation {
   stock: number;
   status: "Available" | "Sold out" | "In stock"; // Added In stock
   sku?: string;
+  minWholesaleQty?: number;
+  wholesalePrice?: number;
+  wholesaleDiscPrice?: number;
 }
 
 export interface Product {

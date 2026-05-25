@@ -145,7 +145,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     // Filter out any items with null products before computing totals
     const validItems = items.filter(item => item?.product);
     const total = validItems.reduce((sum, item) => {
-      const { displayPrice } = calculateProductPrice(item.product, item.variant);
+      const { displayPrice } = calculateProductPrice(item.product, item.variant, user?.customerType, item.quantity);
       return sum + displayPrice * (item.quantity || 0);
     }, 0);
     const itemCount = validItems.reduce((sum, item) => sum + (item.quantity || 0), 0);
@@ -157,7 +157,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       platformFee,
       freeDeliveryThreshold
     };
-  }, [items, estimatedFee, platformFee, freeDeliveryThreshold]);
+  }, [items, estimatedFee, platformFee, freeDeliveryThreshold, user?.customerType]);
 
   const addToCart = async (product: Product, sourceElement?: HTMLElement | null) => {
     // Get consistent product ID - MongoDB returns _id, frontend expects id
@@ -176,6 +176,71 @@ export function CartProvider({ children }: { children: ReactNode }) {
       name: product.name || product.productName || 'Product',
       imageUrl: product.imageUrl || product.mainImage,
     };
+
+    // Determine if user is a wholesaler and set min order thresholds accordingly
+    const isWholesaler = user?.customerType === 'wholesaler';
+    let minQty = 1;
+
+    const variantId = (product as any).variantId || (product as any).selectedVariant?._id;
+    const variantTitle = (product as any).variantTitle || (product as any).pack;
+
+    let selectedVariation = null;
+    if (product.variations?.length) {
+      if (variantId || variantTitle) {
+        selectedVariation = product.variations.find((v: any) =>
+          (v._id && v._id.toString() === (variantId || '').toString()) ||
+          (v.id && v.id === (variantId || '')) ||
+          v.value === variantTitle ||
+          v.title === variantTitle ||
+          v.pack === variantTitle
+        );
+      }
+      if (!selectedVariation) {
+        selectedVariation = product.variations[0];
+      }
+    }
+
+    const hasWholesalePrice = selectedVariation &&
+      typeof selectedVariation.wholesalePrice === 'number' &&
+      selectedVariation.wholesalePrice > 0;
+
+    const isWholesaleItem = isWholesaler && hasWholesalePrice;
+
+    if (isWholesaleItem && selectedVariation) {
+      minQty = selectedVariation.minWholesaleQty || 1;
+    }
+
+    // Check stock before adding/incrementing
+    const existingItemForStock = items.find((item) => {
+      const itemProductId = item.product.id || item.product._id;
+      if (itemProductId !== productId) return false;
+
+      const itemVariantId = (item.product as any).variantId || (item.product as any).selectedVariant?._id;
+      const itemVariantTitle = (item.product as any).variantTitle || (item.product as any).pack;
+
+      if (variantId || variantTitle) {
+        return itemVariantId === variantId ||
+          itemVariantTitle === variantTitle ||
+          (itemVariantId && itemVariantId === variantTitle);
+      }
+      return true;
+    });
+
+    const currentQty = existingItemForStock ? existingItemForStock.quantity : 0;
+    const targetQty = currentQty + (isWholesaleItem ? minQty : 1);
+    const availableStock = selectedVariation ? (selectedVariation.stock ?? 0) : (product.stock ?? 0);
+
+    if (targetQty > availableStock) {
+      const variationName = selectedVariation ? (selectedVariation.value || selectedVariation.title || (selectedVariation as any).pack || (selectedVariation as any).name) : '';
+      const variationSuffix = variationName ? ` (${variationName})` : '';
+      const friendlyName = product.productName || product.name || 'Product';
+      if (availableStock <= 0) {
+        showToast(`Sorry, ${friendlyName}${variationSuffix} is currently out of stock.`, 'error');
+      } else {
+        showToast(`Oops! Only ${availableStock} units of ${friendlyName}${variationSuffix} are available in stock.`, 'error');
+      }
+      return;
+    }
 
     // Optimistic Update
     // Get source position if element is provided
@@ -233,14 +298,18 @@ export function CartProvider({ children }: { children: ReactNode }) {
             const isMatch = itemVariantId === variantId ||
               itemVariantTitle === variantTitle ||
               (itemVariantId && itemVariantId === variantTitle);
-            return isMatch ? { ...item, quantity: item.quantity + 1 } : item;
+            return isMatch ? { ...item, quantity: isWholesaleItem ? Math.max(item.quantity + 1, minQty) : item.quantity + 1 } : item;
           }
 
           // If no variant info, and this is the item we found above, update its quantity
-          return item === existingItem ? { ...item, quantity: item.quantity + 1 } : item;
+          return item === existingItem ? { ...item, quantity: isWholesaleItem ? Math.max(item.quantity + 1, minQty) : item.quantity + 1 } : item;
         });
       }
-      return [...validItems, { product: normalizedProduct, quantity: 1 }];
+      
+      if (isWholesaleItem) {
+        showToast(`Wholesale pricing requires a minimum of ${minQty} units. Added ${minQty} units to your cart.`, 'info');
+      }
+      return [...validItems, { product: normalizedProduct, quantity: isWholesaleItem ? minQty : 1 }];
     });
 
     // Only sync to API if user is authenticated
@@ -248,9 +317,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
       try {
         // Pass variation info to API if available
         const variation = (product as any).variantId || (product as any).selectedVariant?._id || (product as any).variantTitle || (product as any).pack;
+        const initialAddQty = isWholesaleItem ? minQty : 1;
         const response = await apiAddToCart(
           productId,
-          1,
+          initialAddQty,
           variation,
           location?.latitude,
           location?.longitude
@@ -341,19 +411,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
   };
 
   const updateQuantity = async (productId: string, quantity: number, variantId?: string, variantTitle?: string) => {
-    if (quantity <= 0) {
-      removeFromCart(productId, variantId, variantTitle);
-      return;
-    }
-
     // Create a unique operation key for this product/variant combination
     const operationKey = variantId ? `${productId}-${variantId}` : (variantTitle ? `${productId}-${variantTitle}` : productId);
-
-    // Prevent concurrent operations on the same product
-    if (pendingOperationsRef.current.has(operationKey)) {
-      return;
-    }
-    pendingOperationsRef.current.add(operationKey);
 
     // Find item matching product ID and variant (if variant info provided)
     const itemToUpdate = items.find(item => {
@@ -373,6 +432,67 @@ export function CartProvider({ children }: { children: ReactNode }) {
       // If no variant info, match ANY item of this product (ProductCard usage)
       return true;
     });
+
+    const isWholesaler = user?.customerType === 'wholesaler';
+    let minQty = 1;
+    const productObj = itemToUpdate?.product;
+    let isWholesaleItem = false;
+    
+    let selectedVar = null;
+    if (productObj?.variations?.length) {
+      const vId = (productObj as any).variantId || (productObj as any).selectedVariant?._id;
+      const vTitle = (productObj as any).variantTitle || (productObj as any).pack;
+      selectedVar = productObj.variations.find((v: any) =>
+        (v._id && v._id.toString() === (vId || '').toString()) ||
+        (v.id && v.id === (vId || '')) ||
+        v.value === vTitle ||
+        v.title === vTitle ||
+        v.pack === vTitle
+      );
+      if (!selectedVar) {
+        selectedVar = productObj.variations[0];
+      }
+      if (selectedVar && isWholesaler) {
+        const hasWholesalePrice = typeof selectedVar.wholesalePrice === 'number' && selectedVar.wholesalePrice > 0;
+        isWholesaleItem = hasWholesalePrice;
+        if (isWholesaleItem) {
+          minQty = selectedVar.minWholesaleQty || 1;
+        }
+      }
+    }
+
+    if (quantity <= 0) {
+      removeFromCart(productId, variantId, variantTitle);
+      return;
+    }
+
+    if (isWholesaleItem && quantity < minQty) {
+      showToast(`Removed from cart. Minimum wholesale order quantity is ${minQty}. To order less, please sign up as retailer.`, 'error');
+      removeFromCart(productId, variantId, variantTitle);
+      return;
+    }
+
+    // Check stock before updating quantity
+    const availableStock = selectedVar ? (selectedVar.stock ?? 0) : (productObj?.stock ?? 0);
+    if (quantity > availableStock) {
+      const variationName = selectedVar ? (selectedVar.value || selectedVar.title || (selectedVar as any).pack || (selectedVar as any).name) : '';
+      const variationSuffix = variationName ? ` (${variationName})` : '';
+      const friendlyName = productObj?.productName || productObj?.name || 'Product';
+      if (availableStock <= 0) {
+        showToast(`Sorry, ${friendlyName}${variationSuffix} is currently out of stock.`, 'error');
+      } else {
+        showToast(`Oops! Only ${availableStock} units of ${friendlyName}${variationSuffix} are available in stock.`, 'error');
+      }
+      return;
+    }
+
+    // Prevent concurrent operations on the same product
+    if (pendingOperationsRef.current.has(operationKey)) {
+      return;
+    }
+    pendingOperationsRef.current.add(operationKey);
+
+
 
     const previousItems = [...items];
     setItems((prevItems) =>

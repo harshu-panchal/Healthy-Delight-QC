@@ -38,6 +38,9 @@ export interface IProduct extends Document {
     stock?: number;
     sku?: string;
     status?: string;
+    minWholesaleQty?: number;
+    wholesalePrice?: number;
+    wholesaleDiscPrice?: number;
   }>;
 
   // Status Flags
@@ -207,6 +210,9 @@ const ProductSchema = new Schema<IProduct>(
             default: "Available",
           },
           sku: String,
+          minWholesaleQty: { type: Number, default: 1 },
+          wholesalePrice: Number,
+          wholesaleDiscPrice: { type: Number, default: 0 },
         },
       ],
       default: [],

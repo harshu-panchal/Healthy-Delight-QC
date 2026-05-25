@@ -3,7 +3,9 @@ import { Request, Response } from 'express';
 import Cart from '../../../models/Cart';
 import CartItem from '../../../models/CartItem';
 import Product from '../../../models/Product';
+import Customer from '../../../models/Customer';
 import { findSellersWithinRange } from '../../../utils/locationHelper';
+import { isWholesaleEligible, getVariationPrice } from '../../../utils/wholesaleHelper';
 import mongoose from 'mongoose';
 
 import Seller from '../../../models/Seller';
@@ -11,7 +13,7 @@ import { getRoadDistances } from '../../../services/mapService';
 import AppSettings from '../../../models/AppSettings';
 
 // Helper to calculate item price matching frontend logic
-const calculateItemPrice = (product: any, variationSelector: any) => {
+const calculateItemPrice = (product: any, variationSelector: any, quantity: number = 1, customerType?: string) => {
     let variation = null;
     let variationId = variationSelector;
 
@@ -27,12 +29,18 @@ const calculateItemPrice = (product: any, variationSelector: any) => {
         );
     }
 
-    let finalPrice = variation?.price || product.price || 0;
+    if (!variation && product.variations?.length) {
+        variation = product.variations[0];
+    }
 
-    // Priority: Variation Discount -> Product Discount -> Variation Price -> Product Price
-    if (variation?.discPrice && variation.discPrice > 0) {
-        finalPrice = variation.discPrice;
-    } else if (product.discPrice && product.discPrice > 0) {
+    if (variation) {
+        return getVariationPrice(variation, quantity, customerType);
+    }
+
+    let finalPrice = product.price || 0;
+
+    // Priority: Product Discount -> Product Price
+    if (product.discPrice && product.discPrice > 0) {
         finalPrice = product.discPrice;
     }
 
@@ -40,7 +48,7 @@ const calculateItemPrice = (product: any, variationSelector: any) => {
 };
 
 // Helper to calculate cart total with location filtering
-const calculateCartTotal = async (cartId: any, nearbySellerIds: mongoose.Types.ObjectId[] = []) => {
+const calculateCartTotal = async (cartId: any, nearbySellerIds: mongoose.Types.ObjectId[] = [], customerType?: string) => {
     const items = await CartItem.find({ cart: cartId }).populate({
         path: 'product',
         select: 'price discPrice variations seller status publish productName'
@@ -53,7 +61,7 @@ const calculateCartTotal = async (cartId: any, nearbySellerIds: mongoose.Types.O
             // Check if seller is in range
             const isAvailable = nearbySellerIds.some(id => id.toString() === product.seller.toString());
             if (isAvailable) {
-                const price = calculateItemPrice(product, item.variation);
+                const price = calculateItemPrice(product, item.variation, item.quantity, customerType);
                 total += price * item.quantity;
             }
         }
@@ -176,6 +184,10 @@ export const getCart = async (req: Request, res: Response) => {
             return res.status(200).json({ success: true, data: cart });
         }
 
+        // Get customer account details for dynamic role-based calculations
+        const customerObj = await Customer.findById(userId).select('customerType');
+        const customerType = customerObj?.customerType || 'retailer';
+
         // Filter items based on location availability and update total
         const filteredItems = [];
         let total = 0;
@@ -186,7 +198,7 @@ export const getCart = async (req: Request, res: Response) => {
                 const isAvailable = nearbySellerIds.some(id => id.toString() === product.seller.toString());
                 if (isAvailable) {
                     filteredItems.push(item);
-                    const price = calculateItemPrice(product, item.variation);
+                    const price = calculateItemPrice(product, item.variation, item.quantity, customerType);
                     total += price * item.quantity;
                 }
             }
@@ -272,6 +284,10 @@ export const addToCart = async (req: Request, res: Response) => {
             cart = await Cart.create({ customer: userId, items: [], total: 0 });
         }
 
+        // Get customer account details for dynamic role-based calculations
+        const customerObj = await Customer.findById(userId).select('customerType');
+        const customerType = customerObj?.customerType || 'retailer';
+
         // Check if item already exists in cart
         let cartItem = await CartItem.findOne({
             cart: cart._id,
@@ -279,23 +295,42 @@ export const addToCart = async (req: Request, res: Response) => {
             variation: variation || null
         });
 
+        let minWholesaleQty = 1;
+        let selectedVar = null;
+
+        if (variation && product.variations?.length) {
+            selectedVar = product.variations.find((v: any) =>
+                (v._id && v._id.toString() === variation.toString()) ||
+                (v.id && v.id === variation.toString())
+            );
+        } else if (product.variations?.length) {
+            selectedVar = product.variations[0];
+        }
+
+        if (customerType === 'wholesaler' && selectedVar) {
+            minWholesaleQty = selectedVar.minWholesaleQty || 1;
+        }
+
         if (cartItem) {
             // Update quantity
             cartItem.quantity += quantity;
+            if (customerType === 'wholesaler' && cartItem.quantity < minWholesaleQty) {
+                cartItem.quantity = minWholesaleQty;
+            }
             await cartItem.save();
         } else {
             // Create new cart item
             cartItem = await CartItem.create({
                 cart: cart._id,
                 product: productId,
-                quantity,
+                quantity: customerType === 'wholesaler' ? Math.max(quantity, minWholesaleQty) : quantity,
                 variation
             });
             cart.items.push(cartItem._id as any);
         }
 
         // Update total with location filtering
-        cart.total = await calculateCartTotal(cart._id, nearbySellerIds);
+        cart.total = await calculateCartTotal(cart._id, nearbySellerIds, customerType);
         await cart.save();
 
         // Return updated cart with filtering
@@ -385,10 +420,36 @@ export const updateCartItem = async (req: Request, res: Response) => {
             });
         }
 
+        // Get customer account details for dynamic role-based calculations
+        const customerObj = await Customer.findById(userId).select('customerType');
+        const customerType = customerObj?.customerType || 'retailer';
+
+        let minWholesaleQty = 1;
+        let selectedVar = null;
+        if (cartItem.variation && product.variations?.length) {
+            selectedVar = product.variations.find((v: any) =>
+                (v._id && v._id.toString() === cartItem.variation.toString()) ||
+                (v.id && v.id === cartItem.variation.toString())
+            );
+        } else if (product.variations?.length) {
+            selectedVar = product.variations[0];
+        }
+
+        if (customerType === 'wholesaler' && selectedVar) {
+            minWholesaleQty = selectedVar.minWholesaleQty || 1;
+        }
+
+        if (customerType === 'wholesaler' && quantity < minWholesaleQty) {
+            return res.status(400).json({
+                success: false,
+                message: `Minimum wholesale order quantity for this variation is ${minWholesaleQty}. To order less, please sign up as a retailer.`
+            });
+        }
+
         cartItem.quantity = quantity;
         await cartItem.save();
 
-        cart.total = await calculateCartTotal(cart._id, nearbySellerIds);
+        cart.total = await calculateCartTotal(cart._id, nearbySellerIds, customerType);
         await cart.save();
 
         const updatedCart = await Cart.findById(cart._id).populate({
@@ -447,13 +508,17 @@ export const removeFromCart = async (req: Request, res: Response) => {
         // Remove from cart array
         cart.items = cart.items.filter(id => id.toString() !== itemId);
 
+        // Get customer account details for dynamic role-based calculations
+        const customerObj = await Customer.findById(userId).select('customerType');
+        const customerType = customerObj?.customerType || 'retailer';
+
         // Calculate total with location if provided
         let nearbySellerIds: mongoose.Types.ObjectId[] = [];
         if (userLat !== null && userLng !== null && !isNaN(userLat) && !isNaN(userLng)) {
             nearbySellerIds = await findSellersWithinRange(userLat, userLng);
         }
 
-        cart.total = await calculateCartTotal(cart._id, nearbySellerIds);
+        cart.total = await calculateCartTotal(cart._id, nearbySellerIds, customerType);
         await cart.save();
 
         const updatedCart = await Cart.findById(cart._id).populate({

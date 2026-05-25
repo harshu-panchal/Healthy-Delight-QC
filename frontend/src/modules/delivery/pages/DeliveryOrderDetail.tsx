@@ -908,7 +908,7 @@ export default function DeliveryOrderDetail() {
                                     <span className="w-6 h-6 rounded bg-neutral-100 flex items-center justify-center text-xs font-bold text-neutral-600">{item.quantity}x</span>
                                     <span className="text-sm text-neutral-700 font-medium">{item.name}</span>
                                 </div>
-                                <span className="text-sm font-semibold text-neutral-900">₹{item.price * item.quantity}</span>
+                                <span className="text-sm font-semibold text-neutral-900">₹{item.price}</span>
                             </div>
                         ))}
                     </div>

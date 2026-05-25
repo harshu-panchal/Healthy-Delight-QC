@@ -16,4 +16,7 @@ router.post("/location", authenticate, customerController.updateLocation);
 // Get customer location (protected route)
 router.get("/location", authenticate, customerController.getLocation);
 
+// Get customer wallet transactions (protected route)
+router.get("/wallet/transactions", authenticate, customerController.getWalletTransactions);
+
 export default router;

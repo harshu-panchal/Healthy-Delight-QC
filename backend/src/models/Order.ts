@@ -111,6 +111,14 @@ export interface IOrder extends Document {
 
   // Additional fields for calculations/frontend
   grandTotal?: number;
+  walletAmountUsed: number;
+  onlineAmountPaid: number;
+  codAmount: number;
+  refundableAmount: number;
+  isRefundProcessed: boolean;
+  refundedAt?: Date;
+  refundTransactionId?: mongoose.Types.ObjectId;
+
   orderId?: string;
   invoiceNumber?: string;
   gstin?: string;
@@ -245,6 +253,43 @@ const OrderSchema = new Schema<IOrder>(
       required: [true, "Total is required"],
       min: [0, "Total cannot be negative"],
     },
+    grandTotal: {
+      type: Number,
+      default: 0,
+      min: [0, "Grand total cannot be negative"],
+    },
+    walletAmountUsed: {
+      type: Number,
+      default: 0,
+      min: [0, "Wallet amount used cannot be negative"],
+    },
+    onlineAmountPaid: {
+      type: Number,
+      default: 0,
+      min: [0, "Online amount paid cannot be negative"],
+    },
+    codAmount: {
+      type: Number,
+      default: 0,
+      min: [0, "COD amount cannot be negative"],
+    },
+    refundableAmount: {
+      type: Number,
+      default: 0,
+      min: [0, "Refundable amount cannot be negative"],
+    },
+    isRefundProcessed: {
+      type: Boolean,
+      default: false,
+    },
+    refundedAt: {
+      type: Date,
+    },
+    refundTransactionId: {
+      type: Schema.Types.ObjectId,
+      ref: "CustomerWalletTransaction",
+    },
+
 
     // Payment
     paymentMethod: {
@@ -390,10 +435,6 @@ const OrderSchema = new Schema<IOrder>(
     },
 
     // Additional fields for calculations/frontend
-    grandTotal: {
-      type: Number,
-      default: 0,
-    },
     orderId: {
       type: String,
       trim: true,

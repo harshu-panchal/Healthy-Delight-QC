@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import Customer from "../../../models/Customer";
+import CustomerWalletTransaction from "../../../models/CustomerWalletTransaction";
 import { asyncHandler } from "../../../utils/asyncHandler";
 
 /**
@@ -35,6 +36,7 @@ export const getProfile = asyncHandler(async (req: Request, res: Response) => {
       dateOfBirth: customer.dateOfBirth,
       registrationDate: customer.registrationDate,
       status: customer.status,
+      customerType: customer.customerType,
       refCode: customer.refCode,
       walletAmount: customer.walletAmount,
       totalOrders: customer.totalOrders,
@@ -111,6 +113,7 @@ export const updateProfile = asyncHandler(
         dateOfBirth: customer.dateOfBirth,
         registrationDate: customer.registrationDate,
         status: customer.status,
+        customerType: customer.customerType,
         refCode: customer.refCode,
         walletAmount: customer.walletAmount,
         totalOrders: customer.totalOrders,
@@ -224,5 +227,37 @@ export const getLocation = asyncHandler(async (req: Request, res: Response) => {
       pincode: customer.pincode,
       locationUpdatedAt: customer.locationUpdatedAt,
     },
+  });
+});
+
+/**
+ * Get customer wallet transactions
+ */
+export const getWalletTransactions = asyncHandler(async (req: Request, res: Response) => {
+  const userId = req.user?.userId;
+
+  if (!userId || (req as any).user?.userType !== "Customer") {
+    return res.status(401).json({
+      success: false,
+      message: "Unauthorized or not a customer",
+    });
+  }
+
+  const transactions = await CustomerWalletTransaction.find({ customerId: userId })
+    .sort({ createdAt: -1 })
+    .populate({
+      path: "orderId",
+      select: "orderId orderNumber _id items",
+      populate: {
+        path: "items",
+        select: "productName variation variantTitle",
+        model: "OrderItem"
+      }
+    });
+
+  return res.status(200).json({
+    success: true,
+    message: "Wallet transactions retrieved successfully",
+    data: transactions,
   });
 });

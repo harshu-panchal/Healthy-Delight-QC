@@ -42,7 +42,7 @@ export default function ProductCard({
 }: ProductCardProps) {
   const navigate = useNavigate();
   const { cart, addToCart, updateQuantity } = useCart();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const { location } = useLocation();
   const { showToast } = useToast(); // Get toast function
   const imageRef = useRef<HTMLImageElement>(null);
@@ -121,8 +121,25 @@ export default function ProductCard({
   const cartItem = cart.items.find((item) => item?.product && (item.product.id === (product as any).id || item.product._id === (product as any).id || item.product.id === product._id));
   const inCartQty = cartItem?.quantity || 0;
 
-  // Get Price and MRP using utility
-  const { displayPrice, mrp, discount } = calculateProductPrice(product);
+  // Determine if user is a wholesaler
+  const isWholesaler = user?.customerType === 'wholesaler';
+  const hasWholesalePricing = product.variations?.some(
+    (v: any) => typeof v.wholesalePrice === 'number' && v.wholesalePrice > 0
+  ) || false;
+
+  let defaultQty = inCartQty;
+  if (defaultQty <= 0) {
+    const firstVar = product.variations?.[0];
+    defaultQty = isWholesaler ? (firstVar?.minWholesaleQty || 1) : 1;
+  }
+
+  // Get Price and MRP using utility with role parameters
+  const { displayPrice, mrp, discount } = calculateProductPrice(
+    product,
+    undefined,
+    user?.customerType,
+    defaultQty
+  );
 
   const handleCardClick = () => {
     navigate(`/product/${((product as any).id || product._id) as string}`);
@@ -366,6 +383,11 @@ export default function ProductCard({
               {mrp && mrp > displayPrice && (
                 <span className="text-[11px] text-neutral-400 line-through decoration-neutral-500 decoration-[1.5px] leading-none">
                   ₹{mrp.toLocaleString('en-IN')}
+                </span>
+              )}
+              {isWholesaler && hasWholesalePricing && (
+                <span className="text-[8px] font-extrabold uppercase bg-[#c5a059]/15 text-[#c5a059] px-1.5 py-0.5 rounded-full select-none">
+                  Wholesale
                 </span>
               )}
             </div>

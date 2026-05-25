@@ -33,7 +33,7 @@ import {
 import GoogleMapsLocationPicker from "../../components/GoogleMapsLocationPicker";
 import { getProducts } from "../../services/api/customerProductService";
 import { addToWishlist } from "../../services/api/customerWishlistService";
-import { updateProfile } from "../../services/api/customerService";
+import { getProfile, updateProfile } from "../../services/api/customerService";
 import { calculateProductPrice } from "../../utils/priceUtils";
 import { updateScheduledOrderItems } from "../../services/api/customerOrderService";
 import { verifyPayment } from "../../services/api/paymentService";
@@ -90,6 +90,8 @@ export default function Checkout() {
   const [pendingOrderId, setPendingOrderId] = useState<string | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<"COD" | "Online">("Online");
   const [timeSlot, setTimeSlot] = useState<string>("");
+  const [useWallet, setUseWallet] = useState<boolean>(false);
+  const [walletAmount, setWalletAmount] = useState<number>(0);
   const [isPlacedOrderScheduled, setIsPlacedOrderScheduled] = useState<boolean>(false);
   const [isVerifyingPayment, setIsVerifyingPayment] = useState<boolean>(false);
 
@@ -134,14 +136,23 @@ export default function Checkout() {
 
   // Check if user has placeholder data (needs profile completion)
   const isPlaceholderUser =
-    user?.name === "User" || user?.email?.endsWith("@kosil.temp");
+    user?.name === "User" || user?.email?.endsWith("@healthydelight.temp");
 
   // Redirect if empty
+  const [initialCheckDone, setInitialCheckDone] = useState(false);
+
   useEffect(() => {
-    if (!cartLoading && cart.items.length === 0 && !showOrderSuccess) {
-      navigate("/");
+    const timer = setTimeout(() => {
+      setInitialCheckDone(true);
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    if (initialCheckDone && !cartLoading && cart.items.length === 0 && !showOrderSuccess) {
+      navigate("/user");
     }
-  }, [cart.items.length, cartLoading, navigate, showOrderSuccess]);
+  }, [cart.items.length, cartLoading, navigate, showOrderSuccess, initialCheckDone]);
 
   // Handle Razorpay payment redirect verification
   useEffect(() => {
@@ -165,7 +176,7 @@ export default function Checkout() {
           if (verificationResponse.success) {
             // Remove the query parameters from the URL
             window.history.replaceState({}, document.title, window.location.pathname);
-            
+
             localStorage.removeItem("pendingOrderId");
             setPlacedOrderId(savedPendingOrderId);
             clearCart();
@@ -191,10 +202,15 @@ export default function Checkout() {
   useEffect(() => {
     const fetchInitialData = async () => {
       try {
-        const [addressResponse, couponResponse] = await Promise.all([
+        const [addressResponse, couponResponse, profileResponse] = await Promise.all([
           getAddresses(),
           getCoupons(),
+          getProfile(),
         ]);
+
+        if (profileResponse.success && profileResponse.data) {
+          setWalletAmount(profileResponse.data.walletAmount);
+        }
 
         if (
           addressResponse.success &&
@@ -322,7 +338,7 @@ export default function Checkout() {
             const popularMapped = (popular?.data || [])
               .filter((p: any) => !itemsInCartIds.has(p.id || p._id))
               .map(mapToCardProduct);
-            
+
             // Merge unique items
             const seenIds = new Set(filtered.map(p => p.id));
             for (const p of popularMapped) {
@@ -389,7 +405,9 @@ export default function Checkout() {
     total: displayItems.reduce((sum, item) => {
       const { displayPrice } = calculateProductPrice(
         item.product,
-        item.variant
+        item.variant,
+        user?.customerType,
+        item.quantity
       );
       return sum + displayPrice * (item.quantity || 0);
     }, 0),
@@ -404,7 +422,7 @@ export default function Checkout() {
 
   const itemsTotal = displayItems.reduce((sum, item) => {
     if (!item?.product) return sum;
-    const { mrp } = calculateProductPrice(item.product, item.variant);
+    const { mrp } = calculateProductPrice(item.product, item.variant, user?.customerType, item.quantity);
     return sum + mrp * (item.quantity || 0);
   }, 0);
 
@@ -416,7 +434,7 @@ export default function Checkout() {
   // Calculate tax amount dynamically from cart items
   const taxTotal = displayItems.reduce((sum, item) => {
     if (!item?.product) return sum;
-    const { displayPrice } = calculateProductPrice(item.product, item.variant);
+    const { displayPrice } = calculateProductPrice(item.product, item.variant, user?.customerType, item.quantity);
     const taxPercentage = (item.product as any).tax?.percentage || 0;
     return sum + (displayPrice * (taxPercentage / 100)) * (item.quantity || 0);
   }, 0);
@@ -466,6 +484,9 @@ export default function Checkout() {
     giftPackagingFee -
     currentCouponDiscount
   );
+
+  const walletDeduction = useWallet ? Math.min(walletAmount, grandTotal) : 0;
+  const remainingTotal = Number((grandTotal - walletDeduction).toFixed(2));
 
   const handleApplyCoupon = async (coupon: ApiCoupon) => {
     setIsValidatingCoupon(true);
@@ -586,7 +607,9 @@ export default function Checkout() {
       .substr(2, 6)
       .toUpperCase()}`;
 
-    const order: Order & { orderType?: string; scheduledDate?: string; scheduledTimeSlot?: string } = {
+    const effectivePaymentMethod = remainingTotal === 0 ? "Wallet" : paymentMethod;
+
+    const order: Order & { orderType?: string; scheduledDate?: string; scheduledTimeSlot?: string; useWallet?: boolean } = {
       id: orderId,
       items: cart.items,
       totalItems: cart.itemCount,
@@ -598,7 +621,8 @@ export default function Checkout() {
       totalAmount: grandTotal,
       address: addressWithLocation,
       timeSlot,
-      paymentMethod: paymentMethod,
+      paymentMethod: effectivePaymentMethod,
+      useWallet: useWallet,
       status: scheduledDateStr ? "Scheduled" : "Placed",
       createdAt: new Date().toISOString(),
       tipAmount: finalTipAmount,
@@ -619,8 +643,8 @@ export default function Checkout() {
         // Clear schedule keys from sessionStorage on order success
         sessionStorage.removeItem("scheduledDeliveryDate");
         sessionStorage.removeItem("scheduledTimeSlot");
-        
-        if (paymentMethod === "Online") {
+
+        if (effectivePaymentMethod === "Online") {
           localStorage.setItem("pendingOrderId", placedId);
           setPendingOrderId(placedId);
           setShowRazorpayCheckout(true);
@@ -665,7 +689,7 @@ export default function Checkout() {
         }
         return;
       }
-      
+
       const errorMessage =
         error.message ||
         error.response?.data?.message ||
@@ -1326,7 +1350,7 @@ export default function Checkout() {
               .map((item) => {
                 const variantId = (item.product as any).variantId || (item.product as any).selectedVariant?._id || item.variant;
                 const variantTitle = (item.product as any).variantTitle || item.product.pack;
-                const { displayPrice, mrp, hasDiscount } = calculateProductPrice(item.product, item.variant);
+                const { displayPrice, mrp, hasDiscount } = calculateProductPrice(item.product, item.variant, user?.customerType, item.quantity);
 
                 return (
                   <div key={item.product?.id || Math.random()} className="p-4 flex items-center gap-4">
@@ -1479,55 +1503,55 @@ export default function Checkout() {
       {/* Required Selection: Shift Time */}
       {!scheduledDateStr && (
         <div className="px-4 md:px-6 lg:px-8 py-6 bg-white border-b border-neutral-100">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex flex-col">
-            <h3 className="text-sm font-bold text-neutral-900 tracking-tight">Delivery Shift</h3>
-            <p className="text-[10px] font-medium text-neutral-500 uppercase tracking-widest mt-0.5">Required Selection</p>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex flex-col">
+              <h3 className="text-sm font-bold text-neutral-900 tracking-tight">Delivery Shift</h3>
+              <p className="text-[10px] font-medium text-neutral-500 uppercase tracking-widest mt-0.5">Required Selection</p>
+            </div>
+            <span className="text-[10px] font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded-full uppercase tracking-wider">Required</span>
           </div>
-          <span className="text-[10px] font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded-full uppercase tracking-wider">Required</span>
-        </div>
 
-        <div className="grid grid-cols-2 gap-3">
-          {[
-            { value: "Morning (6:00 AM - 9:00 AM)", label: "Morning", sub: "6:00 AM - 9:00 AM" },
-            { value: "Evening (6:00 PM - 9:00 PM)", label: "Evening", sub: "6:00 PM - 9:00 PM" },
-          ].map((slot) => {
-            const selected = timeSlot === slot.value;
-            return (
-              <button
-                key={slot.value}
-                type="button"
-                onClick={() => setTimeSlot(slot.value)}
-                className={`group relative p-3.5 rounded-2xl border-2 transition-all duration-300 ${selected
-                  ? "border-[#0a193b] bg-[#0a193b]/5 shadow-[0_4px_15px_rgba(10,25,59,0.1)]"
-                  : "border-neutral-100 bg-white hover:border-neutral-200"
-                  }`}
-              >
-                <div className="flex flex-col gap-1">
-                  <span className={`text-xs font-bold leading-tight ${selected ? "text-[#0a193b]" : "text-neutral-900"}`}>
-                    {slot.label}
-                  </span>
-                  <span className="text-[9px] font-medium text-neutral-500 uppercase tracking-tight">{slot.sub}</span>
-                </div>
-                {selected && (
-                  <div className="absolute top-2 right-2 w-4 h-4 bg-[#0a193b] rounded-full flex items-center justify-center">
-                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="20 6 9 17 4 12" />
-                    </svg>
+          <div className="grid grid-cols-2 gap-3">
+            {[
+              { value: "Morning (6:00 AM - 9:00 AM)", label: "Morning", sub: "6:00 AM - 9:00 AM" },
+              { value: "Evening (6:00 PM - 9:00 PM)", label: "Evening", sub: "6:00 PM - 9:00 PM" },
+            ].map((slot) => {
+              const selected = timeSlot === slot.value;
+              return (
+                <button
+                  key={slot.value}
+                  type="button"
+                  onClick={() => setTimeSlot(slot.value)}
+                  className={`group relative p-3.5 rounded-2xl border-2 transition-all duration-300 ${selected
+                    ? "border-[#0a193b] bg-[#0a193b]/5 shadow-[0_4px_15px_rgba(10,25,59,0.1)]"
+                    : "border-neutral-100 bg-white hover:border-neutral-200"
+                    }`}
+                >
+                  <div className="flex flex-col gap-1">
+                    <span className={`text-xs font-bold leading-tight ${selected ? "text-[#0a193b]" : "text-neutral-900"}`}>
+                      {slot.label}
+                    </span>
+                    <span className="text-[9px] font-medium text-neutral-500 uppercase tracking-tight">{slot.sub}</span>
                   </div>
-                )}
-              </button>
-            );
-          })}
-        </div>
-
-        {!timeSlot && (
-          <div className="mt-3 flex items-center gap-1.5 px-3 py-2 bg-red-50 rounded-xl text-[10px] font-bold text-red-600 border border-red-100">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg>
-            Please select a delivery shift to proceed
+                  {selected && (
+                    <div className="absolute top-2 right-2 w-4 h-4 bg-[#0a193b] rounded-full flex items-center justify-center">
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                    </div>
+                  )}
+                </button>
+              );
+            })}
           </div>
-        )}
-      </div>
+
+          {!timeSlot && (
+            <div className="mt-3 flex items-center gap-1.5 px-3 py-2 bg-red-50 rounded-xl text-[10px] font-bold text-red-600 border border-red-100">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg>
+              Please select a delivery shift to proceed
+            </div>
+          )}
+        </div>
       )}
 
       {/* Optional Add-ons Group */}
@@ -1813,6 +1837,39 @@ export default function Checkout() {
               ₹{Math.max(0, grandTotal)}
             </span>
           </div>
+
+          {/* Wallet deduction */}
+          {useWallet && walletAmount > 0 && (
+            <div className="flex items-center justify-between text-green-700">
+              <div className="flex items-center gap-1.5">
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg">
+                  <rect x="2" y="4" width="20" height="16" rx="2" stroke="currentColor" strokeWidth="2" />
+                  <path d="M12 4v16M2 12h22" stroke="currentColor" strokeWidth="2" />
+                </svg>
+                <span className="text-xs font-semibold">Wallet Deduction</span>
+              </div>
+              <span className="text-xs font-black">
+                -₹{Math.min(walletAmount, grandTotal).toLocaleString("en-IN")}
+              </span>
+            </div>
+          )}
+
+          {/* Net payment remaining */}
+          {useWallet && walletAmount > 0 && (
+            <div className="pt-1.5 flex items-center justify-between border-t border-dashed border-neutral-100">
+              <span className="text-xs font-bold text-neutral-500">
+                Remaining to Pay
+              </span>
+              <span className="text-xs font-black text-[#0a193b]">
+                ₹{remainingTotal.toLocaleString("en-IN")}
+              </span>
+            </div>
+          )}
         </div>
       </div>
 
@@ -1937,8 +1994,10 @@ export default function Checkout() {
                   Order Cancellation
                 </h3>
                 <p className="text-sm text-neutral-600 leading-relaxed font-medium">
-                  You can cancel your order before it is confirmed by the
-                  seller. Once confirmed, cancellation may not be possible as the preparation starts immediately to ensure 17-minute delivery.
+                  Once confirmed, instant order cancellations may not be possible as the preparation starts immediately to ensure 17-minute delivery.
+                </p>
+                <p className="text-sm text-neutral-600 leading-relaxed font-medium">
+                  For scheduled orders, cancellations are permitted up to <strong>1 hour before your scheduled delivery time</strong>.
                 </p>
               </div>
 
@@ -1947,41 +2006,16 @@ export default function Checkout() {
                   <div className="w-1.5 h-6 bg-amber-500 rounded-full" />
                   Refund Policy
                 </h3>
-                <div className="bg-neutral-50 rounded-2xl p-4 border border-neutral-100">
-                  <ul className="space-y-4 font-medium">
-                    <li className="flex items-start gap-3">
-                      <div className="w-5 h-5 rounded-full bg-[#0a193b]/10 text-[#0a193b] flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
-                      </div>
-                      <span className="text-sm text-neutral-700">Refunds are processed within 5-7 business days</span>
-                    </li>
-                    <li className="flex items-start gap-3">
-                      <div className="w-5 h-5 rounded-full bg-[#0a193b]/10 text-[#0a193b] flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
-                      </div>
-                      <span className="text-sm text-neutral-700">Amount will be credited to your original payment method</span>
-                    </li>
-                    <li className="flex items-start gap-3 text-red-600">
-                      <div className="w-5 h-5 rounded-full bg-red-50 text-red-600 flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="12" /></svg>
-                      </div>
-                      <span className="text-sm">Delivery charges & platform fees are non-refundable</span>
-                    </li>
-                  </ul>
+                <div className="bg-neutral-50 rounded-2xl p-4 border border-neutral-100 space-y-2">
+                  <p className="text-sm text-neutral-600 leading-relaxed font-medium">
+                    For eligible cancellations on <strong>scheduled orders</strong>, refunds will be credited directly to your <strong>Healthy Delight Wallet</strong> to be used for future transactions.
+                  </p>
+                  <p className="text-sm text-neutral-600 leading-relaxed font-medium">
+                    Please note that refunds are <strong>not available for instant orders</strong> once confirmed, as preparation and dispatch begin immediately to ensure ultra-fast delivery.
+                  </p>
                 </div>
               </div>
 
-              <div className="space-y-3">
-                <h3 className="text-base font-bold text-neutral-900 flex items-center gap-2">
-                  <div className="w-1.5 h-6 bg-amber-500 rounded-full" />
-                  Partial Cancellation
-                </h3>
-                <p className="text-sm text-neutral-600 leading-relaxed font-medium">
-                  Partial cancellation of items in an order is not allowed. You
-                  can cancel the entire order or contact customer support for
-                  assistance before the order is marked as "Out for Delivery".
-                </p>
-              </div>
 
               <div className="space-y-3">
                 <h3 className="text-base font-bold text-neutral-900 flex items-center gap-2">
@@ -1989,7 +2023,7 @@ export default function Checkout() {
                   Contact Support
                 </h3>
                 <div className="space-y-1">
-                  <p className="text-sm text-neutral-600 font-medium">Email: <span className="text-neutral-900 font-bold">support@kosil.com</span></p>
+                  <p className="text-sm text-neutral-600 font-medium">Email: <span className="text-neutral-900 font-bold">support@healthydelight.com</span></p>
                   <p className="text-sm text-neutral-600 font-medium">Phone: <span className="text-neutral-900 font-bold">+91 00000 00000</span></p>
                 </div>
               </div>
@@ -2000,65 +2034,122 @@ export default function Checkout() {
 
 
 
-      {/* Payment Method Selection */}
-      <div className="px-4 py-3 border-b border-neutral-200 bg-neutral-50/50">
-        <h3 className="text-sm font-bold text-neutral-900 mb-2">Payment Method</h3>
-        <div className="space-y-2">
-          {/* Online Payment Option */}
+      {/* Wallet Balance Usage Option */}
+      {walletAmount > 0 && (
+        <div className="px-4 py-3.5 border-b border-neutral-200 bg-white">
           <div
-            onClick={() => setPaymentMethod("Online")}
-            className={`flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all ${paymentMethod === "Online"
-              ? "border-[#0a193b] bg-[#0a193b]/5"
-              : "border-neutral-200 bg-white"
-              }`}>
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${paymentMethod === "Online" ? "bg-[#0a193b]/10 text-[#0a193b]" : "bg-neutral-100 text-neutral-500"
-              }`}>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="2" y="5" width="20" height="14" rx="2" ry="2" />
-                <line x1="2" y1="10" x2="22" y2="10" />
+            onClick={() => setUseWallet(!useWallet)}
+            className={`flex items-center gap-3 p-4 rounded-2xl border-2 cursor-pointer transition-all duration-300 ${
+              useWallet
+                ? "border-green-600 bg-green-50/30 shadow-[0_4px_15px_rgba(22,163,74,0.08)]"
+                : "border-neutral-100 bg-white hover:border-neutral-200"
+            }`}
+          >
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
+              useWallet ? "bg-green-100 text-green-700" : "bg-neutral-50 text-neutral-500"
+            }`}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="2" y="4" width="20" height="16" rx="2" />
+                <line x1="12" y1="4" x2="12" y2="20" />
+                <line x1="2" y1="12" x2="22" y2="12" />
               </svg>
             </div>
-            <div>
-              <span className={`text-xs font-bold block ${paymentMethod === "Online" ? "text-[#0a193b]" : "text-neutral-900"}`}>Online Payment</span>
-              <span className="text-[10px] text-neutral-500">Secure payment via Razorpay</span>
+            <div className="flex-1 min-w-0">
+              <span className={`text-xs font-black block ${useWallet ? "text-green-700" : "text-neutral-900"}`}>
+                Use Customer Wallet
+              </span>
+              <span className="text-[10px] text-neutral-500 font-semibold mt-0.5">
+                Balance: <strong className="text-neutral-800">₹{walletAmount.toLocaleString("en-IN")}</strong>
+                {useWallet && (
+                  <>
+                    {" "}• Applied: <strong className="text-green-700">−₹{Math.min(walletAmount, grandTotal).toLocaleString("en-IN")}</strong>
+                  </>
+                )}
+              </span>
             </div>
-            {paymentMethod === "Online" && (
-              <div className="ml-auto">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-[#0a193b]">
-                  <polyline points="20 6 9 17 4 12" />
-                </svg>
+            <div className="flex items-center">
+              {/* Custom Switch Toggle */}
+              <div className={`w-10 h-6 rounded-full p-0.5 transition-colors duration-200 ${useWallet ? 'bg-green-600' : 'bg-neutral-200'}`}>
+                <div className={`w-5 h-5 bg-white rounded-full shadow-md transform duration-200 ${useWallet ? 'translate-x-4' : 'translate-x-0'}`} />
               </div>
-            )}
-          </div>
-
-          {/* COD Option */}
-          <div
-            onClick={() => setPaymentMethod("COD")}
-            className={`flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all ${paymentMethod === "COD"
-              ? "border-[#0a193b] bg-[#0a193b]/5"
-              : "border-neutral-200 bg-white"
-              }`}>
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${paymentMethod === "COD" ? "bg-[#0a193b]/10 text-[#0a193b]" : "bg-neutral-100 text-neutral-500"
-              }`}>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="1" y="4" width="22" height="16" rx="2" ry="2" />
-                <line x1="1" y1="10" x2="23" y2="10" />
-              </svg>
             </div>
-            <div>
-              <span className={`text-xs font-bold block ${paymentMethod === "COD" ? "text-[#0a193b]" : "text-neutral-900"}`}>Cash on Delivery</span>
-              <span className="text-[10px] text-neutral-500">Pay when you receive your order</span>
-            </div>
-            {paymentMethod === "COD" && (
-              <div className="ml-auto">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-[#0a193b]">
-                  <polyline points="20 6 9 17 4 12" />
-                </svg>
-              </div>
-            )}
           </div>
         </div>
-      </div>
+      )}
+
+      {/* Payment Method Selection */}
+      {useWallet && remainingTotal === 0 ? (
+        <div className="px-4 py-4 border-b border-neutral-200 bg-green-50/20 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-green-100 text-green-700 flex items-center justify-center flex-shrink-0">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+          </div>
+          <div>
+            <p className="text-xs font-black text-green-800">Fully Covered by Wallet</p>
+            <p className="text-[10px] text-green-600 font-semibold mt-0.5">No additional payment method is required for this order.</p>
+          </div>
+        </div>
+      ) : (
+        <div className="px-4 py-3 border-b border-neutral-200 bg-neutral-50/50">
+          <h3 className="text-sm font-bold text-neutral-900 mb-2">Payment Method</h3>
+          <div className="space-y-2">
+            {/* Online Payment Option */}
+            <div
+              onClick={() => setPaymentMethod("Online")}
+              className={`flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all ${paymentMethod === "Online"
+                ? "border-[#0a193b] bg-[#0a193b]/5"
+                : "border-neutral-200 bg-white"
+                }`}>
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${paymentMethod === "Online" ? "bg-[#0a193b]/10 text-[#0a193b]" : "bg-neutral-100 text-neutral-500"
+                }`}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="2" y="5" width="20" height="14" rx="2" ry="2" />
+                  <line x1="2" y1="10" x2="22" y2="10" />
+                </svg>
+              </div>
+              <div>
+                <span className={`text-xs font-bold block ${paymentMethod === "Online" ? "text-[#0a193b]" : "text-neutral-900"}`}>Online Payment</span>
+                <span className="text-[10px] text-neutral-500">Secure payment via Razorpay</span>
+              </div>
+              {paymentMethod === "Online" && (
+                <div className="ml-auto">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-[#0a193b]">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                </div>
+              )}
+            </div>
+
+            {/* COD Option */}
+            <div
+              onClick={() => setPaymentMethod("COD")}
+              className={`flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all ${paymentMethod === "COD"
+                ? "border-[#0a193b] bg-[#0a193b]/5"
+                : "border-neutral-200 bg-white"
+                }`}>
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${paymentMethod === "COD" ? "bg-[#0a193b]/10 text-[#0a193b]" : "bg-neutral-100 text-neutral-500"
+                }`}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="1" y="4" width="22" height="16" rx="2" ry="2" />
+                  <line x1="1" y1="10" x2="23" y2="10" />
+                </svg>
+              </div>
+              <div>
+                <span className={`text-xs font-bold block ${paymentMethod === "COD" ? "text-[#0a193b]" : "text-neutral-900"}`}>Cash on Delivery</span>
+                <span className="text-[10px] text-neutral-500">Pay when you receive your order</span>
+              </div>
+              {paymentMethod === "COD" && (
+                <div className="ml-auto">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-[#0a193b]">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Made with love by Healthy Delight */}
       <div className="px-4 py-2 mt-4">
@@ -2195,7 +2286,7 @@ export default function Checkout() {
           {/* Left side: Price display */}
           <div className="flex flex-col">
             <div className="flex items-center gap-1.5">
-              <span className="text-xl font-bold text-neutral-900">₹{grandTotal.toLocaleString("en-IN")}</span>
+              <span className="text-xl font-bold text-neutral-900">₹{remainingTotal.toLocaleString("en-IN")}</span>
             </div>
             <button
               onClick={() => {
@@ -2241,7 +2332,7 @@ export default function Checkout() {
         showRazorpayCheckout && pendingOrderId && user && (
           <RazorpayCheckout
             orderId={pendingOrderId}
-            amount={grandTotal}
+            amount={remainingTotal}
             customerDetails={{
               name: user.name || "Customer",
               email: user.email || "",

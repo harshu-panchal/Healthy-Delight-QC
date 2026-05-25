@@ -20,6 +20,7 @@ export default function Signup() {
         name: "",
         mobileNumber: "",
     });
+    const [customerType, setCustomerType] = useState<"retailer" | "wholesaler">("retailer");
     const [showOTP, setShowOTP] = useState(false);
     const [enteredOTP, setEnteredOTP] = useState("");
     const [sessionId, setSessionId] = useState("");
@@ -60,7 +61,13 @@ export default function Signup() {
         setError("");
 
         try {
-            const response = await verifyOTP(formData.mobileNumber, otpValue, sessionId);
+            const response = await verifyOTP(
+                formData.mobileNumber,
+                otpValue,
+                sessionId,
+                formData.name,
+                customerType
+            );
             if (response.success && response.data) {
                 login(response.data.token, {
                     id: response.data.user.id,
@@ -70,6 +77,7 @@ export default function Signup() {
                     walletAmount: response.data.user.walletAmount,
                     refCode: response.data.user.refCode,
                     status: response.data.user.status,
+                    customerType: response.data.user.customerType || customerType,
                     userType: "Customer",
                 });
                 navigate("/");
@@ -79,7 +87,7 @@ export default function Signup() {
         } finally {
             setLoading(false);
         }
-    }, [formData, sessionId, login, navigate, enteredOTP]);
+    }, [formData, sessionId, login, navigate, enteredOTP, customerType]);
 
     const handleOTPComplete = useCallback((otp: string) => {
         setEnteredOTP(otp);
@@ -155,6 +163,37 @@ export default function Signup() {
                                             className="hd-text-input"
                                             disabled={loading}
                                         />
+                                    </div>
+                                </div>
+
+                                {/* Account Type Selection */}
+                                <div className="hd-field-group">
+                                    <label className="hd-field-label">I want to shop as a:</label>
+                                    <div className="flex gap-3 mt-1">
+                                        <button
+                                            type="button"
+                                            onClick={() => setCustomerType("retailer")}
+                                            className={`flex-1 p-3 rounded-xl border-2 transition-all flex flex-col items-center justify-center gap-1 ${
+                                                customerType === "retailer"
+                                                    ? "border-[#c5a059] bg-[#c5a059]/5 text-[#0a193b]"
+                                                    : "border-neutral-200 bg-white text-neutral-500 hover:border-neutral-300"
+                                            }`}
+                                        >
+                                            <span className="text-[13px] font-bold">Retailer</span>
+                                            <span className="text-[9px] opacity-70">Standard Shopping</span>
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setCustomerType("wholesaler")}
+                                            className={`flex-1 p-3 rounded-xl border-2 transition-all flex flex-col items-center justify-center gap-1 ${
+                                                customerType === "wholesaler"
+                                                    ? "border-[#c5a059] bg-[#c5a059]/5 text-[#0a193b]"
+                                                    : "border-neutral-200 bg-white text-neutral-500 hover:border-neutral-300"
+                                            }`}
+                                        >
+                                            <span className="text-[13px] font-bold">Wholesaler</span>
+                                            <span className="text-[9px] opacity-70">Bulk & B2B Prices</span>
+                                        </button>
                                     </div>
                                 </div>
 
@@ -284,6 +323,11 @@ export default function Signup() {
                     background: #f8f6f2; transform: translateY(0); opacity: 1;
                     transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.5s ease;
                     padding-top: 10px; z-index: 20;
+                    overflow-y: auto; width: 100%;
+                    scrollbar-width: none;
+                }
+                .hd-bottom-panel::-webkit-scrollbar {
+                    display: none;
                 }
 
                 .hd-form-card { width: 100%; max-width: 400px; padding: 20px 24px; display: flex; flex-direction: column; gap: 16px; }

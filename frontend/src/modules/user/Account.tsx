@@ -261,6 +261,54 @@ export default function Account() {
           </div>
         </div>
 
+        {/* Premium Customer Wallet Card */}
+        <div className="max-w-2xl md:mx-auto mb-6">
+          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-tr from-[#061939] via-[#0b2447] to-[#19376d] p-6 text-white shadow-[0_15px_35px_rgba(10,25,59,0.3)] transition-all duration-300 hover:shadow-[0_20px_45px_rgba(10,25,59,0.4)]">
+            {/* Background elements */}
+            <div className="absolute top-0 right-0 w-32 h-32 rounded-full bg-white/5 blur-3xl pointer-events-none" />
+            <div className="absolute bottom-0 left-0 w-48 h-48 rounded-full bg-blue-500/10 blur-3xl pointer-events-none" />
+
+            <div className="flex justify-between items-start mb-6">
+              <div>
+                <p className="text-[10px] font-black text-blue-200 uppercase tracking-[0.2em] leading-none mb-1.5">
+                  Secure Customer Wallet
+                </p>
+                <h3 className="text-sm font-bold text-white uppercase tracking-wider">
+                  Healthy Delight Pay
+                </h3>
+              </div>
+              <div className="px-2.5 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-[9px] font-black uppercase tracking-wider text-blue-100 flex items-center gap-1 shadow-sm">
+                <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+                Active Ledger
+              </div>
+            </div>
+
+            <div className="flex justify-between items-end">
+              <div>
+                <p className="text-[10px] font-bold text-blue-200/80 uppercase tracking-widest leading-none mb-1">
+                  Available Balance
+                </p>
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-3xl font-black tracking-tight text-white">
+                    ₹{(profile?.walletAmount || 0).toLocaleString("en-IN")}
+                  </span>
+                  <span className="text-xs font-semibold text-blue-200">INR</span>
+                </div>
+              </div>
+              
+              <button
+                onClick={() => navigate("/wallet/history")}
+                className="px-4 py-2 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/20 transition-all font-bold text-[10px] uppercase tracking-wider text-white shadow-sm hover:scale-105 active:scale-95 flex items-center gap-1.5"
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 5v14M5 12h14" />
+                </svg>
+                View Ledger
+              </button>
+            </div>
+          </div>
+        </div>
+
         <div className="grid grid-cols-2 gap-3 max-w-2xl md:mx-auto mb-8">
           <button
             onClick={() => navigate("/orders")}

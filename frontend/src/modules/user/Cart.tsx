@@ -1,11 +1,13 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
+import { useAuth } from '../../context/AuthContext';
 import Button from '../../components/ui/button';
 import { appConfig } from '../../services/configService';
 import { calculateProductPrice } from '../../utils/priceUtils';
 
 export default function Cart() {
   const { cart, updateQuantity, removeFromCart, clearCart } = useCart();
+  const { user } = useAuth();
   const navigate = useNavigate();
 
   const threshold = cart.freeDeliveryThreshold ?? appConfig.freeDeliveryThreshold;
@@ -52,7 +54,7 @@ export default function Cart() {
       {/* Cart Items */}
       <div className="px-4 md:px-6 lg:px-8 space-y-4 md:space-y-6 mb-4 md:mb-6">
         {cart.items.map((item) => {
-          const { displayPrice, mrp, hasDiscount } = calculateProductPrice(item.product, item.variant);
+          const { displayPrice, mrp, hasDiscount } = calculateProductPrice(item.product, item.variant, user?.customerType, item.quantity);
           return (
             <div
               key={item.product.id}
