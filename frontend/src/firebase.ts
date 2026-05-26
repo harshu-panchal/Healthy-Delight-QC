@@ -1,6 +1,6 @@
-import { initializeApp } from 'firebase/app';
+import { initializeApp, FirebaseApp } from 'firebase/app';
 import { getMessaging, getToken, onMessage, Messaging } from 'firebase/messaging';
-import { getAnalytics } from "firebase/analytics";
+import { getAnalytics, isSupported, Analytics } from "firebase/analytics";
 
 const firebaseConfig = {
     apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -12,19 +12,32 @@ const firebaseConfig = {
     measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
 
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
-
+let app: FirebaseApp | null = null;
 let messaging: Messaging | null = null;
+let analytics: Analytics | null = null;
 
-try {
-    messaging = getMessaging(app);
-} catch (error: any) {
-    console.warn('Firebase Messaging not supported in this environment.', error);
-    if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-        // Only alert on mobile to avoid annoying desktop devs
-        alert(`⚠️ Firebase Messaging Init Failed: ${error.message || 'Unknown error'}`);
+if (firebaseConfig.apiKey && firebaseConfig.apiKey !== "dummy-api-key") {
+    try {
+        app = initializeApp(firebaseConfig);
+
+        isSupported().then((supported) => {
+            if (supported && app) {
+                analytics = getAnalytics(app);
+            }
+        }).catch((err) => {
+            console.debug('Firebase Analytics initialization skipped or blocked:', err);
+        });
+
+        try {
+            messaging = getMessaging(app);
+        } catch (error: any) {
+            console.warn('Firebase Messaging not supported in this environment.', error);
+        }
+    } catch (error) {
+        console.error('Failed to initialize Firebase app:', error);
     }
+} else {
+    console.info('ℹ️ Firebase credentials are not configured or are set to dummy values in .env. Skipping initialization.');
 }
 
 export { messaging, getToken, onMessage };

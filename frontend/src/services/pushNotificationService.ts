@@ -13,7 +13,17 @@ async function registerServiceWorker() {
             //     registration.unregister();
             // }
 
-            const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js', {
+            const configParams = new URLSearchParams({
+                apiKey: import.meta.env.VITE_FIREBASE_API_KEY || '',
+                authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || '',
+                projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || '',
+                storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || '',
+                messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || '',
+                appId: import.meta.env.VITE_FIREBASE_APP_ID || '',
+                measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || ''
+            }).toString();
+
+            const registration = await navigator.serviceWorker.register(`/firebase-messaging-sw.js?${configParams}`, {
                 scope: '/'
             });
             console.log('✅ Service Worker registered:', registration);
@@ -103,9 +113,7 @@ export async function getFCMToken() {
 // Register FCM token with backend
 export async function registerFCMToken(forceUpdate = false) {
     if (!messaging) {
-        if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-            alert('⚠️ Cannot register FCM token: Messaging is not supported or initialized.');
-        }
+        console.warn('⚠️ Firebase Messaging is not supported or initialized. Push notifications are disabled.');
         return null;
     }
 

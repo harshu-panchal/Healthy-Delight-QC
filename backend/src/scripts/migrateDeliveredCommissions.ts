@@ -64,7 +64,7 @@ async function migrate() {
                     comm._id.toString()
                 );
 
-                console.log(`Successfully settled ₹${netEarning.toFixed(2)} to Seller ${seller.storeName || seller.ownerName}`);
+                console.log(`Successfully settled ₹${netEarning.toFixed(2)} to Seller ${seller.storeName || seller.sellerName}`);
                 migratedCount++;
             } else {
                 console.log(`Order #${order.orderNumber} is not Delivered (Status: ${order.status}). Leaving commission as Pending.`);

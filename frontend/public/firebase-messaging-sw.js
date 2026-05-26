@@ -2,14 +2,16 @@
 importScripts('https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/10.9.0/firebase-messaging-compat.js');
 
+const params = new URLSearchParams(self.location.search);
+
 const firebaseConfig = {
-    apiKey: "AIzaSyCGGEeLFXSt0TScXaPnzhOQRE3icZqxf4M",
-    authDomain: "kosil-e-com.firebaseapp.com",
-    projectId: "kosil-e-com",
-    storageBucket: "kosil-e-com.firebasestorage.app",
-    messagingSenderId: "277843928493",
-    appId: "1:277843928493:web:02b318e1002498016e6d24",
-    measurementId: "G-QY6BQ2GDYB"
+    apiKey: params.get('apiKey') || "AIzaSyCGGEeLFXSt0TScXaPnzhOQRE3icZqxf4M",
+    authDomain: params.get('authDomain') || "kosil-e-com.firebaseapp.com",
+    projectId: params.get('projectId') || "kosil-e-com",
+    storageBucket: params.get('storageBucket') || "kosil-e-com.firebasestorage.app",
+    messagingSenderId: params.get('messagingSenderId') || "277843928493",
+    appId: params.get('appId') || "1:277843928493:web:02b318e1002498016e6d24",
+    measurementId: params.get('measurementId') || "G-QY6BQ2GDYB"
 };
 
 // Initialize Firebase
