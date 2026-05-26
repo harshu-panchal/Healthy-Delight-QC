@@ -94,9 +94,7 @@ export async function getFCMToken() {
             }
         } catch (tokenError: any) {
             console.error('❌ Error calling getToken:', tokenError);
-            if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-                alert(`❌ getToken failed: ${tokenError.message || 'Unknown error'}`);
-            }
+            console.warn(`⚠️ FCM getToken failed silently: ${tokenError.message || 'Unknown error'}. App will continue running without push notifications.`);
             if (tokenError.code === 'messaging/token-subscribe-failed' || tokenError.message?.includes('Missing required authentication credential')) {
                 console.error(`👉 POTENTIAL FIX: Check your Google Cloud Console API Key restrictions. ` +
                     `Ensure "${window.location.origin}" (and with trailing slash) is allowed in HTTP Referrers.`);
