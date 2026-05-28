@@ -734,6 +734,7 @@ const menuSections: MenuSection[] = [
   {
     title: "Setting",
     items: [
+      /*
       {
         label: "Payment List",
         path: "/admin/payment-list",
@@ -792,6 +793,7 @@ const menuSections: MenuSection[] = [
           </svg>
         ),
       },
+      */
       {
         label: "Billing & Charges",
         path: "/admin/billing-settings",

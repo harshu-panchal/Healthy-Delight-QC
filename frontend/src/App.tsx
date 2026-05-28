@@ -24,6 +24,8 @@ import Cart from "./modules/user/Cart";
 import Checkout from "./modules/user/Checkout";
 import CheckoutAddress from "./modules/user/CheckoutAddress";
 import ProductDetail from "./modules/user/ProductDetail";
+import Login from "./modules/user/Login";
+import Signup from "./modules/user/Signup";
 const LandingPage = lazy(() => import("./modules/user/LandingPage"));
 
 // Lazy load less critical routes for code splitting
@@ -37,11 +39,11 @@ const Categories = lazy(() => import("./modules/user/Categories"));
 const Collection = lazy(() => import("./modules/user/Collection"));
 const Category = lazy(() => import("./modules/user/Category"));
 const Invoice = lazy(() => import("./modules/user/Invoice"));
-const Login = lazy(() => import("./modules/user/Login"));
-const Signup = lazy(() => import("./modules/user/Signup"));
 
 const AboutUs = lazy(() => import("./modules/user/AboutUs"));
 const FAQ = lazy(() => import("./modules/user/FAQ"));
+const PrivacyPolicy = lazy(() => import("./modules/user/PrivacyPolicy"));
+const TermsOfService = lazy(() => import("./modules/user/TermsOfService"));
 const Wishlist = lazy(() => import("./modules/user/Wishlist"));
 const Addresses = lazy(() => import("./modules/user/Addresses"));
 const AddressBook = lazy(() => import("./modules/user/AddressBook"));
@@ -316,9 +318,7 @@ function AppContent() {
                           path="/user/login"
                           element={
                             <PublicRoute>
-                              <Suspense fallback={<IconLoader forceShow />}>
-                                <Login />
-                              </Suspense>
+                              <Login />
                             </PublicRoute>
                           }
                         />
@@ -327,9 +327,7 @@ function AppContent() {
                           path="/login"
                           element={
                             <PublicRoute>
-                              <Suspense fallback={<IconLoader forceShow />}>
-                                <Login />
-                              </Suspense>
+                              <Login />
                             </PublicRoute>
                           }
                         />
@@ -338,9 +336,7 @@ function AppContent() {
                           path="/signup"
                           element={
                             <PublicRoute>
-                              <Suspense fallback={<IconLoader forceShow />}>
-                                <Signup />
-                              </Suspense>
+                              <Signup />
                             </PublicRoute>
                           }
                         />
@@ -349,7 +345,7 @@ function AppContent() {
                           path="/seller/login"
                           element={
                             <PublicRoute>
-                              <Suspense fallback={<IconLoader forceShow />}>
+                              <Suspense fallback={<LoadingSpinner size="lg" className="min-h-screen" />}>
                                 <SellerLogin />
                               </Suspense>
                             </PublicRoute>
@@ -359,7 +355,7 @@ function AppContent() {
                           path="/seller/signup"
                           element={
                             <PublicRoute>
-                              <Suspense fallback={<IconLoader forceShow />}>
+                              <Suspense fallback={<LoadingSpinner size="lg" className="min-h-screen" />}>
                                 <SellerSignUp />
                               </Suspense>
                             </PublicRoute>
@@ -369,7 +365,7 @@ function AppContent() {
                           path="/delivery/login"
                           element={
                             <PublicRoute>
-                              <Suspense fallback={<IconLoader forceShow />}>
+                              <Suspense fallback={<LoadingSpinner size="lg" className="min-h-screen" />}>
                                 <DeliveryLogin />
                               </Suspense>
                             </PublicRoute>
@@ -379,7 +375,7 @@ function AppContent() {
                           path="/delivery/signup"
                           element={
                             <PublicRoute>
-                              <Suspense fallback={<IconLoader forceShow />}>
+                              <Suspense fallback={<LoadingSpinner size="lg" className="min-h-screen" />}>
                                 <DeliverySignUp />
                               </Suspense>
                             </PublicRoute>
@@ -390,7 +386,7 @@ function AppContent() {
                           path="/delivery/terms"
                           element={
                             <PublicRoute>
-                              <Suspense fallback={<IconLoader forceShow />}>
+                              <Suspense fallback={<LoadingSpinner size="lg" className="min-h-screen" />}>
                                 <DeliveryTerms />
                               </Suspense>
                             </PublicRoute>
@@ -400,7 +396,7 @@ function AppContent() {
                           path="/delivery/privacy"
                           element={
                             <PublicRoute>
-                              <Suspense fallback={<IconLoader forceShow />}>
+                              <Suspense fallback={<LoadingSpinner size="lg" className="min-h-screen" />}>
                                 <DeliveryPrivacy />
                               </Suspense>
                             </PublicRoute>
@@ -409,7 +405,7 @@ function AppContent() {
                           path="/admin/login"
                           element={
                             <PublicRoute>
-                              <Suspense fallback={<IconLoader forceShow />}>
+                              <Suspense fallback={<LoadingSpinner size="lg" className="min-h-screen" />}>
                                 <AdminLogin />
                               </Suspense>
                             </PublicRoute>
@@ -423,7 +419,7 @@ function AppContent() {
                             <ProtectedRoute
                               requiredUserType="Delivery"
                               redirectTo="/delivery/login">
-                              <Suspense fallback={<IconLoader forceShow />}>
+                               <Suspense fallback={<LoadingSpinner size="lg" className="min-h-screen" />}>
                                 <DeliveryLayout>
                                   <Routes>
                                     <Route
@@ -497,7 +493,7 @@ function AppContent() {
                             <ProtectedRoute
                               requiredUserType="Seller"
                               redirectTo="/seller/login">
-                              <Suspense fallback={<IconLoader forceShow />}>
+                               <Suspense fallback={<LoadingSpinner size="lg" className="min-h-screen" />}>
                                 <SellerLayout>
                                   <Routes>
                                     <Route
@@ -562,7 +558,7 @@ function AppContent() {
                             <ProtectedRoute
                               requiredUserType="Admin"
                               redirectTo="/admin/login">
-                              <Suspense fallback={<IconLoader forceShow />}>
+                               <Suspense fallback={<LoadingSpinner size="lg" className="min-h-screen" />}>
                                 <AdminLayout>
                                   <Routes>
                                     <Route
@@ -600,6 +596,10 @@ function AppContent() {
                                     <Route
                                       path="product/list"
                                       element={<AdminStockManagement />}
+                                    />
+                                    <Route
+                                      path="product/edit/:id"
+                                      element={<SellerAddProduct isAdmin={true} />}
                                     />
                                     <Route
                                       path="manage-seller/list"
@@ -803,6 +803,14 @@ function AppContent() {
                                     element={<AboutUs />}
                                   />
                                   <Route path="/faq" element={<FAQ />} />
+                                  <Route
+                                    path="/privacy-policy"
+                                    element={<PrivacyPolicy />}
+                                  />
+                                  <Route
+                                    path="/terms-of-service"
+                                    element={<TermsOfService />}
+                                  />
                                   <Route
                                     path="/wishlist"
                                     element={<Wishlist />}

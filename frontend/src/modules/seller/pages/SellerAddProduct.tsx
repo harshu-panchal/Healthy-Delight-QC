@@ -28,7 +28,16 @@ import {
   HeaderCategory,
 } from "../../../services/api/headerCategoryService";
 
-export default function SellerAddProduct() {
+import {
+  getProductById as adminGetProductById,
+  updateProduct as adminUpdateProduct,
+} from "../../../services/api/admin/adminProductService";
+
+interface SellerAddProductProps {
+  isAdmin?: boolean;
+}
+
+export default function SellerAddProduct({ isAdmin = false }: SellerAddProductProps) {
   const navigate = useNavigate();
   const { id } = useParams();
   const [formData, setFormData] = useState({
@@ -66,7 +75,7 @@ export default function SellerAddProduct() {
     price: "",
     discPrice: "0",
     stock: "0",
-    status: "Available" as "Available" | "Sold out",
+    status: "Available" as "Available" | "Sold out" | "In stock",
     minWholesaleQty: "1",
     wholesalePrice: "",
     wholesaleDiscPrice: "0",
@@ -81,6 +90,8 @@ export default function SellerAddProduct() {
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string>("");
   const [successMessage, setSuccessMessage] = useState<string>("");
+  const [variationError, setVariationError] = useState<string>("");
+  const [editingVariationIndex, setEditingVariationIndex] = useState<number | null>(null);
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [subcategories, setSubcategories] = useState<SubCategory[]>([]);
@@ -154,7 +165,7 @@ export default function SellerAddProduct() {
     if (id) {
       const fetchProduct = async () => {
         try {
-          const response = await getProductById(id);
+          const response = isAdmin ? (await adminGetProductById(id) as any) : await getProductById(id);
           if (response.success && response.data) {
             const product = response.data;
             setFormData({
@@ -163,12 +174,14 @@ export default function SellerAddProduct() {
                 (product.headerCategoryId as any)?._id ||
                 (product as any).headerCategoryId ||
                 "",
-              category:
-                (product.category as any)?._id || product.categoryId || "",
-              subcategory:
-                (product.subcategory as any)?._id ||
-                product.subcategoryId ||
-                "",
+              category: (product.category as any)?.parentId
+                ? (typeof (product.category as any).parentId === "object"
+                  ? (product.category as any).parentId._id
+                  : (product.category as any).parentId)
+                : (product.category as any)?._id || product.categoryId || "",
+              subcategory: (product.category as any)?.parentId
+                ? (product.category as any)._id
+                : (product.subcategory as any)?._id || product.subcategoryId || "",
               subSubCategory:
                 (product.subSubCategory as any)?._id ||
                 (product as any).subSubCategoryId ||
@@ -366,8 +379,9 @@ export default function SellerAddProduct() {
   };
 
   const addVariation = () => {
+    setVariationError("");
     if (!variationForm.title || !variationForm.price || !variationForm.stock) {
-      setUploadError("Please fill in variation title, price and stock");
+      setVariationError("Please fill in variation title, price and stock");
       return;
     }
 
@@ -376,7 +390,7 @@ export default function SellerAddProduct() {
     const stock = parseInt(variationForm.stock || "0");
 
     if (discPrice > price) {
-      setUploadError("Discounted price cannot be greater than price");
+      setVariationError("Discounted price cannot be greater than price");
       return;
     }
 
@@ -387,11 +401,11 @@ export default function SellerAddProduct() {
 
     if (wholesalePrice !== undefined) {
       if (wholesalePrice <= 0) {
-        setUploadError("Wholesale price must be greater than 0");
+        setVariationError("Wholesale price must be greater than 0");
         return;
       }
       if (wholesaleDiscPrice > wholesalePrice) {
-        setUploadError("Wholesale discounted price cannot be greater than wholesale price");
+        setVariationError("Wholesale discounted price cannot be greater than wholesale price");
         return;
       }
     }
@@ -407,7 +421,20 @@ export default function SellerAddProduct() {
       wholesaleDiscPrice,
     };
 
-    setVariations([...variations, newVariation]);
+    if (editingVariationIndex !== null) {
+      const oldVar = variations[editingVariationIndex];
+      const updatedVar = {
+        ...oldVar,
+        ...newVariation,
+      };
+      const updated = [...variations];
+      updated[editingVariationIndex] = updatedVar;
+      setVariations(updated);
+      setEditingVariationIndex(null);
+    } else {
+      setVariations([...variations, newVariation]);
+    }
+
     setVariationForm({
       title: "",
       price: "",
@@ -418,11 +445,42 @@ export default function SellerAddProduct() {
       wholesalePrice: "",
       wholesaleDiscPrice: "0",
     });
-    setUploadError("");
+    setVariationError("");
+  };
+
+  const editVariation = (index: number) => {
+    const v = variations[index];
+    setVariationForm({
+      title: v.title || v.value || "",
+      price: v.price?.toString() || "",
+      discPrice: v.discPrice?.toString() || "0",
+      stock: v.stock?.toString() || "0",
+      status: v.status || "Available",
+      minWholesaleQty: v.minWholesaleQty?.toString() || "1",
+      wholesalePrice: v.wholesalePrice?.toString() || "",
+      wholesaleDiscPrice: v.wholesaleDiscPrice?.toString() || "0",
+    });
+    setEditingVariationIndex(index);
+    setVariationError("");
   };
 
   const removeVariation = (index: number) => {
     setVariations((prev) => prev.filter((_, i) => i !== index));
+    if (editingVariationIndex === index) {
+      setEditingVariationIndex(null);
+      setVariationForm({
+        title: "",
+        price: "",
+        discPrice: "0",
+        stock: "0",
+        status: "Available",
+        minWholesaleQty: "1",
+        wholesalePrice: "",
+        wholesaleDiscPrice: "0",
+      });
+    } else if (editingVariationIndex !== null && editingVariationIndex > index) {
+      setEditingVariationIndex(editingVariationIndex - 1);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -529,7 +587,7 @@ export default function SellerAddProduct() {
       // Create or Update product via API
       let response;
       if (id) {
-        response = await updateProduct(id as string, productData);
+        response = isAdmin ? (await adminUpdateProduct(id as string, productData as any) as any) : await updateProduct(id as string, productData);
       } else {
         response = await createProduct(productData);
       }
@@ -577,7 +635,7 @@ export default function SellerAddProduct() {
           }
           setSuccessMessage("");
           // Navigate to product list
-          navigate("/seller/product/list");
+          navigate(isAdmin ? "/admin/product/list" : "/seller/product/list");
         }, 1500);
       } else {
         setUploadError(response.message || "Failed to create product");
@@ -1027,15 +1085,52 @@ export default function SellerAddProduct() {
                 </div>
               </div>
 
-              <div className="flex justify-end mt-4">
+              {variationError && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-2.5 rounded-lg text-sm font-semibold mt-3">
+                  {variationError}
+                </div>
+              )}
+
+              <div className="flex justify-end gap-3 mt-4">
+                {editingVariationIndex !== null && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditingVariationIndex(null);
+                      setVariationForm({
+                        title: "",
+                        price: "",
+                        discPrice: "0",
+                        stock: "0",
+                        status: "Available",
+                        minWholesaleQty: "1",
+                        wholesalePrice: "",
+                        wholesaleDiscPrice: "0",
+                      });
+                    }}
+                    className="px-5 py-2 border border-neutral-300 text-neutral-700 hover:bg-neutral-50 transition-all active:scale-95 rounded-lg font-semibold">
+                    Cancel Edit
+                  </button>
+                )}
                 <button
                   type="button"
                   onClick={addVariation}
                   className="px-6 py-2 bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white transition-all active:scale-95 shadow-sm rounded-lg font-semibold flex items-center gap-2">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
-                  </svg>
-                  Add Variation
+                  {editingVariationIndex !== null ? (
+                    <>
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                      </svg>
+                      Update Variation
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+                      </svg>
+                      Add Variation
+                    </>
+                  )}
                 </button>
               </div>
 
@@ -1049,7 +1144,11 @@ export default function SellerAddProduct() {
                      {variations.map((variation, index) => (
                       <div
                         key={index}
-                        className="flex items-center justify-between p-3 bg-white border border-neutral-200 rounded-lg">
+                        className={`flex items-center justify-between p-3 rounded-lg border transition-all ${
+                          editingVariationIndex === index
+                            ? "border-primary ring-2 ring-primary/20 bg-primary/[0.02]"
+                            : "bg-white border-neutral-200"
+                        }`}>
                         <div className="flex-1">
                           <span className="font-medium">{variation.title}</span>{" "}
                           - Retail: ₹{variation.price}
@@ -1066,17 +1165,26 @@ export default function SellerAddProduct() {
                           <span className="ml-4 text-sm text-neutral-600">
                             Stock:{" "}
                             {variation.stock === 0
-                              ? "Unlimited"
+                              ? "0 (Out of Stock)"
                               : variation.stock}{" "}
                             | Status: {variation.status}
                           </span>
                         </div>
-                        <button
-                          type="button"
-                          onClick={() => removeVariation(index)}
-                          className="text-red-600 hover:text-red-700 ml-4">
-                          Remove
-                        </button>
+                        <div className="flex items-center gap-3 ml-4">
+                          <button
+                            type="button"
+                            onClick={() => editVariation(index)}
+                            className="text-primary hover:underline font-semibold text-sm">
+                            Edit
+                          </button>
+                          <span className="text-neutral-300">|</span>
+                          <button
+                            type="button"
+                            onClick={() => removeVariation(index)}
+                            className="text-red-600 hover:text-red-700 hover:underline font-semibold text-sm">
+                            Remove
+                          </button>
+                        </div>
                       </div>
                     ))}
                   </div>

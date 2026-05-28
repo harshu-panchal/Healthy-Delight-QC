@@ -600,7 +600,7 @@ export default function Checkout() {
     if (!bypassProfileCheck && isPlaceholderUser) {
       setProfileFormData({
         name: user?.name === "User" ? "" : user?.name || "",
-        email: user?.email?.endsWith("@kosil.temp") ? "" : user?.email || "",
+        email: (user?.email?.endsWith("@kosil.temp") || user?.email?.endsWith("@healthydelight.temp")) ? "" : user?.email || "",
       });
       setShowProfileModal(true);
       return;
@@ -2105,7 +2105,7 @@ export default function Checkout() {
                 </h3>
                 <div className="space-y-1">
                   <p className="text-sm text-neutral-600 font-medium">Email: <span className="text-neutral-900 font-bold">support@healthydelight.com</span></p>
-                  <p className="text-sm text-neutral-600 font-medium">Phone: <span className="text-neutral-900 font-bold">+91 00000 00000</span></p>
+                  <p className="text-sm text-neutral-600 font-medium">Phone: <span className="text-neutral-900 font-bold">+91 9740234199</span></p>
                 </div>
               </div>
             </div>

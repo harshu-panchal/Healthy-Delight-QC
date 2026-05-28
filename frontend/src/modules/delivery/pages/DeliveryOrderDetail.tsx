@@ -914,8 +914,35 @@ export default function DeliveryOrderDetail() {
                     </div>
                     <div className="mt-4 pt-4 border-t border-dashed border-neutral-200 flex justify-between items-center">
                         <span className="font-semibold text-neutral-700">Total Amount</span>
-                        <span className="text-xl font-bold text-neutral-900">₹{order.totalAmount}</span>
+                        <div className="flex items-center gap-2">
+                            <span className="text-xl font-bold text-neutral-900">₹{order.totalAmount}</span>
+                            {order.paymentMethod !== 'COD' && (order.paymentMethod === 'Online' || order.paymentMethod === 'Wallet' || order.paymentStatus === 'Paid') && (
+                                <span className="px-2.5 py-0.5 bg-green-100 text-green-800 rounded-md text-xs font-bold uppercase tracking-wider">
+                                    Paid
+                                </span>
+                            )}
+                        </div>
                     </div>
+                    {(order.paymentMethod || order.paymentStatus) && (
+                        <div className="mt-3 pt-3 border-t border-neutral-100 grid grid-cols-2 gap-3 text-xs">
+                            <div>
+                                <span className="text-neutral-400 block mb-0.5 font-semibold uppercase tracking-wider text-[9px]">Payment Method</span>
+                                <span className="font-bold text-neutral-700 uppercase">{order.paymentMethod}</span>
+                            </div>
+                            <div>
+                                <span className="text-neutral-400 block mb-0.5 font-semibold uppercase tracking-wider text-[9px]">Payment Status</span>
+                                <span className={`font-bold uppercase ${
+                                    order.paymentStatus === 'Paid' ? 'text-green-600' : 'text-amber-600'
+                                }`}>
+                                    {order.paymentMethod === 'COD'
+                                        ? order.paymentStatus === 'Paid'
+                                            ? 'Cash Collected'
+                                            : 'Pending Collection'
+                                        : (order.paymentStatus || 'Pending')}
+                                </span>
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {/* Order Info */}

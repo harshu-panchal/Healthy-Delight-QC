@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import Lottie from "lottie-react";
 import {
     sendOTP,
@@ -15,7 +15,7 @@ import logoSrc from "../../../assets/logo.png";
 export default function Signup() {
     const navigate = useNavigate();
     const { login } = useAuth();
-    
+
     const [formData, setFormData] = useState({
         name: "",
         mobileNumber: "",
@@ -173,11 +173,10 @@ export default function Signup() {
                                         <button
                                             type="button"
                                             onClick={() => setCustomerType("retailer")}
-                                            className={`flex-1 p-3 rounded-xl border-2 transition-all flex flex-col items-center justify-center gap-1 ${
-                                                customerType === "retailer"
-                                                    ? "border-[#c5a059] bg-[#c5a059]/5 text-[#0a193b]"
-                                                    : "border-neutral-200 bg-white text-neutral-500 hover:border-neutral-300"
-                                            }`}
+                                            className={`flex-1 p-3 rounded-xl border-2 transition-all flex flex-col items-center justify-center gap-1 ${customerType === "retailer"
+                                                ? "border-[#c5a059] bg-[#c5a059]/5 text-[#0a193b]"
+                                                : "border-neutral-200 bg-white text-neutral-500 hover:border-neutral-300"
+                                                }`}
                                         >
                                             <span className="text-[13px] font-bold">Retailer</span>
                                             <span className="text-[9px] opacity-70">Standard Shopping</span>
@@ -185,11 +184,10 @@ export default function Signup() {
                                         <button
                                             type="button"
                                             onClick={() => setCustomerType("wholesaler")}
-                                            className={`flex-1 p-3 rounded-xl border-2 transition-all flex flex-col items-center justify-center gap-1 ${
-                                                customerType === "wholesaler"
-                                                    ? "border-[#c5a059] bg-[#c5a059]/5 text-[#0a193b]"
-                                                    : "border-neutral-200 bg-white text-neutral-500 hover:border-neutral-300"
-                                            }`}
+                                            className={`flex-1 p-3 rounded-xl border-2 transition-all flex flex-col items-center justify-center gap-1 ${customerType === "wholesaler"
+                                                ? "border-[#c5a059] bg-[#c5a059]/5 text-[#0a193b]"
+                                                : "border-neutral-200 bg-white text-neutral-500 hover:border-neutral-300"
+                                                }`}
                                         >
                                             <span className="text-[13px] font-bold">Wholesaler</span>
                                             <span className="text-[9px] opacity-70">Bulk & B2B Prices</span>
@@ -263,7 +261,9 @@ export default function Signup() {
 
                     {/* Privacy Text */}
                     <p className="text-[10px] text-[#94a3b8] text-center mt-2 leading-tight">
-                        By signing up, you agree to our <br/> Terms and Privacy Policy.
+                        By signing up, you agree to our <br />
+                        <Link to="/terms-of-service" className="text-[#c5a059] hover:underline font-semibold">Terms</Link> and{" "}
+                        <Link to="/privacy-policy" className="text-[#c5a059] hover:underline font-semibold">Privacy Policy</Link>.
                     </p>
                 </div>
             </div>

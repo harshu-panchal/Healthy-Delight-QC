@@ -307,9 +307,16 @@ const SellerNotificationAlert: React.FC<SellerNotificationAlertProps> = ({ notif
 
                   return (
                     <div className="pt-5 mt-4 border-t border-neutral-200 space-y-3">
-                      <div className="flex justify-between items-center text-neutral-600 text-sm font-semibold">
+                       <div className="flex justify-between items-center text-neutral-600 text-sm font-semibold">
                         <span>Items Subtotal</span>
-                        <span>₹{notification.totalAmount.toFixed(2)}</span>
+                        <span className="flex items-center gap-2">
+                          <span>₹{notification.totalAmount.toFixed(2)}</span>
+                          {(notification.paymentMethod === 'Online' || notification.paymentMethod === 'Wallet' || notification.paymentStatus === 'Paid') && (
+                            <span className="px-2 py-0.5 bg-green-100 text-green-800 rounded-md text-[10px] font-bold uppercase tracking-wider">
+                              Paid
+                            </span>
+                          )}
+                        </span>
                       </div>
                       
                       <div className="flex justify-between items-center text-red-500 text-sm font-semibold">

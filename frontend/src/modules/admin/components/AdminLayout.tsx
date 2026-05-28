@@ -25,7 +25,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
       {/* Sidebar - Fixed */}
       <div
-        className={`fixed left-0 top-0 h-screen z-50 transition-transform duration-300 ease-in-out w-64 ${
+        className={`fixed left-0 top-0 h-screen z-50 transition-transform duration-300 ease-in-out w-64 lg:translate-x-0 ${
           isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
@@ -33,9 +33,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       </div>
 
       {/* Main Content */}
-      <div className={`flex-1 flex flex-col transition-all duration-300 min-w-0 ${
-        isSidebarOpen ? 'lg:ml-64' : 'lg:ml-0'
-      }`}>
+      <div className="flex-1 flex flex-col transition-all duration-300 min-w-0 lg:ml-64">
         {/* Header */}
         <AdminHeader onMenuClick={toggleSidebar} isSidebarOpen={isSidebarOpen} />
 

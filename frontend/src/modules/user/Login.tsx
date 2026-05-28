@@ -83,12 +83,12 @@ export default function Login() {
     handleVerifyOTP(otp);
   }, [handleVerifyOTP]);
 
+  if (showBranding) {
+    return <BrandingSequence onComplete={() => setShowBranding(false)} />;
+  }
+
   return (
     <div className="hd-login-root">
-      {/* ── CINEMATIC BRANDING INTRO Overlay ── */}
-      {showBranding && (
-        <BrandingSequence onComplete={() => setShowBranding(false)} />
-      )}
 
       {/* ── BACK BUTTON ── */}
       <button

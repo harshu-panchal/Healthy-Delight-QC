@@ -189,7 +189,14 @@ export const getProducts = asyncHandler(async (req: Request, res: Response) => {
   sort[sortBy as string] = sortOrder === "asc" ? 1 : -1;
 
   const products = await Product.find(query)
-    .populate("category", "name")
+    .populate({
+      path: "category",
+      select: "name parentId",
+      populate: {
+        path: "parentId",
+        select: "name"
+      }
+    })
     .populate("subcategory", "name")
     .populate("brand", "name")
     .populate("tax", "name percentage")
@@ -228,10 +235,16 @@ export const getProductById = asyncHandler(
         message: "Product not found",
       });
     }
-
     const product = await Product.findOne({ _id: id, seller: sellerId })
-      .populate("category", "name")
-      .populate("subcategory", "subcategoryName")
+      .populate({
+        path: "category",
+        select: "name parentId",
+        populate: {
+          path: "parentId",
+          select: "name",
+        },
+      })
+      .populate("subcategory", "name")
       .populate("headerCategoryId", "name slug")
       .populate("brand", "name")
       .populate("tax", "name percentage");
@@ -376,8 +389,15 @@ export const updateProduct = asyncHandler(
 
     // Re-populate for response
     const populatedProduct = await Product.findById(product._id)
-      .populate("category", "name")
-      .populate("subcategory", "subcategoryName")
+      .populate({
+        path: "category",
+        select: "name parentId",
+        populate: {
+          path: "parentId",
+          select: "name",
+        },
+      })
+      .populate("subcategory", "name")
       .populate("headerCategoryId", "name slug")
       .populate("brand", "name")
       .populate("tax", "name percentage");

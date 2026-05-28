@@ -190,7 +190,7 @@ export default function Invoice() {
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           className="bg-white rounded-3xl border border-neutral-100 shadow-[0_12px_40px_rgba(0,0,0,0.03)] p-8 md:p-10 print:shadow-none print:border-none print:p-0">
-          
+
           {/* Invoice Header */}
           <div className="border-b border-neutral-100 pb-8 mb-8">
             <div className="flex flex-col md:flex-row justify-between items-start gap-6">
@@ -205,7 +205,7 @@ export default function Invoice() {
                   Premium Delivery E-Commerce
                 </p>
                 <p className="text-xs text-neutral-400 mt-1">
-                  support@healthydelight.com • www.healthydelight.com
+                  support@healthydelight.com
                 </p>
               </div>
               <div className="md:text-right flex flex-col md:items-end">
@@ -213,7 +213,7 @@ export default function Invoice() {
                 <span className="text-lg font-bold text-neutral-900 bg-neutral-50 border border-neutral-100 px-3 py-1 rounded-xl">
                   #{formatOrderFriendly(order.orderNumber, order.id)}
                 </span>
-                
+
                 <span className="text-[10px] font-black text-neutral-400 uppercase tracking-widest mt-4 mb-1">Date Issued</span>
                 <span className="text-sm font-bold text-neutral-700">
                   {order.createdAt ? formatDate(order.createdAt) : "N/A"}
@@ -232,12 +232,16 @@ export default function Invoice() {
               </h2>
               <div className="text-neutral-700 text-xs space-y-1.5 flex-1">
                 <p className="font-extrabold text-sm text-neutral-900">
-                  {order.address?.name || "Customer"}
+                  {order.customerName || order.address?.name || "Customer"}
                 </p>
-                <p className="font-semibold text-neutral-500">{order.address?.phone || ""}</p>
+                {(order.customerPhone || order.address?.phone) && (
+                  <p className="font-semibold text-neutral-500">
+                    {order.customerPhone || order.address?.phone}
+                  </p>
+                )}
                 <p className="text-neutral-600 leading-relaxed pt-1">
                   {order.address?.flat && `${order.address.flat}, `}
-                  {order.address?.street || order.address?.address || ""}
+                  {order.address?.address || order.address?.street || ""}
                   {order.address?.landmark && ` (Near ${order.address.landmark})`}
                 </p>
                 <p className="font-semibold text-neutral-900">
@@ -245,7 +249,7 @@ export default function Invoice() {
                   {order.address?.state && `, ${order.address.state}`}
                   {order.address?.pincode && ` - ${order.address.pincode}`}
                 </p>
-                
+
                 {/* GSTIN rendering */}
                 {order.gstin && (
                   <div className="mt-4 pt-3 border-t border-dashed border-neutral-200">
@@ -269,7 +273,7 @@ export default function Invoice() {
                   <span className="text-[10px] font-black text-neutral-400 uppercase tracking-wider block mb-0.5">Order ID</span>
                   <span className="font-mono text-neutral-900 font-bold break-all select-all">{formatOrderFriendly(order.orderNumber, order.id)}</span>
                 </div>
-                
+
                 <div className="flex gap-4">
                   <div>
                     <span className="text-[10px] font-black text-neutral-400 uppercase tracking-wider block mb-1">Status</span>
@@ -330,7 +334,7 @@ export default function Invoice() {
                       <td className="py-4 px-6">
                         <div className="flex items-center gap-4">
                           {item.product?.imageUrl || item.product?.mainImage || item.productImage ? (
-                            <div className="w-12 h-12 bg-neutral-50 rounded-xl overflow-hidden p-1.5 flex-shrink-0 flex items-center justify-center border border-neutral-100">
+                            <div className="w-12 h-12 bg-neutral-50 rounded-xl overflow-hidden p-1.5 flex-shrink-0 flex items-center justify-center border border-neutral-100 print:hidden">
                               <img
                                 src={item.product?.imageUrl || item.product?.mainImage || item.productImage}
                                 alt={productName}
@@ -373,14 +377,14 @@ export default function Invoice() {
               <p className="font-bold text-neutral-600 mb-1">Invoice Terms & Conditions</p>
               <p>This is a computer-generated tax invoice and does not require a physical signature. Goods once sold cannot be returned without verified defects under our customer satisfaction terms.</p>
             </div>
-            
+
             {/* Cost Summary Box */}
             <div className="w-full md:w-80 bg-neutral-50/50 border border-neutral-200/50 rounded-3xl p-6 space-y-4">
               <div className="flex justify-between text-xs text-neutral-600 font-medium">
                 <span>Subtotal</span>
                 <span className="font-bold text-neutral-900">{formatCurrency(subtotal)}</span>
               </div>
-              
+
               {deliveryFee > 0 ? (
                 <div className="flex justify-between text-xs text-neutral-600 font-medium">
                   <span>Delivery Fee</span>
@@ -392,14 +396,14 @@ export default function Invoice() {
                   <span className="font-bold text-green-600 uppercase text-[10px] tracking-wider bg-green-50 px-2 py-0.5 rounded-full">Free</span>
                 </div>
               )}
-              
+
               {platformFee > 0 && (
                 <div className="flex justify-between text-xs text-neutral-600 font-medium">
                   <span>Platform Fee</span>
                   <span className="font-bold text-neutral-900">{formatCurrency(platformFee)}</span>
                 </div>
               )}
-              
+
               <div className="border-t border-neutral-200/80 pt-4 flex justify-between items-baseline">
                 <span className="text-sm font-black text-neutral-900 uppercase tracking-wider">Grand Total</span>
                 <span className="text-2xl font-black text-[#0a193b] tracking-tight">{formatCurrency(totalAmount)}</span>
@@ -413,7 +417,7 @@ export default function Invoice() {
               Thank you for ordering with Healthy Delight!
             </h3>
             <p className="text-[10px] text-neutral-400 font-semibold uppercase tracking-wider">
-              For any support, reach out to support@healthydelight.com or call +91 99999 99999
+              For any support, reach out to support@healthydelight.com or call +91 9740234199
             </p>
           </div>
         </motion.div>
@@ -422,17 +426,68 @@ export default function Invoice() {
       {/* Print styles */}
       <style>{`
         @media print {
-          @page {
-            margin: 1.5cm 1cm;
+          /* Reset Framer Motion transforms, filters, and animations to prevent layout duplication and print clipping */
+          *, *::before, *::after {
+            animation: none !important;
+            transition: none !important;
+            transform: none !important;
+            filter: none !important;
           }
+
+          /* Remove browser-injected headers, footers, page titles, URLs, and dates */
+          @page {
+            size: portrait;
+            margin: 0.4cm 0.6cm !important;
+          }
+          
+          /* Set printable page body dimensions and backgrounds */
           body {
+            margin: 0 !important;
+            padding: 0 !important;
+            background: white !important;
             background-color: white !important;
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
           }
+
+          /* Prevent dark/textured backgrounds or illustrations on body from printing */
+          body::before,
+          body::after {
+            display: none !important;
+            content: none !important;
+          }
+
+          /* Hide global outer navigation, menus, and sidebars completely */
+          header,
+          footer,
+          nav,
+          aside,
           .print\\:hidden {
             display: none !important;
           }
+
+          /* Hide specific interactive widgets and floating action elements */
+          [class*="FloatingCartPill"],
+          [id*="floating-cart-pill"],
+          .floating-pill,
+          button[class*="floating"] {
+            display: none !important;
+          }
+
+          /* Reset all potential scroll clipping parent elements to print multi-page documents seamlessly */
+          html, 
+          body, 
+          #root, 
+          [id="app-main-scroll"], 
+          main, 
+          .min-h-screen {
+            height: auto !important;
+            min-height: 0 !important;
+            overflow: visible !important;
+            position: static !important;
+          }
+
+          /* Utility class overrides for printable container */
           .print\\:p-0 {
             padding: 0 !important;
           }
@@ -441,6 +496,57 @@ export default function Invoice() {
           }
           .print\\:shadow-none {
             box-shadow: none !important;
+          }
+
+          /* Spacing compression overrides to perfectly fit on a single A4 page */
+          .max-w-4xl {
+            max-width: 100% !important;
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+          }
+          .rounded-3xl, .rounded-2xl {
+            border-radius: 0.375rem !important;
+          }
+          .p-8, .p-10 {
+            padding: 0 !important;
+          }
+          .p-6 {
+            padding: 0.5rem !important;
+          }
+          .mb-10, .my-10 {
+            margin-bottom: 0.4rem !important;
+            margin-top: 0.4rem !important;
+          }
+          .mb-8 {
+            margin-bottom: 0.4rem !important;
+          }
+          .pb-8 {
+            padding-bottom: 0.3rem !important;
+          }
+          .pt-8 {
+            padding-top: 0.3rem !important;
+          }
+          .gap-6 {
+            gap: 0.4rem !important;
+          }
+          .gap-8 {
+            gap: 0.4rem !important;
+          }
+          .py-8 {
+            padding-top: 0 !important;
+            padding-bottom: 0 !important;
+          }
+          th, td {
+            padding-top: 0.3rem !important;
+            padding-bottom: 0.3rem !important;
+          }
+
+          /* Force invoice content and footer to never break page boundaries */
+          .bg-white.rounded-3xl,
+          .border-t.pt-8 {
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
           }
         }
       `}</style>

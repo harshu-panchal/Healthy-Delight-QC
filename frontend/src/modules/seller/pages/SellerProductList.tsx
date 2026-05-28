@@ -157,11 +157,16 @@ export default function SellerProductList() {
           product.mainImageUrl ||
           "/assets/product-placeholder.jpg",
         brandName: (product.brand as any)?.name || "-",
-        category: (product.category as any)?.name || "-",
-        subCategory: (product.subcategory as any)?.name || "-",
+        category: (product.category as any)?.parentId
+          ? (product.category as any).parentId.name
+          : (product.category as any)?.name || "-",
+        subCategory: (product.category as any)?.parentId
+          ? (product.category as any).name
+          : (product.subcategory as any)?.subcategoryName || (product.subcategory as any)?.name || "-",
         price: (product as any).price || 0,
         discPrice: (product as any).discPrice || 0,
         variation: "Default",
+        stock: (product as any).stock || 0,
         isPopular: product.popular,
         productId: product._id,
       }];
@@ -176,12 +181,17 @@ export default function SellerProductList() {
         product.mainImageUrl ||
         "/assets/product-placeholder.jpg",
       brandName: (product.brand as any)?.name || "-",
-      category: (product.category as any)?.name || "-",
-      subCategory: (product.subcategory as any)?.name || "-",
+      category: (product.category as any)?.parentId
+        ? (product.category as any).parentId.name
+        : (product.category as any)?.name || "-",
+      subCategory: (product.category as any)?.parentId
+        ? (product.category as any).name
+        : (product.subcategory as any)?.subcategoryName || (product.subcategory as any)?.name || "-",
       price: variation.price,
       discPrice: variation.discPrice,
       variation:
         variation.title || variation.value || variation.name || "Default",
+      stock: variation.stock || 0,
       isPopular: product.popular,
       productId: product._id,
     }));
@@ -492,13 +502,7 @@ export default function SellerProductList() {
                     product Image
                   </div>
                 </th>
-                <th
-                  className="p-4 border border-neutral-200 cursor-pointer hover:bg-neutral-100 transition-colors"
-                  onClick={() => handleSort("brandName")}>
-                  <div className="flex items-center justify-between">
-                    Brand Name <SortIcon column="brandName" />
-                  </div>
-                </th>
+
                 <th
                   className="p-4 border border-neutral-200 cursor-pointer hover:bg-neutral-100 transition-colors"
                   onClick={() => handleSort("category")}>
@@ -532,6 +536,13 @@ export default function SellerProductList() {
                   onClick={() => handleSort("variation")}>
                   <div className="flex items-center justify-between">
                     Variation <SortIcon column="variation" />
+                  </div>
+                </th>
+                <th
+                  className="p-4 border border-neutral-200 cursor-pointer hover:bg-neutral-100 transition-colors"
+                  onClick={() => handleSort("stock")}>
+                  <div className="flex items-center justify-between">
+                    Stock <SortIcon column="stock" />
                   </div>
                 </th>
                 <th className="p-4 border border-neutral-200">
@@ -579,11 +590,15 @@ export default function SellerProductList() {
                             </svg>
                           </button>
                         )}
-                        <span>{variation.productId}</span>
+                        <span className="font-mono text-xs max-w-[80px] truncate block" title={variation.productId}>
+                          {variation.productId}
+                        </span>
                       </div>
                     </td>
                     <td className="p-4 align-middle border border-neutral-200">
-                      {variation.variationId}
+                      <span className="font-mono text-xs max-w-[80px] truncate block" title={variation.variationId}>
+                        {variation.variationId}
+                      </span>
                     </td>
                     <td className="p-4 align-middle border border-neutral-200">
                       <div className="flex flex-col gap-1">
@@ -606,9 +621,7 @@ export default function SellerProductList() {
                         />
                       </div>
                     </td>
-                    <td className="p-4 align-middle border border-neutral-200">
-                      {variation.brandName || "-"}
-                    </td>
+
                     <td className="p-4 align-middle border border-neutral-200">
                       {variation.category}
                     </td>
@@ -625,6 +638,17 @@ export default function SellerProductList() {
                     </td>
                     <td className="p-4 align-middle border border-neutral-200">
                       {variation.variation}
+                    </td>
+                    <td className="p-4 align-middle border border-neutral-200">
+                      {variation.stock === 0 ? (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-800">
+                          0 (Out of stock)
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-800">
+                          {variation.stock}
+                        </span>
+                      )}
                     </td>
                     <td className="p-4 align-middle border border-neutral-200">
                       <div className="flex items-center justify-center gap-2">

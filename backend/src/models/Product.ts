@@ -127,7 +127,7 @@ const ProductSchema = new Schema<IProduct>(
     },
     subcategory: {
       type: Schema.Types.ObjectId,
-      ref: "SubCategory",
+      ref: "Category",
     },
     subSubCategory: {
       type: Schema.Types.ObjectId,

@@ -339,32 +339,32 @@ export default function ProductDetail() {
         {/* Product Image Gallery Hero */}
         <div className="relative w-full h-[45vh] min-h-[420px] overflow-hidden flex flex-col items-center justify-center">
           {/* Tactical Background & Texture - Stage Layer */}
-          <div 
-            className="absolute inset-0 pointer-events-none" 
-            style={{ 
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{
               background: `linear-gradient(to bottom, #f3eee5 0%, #fcfaf7 100%)`,
               zIndex: -1
-            }} 
+            }}
           />
-          <div 
-            className="absolute inset-0 pointer-events-none opacity-40" 
-            style={{ 
+          <div
+            className="absolute inset-0 pointer-events-none opacity-40"
+            style={{
               backgroundImage: 'url("/assets/bg.png")',
               backgroundSize: '700px auto',
               backgroundPosition: 'center',
               backgroundRepeat: 'repeat',
               backgroundBlendMode: 'multiply',
               zIndex: -1
-            }} 
+            }}
           />
-          
+
           <div
             className="w-full max-w-[420px] aspect-square relative flex items-center justify-center"
             onTouchStart={onTouchStart}
             onTouchMove={onTouchMove}
             onTouchEnd={onTouchEnd}>
-            
-            
+
+
             {/* Mobile swipe carousel */}
             <div
               className={`w-full h-full flex transition-transform duration-500 ease-out ${isTransitioning ? "opacity-90" : "opacity-100"}`}
@@ -408,7 +408,7 @@ export default function ProductDetail() {
           {!isAvailableAtLocation && (
             <div className="absolute top-28 left-6 right-6 z-10 bg-red-50/90 backdrop-blur-sm border border-red-100 flex gap-3 items-center px-4 py-3 rounded-2xl shadow-sm">
               <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0 shadow-sm">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><line x1="15" y1="9" x2="9" y2="15" /><line x1="9" y1="9" x2="15" y2="15" /></svg>
               </div>
               <p className="text-[10px] font-bold text-red-700">Not available at your location</p>
             </div>
@@ -418,12 +418,8 @@ export default function ProductDetail() {
         {/* Product Info Section - Curved 'Pull-up' Card */}
         <div className="relative z-20 bg-white rounded-t-[40px] shadow-[0_-12px_30px_rgba(0,0,0,0.04)] -mt-10 px-6 pb-8 pt-10 space-y-6">
           <div className="space-y-4">
-            {/* Name & Delivery Info */}
+            {/* Name & Info */}
             <div className="space-y-2">
-              <div className="flex items-center gap-2 text-[10px] font-bold text-[#0a193b] uppercase tracking-widest">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-                17 Mins delivery
-              </div>
               <h1 className="text-2xl md:text-3xl font-semibold text-neutral-900 leading-tight">
                 {product.name}
               </h1>
@@ -458,7 +454,7 @@ export default function ProductDetail() {
             {isWholesaler && hasWholesale && selectedVariant && (
               <div className="p-3 bg-[#c5a059]/10 border border-[#c5a059]/30 rounded-2xl flex flex-col gap-1 text-[11px] text-[#0a193b]">
                 <div className="font-extrabold flex items-center gap-1.5">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10" /><line x1="12" y1="16" x2="12" y2="12" /><line x1="12" y1="8" x2="12.01" y2="8" /></svg>
                   Minimum Wholesale Order Quantity: {selectedVariant.minWholesaleQty || 1}
                 </div>
                 <div className="opacity-80">
@@ -485,13 +481,12 @@ export default function ProductDetail() {
                       key={index}
                       onClick={() => setSelectedVariantIndex(index)}
                       disabled={isOutOfStock}
-                      className={`px-4 py-2.5 rounded-xl text-sm font-semibold transition-all border-2 ${
-                        isSelected
+                      className={`px-4 py-2.5 rounded-xl text-sm font-semibold transition-all border-2 ${isSelected
                           ? "border-[#0a193b] bg-[#0a193b]/5 text-[#0a193b] shadow-sm"
                           : isOutOfStock
                             ? "border-neutral-100 bg-neutral-50 text-neutral-300 cursor-not-allowed"
                             : "border-neutral-100 bg-white text-neutral-600 hover:border-neutral-200"
-                      }`}>
+                        }`}>
                       {vTitle}
                     </button>
                   );
@@ -500,19 +495,21 @@ export default function ProductDetail() {
             </div>
           )}          {/* Service Guarantees Grid */}
           <div className="grid grid-cols-3 gap-4 pt-2 border-t border-neutral-100">
-            {/* Replacement */}
+            {/* Purity */}
             <div className="flex flex-col items-center text-center space-y-1">
               <div className="w-10 h-10 rounded-full bg-[#0a193b]/5 flex items-center justify-center text-[#0a193b]">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3M20.49 15a9 9 0 0 1-14.85 3"/></svg>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 22a7 7 0 0 0 7-7c0-4.3-7-13-7-13S5 10.7 5 15a7 7 0 0 0 7 7z"/>
+                </svg>
               </div>
-              <span className="text-[10px] font-bold text-neutral-900 uppercase">48 Hours</span>
-              <span className="text-[9px] font-medium text-neutral-400 uppercase tracking-tighter">Replacement</span>
+              <span className="text-[10px] font-bold text-neutral-900 uppercase">100% Pure</span>
+              <span className="text-[9px] font-medium text-neutral-400 uppercase tracking-tighter">Guarantee</span>
             </div>
 
             {/* Support */}
             <div className="flex flex-col items-center text-center space-y-1">
               <div className="w-10 h-10 rounded-full bg-[#0a193b]/5 flex items-center justify-center text-[#0a193b]">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M13 8H7M17 12H7"/></svg>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /><path d="M13 8H7M17 12H7" /></svg>
               </div>
               <span className="text-[10px] font-bold text-neutral-900 uppercase">24/7 Service</span>
               <span className="text-[9px] font-medium text-neutral-400 uppercase tracking-tighter">Support</span>
@@ -521,7 +518,7 @@ export default function ProductDetail() {
             {/* Quality */}
             <div className="flex flex-col items-center text-center space-y-1">
               <div className="w-10 h-10 rounded-full bg-[#0a193b]/5 flex items-center justify-center text-[#0a193b]">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>
               </div>
               <span className="text-[10px] font-bold text-neutral-900 uppercase">100% Top</span>
               <span className="text-[9px] font-medium text-neutral-400 uppercase tracking-tighter">Quality</span>
@@ -557,19 +554,19 @@ export default function ProductDetail() {
                   </div>
                 )
               ))}
-              
+
               {/* Features/Tags if present */}
               {product.tags && product.tags.length > 0 && (
-                 <div className="flex flex-col gap-2 pt-1">
-                   <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-tight">Key Features</span>
-                   <div className="flex flex-wrap gap-2">
-                     {product.tags.map((tag: string) => (
-                       <span key={tag} className="px-2.5 py-1 bg-neutral-50 text-neutral-600 text-[10px] font-bold rounded-lg border border-neutral-200 uppercase tracking-tighter">
-                         {tag.replace(/-/g, ' ')}
-                       </span>
-                     ))}
-                   </div>
-                 </div>
+                <div className="flex flex-col gap-2 pt-1">
+                  <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-tight">Key Features</span>
+                  <div className="flex flex-wrap gap-2">
+                    {product.tags.map((tag: string) => (
+                      <span key={tag} className="px-2.5 py-1 bg-neutral-50 text-neutral-600 text-[10px] font-bold rounded-lg border border-neutral-200 uppercase tracking-tighter">
+                        {tag.replace(/-/g, ' ')}
+                      </span>
+                    ))}
+                  </div>
+                </div>
               )}
             </div>
           </div>
@@ -584,11 +581,11 @@ export default function ProductDetail() {
                   : "This item is non-returnable due to hygiene and safety reasons."}
               </p>
             </div>
-            
+
             <div className="space-y-2">
               <h4 className="text-[10px] font-black text-neutral-900 uppercase tracking-widest">Disclaimer</h4>
               <p className="text-[10px] text-neutral-400 font-medium leading-relaxed italic">
-                Information provided is for reference. Packaging and materials may contain different details. Customer care: help@kosil.com
+                Information provided is for reference. Packaging and materials may contain different details. Customer care: support@healthydelight.com
               </p>
             </div>
 
@@ -611,11 +608,11 @@ export default function ProductDetail() {
           <div className="mt-8 mb-12 px-6">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-lg font-semibold text-neutral-900 tracking-tight">Similar Products</h2>
-              <button 
-                 onClick={() => navigate('/category/' + (product.category?._id || product.category?.id))}
-                 className="text-xs font-bold text-[#0a193b] uppercase tracking-widest">See All</button>
+              <button
+                onClick={() => navigate('/category/' + (product.category?._id || product.category?.id))}
+                className="text-xs font-bold text-[#0a193b] uppercase tracking-widest">See All</button>
             </div>
-            
+
             <div className="flex gap-4 overflow-x-auto scrollbar-hide pb-4 -mx-6 px-6">
               {similarProducts.map((item) => {
                 const sCartItem = cart.items.find(c => (c.product.id || c.product._id) === (item.id || item._id));
@@ -626,7 +623,7 @@ export default function ProductDetail() {
                   <div
                     key={item.id}
                     className="flex-shrink-0 w-44 bg-white rounded-2xl shadow-[0_4px_15px_rgba(0,0,0,0.02)] border border-neutral-100 p-3 space-y-3">
-                    <div 
+                    <div
                       onClick={() => navigate(`/product/${item.id || item._id}`)}
                       className="w-full aspect-square bg-neutral-50 rounded-xl flex items-center justify-center p-2 cursor-pointer relative overflow-hidden">
                       <img
@@ -642,41 +639,40 @@ export default function ProductDetail() {
                     </div>
                     <div>
                       <h4 className="text-[11px] font-semibold text-neutral-800 line-clamp-1">{item.name || item.productName}</h4>
-                      <p className="text-[10px] text-neutral-400 font-medium">17 Mins</p>
                     </div>
                     <div className="flex items-center justify-between">
                       <div className="flex flex-col">
                         <span className="text-xs font-bold text-neutral-900">₹{displayPrice}</span>
                         {hasDiscount && <span className="text-[9px] text-neutral-400 line-through">₹{mrp}</span>}
                       </div>
-                      
+
                       {sQty === 0 ? (
-                        <button 
+                        <button
                           onClick={(e) => {
                             e.stopPropagation();
                             addToCart(item);
                           }}
                           className="w-7 h-7 rounded-full bg-[#0a193b]/10 text-[#0a193b] flex items-center justify-center hover:bg-[#0a193b]/20 transition-colors">
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14" /></svg>
                         </button>
                       ) : (
                         <div className="flex items-center bg-[#0a193b] rounded-full h-7 px-1 gap-2 shadow-sm">
-                          <button 
+                          <button
                             onClick={(e) => {
                               e.stopPropagation();
                               updateQuantity(item.id || item._id, sQty - 1);
                             }}
                             className="w-5 h-5 rounded-full flex items-center justify-center text-white hover:bg-white/10">
-                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12" /></svg>
                           </button>
                           <span className="text-[10px] font-bold text-white min-w-[10px] text-center">{sQty}</span>
-                          <button 
+                          <button
                             onClick={(e) => {
                               e.stopPropagation();
                               updateQuantity(item.id || item._id, sQty + 1);
                             }}
                             className="w-5 h-5 rounded-full flex items-center justify-center text-white hover:bg-white/10">
-                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
                           </button>
                         </div>
                       )}
@@ -701,15 +697,14 @@ export default function ProductDetail() {
                 exit={{ opacity: 0, y: -10 }}
                 onClick={handleAddToCart}
                 disabled={!isAvailableAtLocation || (!isVariantAvailable && variantStock !== 0)}
-                className={`w-full py-4 rounded-2xl font-bold text-sm tracking-widest uppercase shadow-[0_8px_25px_rgba(10,25,59,0.25)] transition-all active:scale-95 ${
-                  !isAvailableAtLocation || (!isVariantAvailable && variantStock !== 0)
+                className={`w-full py-4 rounded-2xl font-bold text-sm tracking-widest uppercase shadow-[0_8px_25px_rgba(10,25,59,0.25)] transition-all active:scale-95 ${!isAvailableAtLocation || (!isVariantAvailable && variantStock !== 0)
                     ? "bg-neutral-100 text-neutral-400 cursor-not-allowed shadow-none"
                     : "bg-[#0a193b] text-white hover:bg-[#0a193b]/90 hover:shadow-[0_12px_30px_rgba(10,25,59,0.3)]"
-                }`}>
-                {!isAvailableAtLocation 
-                  ? "Unavailable in your area" 
-                  : (!isVariantAvailable && variantStock !== 0) 
-                    ? "Out of Stock" 
+                  }`}>
+                {!isAvailableAtLocation
+                  ? "Unavailable in your area"
+                  : (!isVariantAvailable && variantStock !== 0)
+                    ? "Out of Stock"
                     : "Add to Cart"}
               </motion.button>
             ) : (
@@ -722,7 +717,7 @@ export default function ProductDetail() {
                 <button
                   onClick={() => updateQuantity(product.id || product._id, inCartQty - 1, selectedVariant?._id, variantTitle)}
                   className="w-12 h-12 rounded-xl bg-white/10 text-white flex items-center justify-center transition-colors hover:bg-white/20">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12" /></svg>
                 </button>
                 <div className="flex flex-col items-center">
                   <span className="text-white text-[10px] font-bold uppercase tracking-widest opacity-60 mb-0.5">Quantity</span>
@@ -731,7 +726,7 @@ export default function ProductDetail() {
                 <button
                   onClick={() => updateQuantity(product.id || product._id, inCartQty + 1, selectedVariant?._id, variantTitle)}
                   className="w-12 h-12 rounded-xl bg-white/10 text-white flex items-center justify-center transition-colors hover:bg-white/20">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
                 </button>
               </motion.div>
             )}

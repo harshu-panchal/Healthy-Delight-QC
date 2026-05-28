@@ -7,6 +7,8 @@ import OrderItem from '../models/OrderItem';
 import DeliveryAssignment from '../models/DeliveryAssignment';
 import mongoose from 'mongoose';
 import { notifySellersOfOrderUpdate } from './sellerNotificationService';
+import Customer from '../models/Customer';
+import { sendPushNotification } from './firebaseAdmin';
 
 // Track order notification state
 export interface OrderNotificationState {
@@ -326,6 +328,7 @@ export async function notifyDeliveryBoysOfNewOrder(
             subtotal: order.subtotal,
             shipping: order.shipping,
             createdAt: order.createdAt,
+            paymentMethod: order.paymentMethod,
         };
 
         // Initialize notification state
@@ -359,6 +362,33 @@ export async function notifyDeliveryBoysOfNewOrder(
             rejectedDeliveryBoys: new Set(),
             acceptedBy: null,
         });
+
+        // Send FCM Push Notifications to all nearby available delivery boys so they get alerted even if offline
+        try {
+            const deliveryBoys = await Delivery.find({ _id: { $in: nearbyDeliveryBoyIds } }).select('fcmTokens fcmTokenMobile');
+            const pushTokens = new Set<string>();
+            for (const db of deliveryBoys) {
+                for (const t of db.fcmTokens || []) pushTokens.add(t);
+                for (const t of db.fcmTokenMobile || []) pushTokens.add(t);
+            }
+            const uniquePushTokens = Array.from(pushTokens);
+
+            if (uniquePushTokens.length > 0) {
+                await sendPushNotification(uniquePushTokens, {
+                    title: 'New Delivery Order! 🛵',
+                    body: `Order #${order.orderNumber} for ₹${order.total.toFixed(2)} is available nearby. Tap to accept!`,
+                    data: {
+                        type: 'new_order',
+                        orderId: order._id.toString(),
+                        orderNumber: order.orderNumber,
+                        link: `/delivery/dashboard?orderId=${order._id.toString()}`
+                    }
+                });
+                console.log(`📲 Dispatched new-order FCM Push Notification to ${uniquePushTokens.length} devices.`);
+            }
+        } catch (pushErr) {
+            console.error('Failed to send new-order FCM Push Notifications:', pushErr);
+        }
 
         // Only notify individual active delivery boys, not the general room
         // This prevents offline delivery boys from receiving notifications
@@ -453,6 +483,33 @@ export async function handleOrderAcceptance(
             deliveryBoyId: normalizedDeliveryBoyId,
             message: 'Delivery boy accepted your order. Tracking started.',
         });
+
+        // Send FCM Push Notification to the customer alerting them that a rider is assigned
+        try {
+            const customer = await Customer.findById(order.customer).select('fcmTokens fcmTokenMobile');
+            if (customer) {
+                const customerPushTokens = new Set<string>();
+                for (const t of customer.fcmTokens || []) customerPushTokens.add(t);
+                for (const t of customer.fcmTokenMobile || []) customerPushTokens.add(t);
+                const uniqueCustomerTokens = Array.from(customerPushTokens);
+
+                if (uniqueCustomerTokens.length > 0) {
+                    await sendPushNotification(uniqueCustomerTokens, {
+                        title: 'Delivery Partner Assigned! 🛵',
+                        body: `Rider has accepted your order #${order.orderNumber} and is preparing to pick it up!`,
+                        data: {
+                            type: 'order_assigned',
+                            orderId: order._id.toString(),
+                            orderNumber: order.orderNumber,
+                            link: `/orders/${order._id.toString()}`
+                        }
+                    });
+                    console.log(`📲 Dispatched order-assigned FCM Push Notification to Customer.`);
+                }
+            }
+        } catch (pushErr) {
+            console.error('Failed to send order-assigned FCM Push Notification to Customer:', pushErr);
+        }
 
         console.log(`✅ Order ${orderId} accepted by delivery boy ${normalizedDeliveryBoyId} ${state ? '(Memory)' : '(DB Fallback)'}`);
         return { success: true, message: 'Order accepted successfully' };
@@ -564,6 +621,33 @@ export async function handleOrderRejection(
                         message: 'Unfortunately, no delivery partner is available at the moment. Your order has been rejected.',
                     });
 
+                    // Send FCM Push Notification to the customer alerting them of rejection
+                    try {
+                        const customer = await Customer.findById(order.customer).select('fcmTokens fcmTokenMobile');
+                        if (customer) {
+                            const customerPushTokens = new Set<string>();
+                            for (const t of customer.fcmTokens || []) customerPushTokens.add(t);
+                            for (const t of customer.fcmTokenMobile || []) customerPushTokens.add(t);
+                            const uniqueCustomerTokens = Array.from(customerPushTokens);
+
+                            if (uniqueCustomerTokens.length > 0) {
+                                await sendPushNotification(uniqueCustomerTokens, {
+                                    title: 'Order Status Update ⚠️',
+                                    body: `We are sorry, but no delivery rider was available nearby for your order #${order.orderNumber}. The order has been cancelled.`,
+                                    data: {
+                                        type: 'order_rejected',
+                                        orderId: order._id.toString(),
+                                        orderNumber: order.orderNumber,
+                                        link: `/orders/${order._id.toString()}`
+                                    }
+                                });
+                                console.log(`📲 Dispatched order-rejected FCM Push Notification to Customer.`);
+                            }
+                        }
+                    } catch (pushErr) {
+                        console.error('Failed to send order-rejected FCM Push Notification to Customer:', pushErr);
+                    }
+
                     // Notify sellers/restaurants
                     notifySellersOfOrderUpdate(io, order, 'STATUS_UPDATE');
 
@@ -636,11 +720,39 @@ export async function notifyRiderOfScheduledAssignment(
             scheduledDate: order.scheduledDate,
             scheduledTimeSlot: order.scheduledTimeSlot,
             orderType: order.orderType,
-            type: "SCHEDULED_ASSIGNMENT"
+            type: "SCHEDULED_ASSIGNMENT",
+            paymentMethod: order.paymentMethod,
         };
 
         io.to(roomName).emit("new-scheduled-order", orderData);
         console.log(`📤 Emitted new-scheduled-order notification to rider room: ${roomName}`);
+
+        // Send FCM Push Notification to the assigned rider for the scheduled delivery job
+        try {
+            const rider = await Delivery.findById(deliveryBoyId).select('fcmTokens fcmTokenMobile');
+            if (rider) {
+                const riderPushTokens = new Set<string>();
+                for (const t of rider.fcmTokens || []) riderPushTokens.add(t);
+                for (const t of rider.fcmTokenMobile || []) riderPushTokens.add(t);
+                const uniqueRiderTokens = Array.from(riderPushTokens);
+
+                if (uniqueRiderTokens.length > 0) {
+                    await sendPushNotification(uniqueRiderTokens, {
+                        title: 'New Scheduled Delivery Job! 🗓️',
+                        body: `You have been assigned a scheduled delivery job for order #${order.orderNumber}.`,
+                        data: {
+                            type: 'scheduled_assignment',
+                            orderId: order._id.toString(),
+                            orderNumber: order.orderNumber,
+                            link: `/delivery/dashboard?orderId=${order._id.toString()}`
+                        }
+                    });
+                    console.log(`📲 Dispatched scheduled-assignment FCM Push Notification to Rider.`);
+                }
+            }
+        } catch (pushErr) {
+            console.error('Failed to send scheduled-assignment FCM Push Notification to Rider:', pushErr);
+        }
     } catch (error) {
         console.error('Error notifying rider of scheduled assignment:', error);
     }

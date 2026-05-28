@@ -864,7 +864,7 @@ export default function LandingPage() {
                 {/* CTA */}
                 <div className="flex flex-col sm:flex-row gap-4">
                   <button
-                    onClick={() => navigate("/user")}
+                    onClick={() => handleGetStarted()}
                     className="group flex items-center justify-center gap-3 px-7 py-3.5 rounded-xl font-bold text-[15px] transition-all duration-200 hover:scale-105 active:scale-95"
                     style={{ background: "#c5a059", color: "#0a193b", boxShadow: "0 12px 36px rgba(197,160,89,0.3)" }}
                   >
@@ -1015,7 +1015,7 @@ export default function LandingPage() {
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <button
-                onClick={() => navigate("/user")}
+                onClick={() => handleGetStarted()}
                 className="group relative overflow-hidden flex items-center gap-3 px-8 py-4 rounded-2xl font-bold text-[17px] transition-all duration-200 hover:scale-105 active:scale-95 shadow-2xl"
                 style={{ background: "#c5a059", color: "#0a193b", boxShadow: "0 20px 60px rgba(197,160,89,0.4)" }}
               >
@@ -1120,8 +1120,8 @@ export default function LandingPage() {
               <ul className="space-y-4">
                 {[
                   { icon: "✉️", text: "support@healthydelight.com" },
-                  { icon: "📞", text: "+91 1800-419-5566" },
-                  { icon: "📍", text: "Ahmedabad, Gujarat" },
+                  { icon: "📞", text: "+91 9740234199" },
+                  { icon: "📍", text: "Bengaluru, Karnataka" },
                 ].map(({ icon, text }) => (
                   <li key={text} className="flex gap-2.5 items-start">
                     <span className="text-[14px] mt-0.5">{icon}</span>
@@ -1141,9 +1141,12 @@ export default function LandingPage() {
               © {new Date().getFullYear()} Healthy Delight. All rights reserved.
             </p>
             <div className="flex gap-6">
-              {["Privacy Policy", "Terms of Service"].map((label) => (
-                <button key={label} className="text-white/30 hover:text-white/55 text-[12px] transition-colors">{label}</button>
-              ))}
+              <Link to="/privacy-policy" className="text-white/30 hover:text-white/55 text-[12px] transition-colors">
+                Privacy Policy
+              </Link>
+              <Link to="/terms-of-service" className="text-white/30 hover:text-white/55 text-[12px] transition-colors">
+                Terms of Service
+              </Link>
             </div>
           </div>
         </div>

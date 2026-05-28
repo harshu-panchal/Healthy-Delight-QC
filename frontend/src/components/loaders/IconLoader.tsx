@@ -30,9 +30,17 @@ const IconLoader: React.FC<IconLoaderProps> = ({ forceShow = false }) => {
     path.startsWith('/admin') ||
     path.startsWith('/delivery');
 
-  // Should not show on restricted portals, login, or signup pages
-  const isAuthEntryPage = path === '/login' || path === '/signup';
-  if ((isRestrictedApp || isAuthEntryPage) && !forceShow) return null;
+  // Never show on restricted portals, regardless of forceShow
+  if (isRestrictedApp) return null;
+
+  const isAuthEntryPage =
+    path === '/login' ||
+    path === '/user/login' ||
+    path === '/signup' ||
+    path === '/user/signup';
+
+  // Should not show on login, or signup pages unless forced
+  if (isAuthEntryPage && !forceShow) return null;
 
   const animationSrc = VARIANT_ANIMATIONS[loadingVariant];
 

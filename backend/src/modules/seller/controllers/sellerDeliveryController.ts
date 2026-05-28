@@ -5,6 +5,7 @@ import Order from "../../../models/Order";
 import OrderItem from "../../../models/OrderItem";
 import DeliveryAssignment from "../../../models/DeliveryAssignment";
 import { notifyRiderOfScheduledAssignment } from "../../../services/orderNotificationService";
+import { sendPushNotification } from "../../../services/firebaseAdmin";
 
 /**
  * Get available delivery boys for sellers
@@ -114,7 +115,6 @@ export const assignDeliveryBoy = asyncHandler(
         await notifyRiderOfScheduledAssignment(io, order, deliveryBoyId);
       }
     } else {
-      // Prepare order data for notification (matching the format in orderNotificationService)
       const orderData = {
         orderId: order._id.toString(),
         orderNumber: order.orderNumber,
@@ -131,7 +131,8 @@ export const assignDeliveryBoy = asyncHandler(
         subtotal: order.subtotal,
         shipping: order.shipping || 0,
         createdAt: order.createdAt,
-        type: "ASSIGNMENT_OFFER"
+        type: "ASSIGNMENT_OFFER",
+        paymentMethod: order.paymentMethod,
       };
 
       // Emit socket event to delivery boy
@@ -139,6 +140,30 @@ export const assignDeliveryBoy = asyncHandler(
         const roomName = `delivery-${deliveryBoyId.toString()}`;
         io.to(roomName).emit("new-order", orderData);
         console.log(`📤 Emitted new-order (assignment offer) to rider room: ${roomName}`);
+      }
+
+      // Send FCM Push Notification to the assigned rider for the delivery offer so they get alerted even if offline
+      try {
+        const riderPushTokens = new Set<string>();
+        for (const t of deliveryBoy.fcmTokens || []) riderPushTokens.add(t);
+        for (const t of deliveryBoy.fcmTokenMobile || []) riderPushTokens.add(t);
+        const uniqueRiderTokens = Array.from(riderPushTokens);
+
+        if (uniqueRiderTokens.length > 0) {
+          await sendPushNotification(uniqueRiderTokens, {
+            title: 'New Delivery Offer! 🛵',
+            body: `You have been offered a new delivery job for order #${order.orderNumber} (₹${order.total.toFixed(2)}).`,
+            data: {
+              type: 'assignment_offer',
+              orderId: order._id.toString(),
+              orderNumber: order.orderNumber,
+              link: `/delivery/dashboard?orderId=${order._id.toString()}`
+            }
+          });
+          console.log(`📲 Dispatched assignment-offer FCM Push Notification to Rider.`);
+        }
+      } catch (pushErr) {
+        console.error('Failed to send assignment-offer FCM Push Notification to Rider:', pushErr);
       }
     }
 

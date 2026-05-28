@@ -151,7 +151,7 @@ const Footer: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-white/50 text-[10px] font-black uppercase tracking-wider mb-0.5">Call Hotline</p>
-                  <p className="text-white text-[14px] font-bold">+91 1800-419-5566</p>
+                  <p className="text-white text-[14px] font-bold">+91 9740234199</p>
                 </div>
               </div>
 
@@ -194,8 +194,8 @@ const Footer: React.FC = () => {
             </p>
           </div>
           <div className="flex items-center gap-10 text-white/60 text-[13px] font-black uppercase tracking-widest">
-            <a href="#" className="hover:text-[#c5a059] transition-all">Privacy</a>
-            <a href="#" className="hover:text-[#c5a059] transition-all">Terms</a>
+            <Link to="/privacy-policy" className="hover:text-[#c5a059] transition-all">Privacy</Link>
+            <Link to="/terms-of-service" className="hover:text-[#c5a059] transition-all">Terms</Link>
             <a href="#" className="hover:text-[#c5a059] transition-all">Cookies</a>
           </div>
         </div>

@@ -13,7 +13,9 @@ const useRouteLoader = () => {
       location.pathname.startsWith('/admin') ||
       location.pathname.startsWith('/delivery') ||
       location.pathname === '/login' ||
-      location.pathname === '/signup';
+      location.pathname === '/user/login' ||
+      location.pathname === '/signup' ||
+      location.pathname === '/user/signup';
 
     if (isExcludedPath) {
       // Do not trigger the global route loader on seller/admin/delivery

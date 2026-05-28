@@ -35,6 +35,7 @@ export default function OrderNotificationCard({
     onReject,
 }: OrderNotificationCardProps) {
     const audioRef = useRef<HTMLAudioElement | null>(null);
+    const playPromiseRef = useRef<Promise<void> | null>(null);
     const [isProcessing, setIsProcessing] = useState(false);
     const [hasUserInteracted, setHasUserInteracted] = useState(false);
     const [audioError, setAudioError] = useState<string | null>(null);
@@ -52,13 +53,35 @@ export default function OrderNotificationCard({
         }
     }, []);
 
+    // Robust centralized stop audio function
+    const stopAudio = useCallback(() => {
+        isStoppedRef.current = true;
+        const audio = audioRef.current;
+        if (!audio) return;
+
+        const performPause = () => {
+            try {
+                audio.pause();
+                audio.currentTime = 0;
+            } catch (err) {
+                console.error('Error pausing audio:', err);
+            }
+        };
+
+        if (playPromiseRef.current) {
+            playPromiseRef.current.then(performPause).catch(performPause);
+            playPromiseRef.current = null;
+        } else {
+            performPause();
+        }
+    }, []);
+
     // Initialize audio with better error handling
     useEffect(() => {
         isStoppedRef.current = false;
         const audio = new Audio('/assets/sound/delivery-alert.mp3');
         audio.loop = true;
         audio.volume = 0.8;
-        let playPromise: Promise<void> | null = null;
 
         audioRef.current = audio;
 
@@ -69,8 +92,9 @@ export default function OrderNotificationCard({
         const playAudio = async () => {
             if (isStoppedRef.current) return;
             try {
-                playPromise = audio.play();
-                await playPromise;
+                const promise = audio.play();
+                playPromiseRef.current = promise;
+                await promise;
                 if (isStoppedRef.current) {
                     audio.pause();
                     audio.currentTime = 0;
@@ -90,36 +114,10 @@ export default function OrderNotificationCard({
         playAudio();
 
         return () => {
-            isStoppedRef.current = true;
-            
-            // 1. Pause the local audio object directly to guarantee it stops!
-            const stopLocalAudio = () => {
-                try {
-                    audio.pause();
-                    audio.currentTime = 0;
-                } catch (err) {
-                    console.error('Error pausing local audio:', err);
-                }
-            };
+            stopAudio();
+            audioRef.current = null;
 
-            if (playPromise) {
-                playPromise.then(stopLocalAudio).catch(stopLocalAudio);
-            } else {
-                stopLocalAudio();
-            }
-
-            // 2. Pause audioRef.current just in case
-            if (audioRef.current) {
-                try {
-                    audioRef.current.pause();
-                    audioRef.current.currentTime = 0;
-                } catch (err) {
-                    console.error('Error pausing audioRef.current:', err);
-                }
-                audioRef.current = null;
-            }
-
-            // 3. Stop vibration
+            // Stop vibration
             if ('vibrate' in navigator) {
                 try {
                     navigator.vibrate(0);
@@ -128,7 +126,7 @@ export default function OrderNotificationCard({
                 }
             }
         };
-    }, [vibrate]);
+    }, [vibrate, stopAudio]);
 
     // Play audio on user interaction with better error handling
     const handleUserInteraction = async (e?: React.SyntheticEvent) => {
@@ -143,7 +141,9 @@ export default function OrderNotificationCard({
                 if (audioRef.current.readyState < 2) {
                     audioRef.current.load();
                 }
-                await audioRef.current.play();
+                const promise = audioRef.current.play();
+                playPromiseRef.current = promise;
+                await promise;
                 setHasUserInteracted(true);
                 setAudioError(null);
             } catch (error: any) {
@@ -164,18 +164,9 @@ export default function OrderNotificationCard({
         if (isProcessing) return;
 
         setIsProcessing(true);
-        isStoppedRef.current = true;
         
         // Stop audio and vibration immediately
-        if (audioRef.current) {
-            try {
-                audioRef.current.pause();
-                audioRef.current.currentTime = 0;
-            } catch (err) {
-                console.error('Error pausing audio on accept:', err);
-            }
-        }
-        // Stop any ongoing vibration
+        stopAudio();
         if ('vibrate' in navigator) {
             navigator.vibrate(0);
         }
@@ -191,7 +182,9 @@ export default function OrderNotificationCard({
                 isStoppedRef.current = false;
                 // Resume audio if accept failed
                 if (audioRef.current && hasUserInteracted) {
-                    audioRef.current.play().catch(console.error);
+                    const promise = audioRef.current.play();
+                    playPromiseRef.current = promise;
+                    promise.catch(console.error);
                     vibrate(); // Resume vibration
                 }
             }
@@ -202,7 +195,9 @@ export default function OrderNotificationCard({
             isStoppedRef.current = false;
             // Resume audio if accept failed
             if (audioRef.current && hasUserInteracted) {
-                audioRef.current.play().catch(console.error);
+                const promise = audioRef.current.play();
+                playPromiseRef.current = promise;
+                promise.catch(console.error);
                 vibrate(); // Resume vibration
             }
         }
@@ -213,18 +208,9 @@ export default function OrderNotificationCard({
         if (isProcessing) return;
 
         setIsProcessing(true);
-        isStoppedRef.current = true;
 
         // Stop audio and vibration immediately
-        if (audioRef.current) {
-            try {
-                audioRef.current.pause();
-                audioRef.current.currentTime = 0;
-            } catch (err) {
-                console.error('Error pausing audio on reject:', err);
-            }
-        }
-        // Stop any ongoing vibration
+        stopAudio();
         if ('vibrate' in navigator) {
             navigator.vibrate(0);
         }
@@ -239,7 +225,9 @@ export default function OrderNotificationCard({
                 isStoppedRef.current = false;
                 // Resume audio if reject failed
                 if (audioRef.current && hasUserInteracted) {
-                    audioRef.current.play().catch(console.error);
+                    const promise = audioRef.current.play();
+                    playPromiseRef.current = promise;
+                    promise.catch(console.error);
                     vibrate(); // Resume vibration
                 }
             }
@@ -249,7 +237,9 @@ export default function OrderNotificationCard({
             isStoppedRef.current = false;
             // Resume audio if reject failed
             if (audioRef.current && hasUserInteracted) {
-                audioRef.current.play().catch(console.error);
+                const promise = audioRef.current.play();
+                playPromiseRef.current = promise;
+                promise.catch(console.error);
                 vibrate(); // Resume vibration
             }
         } finally {
@@ -329,7 +319,14 @@ export default function OrderNotificationCard({
 
                     <div>
                         <p className="text-xs sm:text-sm text-neutral-600">Order Amount</p>
-                        <p className="text-lg sm:text-xl font-bold text-teal-600">₹{notification.total.toFixed(2)}</p>
+                        <div className="flex items-center gap-2">
+                            <p className="text-lg sm:text-xl font-bold text-teal-600">₹{notification.total.toFixed(2)}</p>
+                            {(notification.paymentMethod === 'Online' || notification.paymentMethod === 'Wallet') && (
+                                <span className="px-2 py-0.5 bg-green-100 text-green-800 rounded-md text-xs font-bold uppercase tracking-wider">
+                                    Paid
+                                </span>
+                            )}
+                        </div>
                     </div>
                 </div>
 

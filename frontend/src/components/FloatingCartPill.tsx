@@ -9,5 +9,9 @@ import AddToCartAnimation from './AddToCartAnimation';
  * For new implementations, use AddToCartAnimation directly.
  */
 export default function FloatingCartPill() {
-  return <AddToCartAnimation />;
+  return (
+    <div className="FloatingCartPill print:hidden">
+      <AddToCartAnimation />
+    </div>
+  );
 }

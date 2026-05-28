@@ -38,6 +38,88 @@ export const useDeliveryOrderNotifications = () => {
         }
     }, []);
 
+    // Check for orderId in query parameters (e.g., launched from push notification click)
+    useEffect(() => {
+        if (!isAuthenticated || user?.userType !== 'Delivery' || !user?.id) {
+            return;
+        }
+
+        const params = new URLSearchParams(window.location.search);
+        const orderId = params.get('orderId');
+
+        if (orderId) {
+            console.log(`🔍 useDeliveryOrderNotifications: Found orderId in query params: ${orderId}`);
+
+            const loadOrderDetails = async () => {
+                try {
+                    const { getOrderDetails } = await import('../services/api/delivery/deliveryService');
+                    const order = await getOrderDetails(orderId);
+
+                    if (order) {
+                        console.log('📦 Loaded order details from query parameter:', order);
+
+                        // Only show popup if it's pending assignment or pending broadcast offer
+                        const isPendingRiderAction = 
+                            order.deliveryBoyStatus === 'Pending' || 
+                            order.status === 'Ready for pickup' || 
+                            order.status === 'Rider Assigned' || 
+                            order.status === 'Assigned' ||
+                            order.status === 'Processed' ||
+                            order.status === 'Pending';
+
+                        if (!isPendingRiderAction) {
+                            console.log('ℹ️ Order is no longer in a pending state, skipping notification popup.');
+                            // Clean up orderId query param
+                            const newUrl = window.location.pathname + window.location.search.replace(/(\?|&)orderId=[^&]*(&|$)/, '$1').replace(/\?$/, '');
+                            window.history.replaceState({}, '', newUrl);
+                            return;
+                        }
+
+                        // Map the API order structure to OrderNotificationData
+                        const notificationData: OrderNotificationData = {
+                            orderId: order.id,
+                            orderNumber: order.orderId,
+                            customerName: order.customerName,
+                            customerPhone: order.customerPhone,
+                            deliveryAddress: order.deliveryAddress || {
+                                address: order.address || '',
+                                city: '',
+                                pincode: ''
+                            },
+                            total: order.totalAmount,
+                            subtotal: order.totalAmount,
+                            shipping: 0,
+                            createdAt: order.createdAt,
+                            orderType: order.orderType,
+                            scheduledDate: order.scheduledDate,
+                            scheduledTimeSlot: order.scheduledTimeSlot,
+                            paymentMethod: order.paymentMethod,
+                            type: order.orderType === 'Scheduled' ? 'SCHEDULED_ASSIGNMENT' : 'ASSIGNMENT_OFFER'
+                        };
+
+                        setStateSafe(prev => {
+                            if (prev.currentNotification?.orderId === notificationData.orderId) {
+                                return prev;
+                            }
+                            return {
+                                ...prev,
+                                currentNotification: notificationData
+                            };
+                        });
+
+                        // Clear the query parameter from URL so it doesn't pop up again on refresh
+                        const newUrl = window.location.pathname + window.location.search.replace(/(\?|&)orderId=[^&]*(&|$)/, '$1').replace(/\?$/, '');
+                        window.history.replaceState({}, '', newUrl);
+                    }
+                } catch (error) {
+                    console.error('Failed to load order details from notification link:', error);
+                }
+            };
+
+            loadOrderDetails();
+        }
+    }, [isAuthenticated, user?.id, user?.userType, setStateSafe]);
+
     const socketRef = useRef<Socket | null>(null);
     const reconnectAttemptsRef = useRef(0);
 

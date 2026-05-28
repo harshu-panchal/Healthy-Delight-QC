@@ -21,6 +21,7 @@ export interface OrderNotificationData {
     orderType?: string;
     scheduledDate?: string;
     scheduledTimeSlot?: string;
+    paymentMethod?: string;
 }
 
 export interface AcceptOrderResponse {

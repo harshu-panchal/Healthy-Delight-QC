@@ -56,7 +56,7 @@ export default function AdminHeader({
           {/* Hamburger Menu Button */}
           <button
             onClick={onMenuClick}
-            className="p-2 text-neutral-600 hover:text-neutral-900 transition-colors flex-shrink-0"
+            className="p-2 text-neutral-600 hover:text-neutral-900 transition-colors flex-shrink-0 lg:hidden"
             aria-label="Toggle menu">
             {isSidebarOpen ? (
               <svg

@@ -199,7 +199,9 @@ export const getOrderDetails = asyncHandler(async (req: Request, res: Response) 
         scheduledDate: order.scheduledDate,
         scheduledTimeSlot: order.scheduledTimeSlot,
         timeSlot: order.scheduledTimeSlot || order.timeSlot,
-        distance: null
+        distance: null,
+        paymentMethod: order.paymentMethod,
+        paymentStatus: order.paymentStatus,
     };
 
     return res.status(200).json({

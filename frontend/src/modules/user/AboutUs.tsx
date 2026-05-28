@@ -171,7 +171,7 @@ export default function AboutUs() {
                 </svg>
               </div>
               <div className="text-sm font-bold text-[#0a193b] mb-1">Call Support</div>
-              <div className="text-xs text-neutral-500">+91 1800-419-5566</div>
+              <div className="text-xs text-neutral-500">+91 9740234199</div>
             </div>
 
             <div className="flex flex-col items-center text-center p-6 rounded-2xl bg-[#0a193b]/[0.02] border border-neutral-100 hover:border-[#c5a059]/30 transition-colors">
