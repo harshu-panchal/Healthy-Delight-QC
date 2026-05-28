@@ -670,7 +670,7 @@ export const confirmSellerPickup = asyncHandler(async (req: Request, res: Respon
     return res.status(200).json({
         success: true,
         message: allPickedUp
-            ? "All sellers picked up! Order status changed to Out for Delivery."
+            ? "Order picked up! Order status changed to Out for Delivery."
             : `Pickup confirmed from ${seller.storeName}`,
         data: {
             order,
@@ -758,7 +758,7 @@ export const acceptAssignment = asyncHandler(async (req: Request, res: Response)
     // Update order status
     // Update order status and sync customer's permanent OTP
     order.deliveryBoyStatus = "Accepted";
-    
+
     // Ensure order has the customer's permanent OTP for easy access
     if (order.customer && typeof order.customer === 'object' && 'deliveryOtp' in order.customer) {
         order.deliveryOtp = (order.customer as any).deliveryOtp;
@@ -769,7 +769,7 @@ export const acceptAssignment = asyncHandler(async (req: Request, res: Response)
     // Update delivery assignment record
     await DeliveryAssignment.findOneAndUpdate(
         { order: id, deliveryBoy: deliveryId },
-        { 
+        {
             status: "Accepted",
             acceptedAt: new Date()
         }
@@ -833,7 +833,7 @@ export const rejectAssignment = asyncHandler(async (req: Request, res: Response)
 
     await DeliveryAssignment.findOneAndUpdate(
         { order: id, deliveryBoy: deliveryId },
-        { 
+        {
             status: "Cancelled",
             failureReason: "Rejected by delivery boy"
         }
@@ -846,7 +846,7 @@ export const rejectAssignment = asyncHandler(async (req: Request, res: Response)
             io.to(`seller-${sellerId}`).emit("assignment-rejected", {
                 orderId: id,
                 orderNumber: order.orderNumber,
-                message: isScheduled 
+                message: isScheduled
                     ? "Delivery rider declined the scheduled assignment. Please assign another rider."
                     : "Delivery rider rejected the assignment. Please assign another rider."
             });

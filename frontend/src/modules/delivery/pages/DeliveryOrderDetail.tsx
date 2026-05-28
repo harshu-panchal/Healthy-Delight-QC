@@ -117,6 +117,7 @@ export default function DeliveryOrderDetail() {
     const [otpValue, setOtpValue] = useState('');
     const [otpSending, setOtpSending] = useState(false);
     const [otpVerifying, setOtpVerifying] = useState(false);
+    const [showCodConfirmation, setShowCodConfirmation] = useState(false);
     const locationIntervalRef = useRef<NodeJS.Timeout | null>(null);
     const [deliveryBoyLocation, setDeliveryBoyLocation] = useState<{ lat: number; lng: number } | undefined>(undefined);
     const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
@@ -198,13 +199,17 @@ export default function DeliveryOrderDetail() {
         // COD Reminder
         const isCOD = order?.paymentMethod === 'COD';
         if (isCOD) {
-            const confirmCash = window.confirm(`This is a COD order. Have you collected ₹${order.totalAmount} from the customer?`);
-            if (!confirmCash) return;
+            setShowCodConfirmation(true);
+            return;
         }
 
+        await proceedWithOtpVerification();
+    };
+
+    const proceedWithOtpVerification = async () => {
         try {
             setOtpVerifying(true);
-            const result = await verifyDeliveryOtp(id, otpValue);
+            const result = await verifyDeliveryOtp(id!, otpValue);
             alert(result.message || 'OTP verified successfully. Order marked as delivered.');
             await fetchOrder(); // Refresh order data
             setShowOtpInput(false);
@@ -213,6 +218,7 @@ export default function DeliveryOrderDetail() {
             alert(err.message || 'Failed to verify OTP');
         } finally {
             setOtpVerifying(false);
+            setShowCodConfirmation(false);
         }
     };
 
@@ -1059,7 +1065,7 @@ export default function DeliveryOrderDetail() {
             {/* Floating Glassmorphic Action Button Dock - Order Taken button or status update */}
             {/* Hide this button when order is "Out for Delivery" because OTP section is shown instead */}
             {/* Also hide when assignment is pending */}
-            {nextStatus && order.status !== 'Picked up' && order.status !== 'Out for Delivery' && !showOtpInput && order.deliveryBoyStatus !== 'Pending' && (
+            {nextStatus && nextStatus !== 'Ready for pickup' && order.status !== 'Picked up' && order.status !== 'Out for Delivery' && !showOtpInput && order.deliveryBoyStatus !== 'Pending' && (
                 <div className="fixed bottom-24 left-6 right-6 z-30">
                     <button
                         onClick={() => handleStatusChange(nextStatus)}
@@ -1074,6 +1080,34 @@ export default function DeliveryOrderDetail() {
                         </div>}
                         <div className="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent pointer-events-none"></div>
                     </button>
+                </div>
+            )}
+            {/* COD Confirmation Modal */}
+            {showCodConfirmation && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <div className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl border border-neutral-100 transform scale-100 transition-all duration-300">
+                        <div className="w-12 h-12 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center mb-4">
+                            <Icons.ShoppingBag size={24} />
+                        </div>
+                        <h3 className="text-xl font-extrabold text-neutral-900 mb-2">COD Cash Collection</h3>
+                        <p className="text-sm text-neutral-600 mb-6 leading-relaxed">
+                            This is a COD order. Have you collected <span className="font-bold text-neutral-900">₹{order.totalAmount}</span> from the customer?
+                        </p>
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => setShowCodConfirmation(false)}
+                                className="flex-1 py-3 px-4 rounded-xl border border-neutral-300 text-neutral-700 font-bold text-sm hover:bg-neutral-50 active:scale-[0.98] transition-all"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={proceedWithOtpVerification}
+                                className="flex-1 py-3 px-4 rounded-xl bg-green-600 text-white font-bold text-sm hover:bg-green-700 active:scale-[0.98] transition-all shadow-md shadow-green-600/20"
+                            >
+                                Yes
+                            </button>
+                        </div>
+                    </div>
                 </div>
             )}
         </div>

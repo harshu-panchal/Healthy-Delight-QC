@@ -64,7 +64,7 @@ export default function SellerLayout({ children }: SellerLayoutProps) {
 
       {/* Sidebar - Fixed */}
       <div
-        className={`fixed left-0 top-0 h-screen z-50 transition-transform duration-300 ease-in-out lg:translate-x-0 ${
+        className={`fixed left-0 top-0 h-screen z-50 transition-transform duration-300 ease-in-out w-64 lg:translate-x-0 ${
           isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
@@ -73,7 +73,7 @@ export default function SellerLayout({ children }: SellerLayoutProps) {
 
       {/* Main Content */}
       <div
-        className="flex-1 flex flex-col transition-all duration-300 w-full lg:ml-64"
+        className="flex-1 flex flex-col transition-all duration-300 min-w-0 lg:ml-64"
       >
         {/* Header */}
         <SellerHeader onMenuClick={toggleSidebar} isSidebarOpen={isSidebarOpen} />

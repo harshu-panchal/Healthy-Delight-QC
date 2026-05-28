@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { OrderNotificationData, acceptOrder as acceptOrderService, rejectOrder as rejectOrderService, rejectAssignmentRest, AcceptOrderResponse, RejectOrderResponse } from '../services/api/delivery/deliveryOrderNotificationService';
 import { getSocketBaseURL, getAuthToken } from '../services/api/config';
 import { NavigateFunction } from 'react-router-dom';
+import { getOrderDetails } from '../services/api/delivery/deliveryService';
 
 interface NotificationState {
     currentNotification: OrderNotificationData | null;
@@ -52,7 +53,6 @@ export const useDeliveryOrderNotifications = () => {
 
             const loadOrderDetails = async () => {
                 try {
-                    const { getOrderDetails } = await import('../services/api/delivery/deliveryService');
                     const order = await getOrderDetails(orderId);
 
                     if (order) {
