@@ -74,7 +74,7 @@ export default function Categories() {
     });
   };
 
-  const allCategories = flattenAllCategories(categories);
+  const allCategories = categories.filter((cat) => !cat.parentId && !cat.parent);
 
   const handleCategoryClick = (cat: CustomerCategory) => {
     navigate(`/category/${cat._id}`);
