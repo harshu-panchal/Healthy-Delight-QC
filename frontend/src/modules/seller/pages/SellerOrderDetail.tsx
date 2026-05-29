@@ -266,11 +266,11 @@ export default function SellerOrderDetail() {
     };
 
     // Header - Company Info
-    // Primary (Tailwind): #FFC94A -> rgb(255, 201, 74)
-    doc.setFillColor(255, 201, 74);
+    // Brand Navy Blue: #0a193b -> rgb(10, 25, 59)
+    doc.setFillColor(10, 25, 59);
     doc.rect(margin, yPos, contentWidth, 15, "F");
 
-    doc.setTextColor(0, 0, 0);
+    doc.setTextColor(255, 255, 255);
     doc.setFontSize(16);
     doc.setFont("helvetica", "bold");
     doc.text("Healthy Delight", margin + 5, yPos + 10);
@@ -288,11 +288,9 @@ export default function SellerOrderDetail() {
     doc.setFont("helvetica", "normal");
     doc.text("From: Healthy Delight", margin, yPos);
     yPos += 6;
-    doc.text("Phone: 8956656429", margin, yPos);
+    doc.text("Phone: 9740234199", margin, yPos);
     yPos += 6;
-    doc.text("Email: info@healthydelight.com", margin, yPos);
-    yPos += 6;
-    doc.text("Website: https://healthydelight.com", margin, yPos);
+    doc.text("Email: support@healthydelight.com", margin, yPos);
     yPos += 12;
 
     // Invoice Details (Right aligned)
@@ -359,7 +357,7 @@ export default function SellerOrderDetail() {
       "Sr. No.",
       "Product",
       "Price",
-      "Tax ₹ (%)",
+      "Tax Rs. (%)",
       "Qty",
       "Subtotal",
     ];
@@ -387,10 +385,10 @@ export default function SellerOrderDetail() {
       const rowData = [
         item.srNo.toString(),
         item.product,
-        `₹${item.price.toFixed(2)}`,
+        `Rs. ${item.price.toFixed(2)}`,
         `${item.tax.toFixed(2)} (${item.taxPercent.toFixed(2)}%)`,
         item.qty.toString(),
-        `₹${item.subtotal.toFixed(2)}`,
+        `Rs. ${item.subtotal.toFixed(2)}`,
       ];
 
       rowData.forEach((data, index) => {
@@ -434,13 +432,13 @@ export default function SellerOrderDetail() {
     doc.setFontSize(10);
     doc.setFont("helvetica", "normal");
     doc.text("Subtotal:", pageWidth - margin - 60, yPos, { align: "right" });
-    doc.text(`₹${totalSubtotal.toFixed(2)}`, pageWidth - margin, yPos, {
+    doc.text(`Rs. ${totalSubtotal.toFixed(2)}`, pageWidth - margin, yPos, {
       align: "right",
     });
     yPos += 7;
 
     doc.text("Tax:", pageWidth - margin - 60, yPos, { align: "right" });
-    doc.text(`₹${totalTax.toFixed(2)}`, pageWidth - margin, yPos, {
+    doc.text(`Rs. ${totalTax.toFixed(2)}`, pageWidth - margin, yPos, {
       align: "right",
     });
     yPos += 7;
@@ -448,7 +446,7 @@ export default function SellerOrderDetail() {
     doc.setFont("helvetica", "bold");
     doc.setFontSize(12);
     doc.text("Grand Total:", pageWidth - margin - 60, yPos, { align: "right" });
-    doc.text(`₹${grandTotal.toFixed(2)}`, pageWidth - margin, yPos, {
+    doc.text(`Rs. ${grandTotal.toFixed(2)}`, pageWidth - margin, yPos, {
       align: "right",
     });
     yPos += 15;
@@ -470,7 +468,7 @@ export default function SellerOrderDetail() {
 
     doc.setFontSize(8);
     doc.text(
-      "Copyright © {new Date().getFullYear()}. Developed By Healthy Delight",
+      `Copyright © ${new Date().getFullYear()}. Developed By Healthy Delight`,
       pageWidth / 2,
       yPos,
       { align: "center" }
@@ -526,8 +524,64 @@ export default function SellerOrderDetail() {
 
   return (
     <div className="min-h-screen bg-neutral-50 pb-8">
+      {/* Print-only CSS style rules */}
+      <style>{`
+        @media print {
+          /* Hide sidebar, global header, notification overlays, and specific non-printable elements */
+          header, footer, nav, aside, .no-print,
+          #print-hide-action-section,
+          #print-hide-footer,
+          .fixed {
+            display: none !important;
+          }
+
+          /* Reset spacing on main content element when printing */
+          .lg\\:ml-64 {
+            margin-left: 0 !important;
+          }
+          main {
+            padding: 0 !important;
+            margin: 0 !important;
+            overflow: visible !important;
+          }
+          
+          /* Ensure printable invoice container takes full space, is positioned statically, and has no margins */
+          #printable-invoice {
+            position: absolute !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            border: none !important;
+            box-shadow: none !important;
+            display: block !important;
+          }
+          #printable-invoice-header {
+            display: none !important;
+          }
+          /* Hide scrollbars inside table containers */
+          .overflow-x-auto {
+            overflow: visible !important;
+            overflow-x: visible !important;
+          }
+          table {
+            min-width: 0 !important;
+            width: 100% !important;
+          }
+          /* Prevent extra page breaks and scrollbars on html/body */
+          html, body, #root, #root > div {
+            background: #fff !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            height: auto !important;
+            min-height: 0 !important;
+            overflow: visible !important;
+          }
+        }
+      `}</style>
       {/* Order Action Section */}
-      <div className="bg-white mb-6 rounded-lg shadow-sm border border-neutral-200 overflow-hidden">
+      <div id="print-hide-action-section" className="bg-white mb-6 rounded-lg shadow-sm border border-neutral-200 overflow-hidden">
         <div className="bg-neutral-50 border-b border-neutral-200 px-4 sm:px-6 py-3">
           <h2 className="text-base sm:text-lg font-semibold text-neutral-800">
             Order Action Section
@@ -678,8 +732,8 @@ export default function SellerOrderDetail() {
       </div>
 
       {/* View Order Details Section */}
-      <div className="bg-white rounded-lg shadow-sm border border-neutral-200 overflow-hidden">
-        <div className="bg-neutral-50 border-b border-neutral-200 px-4 sm:px-6 py-3">
+      <div id="printable-invoice" className="bg-white rounded-lg shadow-sm border border-neutral-200 overflow-hidden">
+        <div id="printable-invoice-header" className="bg-neutral-50 border-b border-neutral-200 px-4 sm:px-6 py-3">
           <h2 className="text-base sm:text-lg font-semibold text-neutral-800">
             View Order Details
           </h2>
@@ -835,24 +889,24 @@ export default function SellerOrderDetail() {
               <h3 className="text-xs font-black text-neutral-400 uppercase tracking-widest border-b border-neutral-200 pb-2">
                 Order Billing Summary
               </h3>
-              
+
               <div className="space-y-2">
                 <div className="flex justify-between items-center text-sm font-semibold text-neutral-600">
                   <span>Items Total:</span>
                   <span>₹{orderDetail.subtotal.toFixed(2)}</span>
                 </div>
-                
+
                 {(() => {
-                  const commission = orderDetail.totalCommission !== undefined 
-                    ? orderDetail.totalCommission 
+                  const commission = orderDetail.totalCommission !== undefined
+                    ? orderDetail.totalCommission
                     : (orderDetail.subtotal * 0.1);
-                  
-                  const netEarnings = orderDetail.netEarnings !== undefined 
-                    ? orderDetail.netEarnings 
+
+                  const netEarnings = orderDetail.netEarnings !== undefined
+                    ? orderDetail.netEarnings
                     : (orderDetail.subtotal * 0.9);
 
-                  const effectiveRate = orderDetail.subtotal > 0 
-                    ? Math.round((commission / orderDetail.subtotal) * 100) 
+                  const effectiveRate = orderDetail.subtotal > 0
+                    ? Math.round((commission / orderDetail.subtotal) * 100)
                     : 10;
 
                   return (
@@ -861,7 +915,7 @@ export default function SellerOrderDetail() {
                         <span>Platform Commission ({effectiveRate}%):</span>
                         <span>-₹{commission.toFixed(2)}</span>
                       </div>
-                      
+
                       <div className="pt-3 border-t border-dashed border-neutral-300 flex justify-between items-end">
                         <div>
                           <span className="block text-xs font-black text-neutral-800 uppercase tracking-wider">
@@ -892,7 +946,7 @@ export default function SellerOrderDetail() {
       </div>
 
       {/* Footer */}
-      <footer className="mt-6 px-4 sm:px-6 text-center py-4 bg-neutral-100 rounded-lg">
+      <footer id="print-hide-footer" className="mt-6 px-4 sm:px-6 text-center py-4 bg-neutral-100 rounded-lg">
         <p className="text-xs sm:text-sm text-neutral-600">
           Copyright © {new Date().getFullYear()}. Developed By{" "}
           <span className="font-semibold text-primary">

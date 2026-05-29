@@ -427,6 +427,10 @@ function AppContent() {
                                       element={<DeliveryDashboard />}
                                     />
                                     <Route
+                                      path="dashboard"
+                                      element={<DeliveryDashboard />}
+                                    />
+                                    <Route
                                       path="orders"
                                       element={<DeliveryOrders />}
                                     />

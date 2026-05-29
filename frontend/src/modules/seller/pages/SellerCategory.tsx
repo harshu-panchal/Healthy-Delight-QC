@@ -71,13 +71,14 @@ export default function SellerCategory() {
 
                         <button
                             onClick={() => {
-                                const headers = ['ID', 'Category Name', 'Total Subcategory'];
+                                const headers = ['Friendly ID', 'Full MongoDB ID', 'Category Name', 'Total Subcategory'];
                                 const csvContent = [
                                     headers.join(','),
                                     ...filteredCategories.map(cat => [
-                                        cat._id,
+                                        cat._id ? `CAT-${cat._id.slice(-6).toUpperCase()}` : 'N/A',
+                                        cat._id || '',
                                         `"${cat.name}"`,
-                                        cat.totalSubcategory
+                                        cat.totalSubcategory || 0
                                     ].join(','))
                                 ].join('\n');
                                 const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -142,25 +143,32 @@ export default function SellerCategory() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {filteredCategories.map((category) => (
-                                    <tr key={category._id} className="hover:bg-neutral-50 transition-colors text-sm text-neutral-700">
-                                        <td className="p-4 align-middle border border-neutral-200">{category._id}</td>
-                                        <td className="p-4 align-middle border border-neutral-200">{category.name}</td>
-                                        <td className="p-4 border border-neutral-200">
-                                            <div className="w-16 h-12 bg-white border border-neutral-200 rounded p-1 flex items-center justify-center mx-auto">
-                                                <img
-                                                    src={category.image || '/assets/category-placeholder.png'}
-                                                    alt={category.name}
-                                                    className="max-w-full max-h-full object-contain"
-                                                    onError={(e) => {
-                                                        (e.target as HTMLImageElement).src = 'https://placehold.co/60x40?text=Img';
-                                                    }}
-                                                />
-                                            </div>
-                                        </td>
-                                        <td className="p-4 align-middle border border-neutral-200">{category.totalSubcategory || 0}</td>
-                                    </tr>
-                                ))}
+                                {filteredCategories.map((category) => {
+                                    const friendlyId = category._id
+                                        ? `CAT-${category._id.slice(-6).toUpperCase()}`
+                                        : 'N/A';
+                                    return (
+                                        <tr key={category._id} className="hover:bg-neutral-50 transition-colors text-sm text-neutral-700">
+                                            <td className="p-4 align-middle border border-neutral-200 font-mono font-semibold text-neutral-800" title={`Full ID: ${category._id}`}>
+                                                {friendlyId}
+                                            </td>
+                                            <td className="p-4 align-middle border border-neutral-200 font-semibold">{category.name}</td>
+                                            <td className="p-4 border border-neutral-200">
+                                                <div className="w-16 h-12 bg-white border border-neutral-200 rounded p-1 flex items-center justify-center mx-auto">
+                                                    <img
+                                                        src={category.image || '/assets/category-placeholder.png'}
+                                                        alt={category.name}
+                                                        className="max-w-full max-h-full object-contain"
+                                                        onError={(e) => {
+                                                            (e.target as HTMLImageElement).src = 'https://placehold.co/60x40?text=Img';
+                                                        }}
+                                                    />
+                                                </div>
+                                            </td>
+                                            <td className="p-4 align-middle border border-neutral-200 font-semibold">{category.totalSubcategory || 0}</td>
+                                        </tr>
+                                    );
+                                })}
                                 {filteredCategories.length === 0 && (
                                     <tr>
                                         <td colSpan={4} className="p-8 text-center text-neutral-400 border border-neutral-200">

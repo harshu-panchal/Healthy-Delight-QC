@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { SellerNotification } from '../hooks/useSellerSocket';
 import { updateOrderStatus } from '../../../services/api/orderService';
 import { useNavigate } from 'react-router-dom';
+import sellerAlertMp3 from '../../../../assets/sound/seller_alert.mp3';
 
 interface SellerNotificationAlertProps {
   notification: SellerNotification | null;
@@ -84,7 +85,7 @@ const SellerNotificationAlert: React.FC<SellerNotificationAlertProps> = ({ notif
       setAudioError(null);
       
       console.log('🔊 Initializing programmatic audio for seller alert');
-      const audio = new Audio('/assets/sound/seller_alert.mp3');
+      const audio = new Audio(sellerAlertMp3);
       audio.loop = true;
       audio.volume = volume;
       audioRef.current = audio;

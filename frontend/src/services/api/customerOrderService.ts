@@ -122,3 +122,11 @@ export const updateScheduledOrderItems = async (
     const response = await api.put<OrderResponse>(`/customer/orders/${id}/scheduled-items`, data);
     return response.data;
 };
+
+/**
+ * Get order tracking details (ETA, live coordinates, status)
+ */
+export const getOrderTracking = async (id: string): Promise<any> => {
+    const response = await api.get(`/customer/orders/${id}/tracking`);
+    return response.data;
+};

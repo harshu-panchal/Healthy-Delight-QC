@@ -23,9 +23,27 @@ export const getAvailableDeliveryBoys = asyncHandler(
       ];
     }
 
-    const deliveryBoys = await Delivery.find(query)
-      .select("name mobile available status")
+    const rawDeliveryBoys = await Delivery.find(query)
+      .select("name mobile status")
       .sort({ name: 1 });
+
+    // Calculate busy/available status dynamically based on current active orders
+    const deliveryBoys = await Promise.all(
+      rawDeliveryBoys.map(async (boy) => {
+        const activeOrdersCount = await Order.countDocuments({
+          deliveryBoy: boy._id,
+          status: { $nin: ["Delivered", "Cancelled", "Returned", "Rejected"] },
+        });
+
+        return {
+          _id: boy._id,
+          name: boy.name,
+          mobile: boy.mobile,
+          status: boy.status,
+          available: activeOrdersCount > 0 ? "Busy" : "Available",
+        };
+      })
+    );
 
     return res.status(200).json({
       success: true,

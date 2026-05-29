@@ -92,7 +92,7 @@ export default function AboutUs() {
             </h2>
             <div className="h-1 w-12 bg-[#c5a059] mx-auto rounded-full mb-5"></div>
             <p className="text-white/80 text-base md:text-lg font-normal max-w-2xl mx-auto leading-relaxed italic">
-              "Purity in every drop, freshness in every bite. Bridging the gap between the farm and your family."
+              "Purity in every drop, freshness in every bite. Bridging the gap between the dairy farm and your family."
             </p>
           </div>
         </div>
@@ -107,7 +107,7 @@ export default function AboutUs() {
             </div>
             <h3 className="text-xl font-bold text-[#0a193b] mb-4">Our Mission</h3>
             <p className="text-neutral-600 leading-relaxed text-sm md:text-base">
-              To empower families with the highest quality, farm-fresh organic products. We believe that health starts at the source, and our goal is to eliminate middlemen, ensuring that what reaches your table is nothing short of pure.
+              To empower families with the highest quality, dairy-fresh organic products. We believe that health starts at the source, and our goal is to eliminate middlemen, ensuring that what reaches your table is nothing short of pure.
             </p>
           </div>
 
@@ -120,7 +120,7 @@ export default function AboutUs() {
             </div>
             <h3 className="text-xl font-bold text-[#0a193b] mb-4">What We Do</h3>
             <p className="text-neutral-600 leading-relaxed text-sm md:text-base">
-              Healthy Delight is more than a delivery app; it's a commitment to your wellbeing. We source premium organic milk, vegetables, and staples directly from our farms and deliver them to you within hours of harvest.
+              Healthy Delight is more than a delivery app; it's a commitment to your wellbeing. We source premium organic milk and other dairy products directly from our farms and deliver them to you fresh and healthy.
             </p>
           </div>
         </div>
@@ -130,7 +130,7 @@ export default function AboutUs() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             <div className="text-center">
               <div className="text-3xl md:text-4xl font-black text-[#0a193b] mb-1">25+</div>
-              <div className="text-[10px] md:text-xs font-black text-[#c5a059] uppercase tracking-widest">Organic Farms</div>
+              <div className="text-[10px] md:text-xs font-black text-[#c5a059] uppercase tracking-widest">Organic Dairy Farms</div>
             </div>
             <div className="text-center">
               <div className="text-3xl md:text-4xl font-black text-[#0a193b] mb-1">100%</div>
@@ -181,7 +181,7 @@ export default function AboutUs() {
                 </svg>
               </div>
               <div className="text-sm font-bold text-[#0a193b] mb-1">Headquarters</div>
-              <div className="text-xs text-neutral-500">Ahmedabad, Gujarat</div>
+              <div className="text-xs text-neutral-500">Bengaluru, Karnataka</div>
             </div>
           </div>
         </div>

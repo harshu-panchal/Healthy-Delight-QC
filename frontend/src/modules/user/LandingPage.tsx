@@ -61,7 +61,7 @@ const FEATURES = [
       </svg>
     ),
     title: "100% Organic Sourcing",
-    desc: "Directly from our organic farms — no middlemen, no shortcuts, no compromise on purity.",
+    desc: "Directly from our organic dairy farms — no middlemen, no shortcuts, no compromise on purity.",
   },
   {
     icon: (
@@ -962,7 +962,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── G++. FAQ ──────────────────────────────────────────────────────── */}
-      <section className="relative pt-10 pb-20 md:pt-16 md:pb-28 overflow-hidden" style={{ background: "#f8f6f2" }}>
+      <section id="faq" className="relative pt-10 pb-20 md:pt-16 md:pb-28 overflow-hidden" style={{ background: "#f8f6f2" }}>
         {/* Texture Overlay */}
         <div
           className="absolute inset-0 opacity-[0.3] pointer-events-none"
@@ -1090,7 +1090,7 @@ export default function LandingPage() {
               <ul className="space-y-2.5">
                 {["Fresh Milk", "Curd & Yogurt", "Paneer & Cheese", "Butter & Ghee", "Desserts", "Ice Creams"].map((item) => (
                   <li key={item}>
-                    <button onClick={() => navigate("/user")} className="text-white/45 hover:text-white/75 text-[13px] transition-colors">{item}</button>
+                    <button onClick={() => handleGetStarted()} className="text-white/45 hover:text-white/75 text-[13px] transition-colors">{item}</button>
                   </li>
                 ))}
               </ul>
@@ -1100,17 +1100,21 @@ export default function LandingPage() {
             <div>
               <h4 className="text-white font-bold text-[14px] mb-4 uppercase tracking-wider">Company</h4>
               <ul className="space-y-2.5">
-                {[
-                  { label: "About Us", to: "/about-us" },
-                  { label: "FAQ", to: "/faq" },
-                  { label: "Subscribe", to: "/user" },
-                  { label: "Sign In", to: "/login" },
-                  { label: "Seller Portal", to: "/seller/login" },
-                ].map(({ label, to }) => (
-                  <li key={label}>
-                    <Link to={to} className="text-white/45 hover:text-white/75 text-[13px] transition-colors">{label}</Link>
-                  </li>
-                ))}
+                <li>
+                  <a href="#story" className="text-white/45 hover:text-white/75 text-[13px] transition-colors">About Us</a>
+                </li>
+                <li>
+                  <a href="#faq" className="text-white/45 hover:text-white/75 text-[13px] transition-colors">FAQ</a>
+                </li>
+                <li>
+                  <button onClick={() => handleGetStarted()} className="text-white/45 hover:text-white/75 text-[13px] transition-colors text-left w-full">Subscribe</button>
+                </li>
+                <li>
+                  <Link to="/user/login" className="text-white/45 hover:text-white/75 text-[13px] transition-colors">Sign In</Link>
+                </li>
+                <li>
+                  <Link to="/seller/login" className="text-white/45 hover:text-white/75 text-[13px] transition-colors">Seller Portal</Link>
+                </li>
               </ul>
             </div>
 

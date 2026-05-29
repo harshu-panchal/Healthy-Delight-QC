@@ -199,6 +199,7 @@ export const getDashboardStats = asyncHandler(async (req: Request, res: Response
         orderId: order.orderNumber,
         customerName: order.customerName,
         status: order.status, // Map backend status to frontend status if needed
+        deliveryBoyStatus: order.deliveryBoyStatus,
         address: `${order.deliveryAddress?.address || ''}, ${order.deliveryAddress?.city || ''}`, // Simplify address
         totalAmount: order.total,
         estimatedDeliveryTime: order.estimatedDeliveryDate ? new Date(order.estimatedDeliveryDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A'
@@ -252,7 +253,7 @@ export const getHelpSupport = asyncHandler(async (_req: Request, res: Response) 
         },
         {
             question: 'What if I have a complaint or issue?',
-            answer: 'You can contact our support team through the Help & Support section or call our helpline at +91 9111111111.',
+            answer: 'You can contact our support team through the Help & Support section or call our helpline at +91 9740234199.',
         },
         {
             question: 'What are the delivery timings?',
@@ -261,7 +262,7 @@ export const getHelpSupport = asyncHandler(async (_req: Request, res: Response) 
     ];
 
     const contactOptions = [
-        { label: 'Call Support', value: '+91 9111111111', icon: 'phone' },
+        { label: 'Call Support', value: '+91 9740234199', icon: 'phone' },
         { label: 'Email Support', value: 'support@healthydelight.com', icon: 'email' },
     ];
 

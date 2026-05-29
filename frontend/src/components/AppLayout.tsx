@@ -194,11 +194,13 @@ export default function AppLayout({ children }: AppLayoutProps) {
   const isCartPage = location.pathname === '/cart';
   const isSubscriptionPage = location.pathname === '/subscription';
   const isWishlistPage = location.pathname === '/wishlist';
+  const isPrivacyPolicyPage = location.pathname === '/privacy-policy';
+  const isTermsOfServicePage = location.pathname === '/terms-of-service';
   
   // Header visibility logic
   const showHeader = isSearchPage && !isCheckoutPage && !isCartPage;
   const showSearchBar = isSearchPage && !isCheckoutPage && !isCartPage;
-  const showFooter = !isCheckoutPage && !isProductDetailPage;
+  const showFooter = !isCheckoutPage && !isProductDetailPage && !isPrivacyPolicyPage && !isTermsOfServicePage;
   
   // Determine dynamic search placeholder
   const getSearchPlaceholder = () => {

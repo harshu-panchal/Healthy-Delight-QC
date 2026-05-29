@@ -13,6 +13,7 @@ import {
   updateOrderNotes,
   getSellerLocationsForOrder,
   refreshDeliveryOtp,
+  getOrderTracking,
 } from "../../services/api/customerOrderService";
 
 const formatOrderFriendly = (orderNumber?: string, orderId?: string) => {
@@ -270,9 +271,8 @@ const SectionItem = ({
   <motion.button
     onClick={onClick}
     disabled={!onClick}
-    className={`w-full flex items-center gap-4.5 p-6 transition-all text-left border-b border-dashed border-slate-100 last:border-0 ${
-      onClick ? "hover:bg-slate-50/80 cursor-pointer active:bg-slate-100/50" : "cursor-default"
-    }`}
+    className={`w-full flex items-center gap-4.5 p-6 transition-all text-left border-b border-dashed border-slate-100 last:border-0 ${onClick ? "hover:bg-slate-50/80 cursor-pointer active:bg-slate-100/50" : "cursor-default"
+      }`}
     whileTap={onClick ? { scale: 0.993 } : undefined}>
     {Icon && (
       <div className="w-10 h-10 rounded-xl bg-[#0a193b]/5 flex items-center justify-center flex-shrink-0 border border-[#0a193b]/5 shadow-sm shadow-[#0a193b]/2">
@@ -358,6 +358,17 @@ export default function OrderDetail() {
         setOrderStatus(fetchedOrder.status);
       }
       setLoading(false);
+
+      // Fetch initial tracking records for dynamic ETA
+      try {
+        const trackingResponse = await getOrderTracking(id);
+        if (trackingResponse?.success && trackingResponse?.data?.tracking?.eta) {
+          console.log("📍 Initialized estimatedTime from DB tracking ETA:", trackingResponse.data.tracking.eta);
+          setEstimatedTime(trackingResponse.data.tracking.eta);
+        }
+      } catch (err) {
+        console.warn("Could not fetch initial order tracking ETA:", err);
+      }
     };
 
     loadOrder();
@@ -439,6 +450,14 @@ export default function OrderDetail() {
     }
   }, [orderStatus]);
 
+  // Synchronize dynamic ETA updates from WebSocket tracking hook
+  useEffect(() => {
+    if (eta && eta > 0) {
+      console.log("📍 Syncing estimatedTime to live WebSocket tracking ETA:", eta);
+      setEstimatedTime(eta);
+    }
+  }, [eta]);
+
   // Check if order is eligible for customer cancellation
   const isCancellable = () => {
     if (!order) return false;
@@ -451,7 +470,7 @@ export default function OrderDetail() {
         const startHour = isMorning ? 6 : 18; // Morning: 6 AM, Evening: 6 PM
         const deliveryStartTime = new Date(order.scheduledDate);
         deliveryStartTime.setHours(startHour, 0, 0, 0);
-        
+
         const oneHourBefore = new Date(deliveryStartTime.getTime() - 60 * 60 * 1000);
         const now = new Date();
         return now < oneHourBefore;
@@ -576,6 +595,8 @@ export default function OrderDetail() {
     );
   }
 
+  const displayETA = routeInfo ? Math.ceil(routeInfo.durationValue / 60) : (eta || estimatedTime);
+
   const statusConfig: Record<
     string,
     { title: string; subtitle: string; themeColor: string; textColor: string; bgColor: string; glowColor: string; badgeIcon: string }
@@ -591,7 +612,7 @@ export default function OrderDetail() {
     },
     Accepted: {
       title: "Preparing your order",
-      subtitle: `Arriving in ${estimatedTime} mins`,
+      subtitle: `Arriving in ${displayETA} mins`,
       themeColor: "#10b981",
       textColor: "text-emerald-600",
       bgColor: "bg-emerald-50",
@@ -600,7 +621,7 @@ export default function OrderDetail() {
     },
     "On the way": {
       title: "Order picked up",
-      subtitle: `Arriving in ${estimatedTime} mins`,
+      subtitle: `Arriving in ${displayETA} mins`,
       themeColor: "#3b82f6",
       textColor: "text-blue-600",
       bgColor: "bg-blue-50",
@@ -654,7 +675,7 @@ export default function OrderDetail() {
     },
     "Out for Delivery": {
       title: "Out for delivery",
-      subtitle: `Arriving in ${estimatedTime} mins`,
+      subtitle: `Arriving in ${displayETA} mins`,
       themeColor: "#10b981",
       textColor: "text-emerald-600",
       bgColor: "bg-emerald-50",
@@ -664,6 +685,15 @@ export default function OrderDetail() {
     Cancelled: {
       title: "Order cancelled",
       subtitle: "This order has been cancelled",
+      themeColor: "#ef4444",
+      textColor: "text-red-600",
+      bgColor: "bg-red-50",
+      glowColor: "shadow-red-500/20",
+      badgeIcon: "✕",
+    },
+    Rejected: {
+      title: "Order cancelled",
+      subtitle: "Sorry! Seller has rejected this order. We sincerely apologize for the inconvenience.",
       themeColor: "#ef4444",
       textColor: "text-red-600",
       bgColor: "bg-red-50",
@@ -730,7 +760,10 @@ export default function OrderDetail() {
 
       {/* Premium Signature Dark Header */}
       <motion.div
-        className="bg-gradient-to-br from-[#0a193b] via-[#11254f] to-[#0a193b] text-white sticky top-0 z-40 shadow-lg shadow-[#0a193b]/10 border-b border-white/5"
+        className={`text-white sticky top-0 z-40 shadow-lg border-b border-white/5 transition-all duration-300 ${orderStatus === 'Cancelled' || orderStatus === 'Rejected'
+            ? 'bg-gradient-to-br from-red-700 via-rose-800 to-red-700 shadow-red-900/10'
+            : 'bg-gradient-to-br from-[#0a193b] via-[#11254f] to-[#0a193b] shadow-[#0a193b]/10'
+          }`}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}>
         {/* Navigation bar */}
@@ -794,7 +827,7 @@ export default function OrderDetail() {
 
       {/* Map Section */}
       {!showConfirmation &&
-        !["Delivered", "Cancelled", "Returned"].includes(order?.status) && (
+        !["Delivered", "Cancelled", "Returned", "Rejected"].includes(orderStatus) && (
           <GoogleMapsTracking
             sellerLocations={sellerLocations.map((s) => ({
               lat: s.latitude,
@@ -816,9 +849,7 @@ export default function OrderDetail() {
             showRoute={
               isConnected &&
               !!deliveryLocation &&
-              order?.status !== "Delivered" &&
-              order?.status !== "Cancelled" &&
-              order?.status !== "Returned"
+              !["Delivered", "Cancelled", "Returned", "Rejected"].includes(orderStatus)
             }
             routeOrigin={deliveryLocation || undefined}
             routeDestination={{
@@ -872,7 +903,7 @@ export default function OrderDetail() {
             profileImage: order?.deliveryPartner?.profileImage,
             vehicleNumber: order?.deliveryPartner?.vehicleNumber,
           }}
-          eta={routeInfo ? Math.ceil(routeInfo.durationValue / 60) : eta}
+          eta={displayETA}
           distance={routeInfo ? routeInfo.distanceValue : distance}
           isTracking={isConnected && !!deliveryLocation}
           deliveryOtp={order?.deliveryOtp}
@@ -889,7 +920,7 @@ export default function OrderDetail() {
       {/* Scrollable Content */}
       <div className="px-4 py-4 space-y-4 pb-24 max-w-lg mx-auto">
         {/* Delivery Partner Assignment - Only show if no partner assigned yet */}
-        {!order?.deliveryPartner && (
+        {!order?.deliveryPartner && !["Cancelled", "Rejected"].includes(orderStatus) && (
           <motion.div
             className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm shadow-slate-100/50 flex items-center gap-4 relative overflow-hidden"
             initial={{ opacity: 0, y: 20 }}
@@ -913,39 +944,43 @@ export default function OrderDetail() {
         )}
 
         {/* Delivery Partner Safety */}
-        <motion.button
-          onClick={() => window.open("/safety", "_blank")}
-          className="w-full bg-white border border-slate-100 rounded-2xl p-5 shadow-sm shadow-slate-100/50 flex items-center gap-4 relative overflow-hidden text-left cursor-pointer"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
-          whileTap={{ scale: 0.99 }}>
-          <div className="absolute top-0 left-0 w-1.5 h-full bg-emerald-500" />
-          <div className="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center flex-shrink-0 shadow-sm border border-emerald-100">
-            <ShieldIcon className="w-6 h-6 text-emerald-600" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="font-bold text-slate-800 text-sm tracking-tight leading-snug">
-              Delivery Partner Safety
-            </p>
-            <p className="text-xs text-slate-400 font-medium mt-0.5 leading-normal">
-              100% vaccinated partners practicing contactless, clean delivery.
-            </p>
-          </div>
-          <ChevronRightIcon className="w-4 h-4 text-slate-400" />
-        </motion.button>
+        {!["Cancelled", "Rejected"].includes(orderStatus) && (
+          <motion.button
+            onClick={() => window.open("/safety", "_blank")}
+            className="w-full bg-white border border-slate-100 rounded-2xl p-5 shadow-sm shadow-slate-100/50 flex items-center gap-4 relative overflow-hidden text-left cursor-pointer"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6 }}
+            whileTap={{ scale: 0.99 }}>
+            <div className="absolute top-0 left-0 w-1.5 h-full bg-emerald-500" />
+            <div className="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center flex-shrink-0 shadow-sm border border-emerald-100">
+              <ShieldIcon className="w-6 h-6 text-emerald-600" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="font-bold text-slate-800 text-sm tracking-tight leading-snug">
+                Delivery Partner Safety
+              </p>
+              <p className="text-xs text-slate-400 font-medium mt-0.5 leading-normal">
+                100% vaccinated partners practicing contactless, clean delivery.
+              </p>
+            </div>
+            <ChevronRightIcon className="w-4 h-4 text-slate-400" />
+          </motion.button>
+        )}
 
         {/* Delivery Details Banner */}
-        <motion.div
-          className="bg-gradient-to-r from-amber-50/60 to-orange-50/60 border border-amber-100 rounded-2xl p-4 flex items-center justify-center gap-2 shadow-sm shadow-amber-500/2"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.65 }}>
-          <span className="text-sm">✨</span>
-          <p className="text-[#0a193b] text-[11px] font-bold tracking-wider uppercase">
-            All your delivery details in one place
-          </p>
-        </motion.div>
+        {!["Cancelled", "Rejected"].includes(orderStatus) && (
+          <motion.div
+            className="bg-gradient-to-r from-amber-50/60 to-orange-50/60 border border-amber-100 rounded-2xl p-4 flex items-center justify-center gap-2 shadow-sm shadow-amber-500/2"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.65 }}>
+            <span className="text-sm">✨</span>
+            <p className="text-[#0a193b] text-[11px] font-bold tracking-wider uppercase">
+              All your delivery details in one place
+            </p>
+          </motion.div>
+        )}
 
         {/* Contact & Address Section */}
         <motion.div
@@ -973,7 +1008,7 @@ export default function OrderDetail() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.75 }}>
-          
+
           {/* Store Info header */}
           <div className="flex items-center gap-4.5 p-6 border-b border-dashed border-slate-100 bg-slate-50/30">
             <div className="flex-1 min-w-0">
@@ -1042,7 +1077,7 @@ export default function OrderDetail() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.85 }}>
-          
+
           {isCancellable() && (
             <Button
               onClick={() => setShowCancelModal(true)}

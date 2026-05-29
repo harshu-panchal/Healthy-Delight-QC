@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getOrderDetails, updateOrderStatus, getSellerLocationsForOrder, sendDeliveryOtp, verifyDeliveryOtp, updateDeliveryLocation, checkSellerProximity, confirmSellerPickup, checkCustomerProximity, acceptAssignment, rejectAssignment } from '../../../services/api/delivery/deliveryService';
 import deliveryIcon from '@assets/deliveryboy/deliveryIcon.png';
@@ -132,6 +133,26 @@ export default function DeliveryOrderDetail() {
     const [customerProximity, setCustomerProximity] = useState<{ withinRange: boolean; distance: number } | null>(null);
     const [getOtpEnabled, setGetOtpEnabled] = useState(false);
 
+    const [customAlert, setCustomAlert] = useState<{
+        show: boolean;
+        message: string;
+        type: 'success' | 'error' | 'info';
+        onClose?: () => void;
+    }>({
+        show: false,
+        message: '',
+        type: 'info'
+    });
+
+    const showAlert = (message: string, type: 'success' | 'error' | 'info' = 'info', onClose?: () => void) => {
+        setCustomAlert({
+            show: true,
+            message,
+            type,
+            onClose
+        });
+    };
+
     const fetchOrder = async () => {
         if (!id) return;
         try {
@@ -182,9 +203,9 @@ export default function DeliveryOrderDetail() {
             setOtpSending(true);
             await sendDeliveryOtp(id);
             setShowOtpInput(true);
-            alert('OTP sent to customer successfully');
+            showAlert('OTP sent to customer successfully', 'success');
         } catch (err: any) {
-            alert(err.message || 'Failed to send OTP');
+            showAlert(err.message || 'Failed to send OTP', 'error');
         } finally {
             setOtpSending(false);
         }
@@ -192,7 +213,7 @@ export default function DeliveryOrderDetail() {
 
     const handleVerifyOtp = async () => {
         if (!id || !otpValue) {
-            alert('Please enter OTP');
+            showAlert('Please enter OTP', 'info');
             return;
         }
 
@@ -210,12 +231,12 @@ export default function DeliveryOrderDetail() {
         try {
             setOtpVerifying(true);
             const result = await verifyDeliveryOtp(id!, otpValue);
-            alert(result.message || 'OTP verified successfully. Order marked as delivered.');
+            showAlert(result.message || 'OTP verified successfully. Order marked as delivered.', 'success');
             await fetchOrder(); // Refresh order data
             setShowOtpInput(false);
             setOtpValue('');
         } catch (err: any) {
-            alert(err.message || 'Failed to verify OTP');
+            showAlert(err.message || 'Failed to verify OTP', 'error');
         } finally {
             setOtpVerifying(false);
             setShowCodConfirmation(false);
@@ -225,17 +246,17 @@ export default function DeliveryOrderDetail() {
     // Handle seller pickup confirmation
     const handleSellerPickup = async (sellerId: string) => {
         if (!id || !deliveryBoyLocation) {
-            alert('Location not available');
+            showAlert('Location not available', 'error');
             return;
         }
 
         try {
             setPickupLoading(prev => ({ ...prev, [sellerId]: true }));
             const result = await confirmSellerPickup(id, sellerId, deliveryBoyLocation.lat, deliveryBoyLocation.lng);
-            alert(result.message || 'Pickup confirmed successfully');
+            showAlert(result.message || 'Pickup confirmed successfully', 'success');
             await fetchOrder(); // Refresh order data
         } catch (err: any) {
-            alert(err.message || 'Failed to confirm pickup');
+            showAlert(err.message || 'Failed to confirm pickup', 'error');
         } finally {
             setPickupLoading(prev => ({ ...prev, [sellerId]: false }));
         }
@@ -247,10 +268,10 @@ export default function DeliveryOrderDetail() {
         try {
             setLoading(true);
             await acceptAssignment(id);
-            alert('Assignment accepted successfully');
+            showAlert('Assignment accepted successfully', 'success');
             await fetchOrder(); // Refresh order data
         } catch (err: any) {
-            alert(err.message || 'Failed to accept assignment');
+            showAlert(err.message || 'Failed to accept assignment', 'error');
         } finally {
             setLoading(false);
         }
@@ -262,10 +283,9 @@ export default function DeliveryOrderDetail() {
         try {
             setLoading(true);
             await rejectAssignment(id);
-            alert('Assignment rejected');
-            navigate('/delivery'); // Go back to dashboard after rejection
+            showAlert('Assignment rejected', 'success', () => navigate('/delivery'));
         } catch (err: any) {
-            alert(err.message || 'Failed to reject assignment');
+            showAlert(err.message || 'Failed to reject assignment', 'error');
         } finally {
             setLoading(false);
         }
@@ -449,7 +469,7 @@ export default function DeliveryOrderDetail() {
                 socket.on('order-cancelled', (data: any) => {
                     if (isMounted && data.orderId === id) {
                         console.log('Order cancelled event received:', data);
-                        alert(data.message || 'Order has been cancelled');
+                        showAlert(data.message || 'Order has been cancelled', 'info');
                         // Update order status locally
                         setOrder((prev: any) => prev ? { ...prev, status: 'Cancelled' } : null);
                         // Optional: Navigate back or force re-fetch
@@ -603,7 +623,7 @@ export default function DeliveryOrderDetail() {
                 await fetchOrder();
             }
         } catch (err: any) {
-            alert(err.message || "Failed to update status");
+            showAlert(err.message || "Failed to update status", 'error');
             setLoading(false);
         }
     };
@@ -1110,6 +1130,70 @@ export default function DeliveryOrderDetail() {
                     </div>
                 </div>
             )}
+
+            {/* Custom Alert Modal Overlay */}
+            <AnimatePresence>
+                {customAlert.show && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                            className="w-full max-w-sm overflow-hidden bg-white/95 backdrop-blur-md border border-neutral-200/50 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] flex flex-col p-6 items-center text-center relative"
+                        >
+                            {/* Icon Header */}
+                            <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 ${
+                                customAlert.type === 'success' 
+                                    ? 'bg-emerald-50 text-emerald-600' 
+                                    : customAlert.type === 'error'
+                                        ? 'bg-red-50 text-red-600'
+                                        : 'bg-primary-50 text-primary'
+                            }`}>
+                                {customAlert.type === 'success' ? (
+                                    <svg className="w-8 h-8" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                                    </svg>
+                                ) : customAlert.type === 'error' ? (
+                                    <svg className="w-8 h-8" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                ) : (
+                                    <svg className="w-8 h-8" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 111.084 1.085l-.041.02H11.25zM12 22.5c5.799 0 10.5-4.701 10.5-10.5S17.799 1.5 12 1.5 1.5 6.201 1.5 12 6.201 22.5 12 22.5z" />
+                                    </svg>
+                                )}
+                            </div>
+
+                            {/* Message */}
+                            <h3 className="text-xl font-bold text-neutral-900 mb-2">
+                                {customAlert.type === 'success' ? 'Success!' : customAlert.type === 'error' ? 'Oops!' : 'Notice'}
+                            </h3>
+                            <p className="text-sm font-semibold text-neutral-600 mb-6 leading-relaxed whitespace-pre-line">
+                                {customAlert.message}
+                            </p>
+
+                            {/* Action Button */}
+                            <button
+                                onClick={() => {
+                                    setCustomAlert(prev => ({ ...prev, show: false }));
+                                    if (customAlert.onClose) {
+                                        customAlert.onClose();
+                                    }
+                                }}
+                                className={`w-full py-3.5 rounded-2xl font-bold text-base transition-all active:scale-[0.98] ${
+                                    customAlert.type === 'success'
+                                        ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-600/10'
+                                        : customAlert.type === 'error'
+                                            ? 'bg-red-600 hover:bg-red-700 text-white shadow-md shadow-red-600/10'
+                                            : 'bg-primary hover:bg-primary-600 text-white shadow-md shadow-primary-500/10'
+                                }`}
+                            >
+                                OK
+                            </button>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }

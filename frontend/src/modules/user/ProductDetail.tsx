@@ -526,11 +526,11 @@ export default function ProductDetail() {
           </div>
 
           {/* Product Description */}
-          {product.description && (
+          {(product.description || product.smallDescription) && (
             <div className="space-y-3 pt-4 border-t border-neutral-100">
               <h3 className="text-xs font-bold text-[#0a193b] uppercase tracking-widest">Description</h3>
               <p className="text-sm text-neutral-600 leading-relaxed font-medium">
-                {product.description}
+                {product.description || product.smallDescription}
               </p>
             </div>
           )}
@@ -542,7 +542,7 @@ export default function ProductDetail() {
               {[
                 { label: "Unit", value: product.pack },
                 { label: "Shelf Life", value: "Refer to package" },
-                { label: "Country of Origin", value: product.madeIn || "India" },
+                { label: "Country of Origin", value: product.madeIn },
                 { label: "FSSAI License", value: product.fssaiLicNo },
                 { label: "Manufacturer", value: product.manufacturer },
                 { label: "Category", value: category?.name },

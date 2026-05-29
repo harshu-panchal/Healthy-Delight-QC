@@ -807,49 +807,7 @@ export default function SellerAddProduct({ isAdmin = false }: SellerAddProductPr
                     <option value="Yes">Yes</option>
                   </select>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-neutral-700 mb-2">
-                    Make Product Popular?
-                  </label>
-                  <select
-                    name="popular"
-                    value={formData.popular}
-                    onChange={handleChange}
-                    className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary bg-white">
-                    <option value="No">No</option>
-                    <option value="Yes">Yes</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-neutral-700 mb-2">
-                    Insert to Deal of the day?
-                  </label>
-                  <select
-                    name="dealOfDay"
-                    value={formData.dealOfDay}
-                    onChange={handleChange}
-                    className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary bg-white">
-                    <option value="No">No</option>
-                    <option value="Yes">Yes</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-neutral-700 mb-2">
-                    Select Brand
-                  </label>
-                  <select
-                    name="brand"
-                    value={formData.brand}
-                    onChange={handleChange}
-                    className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary bg-white">
-                    <option value="">Select Brand</option>
-                    {brands.map((brand) => (
-                      <option key={brand._id} value={brand._id}>
-                        {brand.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+
 
               </div>
               <div>
@@ -868,66 +826,7 @@ export default function SellerAddProduct({ isAdmin = false }: SellerAddProductPr
             </div>
           </div>
 
-          {/* SEO Content Section */}
-          <div className="bg-white rounded-lg shadow-sm border border-neutral-200 overflow-hidden">
-            <div className="bg-neutral-50 border-b border-neutral-200 px-4 sm:px-6 py-3">
-              <h2 className="text-lg font-semibold text-neutral-800">SEO Content</h2>
-            </div>
-            <div className="p-4 sm:p-6 space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-neutral-700 mb-2">
-                  Title
-                </label>
-                <input
-                  type="text"
-                  name="seoTitle"
-                  value={formData.seoTitle}
-                  onChange={handleChange}
-                  placeholder="Enter SEO Title"
-                  className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-neutral-700 mb-2">
-                  SEO Keywords
-                </label>
-                <input
-                  type="text"
-                  name="seoKeywords"
-                  value={formData.seoKeywords}
-                  onChange={handleChange}
-                  placeholder="Enter SEO Keywords"
-                  className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-neutral-700 mb-2">
-                  SEO Image Alt Text
-                </label>
-                <input
-                  type="text"
-                  name="seoImageAlt"
-                  value={formData.seoImageAlt}
-                  onChange={handleChange}
-                  placeholder="Enter SEO Image Alt Text"
-                  className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-neutral-700 mb-2">
-                  SEO Description
-                </label>
-                <textarea
-                  name="seoDescription"
-                  value={formData.seoDescription}
-                  onChange={handleChange}
-                  placeholder="Enter SEO Description"
-                  rows={4}
-                  className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary resize-none"
-                />
-              </div>
-            </div>
-          </div>
+
 
           {/* Add Variation Section */}
           <div className="bg-white rounded-lg shadow-sm border border-neutral-200 overflow-hidden">
@@ -1243,32 +1142,7 @@ export default function SellerAddProduct({ isAdmin = false }: SellerAddProductPr
                     ))}
                   </select>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-neutral-700 mb-2">
-                    is Returnable?
-                  </label>
-                  <select
-                    name="isReturnable"
-                    value={formData.isReturnable}
-                    onChange={handleChange}
-                    className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary bg-white">
-                    <option value="No">No</option>
-                    <option value="Yes">Yes</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-neutral-700 mb-2">
-                    Max Return Days
-                  </label>
-                  <input
-                    type="number"
-                    name="maxReturnDays"
-                    value={formData.maxReturnDays}
-                    onChange={handleChange}
-                    placeholder="Enter Max Return Days"
-                    className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
-                  />
-                </div>
+
                 <div>
                   <label className="block text-sm font-medium text-neutral-700 mb-2">
                     FSSAI Lic. No.
@@ -1282,22 +1156,7 @@ export default function SellerAddProduct({ isAdmin = false }: SellerAddProductPr
                     className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
                   />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-neutral-700 mb-2">
-                    Total allowed quantity
-                  </label>
-                  <input
-                    type="number"
-                    name="totalAllowedQuantity"
-                    value={formData.totalAllowedQuantity}
-                    onChange={handleChange}
-                    placeholder="Enter Total allowed quantit"
-                    className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
-                  />
-                  <p className="text-xs text-neutral-500 mt-1">
-                    Keep blank if no such limit
-                  </p>
-                </div>
+
               </div>
             </div>
           </div>
@@ -1521,7 +1380,7 @@ export default function SellerAddProduct({ isAdmin = false }: SellerAddProductPr
                 ? "bg-neutral-100 text-neutral-400 border border-neutral-200 cursor-not-allowed"
                 : "bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white"
                 }`}>
-              {uploading ? "Uploading Images..." : "Add Product"}
+              {uploading ? "Uploading Images..." : id ? "Save Changes" : "Add Product"}
             </button>
           </div>
         </form>

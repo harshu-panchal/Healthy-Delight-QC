@@ -257,11 +257,15 @@ export default function SellerSignUp() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#fdfcfb] via-[#e2d1f9] to-[#fef6e4] flex flex-col items-center justify-center px-4 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-[#0a193b] via-[#0d214f] to-[#050e24] flex flex-col items-center justify-center px-4 py-8 relative overflow-hidden font-outfit">
+      {/* Decorative Glow Elements */}
+      <div className="absolute top-[-20%] left-[-20%] w-[60%] h-[60%] rounded-full bg-[#c5a059]/10 blur-[120px] pointer-events-none animate-pulse" style={{ animationDuration: '6s' }} />
+      <div className="absolute bottom-[-20%] right-[-20%] w-[60%] h-[60%] rounded-full bg-[#c5a059]/10 blur-[120px] pointer-events-none animate-pulse" style={{ animationDuration: '8s' }} />
+
       {/* Back Button */}
       <button
         onClick={() => navigate(-1)}
-        className="absolute top-4 left-4 z-10 w-10 h-10 rounded-full bg-white shadow-md flex items-center justify-center hover:bg-neutral-50 transition-colors"
+        className="absolute top-4 left-4 z-10 w-10 h-10 rounded-full bg-white/10 text-white border border-white/10 flex items-center justify-center hover:bg-white/20 transition-all active:scale-95 shadow-lg backdrop-blur-sm"
         aria-label="Back">
         <svg
           width="20"
@@ -272,7 +276,7 @@ export default function SellerSignUp() {
           <path
             d="M15 18L9 12L15 6"
             stroke="currentColor"
-            strokeWidth="2"
+            strokeWidth="2.5"
             strokeLinecap="round"
             strokeLinejoin="round"
           />
@@ -280,25 +284,20 @@ export default function SellerSignUp() {
       </button>
 
       {/* Sign Up Card */}
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden">
+      <div className="w-full max-w-md bg-[#f8f6f2] rounded-[32px] shadow-2xl overflow-hidden border border-white/20 relative z-10">
         {/* Header Section */}
-        <div
-          className="px-6 py-4 text-center border-b"
-          style={{
-            backgroundColor: "#ffffff", // clean card top
-            borderColor: "#e5d4ff",    // soft lavender border
-          }}>
-          <h1 className="text-2xl font-bold text-[#4b3f72] mb-1">
+        <div className="px-6 py-6 text-center border-b border-[#0a193b]/10 bg-white">
+          <h1 className="text-xl sm:text-2xl font-black text-[#0a193b] mb-1">
             Seller Sign Up
           </h1>
-          <p className="text-[#7a5ea5] text-sm">
+          <p className="text-[#c5a059] text-xs sm:text-sm font-bold tracking-widest uppercase">
             Create your seller account
           </p>
         </div>
 
         {/* Sign Up Form */}
         <div
-          className="p-6 space-y-4 seller-signup-form"
+          className="p-6 space-y-5 seller-signup-form"
           style={{
             maxHeight: "70vh",
             overflowY: "auto",
@@ -311,13 +310,11 @@ export default function SellerSignUp() {
             }
           `}</style>
           {!showOTP ? (
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-5">
               {/* Required Fields Section */}
-              <div className="space-y-4">
-
-
+              <div className="space-y-5">
                 <div>
-                  <label className="block text-sm font-medium text-neutral-700 mb-2">
+                  <label className="block text-xs font-bold text-[#0a193b]/70 uppercase tracking-widest mb-2">
                     Seller Name <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -327,17 +324,17 @@ export default function SellerSignUp() {
                     onChange={handleInputChange}
                     placeholder="Enter your name"
                     required
-                    className="w-full px-3 py-2.5 text-sm border border-neutral-300 rounded-lg focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary-200"
+                    className="w-full px-4 py-2.5 text-sm font-semibold text-neutral-800 bg-white border border-neutral-200 rounded-2xl focus:outline-none focus:border-[#c5a059] focus:ring-2 focus:ring-[#c5a059]/20 shadow-sm transition-all"
                     disabled={loading}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-neutral-700 mb-2">
+                  <label className="block text-xs font-bold text-[#0a193b]/70 uppercase tracking-widest mb-2">
                     Mobile Number <span className="text-red-500">*</span>
                   </label>
-                  <div className="flex items-center bg-white border border-neutral-300 rounded-lg overflow-hidden focus-within:border-primary focus-within:ring-2 focus-within:ring-primary-200">
-                    <div className="px-3 py-2.5 text-sm font-medium text-neutral-600 border-r border-neutral-300 bg-neutral-50">
+                  <div className="flex items-center bg-white border border-neutral-200 rounded-2xl overflow-hidden focus-within:border-[#c5a059] focus-within:ring-2 focus-within:ring-[#c5a059]/20 h-12 shadow-sm transition-all">
+                    <div className="px-4 py-2 text-sm font-bold text-neutral-600 border-r border-neutral-100 bg-[#f8f6f2] h-full flex items-center">
                       +91
                     </div>
                     <input
@@ -348,14 +345,14 @@ export default function SellerSignUp() {
                       placeholder="Enter mobile number"
                       required
                       maxLength={10}
-                      className="flex-1 px-3 py-2.5 text-sm placeholder:text-neutral-400 focus:outline-none"
+                      className="flex-1 px-4 py-2 text-sm font-semibold text-neutral-800 placeholder:text-neutral-400 focus:outline-none bg-white"
                       disabled={loading}
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-neutral-700 mb-2">
+                  <label className="block text-xs font-bold text-[#0a193b]/70 uppercase tracking-widest mb-2">
                     Email <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -365,13 +362,13 @@ export default function SellerSignUp() {
                     onChange={handleInputChange}
                     placeholder="Enter email address"
                     required
-                    className="w-full px-3 py-2.5 text-sm border border-neutral-300 rounded-lg focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary-200"
+                    className="w-full px-4 py-2.5 text-sm font-semibold text-neutral-800 bg-white border border-neutral-200 rounded-2xl focus:outline-none focus:border-[#c5a059] focus:ring-2 focus:ring-[#c5a059]/20 shadow-sm transition-all"
                     disabled={loading}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-neutral-700 mb-2">
+                  <label className="block text-xs font-bold text-[#0a193b]/70 uppercase tracking-widest mb-2">
                     Store Name <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -381,13 +378,13 @@ export default function SellerSignUp() {
                     onChange={handleInputChange}
                     placeholder="Enter store name"
                     required
-                    className="w-full px-3 py-2.5 text-sm border border-neutral-300 rounded-lg focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary-200"
+                    className="w-full px-4 py-2.5 text-sm font-semibold text-neutral-800 bg-white border border-neutral-200 rounded-2xl focus:outline-none focus:border-[#c5a059] focus:ring-2 focus:ring-[#c5a059]/20 shadow-sm transition-all"
                     disabled={loading}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-neutral-700 mb-2">
+                  <label className="block text-xs font-bold text-[#0a193b]/70 uppercase tracking-widest mb-2">
                     Store Location <span className="text-red-500">*</span>
                   </label>
                   <div className="flex gap-2 items-start">
@@ -442,7 +439,7 @@ export default function SellerSignUp() {
                                         city = component.long_name;
                                       }
                                     }
-
+ 
                                     setFormData((prev) => ({
                                       ...prev,
                                       latitude: lat.toString(),
@@ -487,7 +484,7 @@ export default function SellerSignUp() {
                           );
                         }
                       }}
-                      className="p-2.5 bg-cream text-primary rounded-lg border border-primary-200 hover:bg-cream transition-colors"
+                      className="p-2.5 bg-white text-[#c5a059] rounded-2xl border border-neutral-200 hover:bg-neutral-50 transition-all flex items-center justify-center shadow-sm"
                       title="Use Current Location">
                       <svg
                         width="20"
@@ -507,9 +504,9 @@ export default function SellerSignUp() {
 
                   {formData.latitude && formData.longitude ? (
                     <div className="mt-4 animate-fadeIn">
-                      <p className="text-sm font-medium text-neutral-700 mb-2">
+                      <p className="text-sm font-semibold text-neutral-700 mb-2">
                         Exact Location{" "}
-                        <span className="text-primary text-xs font-normal">
+                        <span className="text-[#c5a059] text-xs font-semibold">
                           (Move the map to place the pin on your store's
                           entrance)
                         </span>
@@ -558,13 +555,13 @@ export default function SellerSignUp() {
                           }
                         }}
                       />
-                      <p className="mt-1 text-xs text-neutral-500 text-center">
+                      <p className="mt-1 text-xs text-neutral-500 text-center font-semibold">
                         Selected Coordinates: {formData.latitude},{" "}
                         {formData.longitude}
                       </p>
                     </div>
                   ) : (
-                    <div className="mt-2 text-xs text-neutral-500 bg-neutral-50 p-2 rounded border border-neutral-100 text-center">
+                    <div className="mt-2 text-xs text-neutral-500 bg-neutral-50 p-3 rounded-2xl border border-neutral-100 text-center font-medium">
                       Search for a location or use the location button to view
                       the map and set exact coordinates.
                     </div>
@@ -572,10 +569,10 @@ export default function SellerSignUp() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-neutral-700 mb-2">
+                  <label className="block text-xs font-bold text-[#0a193b]/70 uppercase tracking-widest mb-2">
                     Delivery/Service Radius (KM){" "}
                     <span className="text-red-500">*</span>
-                    <span className="text-xs font-normal text-neutral-500 ml-1">
+                    <span className="text-xs font-semibold text-neutral-400 normal-case tracking-normal ml-1">
                       (Distance you can deliver)
                     </span>
                   </label>
@@ -594,17 +591,17 @@ export default function SellerSignUp() {
                     min="0.1"
                     max="100"
                     step="0.1"
-                    className="w-full px-3 py-2.5 text-sm border border-neutral-300 rounded-lg focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary-200"
+                    className="w-full px-4 py-2.5 text-sm font-semibold text-neutral-800 bg-white border border-neutral-200 rounded-2xl focus:outline-none focus:border-[#c5a059] focus:ring-2 focus:ring-[#c5a059]/20 shadow-sm transition-all"
                     disabled={loading}
                   />
-                  <p className="mt-1 text-xs text-neutral-500">
+                  <p className="mt-1 text-xs text-neutral-400 font-semibold">
                     Only customers within this radius can see and order your
                     products
                   </p>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-neutral-700 mb-2">
+                  <label className="block text-xs font-bold text-[#0a193b]/70 uppercase tracking-widest mb-2">
                     City <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -614,7 +611,7 @@ export default function SellerSignUp() {
                     onChange={handleInputChange}
                     placeholder="Enter city"
                     required
-                    className="w-full px-3 py-2.5 text-sm border border-neutral-300 rounded-lg focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary-200"
+                    className="w-full px-4 py-2.5 text-sm font-semibold text-neutral-800 bg-white border border-neutral-200 rounded-2xl focus:outline-none focus:border-[#c5a059] focus:ring-2 focus:ring-[#c5a059]/20 shadow-sm transition-all"
                     disabled={loading}
                   />
                 </div>
@@ -633,12 +630,10 @@ export default function SellerSignUp() {
               </div>
 
               {/* Optional Fields Section */}
-              <div className="space-y-4 pt-4">
-
-
+              <div className="space-y-5 pt-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-neutral-700 mb-2">
+                    <label className="block text-xs font-bold text-[#0a193b]/70 uppercase tracking-widest mb-2">
                       PAN Card <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -651,13 +646,13 @@ export default function SellerSignUp() {
                       maxLength={10}
                       pattern="[A-Za-z]{5}[0-9]{4}[A-Za-z]{1}"
                       title="Enforce standard PAN format: 5 letters, 4 numbers, 1 letter (e.g. ABCDE1234F)"
-                      className="w-full px-3 py-2.5 text-sm border border-neutral-300 rounded-lg focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary-200"
+                      className="w-full px-4 py-2.5 text-sm font-semibold text-neutral-800 bg-white border border-neutral-200 rounded-2xl focus:outline-none focus:border-[#c5a059] focus:ring-2 focus:ring-[#c5a059]/20 shadow-sm transition-all"
                       disabled={loading}
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-neutral-700 mb-2">
+                    <label className="block text-xs font-bold text-[#0a193b]/70 uppercase tracking-widest mb-2">
                       Name as per GST/PAN <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -669,13 +664,13 @@ export default function SellerSignUp() {
                       required
                       pattern="[A-Za-z\s]+"
                       title="Name can only contain alphabetical letters and spaces"
-                      className="w-full px-3 py-2.5 text-sm border border-neutral-300 rounded-lg focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary-200"
+                      className="w-full px-4 py-2.5 text-sm font-semibold text-neutral-800 bg-white border border-neutral-200 rounded-2xl focus:outline-none focus:border-[#c5a059] focus:ring-2 focus:ring-[#c5a059]/20 shadow-sm transition-all"
                       disabled={loading}
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-neutral-700 mb-2">
+                    <label className="block text-xs font-bold text-[#0a193b]/70 uppercase tracking-widest mb-2">
                       GSTIN <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -689,13 +684,13 @@ export default function SellerSignUp() {
                       minLength={15}
                       pattern="[0-9]{2}[A-Za-z]{5}[0-9]{4}[A-Za-z]{1}[1-9A-Za-z]{1}Z[0-9A-Za-z]{1}"
                       title="Enforce 15-character alphanumeric GSTIN format (e.g. 27AAAAA1111A1Z1)"
-                      className="w-full px-3 py-2.5 text-sm border border-neutral-300 rounded-lg focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary-200"
+                      className="w-full px-4 py-2.5 text-sm font-semibold text-neutral-800 bg-white border border-neutral-200 rounded-2xl focus:outline-none focus:border-[#c5a059] focus:ring-2 focus:ring-[#c5a059]/20 shadow-sm transition-all"
                       disabled={loading}
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-neutral-700 mb-2">
+                    <label className="block text-xs font-bold text-[#0a193b]/70 uppercase tracking-widest mb-2">
                       IFSC Code <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -706,7 +701,7 @@ export default function SellerSignUp() {
                       placeholder="IFSC Code"
                       required
                       maxLength={11}
-                      className="w-full px-3 py-2.5 text-sm border border-neutral-300 rounded-lg focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary-200"
+                      className="w-full px-4 py-2.5 text-sm font-semibold text-neutral-800 bg-white border border-neutral-200 rounded-2xl focus:outline-none focus:border-[#c5a059] focus:ring-2 focus:ring-[#c5a059]/20 shadow-sm transition-all"
                       disabled={loading}
                     />
                   </div>
@@ -714,7 +709,7 @@ export default function SellerSignUp() {
               </div>
 
               {error && (
-                <div className="text-sm text-red-600 bg-red-50 p-2 rounded text-center">
+                <div className="text-sm font-semibold text-red-600 bg-red-50 p-3 rounded-2xl border border-red-100 text-center">
                   {error}
                 </div>
               )}
@@ -722,22 +717,22 @@ export default function SellerSignUp() {
               <button
                 type="submit"
                 disabled={loading}
-                className={`w-full py-2.5 rounded-lg font-semibold text-sm transition-colors ${
+                className={`w-full h-12 rounded-2xl font-bold text-sm transition-all flex items-center justify-center ${
                   !loading
-                    ? "bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white shadow-md active:scale-95"
-                    : "bg-neutral-100 text-neutral-400 border border-neutral-200 cursor-not-allowed"
+                    ? "bg-[#0a193b] text-white hover:bg-[#0a193b]/90 shadow-lg shadow-primary-500/10 active:scale-[0.98]"
+                    : "bg-neutral-200 text-neutral-400 cursor-not-allowed"
                 }`}>
                 {loading ? "Creating Account..." : "Sign Up"}
               </button>
 
               {/* Login Link */}
-              <div className="text-center pt-2 border-t border-neutral-200">
-                <p className="text-sm text-neutral-600">
+              <div className="text-center pt-4 border-t border-neutral-200/50">
+                <p className="text-xs sm:text-sm font-semibold text-neutral-500">
                   Already have a seller account?{" "}
                   <button
                     type="button"
                     onClick={() => navigate("/seller/login")}
-                    className="text-primary hover:text-primary-dark font-semibold">
+                    className="text-[#c5a059] hover:text-[#b48d48] font-bold transition-colors">
                     Login
                   </button>
                 </p>
@@ -745,12 +740,12 @@ export default function SellerSignUp() {
             </form>
           ) : (
             /* OTP Verification Form */
-            <div className="space-y-4">
+            <div className="space-y-5">
               <div className="text-center">
-                <p className="text-sm text-neutral-600 mb-2">
+                <p className="text-sm font-medium text-neutral-500 mb-1">
                   Enter the 4-digit OTP sent to
                 </p>
-                <p className="text-sm font-semibold text-neutral-800">
+                <p className="text-base font-bold text-[#0a193b]">
                   +91 {formData.mobile}
                 </p>
               </div>
@@ -758,19 +753,19 @@ export default function SellerSignUp() {
               <OTPInput onComplete={handleOTPComplete} disabled={loading} />
 
               {error && (
-                <div className="text-sm text-red-600 bg-red-50 p-2 rounded text-center">
+                <div className="text-sm font-semibold text-red-600 bg-red-50 p-3 rounded-2xl border border-red-100 text-center">
                   {error}
                 </div>
               )}
 
-              <div className="flex gap-2">
+              <div className="flex gap-3">
                 <button
                   onClick={() => {
                     setShowOTP(false);
                     setError("");
                   }}
                   disabled={loading}
-                  className="flex-1 py-2.5 rounded-lg font-semibold text-sm bg-neutral-100 text-neutral-700 hover:bg-neutral-200 transition-colors border border-neutral-300">
+                  className="flex-1 h-12 rounded-2xl font-bold text-xs bg-white text-neutral-700 border border-neutral-200 hover:bg-neutral-50 transition-all active:scale-[0.98]">
                   Back
                 </button>
                 <button
@@ -788,8 +783,8 @@ export default function SellerSignUp() {
                     }
                   }}
                   disabled={loading}
-                  className="flex-1 py-2.5 rounded-lg font-semibold text-sm bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white transition-all active:scale-95 shadow-sm">
-                  {loading ? "Sending..." : "Resend OTP"}
+                  className="flex-1 h-12 rounded-2xl font-bold text-xs bg-white text-[#c5a059] border-2 border-[#c5a059] hover:bg-[#c5a059] hover:text-white transition-all active:scale-[0.98] shadow-sm">
+                  {loading ? "Resending..." : "Resend OTP"}
                 </button>
               </div>
             </div>
@@ -798,18 +793,18 @@ export default function SellerSignUp() {
       </div>
 
       {/* Footer Text */}
-      <p className="mt-6 text-xs text-neutral-500 text-center max-w-md">
+      <p className="mt-6 text-xs font-semibold text-neutral-400 text-center max-w-md relative z-10">
         By continuing, you agree to Healthy Delight's{" "}
         <span
           onClick={() => navigate('/seller/terms-of-service')}
-          className="text-primary hover:text-primary-dark hover:underline font-semibold cursor-pointer"
+          className="text-[#c5a059] hover:text-[#b48d48] font-bold cursor-pointer transition-colors"
         >
           Terms of Service
         </span>{" "}
         and{" "}
         <span
           onClick={() => navigate('/seller/privacy-policy')}
-          className="text-primary hover:text-primary-dark hover:underline font-semibold cursor-pointer"
+          className="text-[#c5a059] hover:text-[#b48d48] font-bold cursor-pointer transition-colors"
         >
           Privacy Policy
         </span>

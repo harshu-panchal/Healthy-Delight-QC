@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { OrderNotificationData } from '../../../services/api/delivery/deliveryOrderNotificationService';
+import deliveryAlertMp3 from '../../../../assets/sound/delivery-alert.mp3';
 
 interface OrderNotificationCardProps {
     notification: OrderNotificationData;
@@ -79,7 +80,7 @@ export default function OrderNotificationCard({
     // Initialize audio with better error handling
     useEffect(() => {
         isStoppedRef.current = false;
-        const audio = new Audio('/assets/sound/delivery-alert.mp3');
+        const audio = new Audio(deliveryAlertMp3);
         audio.loop = true;
         audio.volume = 0.8;
 
@@ -267,7 +268,7 @@ export default function OrderNotificationCard({
                 paddingTop: 'env(safe-area-inset-top, 0)',
             }}
         >
-            <div className="bg-white rounded-xl shadow-2xl border-2 border-teal-500 p-4 sm:p-6">
+            <div className="bg-white rounded-xl shadow-2xl border-2 border-primary p-4 sm:p-6">
                 {/* Header with pulsing indicator */}
                 <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
                     <div className="flex items-center gap-3">
@@ -320,7 +321,7 @@ export default function OrderNotificationCard({
                     <div>
                         <p className="text-xs sm:text-sm text-neutral-600">Order Amount</p>
                         <div className="flex items-center gap-2">
-                            <p className="text-lg sm:text-xl font-bold text-teal-600">₹{notification.total.toFixed(2)}</p>
+                            <p className="text-lg sm:text-xl font-bold text-primary">₹{notification.total.toFixed(2)}</p>
                             {(notification.paymentMethod === 'Online' || notification.paymentMethod === 'Wallet') && (
                                 <span className="px-2 py-0.5 bg-green-100 text-green-800 rounded-md text-xs font-bold uppercase tracking-wider">
                                     Paid
@@ -343,7 +344,7 @@ export default function OrderNotificationCard({
                     <button
                         onClick={handleAccept}
                         disabled={isProcessing}
-                        className="flex-1 px-4 py-3 sm:py-3 bg-teal-600 active:bg-teal-700 text-white font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
+                        className="flex-1 px-4 py-3 sm:py-3 bg-primary active:bg-primary-600 text-white font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
                         style={{ WebkitTapHighlightColor: 'transparent' }}
                     >
                         {isProcessing ? 'Processing...' : 'Accept'}

@@ -315,48 +315,47 @@ export default function DeliverySignUp() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-sky-50 via-emerald-50 to-amber-50 flex flex-col items-center justify-center px-3 py-4 sm:px-4 sm:py-8 relative">
+    <div className="min-h-screen bg-gradient-to-br from-[#0a193b] via-[#0d214f] to-[#050e24] flex flex-col items-center justify-center px-4 py-8 relative overflow-hidden font-outfit">
+      {/* Decorative Glow Elements */}
+      <div className="absolute top-[-20%] left-[-20%] w-[60%] h-[60%] rounded-full bg-[#c5a059]/10 blur-[120px] pointer-events-none animate-pulse" style={{ animationDuration: '6s' }} />
+      <div className="absolute bottom-[-20%] right-[-20%] w-[60%] h-[60%] rounded-full bg-[#c5a059]/10 blur-[120px] pointer-events-none animate-pulse" style={{ animationDuration: '8s' }} />
+
       {/* Back Button */}
       <button
         onClick={() => navigate(-1)}
-        className="absolute top-3 left-3 sm:top-4 sm:left-4 z-10 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/90 shadow-md flex items-center justify-center hover:bg-neutral-50 transition-colors"
+        className="absolute top-4 left-4 z-10 w-10 h-10 rounded-full bg-white/10 text-white border border-white/10 flex items-center justify-center hover:bg-white/20 transition-all active:scale-95 shadow-lg backdrop-blur-sm"
         aria-label="Back">
         <svg
-          width="18"
-          height="18"
+          width="20"
+          height="20"
           viewBox="0 0 24 24"
           fill="none"
           xmlns="http://www.w3.org/2000/svg">
           <path
             d="M15 18L9 12L15 6"
             stroke="currentColor"
-            strokeWidth="2"
+            strokeWidth="2.5"
             strokeLinecap="round"
             strokeLinejoin="round"
-            style={{ color: "black" }}
           />
         </svg>
       </button>
 
       {/* Sign Up Card */}
-      <div className="w-full max-w-sm sm:max-w-md bg-white rounded-3xl shadow-xl overflow-hidden border border-emerald-50">
+      <div className="w-full max-w-sm sm:max-w-md bg-[#f8f6f2] rounded-[32px] shadow-2xl overflow-hidden border border-white/20 relative z-10">
         {/* Header Section */}
-        <div
-          className="px-5 py-3 sm:px-6 sm:py-4 text-center border-b bg-gradient-to-r from-emerald-50 via-white to-emerald-50"
-          style={{
-            borderColor: "#a7f3d0",
-          }}>
-          <h1 className="text-xl sm:text-2xl font-bold text-emerald-900 mb-1">
+        <div className="px-6 py-6 text-center border-b border-[#0a193b]/10 bg-white">
+          <h1 className="text-xl sm:text-2xl font-black text-[#0a193b] mb-1">
             Delivery Sign Up
           </h1>
-          <p className="text-emerald-700 text-xs sm:text-sm">
+          <p className="text-[#c5a059] text-xs sm:text-sm font-bold tracking-widest uppercase">
             Create your delivery partner account
           </p>
         </div>
 
         {/* Sign Up Form */}
         <div
-          className="px-5 py-5 sm:p-6 space-y-4 delivery-signup-form"
+          className="p-6 space-y-5 delivery-signup-form"
           style={{
             maxHeight: "70vh",
             overflowY: "auto",
@@ -369,15 +368,15 @@ export default function DeliverySignUp() {
             }
           `}</style>
           {!showOTP ? (
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-5">
               {/* Personal Information */}
-              <div className="space-y-4">
-                <h3 className="text-sm font-semibold text-neutral-700 border-b pb-2">
+              <div className="space-y-5">
+                <h3 className="text-sm font-bold text-[#0a193b]/80 border-b pb-2 uppercase tracking-wider">
                   Personal Information
                 </h3>
 
                 <div>
-                  <label className="block text-sm font-medium text-neutral-700 mb-2">
+                  <label className="block text-xs font-bold text-[#0a193b]/70 uppercase tracking-widest mb-2">
                     Name <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -387,17 +386,17 @@ export default function DeliverySignUp() {
                     onChange={handleInputChange}
                     placeholder="Enter your full name"
                     required
-                    className="w-full px-3 py-2.5 text-sm border border-neutral-300 rounded-lg focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-200"
+                    className="w-full px-4 py-2.5 text-sm font-semibold text-neutral-800 bg-white border border-neutral-200 rounded-2xl focus:outline-none focus:border-[#c5a059] focus:ring-2 focus:ring-[#c5a059]/20 shadow-sm transition-all"
                     disabled={loading}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-neutral-700 mb-2">
+                  <label className="block text-xs font-bold text-[#0a193b]/70 uppercase tracking-widest mb-2">
                     Mobile Number <span className="text-red-500">*</span>
                   </label>
-                  <div className="flex items-center bg-white border border-neutral-300 rounded-lg overflow-hidden focus-within:border-teal-500 focus-within:ring-2 focus-within:ring-teal-200">
-                    <div className="px-3 py-2.5 text-sm font-medium text-neutral-600 border-r border-neutral-300 bg-neutral-50">
+                  <div className="flex items-center bg-white border border-neutral-200 rounded-2xl overflow-hidden focus-within:border-[#c5a059] focus-within:ring-2 focus-within:ring-[#c5a059]/20 h-12 shadow-sm transition-all">
+                    <div className="px-4 py-2 text-sm font-bold text-neutral-600 border-r border-neutral-100 bg-[#f8f6f2] h-full flex items-center">
                       +91
                     </div>
                     <input
@@ -408,14 +407,14 @@ export default function DeliverySignUp() {
                       placeholder="Enter mobile number"
                       required
                       maxLength={10}
-                      className="flex-1 px-3 py-2.5 text-sm placeholder:text-neutral-400 focus:outline-none"
+                      className="flex-1 px-4 py-2 text-sm font-semibold text-neutral-800 placeholder:text-neutral-400 focus:outline-none bg-white"
                       disabled={loading}
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-neutral-700 mb-2">
+                  <label className="block text-xs font-bold text-[#0a193b]/70 uppercase tracking-widest mb-2">
                     Email <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -425,13 +424,13 @@ export default function DeliverySignUp() {
                     onChange={handleInputChange}
                     placeholder="Enter email address"
                     required
-                    className="w-full px-3 py-2.5 text-sm border border-neutral-300 rounded-lg focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-200"
+                    className="w-full px-4 py-2.5 text-sm font-semibold text-neutral-800 bg-white border border-neutral-200 rounded-2xl focus:outline-none focus:border-[#c5a059] focus:ring-2 focus:ring-[#c5a059]/20 shadow-sm transition-all"
                     disabled={loading}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-neutral-700 mb-2">
+                  <label className="block text-xs font-bold text-[#0a193b]/70 uppercase tracking-widest mb-2">
                     Date of Birth <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -441,17 +440,16 @@ export default function DeliverySignUp() {
                     onChange={handleInputChange}
                     max={maxDate}
                     required
-                    className="w-full px-3 py-2.5 text-sm border border-neutral-300 rounded-lg focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-200"
+                    className="w-full px-4 py-2.5 text-sm font-semibold text-neutral-800 bg-white border border-neutral-200 rounded-2xl focus:outline-none focus:border-[#c5a059] focus:ring-2 focus:ring-[#c5a059]/20 shadow-sm transition-all"
                     disabled={loading}
                   />
-                  <p className="text-xs text-neutral-500 mt-1">
+                  <p className="text-xs text-neutral-400 font-semibold mt-1">
                     * You must be above 18 years of age to apply
                   </p>
                 </div>
 
-
                 <div>
-                  <label className="block text-sm font-medium text-neutral-700 mb-2">
+                  <label className="block text-xs font-bold text-[#0a193b]/70 uppercase tracking-widest mb-2">
                     Address <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
@@ -462,17 +460,17 @@ export default function DeliverySignUp() {
                       onChange={handleInputChange}
                       placeholder="Enter your address"
                       required
-                      className="w-full pr-10 px-3 py-2.5 text-sm border border-neutral-300 rounded-lg focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-200"
+                      className="w-full pr-12 px-4 py-2.5 text-sm font-semibold text-neutral-800 bg-white border border-neutral-200 rounded-2xl focus:outline-none focus:border-[#c5a059] focus:ring-2 focus:ring-[#c5a059]/20 shadow-sm transition-all"
                       disabled={loading || isCityLoading}
                     />
                     <button
                       type="button"
                       onClick={fetchAddressFromLocation}
                       disabled={isCityLoading || loading}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-teal-600 hover:bg-teal-50 rounded-md transition-colors disabled:text-neutral-400"
+                      className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-[#c5a059] hover:bg-neutral-50 rounded-xl transition-colors disabled:text-neutral-400"
                       title="Fetch current location to auto fill address, city & pincode">
                       {isCityLoading ? (
-                        <div className="w-4 h-4 border-2 border-teal-600 border-t-transparent rounded-full animate-spin"></div>
+                        <div className="w-4 h-4 border-2 border-[#c5a059] border-t-transparent rounded-full animate-spin"></div>
                       ) : (
                         <svg
                           width="18"
@@ -480,7 +478,7 @@ export default function DeliverySignUp() {
                           viewBox="0 0 24 24"
                           fill="none"
                           stroke="currentColor"
-                          strokeWidth="2">
+                          strokeWidth="2.5">
                           <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
                           <circle cx="12" cy="10" r="3" />
                         </svg>
@@ -490,7 +488,7 @@ export default function DeliverySignUp() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-neutral-700 mb-2">
+                  <label className="block text-xs font-bold text-[#0a193b]/70 uppercase tracking-widest mb-2">
                     City <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -500,13 +498,13 @@ export default function DeliverySignUp() {
                     onChange={handleInputChange}
                     placeholder="Enter your city"
                     required
-                    className="w-full px-3 py-2.5 text-sm border border-neutral-300 rounded-lg focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-200"
+                    className="w-full px-4 py-2.5 text-sm font-semibold text-neutral-800 bg-white border border-neutral-200 rounded-2xl focus:outline-none focus:border-[#c5a059] focus:ring-2 focus:ring-[#c5a059]/20 shadow-sm transition-all"
                     disabled={loading}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-neutral-700 mb-2">
+                  <label className="block text-xs font-bold text-[#0a193b]/70 uppercase tracking-widest mb-2">
                     Pincode
                   </label>
                   <input
@@ -516,20 +514,20 @@ export default function DeliverySignUp() {
                     onChange={handleInputChange}
                     placeholder="Enter pincode"
                     maxLength={6}
-                    className="w-full px-3 py-2.5 text-sm border border-neutral-300 rounded-lg focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-200"
+                    className="w-full px-4 py-2.5 text-sm font-semibold text-neutral-800 bg-white border border-neutral-200 rounded-2xl focus:outline-none focus:border-[#c5a059] focus:ring-2 focus:ring-[#c5a059]/20 shadow-sm transition-all"
                     disabled={loading}
                   />
                 </div>
               </div>
 
               {/* Bank Information */}
-              <div className="space-y-4 pt-4 border-t">
-                <h3 className="text-sm font-semibold text-neutral-700 border-b pb-2">
+              <div className="space-y-5 pt-4 border-t border-neutral-200/50">
+                <h3 className="text-sm font-bold text-[#0a193b]/80 border-b pb-2 uppercase tracking-wider">
                   Bank Account Information (Optional)
                 </h3>
 
                 <div>
-                  <label className="block text-sm font-medium text-neutral-700 mb-2">
+                  <label className="block text-xs font-bold text-[#0a193b]/70 uppercase tracking-widest mb-2">
                     Account Name
                   </label>
                   <input
@@ -538,13 +536,13 @@ export default function DeliverySignUp() {
                     value={formData.accountName}
                     onChange={handleInputChange}
                     placeholder="Account holder name"
-                    className="w-full px-3 py-2.5 text-sm border border-neutral-300 rounded-lg focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-200"
+                    className="w-full px-4 py-2.5 text-sm font-semibold text-neutral-800 bg-white border border-neutral-200 rounded-2xl focus:outline-none focus:border-[#c5a059] focus:ring-2 focus:ring-[#c5a059]/20 shadow-sm transition-all"
                     disabled={loading}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-neutral-700 mb-2">
+                  <label className="block text-xs font-bold text-[#0a193b]/70 uppercase tracking-widest mb-2">
                     Bank Name
                   </label>
                   <input
@@ -553,13 +551,13 @@ export default function DeliverySignUp() {
                     value={formData.bankName}
                     onChange={handleInputChange}
                     placeholder="Bank name"
-                    className="w-full px-3 py-2.5 text-sm border border-neutral-300 rounded-lg focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-200"
+                    className="w-full px-4 py-2.5 text-sm font-semibold text-neutral-800 bg-white border border-neutral-200 rounded-2xl focus:outline-none focus:border-[#c5a059] focus:ring-2 focus:ring-[#c5a059]/20 shadow-sm transition-all"
                     disabled={loading}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-neutral-700 mb-2">
+                  <label className="block text-xs font-bold text-[#0a193b]/70 uppercase tracking-widest mb-2">
                     Account Number
                   </label>
                   <input
@@ -570,13 +568,13 @@ export default function DeliverySignUp() {
                     value={formData.accountNumber}
                     onChange={handleInputChange}
                     placeholder="Account number"
-                    className="w-full px-3 py-2.5 text-sm border border-neutral-300 rounded-lg focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-200"
+                    className="w-full px-4 py-2.5 text-sm font-semibold text-neutral-800 bg-white border border-neutral-200 rounded-2xl focus:outline-none focus:border-[#c5a059] focus:ring-2 focus:ring-[#c5a059]/20 shadow-sm transition-all"
                     disabled={loading}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-neutral-700 mb-2">
+                  <label className="block text-xs font-bold text-[#0a193b]/70 uppercase tracking-widest mb-2">
                     IFSC Code
                   </label>
                   <input
@@ -586,22 +584,20 @@ export default function DeliverySignUp() {
                     onChange={handleInputChange}
                     placeholder="IFSC code"
                     maxLength={11}
-                    className="w-full px-3 py-2.5 text-sm border border-neutral-300 rounded-lg focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-200"
+                    className="w-full px-4 py-2.5 text-sm font-semibold text-neutral-800 bg-white border border-neutral-200 rounded-2xl focus:outline-none focus:border-[#c5a059] focus:ring-2 focus:ring-[#c5a059]/20 shadow-sm transition-all"
                     disabled={loading}
                   />
                 </div>
-
-
               </div>
 
               {/* Documents Section */}
-              <div className="space-y-4 pt-4 border-t">
-                <h3 className="text-sm font-semibold text-neutral-700 border-b pb-2">
+              <div className="space-y-5 pt-4 border-t border-neutral-200/50">
+                <h3 className="text-sm font-bold text-[#0a193b]/80 border-b pb-2 uppercase tracking-wider">
                   Documents Required
                 </h3>
 
                 <div>
-                  <label className="block text-sm font-medium text-neutral-700 mb-2">
+                  <label className="block text-xs font-bold text-[#0a193b]/70 uppercase tracking-widest mb-2">
                     Driving License <span className="text-red-500">*</span>
                   </label>
                   <div className="space-y-2">
@@ -611,11 +607,11 @@ export default function DeliverySignUp() {
                       onChange={handleFileChange}
                       accept="image/*,.pdf"
                       required
-                      className="w-full px-3 py-2.5 text-sm border border-neutral-300 rounded-lg focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-200"
+                      className="w-full px-4 py-2.5 text-sm font-semibold text-neutral-800 bg-white border border-neutral-200 rounded-2xl focus:outline-none focus:border-[#c5a059] focus:ring-2 focus:ring-[#c5a059]/20 shadow-sm transition-all"
                       disabled={loading || uploadingDocs}
                     />
                     {drivingLicenseFile && (
-                      <p className="text-xs text-neutral-600">
+                      <p className="text-xs text-neutral-500 font-semibold">
                         {drivingLicenseFile.name}
                       </p>
                     )}
@@ -623,7 +619,7 @@ export default function DeliverySignUp() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-neutral-700 mb-2">
+                  <label className="block text-xs font-bold text-[#0a193b]/70 uppercase tracking-widest mb-2">
                     National Identity Card <span className="text-red-500">*</span>
                   </label>
                   <div className="space-y-2">
@@ -633,11 +629,11 @@ export default function DeliverySignUp() {
                       onChange={handleFileChange}
                       accept="image/*,.pdf"
                       required
-                      className="w-full px-3 py-2.5 text-sm border border-neutral-300 rounded-lg focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-200"
+                      className="w-full px-4 py-2.5 text-sm font-semibold text-neutral-800 bg-white border border-neutral-200 rounded-2xl focus:outline-none focus:border-[#c5a059] focus:ring-2 focus:ring-[#c5a059]/20 shadow-sm transition-all"
                       disabled={loading || uploadingDocs}
                     />
                     {nationalIdentityCardFile && (
-                      <p className="text-xs text-neutral-600">
+                      <p className="text-xs text-neutral-500 font-semibold">
                         {nationalIdentityCardFile.name}
                       </p>
                     )}
@@ -646,7 +642,7 @@ export default function DeliverySignUp() {
               </div>
 
               {error && (
-                <div className="text-sm text-red-600 bg-red-50 p-2 rounded text-center">
+                <div className="text-sm font-semibold text-red-600 bg-red-50 p-3 rounded-2xl border border-red-100 text-center">
                   {error}
                 </div>
               )}
@@ -654,10 +650,11 @@ export default function DeliverySignUp() {
               <button
                 type="submit"
                 disabled={loading || uploadingDocs}
-                className={`w-full py-2.5 rounded-lg font-semibold text-sm transition-colors ${!loading && !uploadingDocs
-                  ? "bg-white border-2 border-teal-600 text-teal-600 hover:bg-teal-600 hover:text-white shadow-md active:scale-95"
-                  : "bg-neutral-100 text-neutral-400 border border-neutral-200 cursor-not-allowed"
-                  }`}>
+                className={`w-full h-12 rounded-2xl font-bold text-sm transition-all flex items-center justify-center ${
+                  !loading && !uploadingDocs
+                    ? "bg-[#0a193b] text-white hover:bg-[#0a193b]/90 shadow-lg shadow-primary-500/10 active:scale-[0.98]"
+                    : "bg-neutral-200 text-neutral-400 cursor-not-allowed"
+                }`}>
                 {uploadingDocs
                   ? "Uploading Documents..."
                   : loading
@@ -666,13 +663,13 @@ export default function DeliverySignUp() {
               </button>
 
               {/* Login Link */}
-              <div className="text-center pt-2 border-t border-neutral-200">
-                <p className="text-sm text-neutral-600">
+              <div className="text-center pt-4 border-t border-neutral-200/50">
+                <p className="text-xs sm:text-sm font-semibold text-neutral-500">
                   Already have a delivery partner account?{" "}
                   <button
                     type="button"
                     onClick={() => navigate("/delivery/login")}
-                    className="text-teal-600 hover:text-teal-700 font-semibold">
+                    className="text-[#c5a059] hover:text-[#b48d48] font-bold transition-colors">
                     Login
                   </button>
                 </p>
@@ -680,12 +677,12 @@ export default function DeliverySignUp() {
             </form>
           ) : (
             /* OTP Verification Form */
-            <div className="space-y-4">
+            <div className="space-y-5">
               <div className="text-center">
-                <p className="text-sm text-neutral-600 mb-2">
+                <p className="text-sm font-medium text-neutral-500 mb-1">
                   Enter the 4-digit OTP sent via voice call to
                 </p>
-                <p className="text-sm font-semibold text-neutral-800">
+                <p className="text-base font-bold text-[#0a193b]">
                   +91 {formData.mobile}
                 </p>
               </div>
@@ -693,19 +690,19 @@ export default function DeliverySignUp() {
               <OTPInput onComplete={handleOTPComplete} disabled={loading} />
 
               {error && (
-                <div className="text-sm text-red-600 bg-red-50 p-2 rounded text-center">
+                <div className="text-sm font-semibold text-red-600 bg-red-50 p-3 rounded-2xl border border-red-100 text-center">
                   {error}
                 </div>
               )}
 
-              <div className="flex gap-2">
+              <div className="flex gap-3">
                 <button
                   onClick={() => {
                     setShowOTP(false);
                     setError("");
                   }}
                   disabled={loading}
-                  className="flex-1 py-2.5 rounded-lg font-semibold text-sm bg-neutral-100 text-neutral-700 hover:bg-neutral-200 transition-colors border border-neutral-300">
+                  className="flex-1 h-12 rounded-2xl font-bold text-xs bg-white text-neutral-700 border border-neutral-200 hover:bg-neutral-50 transition-all active:scale-[0.98]">
                   Back
                 </button>
                 <button
@@ -722,7 +719,7 @@ export default function DeliverySignUp() {
                     }
                   }}
                   disabled={loading}
-                  className="flex-1 py-2.5 rounded-lg font-semibold text-sm bg-white border border-teal-600 text-teal-600 hover:bg-teal-50 transition-colors">
+                  className="flex-1 h-12 rounded-2xl font-bold text-xs bg-white text-[#c5a059] border-2 border-[#c5a059] hover:bg-[#c5a059] hover:text-white transition-all active:scale-[0.98] shadow-sm">
                   {loading ? "Calling..." : "Resend OTP"}
                 </button>
               </div>
@@ -732,13 +729,13 @@ export default function DeliverySignUp() {
       </div>
 
       {/* Footer Text */}
-      <p className="mt-6 text-xs text-neutral-500 text-center max-w-md">
+      <p className="mt-6 text-xs font-semibold text-neutral-400 text-center max-w-md relative z-10">
         By continuing, you agree to Healthy Delight's{" "}
         <a
           href="/delivery/terms"
           target="_blank"
           rel="noopener noreferrer"
-          className="text-teal-600 hover:text-teal-700 font-semibold underline"
+          className="text-[#c5a059] hover:text-[#b48d48] font-bold transition-colors"
         >
           Terms of Service
         </a>{" "}
@@ -747,7 +744,7 @@ export default function DeliverySignUp() {
           href="/delivery/privacy"
           target="_blank"
           rel="noopener noreferrer"
-          className="text-teal-600 hover:text-teal-700 font-semibold underline"
+          className="text-[#c5a059] hover:text-[#b48d48] font-bold transition-colors"
         >
           Privacy Policy
         </a>

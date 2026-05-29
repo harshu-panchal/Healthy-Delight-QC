@@ -122,9 +122,13 @@ export default function DeliveryPendingOrders() {
                     <p className="text-neutral-500 text-xs">{order.customerPhone}</p>
                   </div>
                   <span
-                    className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(order.status)}`}
+                    className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      order.deliveryBoyStatus === 'Pending'
+                        ? 'bg-amber-100 text-amber-800'
+                        : getStatusColor(order.status)
+                    }`}
                   >
-                    {order.status}
+                    {order.deliveryBoyStatus === 'Pending' ? 'Assigned' : order.status}
                   </span>
                 </div>
                 <div className="border-t border-neutral-200 pt-3 mt-3">

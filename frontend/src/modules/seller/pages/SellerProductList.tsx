@@ -361,8 +361,10 @@ export default function SellerProductList() {
             <button
               onClick={() => {
                 const headers = [
-                  "Product Id",
-                  "Variation Id",
+                  "Friendly Product ID",
+                  "Full Product ID",
+                  "Friendly Variation ID",
+                  "Full Variation ID",
                   "Product Name",
                   "Seller Name",
                   "Brand Name",
@@ -373,10 +375,16 @@ export default function SellerProductList() {
                 ];
                 const csvContent = [
                   headers.join(","),
-                  ...filteredVariations.map((v) =>
-                    [
-                      v.productId,
-                      v.variationId,
+                  ...filteredVariations.map((v) => {
+                    const friendlyProdId = v.productId ? `PRD-${v.productId.slice(-6).toUpperCase()}` : "N/A";
+                    const friendlyVarId = v.variationId
+                      ? (v.variationId.endsWith("-default") ? "VAR-DEFAULT" : `VAR-${v.variationId.slice(-6).toUpperCase()}`)
+                      : "N/A";
+                    return [
+                      friendlyProdId,
+                      v.productId || "",
+                      friendlyVarId,
+                      v.variationId || "",
                       `"${v.productName}"`,
                       `"${v.sellerName}"`,
                       `"${v.brandName}"`,
@@ -384,8 +392,8 @@ export default function SellerProductList() {
                       v.price,
                       v.discPrice,
                       `"${v.variation}"`,
-                    ].join(",")
-                  ),
+                    ].join(",");
+                  }),
                 ].join("\n");
                 const blob = new Blob([csvContent], {
                   type: "text/csv;charset=utf-8;",
@@ -563,6 +571,16 @@ export default function SellerProductList() {
                   product && product.variations.length > 1;
                 const isExpanded = expandedProducts.has(variation.productId);
 
+                const friendlyProductId = variation.productId
+                  ? `PRD-${variation.productId.slice(-6).toUpperCase()}`
+                  : 'N/A';
+
+                const friendlyVariationId = variation.variationId
+                  ? (variation.variationId.endsWith('-default')
+                    ? 'VAR-DEFAULT'
+                    : `VAR-${variation.variationId.slice(-6).toUpperCase()}`)
+                  : 'N/A';
+
                 return (
                   <tr
                     key={`${variation.productId}-${variation.variationId}`}
@@ -590,14 +608,14 @@ export default function SellerProductList() {
                             </svg>
                           </button>
                         )}
-                        <span className="font-mono text-xs max-w-[80px] truncate block" title={variation.productId}>
-                          {variation.productId}
+                        <span className="font-mono text-xs font-semibold text-neutral-800" title={`Full Product ID: ${variation.productId}`}>
+                          {friendlyProductId}
                         </span>
                       </div>
                     </td>
                     <td className="p-4 align-middle border border-neutral-200">
-                      <span className="font-mono text-xs max-w-[80px] truncate block" title={variation.variationId}>
-                        {variation.variationId}
+                      <span className="font-mono text-xs font-semibold text-neutral-800" title={`Full Variation ID: ${variation.variationId}`}>
+                        {friendlyVariationId}
                       </span>
                     </td>
                     <td className="p-4 align-middle border border-neutral-200">

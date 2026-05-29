@@ -87,22 +87,26 @@ export default function DeliveryLogin() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-sky-50 via-emerald-50 to-amber-50 flex flex-col items-center justify-center px-3 py-4 sm:px-4 sm:py-8 relative">
+    <div className="min-h-screen bg-gradient-to-br from-[#0a193b] via-[#0d214f] to-[#050e24] flex flex-col items-center justify-center px-4 py-6 relative overflow-hidden font-outfit">
+      {/* Decorative Glow Elements */}
+      <div className="absolute top-[-20%] left-[-20%] w-[60%] h-[60%] rounded-full bg-[#c5a059]/10 blur-[120px] pointer-events-none animate-pulse" style={{ animationDuration: '6s' }} />
+      <div className="absolute bottom-[-20%] right-[-20%] w-[60%] h-[60%] rounded-full bg-[#c5a059]/10 blur-[120px] pointer-events-none animate-pulse" style={{ animationDuration: '8s' }} />
+
       {/* Back Button */}
       <button
         onClick={() => navigate(-1)}
-        className="absolute top-3 left-3 sm:top-4 sm:left-4 z-10 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/90 shadow-md flex items-center justify-center hover:bg-neutral-50 transition-colors"
+        className="absolute top-4 left-4 z-10 w-10 h-10 rounded-full bg-white/10 text-white border border-white/10 flex items-center justify-center hover:bg-white/20 transition-all active:scale-95 shadow-lg backdrop-blur-sm"
         aria-label="Back">
         <svg
-          width="18"
-          height="18"
+          width="20"
+          height="20"
           viewBox="0 0 24 24"
           fill="none"
           xmlns="http://www.w3.org/2000/svg">
           <path
             d="M15 18L9 12L15 6"
             stroke="currentColor"
-            strokeWidth="2"
+            strokeWidth="2.5"
             strokeLinecap="round"
             strokeLinejoin="round"
           />
@@ -110,39 +114,35 @@ export default function DeliveryLogin() {
       </button>
 
       {/* Login Card */}
-      <div className="w-full max-w-sm sm:max-w-md bg-white rounded-3xl shadow-xl overflow-hidden border border-emerald-50">
+      <div className="w-full max-w-sm sm:max-w-md bg-[#f8f6f2] rounded-[32px] shadow-2xl overflow-hidden border border-white/20 relative z-10">
         {/* Header Section */}
-        <div
-          className="px-5 py-3 sm:px-6 sm:py-4 text-center border-b bg-gradient-to-r from-emerald-50 via-white to-emerald-50"
-          style={{
-            borderColor: "#a7f3d0",
-          }}>
-          <div className="py-2">
+        <div className="px-6 py-6 sm:px-8 sm:py-8 text-center border-b border-[#0a193b]/10 bg-white">
+          <div className="py-2 mb-2">
             <img
               src="/assets/logo.png"
               alt="Healthy Delight"
-              className="h-16 sm:h-20 w-auto mx-auto object-contain"
+              className="h-16 sm:h-20 w-auto mx-auto object-contain transition-transform hover:scale-105"
             />
           </div>
-          <h1 className="text-xl sm:text-2xl font-bold text-emerald-900 mb-1">
-            Delivery Login
+          <h1 className="text-xl sm:text-2xl font-black text-[#0a193b] mb-1">
+            Delivery Portal
           </h1>
-          <p className="text-emerald-700 text-xs sm:text-sm">
+          <p className="text-[#c5a059] text-xs sm:text-sm font-bold tracking-widest uppercase">
             Access your delivery dashboard
           </p>
         </div>
 
         {/* Login Form */}
-        <div className="px-5 py-5 sm:p-6 space-y-4">
+        <div className="px-6 py-6 sm:p-8 space-y-5">
           {!showOTP ? (
             /* Mobile Login Form */
-            <div className="space-y-4">
+            <div className="space-y-5">
               <div>
-                <label className="block text-sm font-medium text-neutral-700 mb-2">
+                <label className="block text-xs font-bold text-[#0a193b]/70 uppercase tracking-widest mb-2">
                   Mobile Number
                 </label>
-                <div className="flex items-center bg-white border border-neutral-300 rounded-xl overflow-hidden focus-within:border-teal-500 focus-within:ring-2 focus-within:ring-teal-200 transition-all">
-                  <div className="px-3 py-2 text-xs sm:text-sm font-medium text-neutral-600 border-r border-neutral-300 bg-neutral-50">
+                <div className="flex items-center bg-white border border-neutral-200 rounded-2xl overflow-hidden focus-within:border-[#c5a059] focus-within:ring-2 focus-within:ring-[#c5a059]/20 transition-all h-12 shadow-sm">
+                  <div className="px-4 py-2 text-sm font-bold text-neutral-600 border-r border-neutral-100 bg-[#f8f6f2] h-full flex items-center">
                     +91
                   </div>
                   <input
@@ -154,7 +154,7 @@ export default function DeliveryLogin() {
                       )
                     }
                     placeholder="Enter mobile number"
-                    className="flex-1 px-3 py-2 text-sm placeholder:text-neutral-400 focus:outline-none"
+                    className="flex-1 px-4 py-2 text-sm font-semibold text-neutral-800 placeholder:text-neutral-400 focus:outline-none bg-white"
                     maxLength={10}
                     disabled={loading}
                   />
@@ -162,12 +162,12 @@ export default function DeliveryLogin() {
               </div>
 
               {error && (
-                <div className="text-sm text-red-600 bg-red-50 p-2 rounded border border-red-100 flex flex-col gap-2">
+                <div className="text-sm font-semibold text-red-600 bg-red-50 p-3 rounded-2xl border border-red-100 flex flex-col gap-2">
                   <span>{error}</span>
                   {isNotRegistered && (
                     <button
                       onClick={() => navigate("/delivery/signup")}
-                      className="text-xs font-bold text-white bg-red-500 hover:bg-red-600 py-1.5 px-3 rounded self-start transition-colors">
+                      className="text-xs font-black text-white bg-red-500 hover:bg-red-600 py-1.5 px-3 rounded-xl self-start transition-colors">
                       Register Now
                     </button>
                   )}
@@ -177,21 +177,22 @@ export default function DeliveryLogin() {
               <button
                 onClick={handleMobileLogin}
                 disabled={mobileNumber.length !== 10 || loading}
-                className={`w-full py-2.5 rounded-xl font-semibold text-sm transition-colors ${mobileNumber.length === 10 && !loading
-                  ? "bg-teal-600 text-white hover:bg-teal-700 shadow-md"
-                  : "bg-neutral-300 text-neutral-500 cursor-not-allowed"
-                  }`}>
-                {loading ? "Sending..." : "Continue"}
+                className={`w-full h-12 rounded-2xl font-bold text-sm transition-all flex items-center justify-center ${
+                  mobileNumber.length === 10 && !loading
+                    ? "bg-[#0a193b] text-white hover:bg-[#0a193b]/90 shadow-lg shadow-primary-500/10 active:scale-[0.98]"
+                    : "bg-neutral-200 text-neutral-400 cursor-not-allowed"
+                }`}>
+                {loading ? "Sending OTP..." : "Continue"}
               </button>
             </div>
           ) : (
             /* OTP Verification Form */
-            <div className="space-y-4">
+            <div className="space-y-5">
               <div className="text-center">
-                <p className="text-sm text-neutral-600 mb-2">
+                <p className="text-sm font-medium text-neutral-500 mb-1">
                   Enter the 4-digit OTP sent to
                 </p>
-                <p className="text-sm font-semibold text-neutral-800">
+                <p className="text-base font-bold text-[#0a193b]">
                   +91 {mobileNumber}
                 </p>
               </div>
@@ -199,45 +200,44 @@ export default function DeliveryLogin() {
               <OTPInput onComplete={handleOTPComplete} disabled={loading} />
 
               {error && (
-                <div className="text-sm text-red-600 bg-red-50 p-2 rounded text-center">
+                <div className="text-sm font-semibold text-red-600 bg-red-50 p-3 rounded-2xl border border-red-100 text-center">
                   {error}
                 </div>
               )}
 
-              <div className="flex gap-2">
+              <div className="flex gap-3">
                 <button
                   onClick={() => {
                     setShowOTP(false);
                     setError("");
                   }}
                   disabled={loading}
-                  className="flex-1 py-2.5 rounded-lg font-semibold text-sm bg-neutral-100 text-neutral-700 hover:bg-neutral-200 transition-colors border border-neutral-300">
+                  className="flex-1 h-12 rounded-2xl font-bold text-xs bg-white text-neutral-700 border border-neutral-200 hover:bg-neutral-50 transition-all active:scale-[0.98]">
                   Change Number
                 </button>
                 <button
                   onClick={handleMobileLogin}
                   disabled={loading}
-                  className="flex-1 py-2.5 rounded-lg font-semibold text-sm bg-teal-600 text-white hover:bg-teal-700 transition-colors">
-                  {loading ? "Verifying..." : "Resend OTP"}
+                  className="flex-1 h-12 rounded-2xl font-bold text-xs bg-white text-[#c5a059] border-2 border-[#c5a059] hover:bg-[#c5a059] hover:text-white transition-all active:scale-[0.98] shadow-sm">
+                  {loading ? "Resending..." : "Resend OTP"}
                 </button>
               </div>
             </div>
           )}
 
           {/* Sign Up Link */}
-          <div className="text-center pt-4 border-t border-neutral-200 mt-2">
-            <p className="text-xs sm:text-sm text-neutral-600">
+          <div className="text-center pt-4 border-t border-neutral-200/50 mt-2">
+            <p className="text-xs sm:text-sm font-semibold text-neutral-500">
               Don't have a delivery partner account?{" "}
               <button
                 onClick={() => navigate("/delivery/signup")}
-                className="text-teal-600 hover:text-teal-700 font-semibold">
+                className="text-[#c5a059] hover:text-[#b48d48] font-bold transition-colors">
                 Sign Up
               </button>
             </p>
           </div>
         </div>
       </div>
-
     </div>
   );
 }

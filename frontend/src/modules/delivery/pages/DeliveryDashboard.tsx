@@ -305,12 +305,15 @@ export default function DeliveryDashboard() {
                       <p className="text-neutral-600 text-xs mt-1">{order.customerName}</p>
                     </div>
                     <span
-                      className={`px-2 py-1 rounded-full text-xs font-medium ${order.status === 'Ready for pickup'
-                        ? 'bg-yellow-100 text-yellow-700'
-                        : 'bg-blue-100 text-blue-700'
-                        }`}
+                      className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        order.deliveryBoyStatus === 'Pending'
+                          ? 'bg-amber-100 text-amber-800'
+                          : order.status === 'Ready for pickup'
+                            ? 'bg-yellow-100 text-yellow-700'
+                            : 'bg-blue-100 text-blue-700'
+                      }`}
                     >
-                      {order.status}
+                      {order.deliveryBoyStatus === 'Pending' ? 'Assigned' : order.status}
                     </span>
                   </div>
                   <p className="text-neutral-600 text-xs mb-2">{order.address}</p>
