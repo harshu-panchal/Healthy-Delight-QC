@@ -779,14 +779,14 @@ export default function SellerOrderDetail() {
               </div>
               <div className="text-sm text-neutral-600 space-y-1">
                 <div>
-                  <span className="font-medium">Phone:</span> 8956656429
+                  <span className="font-medium">Phone:</span> +91 - 9740234199
                 </div>
                 <div>
-                  <span className="font-medium">Email:</span> info@healthydelight.com
+                  <span className="font-medium">Email:</span> support@healthydelight.com
                 </div>
                 <div>
                   <span className="font-medium">Website:</span>{" "}
-                  https://healthydelight.com
+                  https://healthydelightdairys.com/
                 </div>
               </div>
             </div>

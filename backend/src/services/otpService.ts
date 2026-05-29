@@ -212,14 +212,79 @@ function isSpecialBypass(mobile: string): boolean {
  * Check if mock mode should be used
  */
 function isMockMode(): boolean {
-  return process.env.USE_MOCK_OTP === 'true' || !SMS_INDIA_HUB_API_KEY || !SMS_INDIA_HUB_SENDER_ID;
+  if (process.env.USE_MOCK_OTP === 'true') {
+    return true;
+  }
+
+  const provider = process.env.OTP_PROVIDER || 'SMS_INDIA_HUB';
+  if (provider === '2FACTOR_SMS' || provider === '2FACTOR_VOICE') {
+    return !process.env.TWOFACTOR_API_KEY;
+  }
+
+  return !SMS_INDIA_HUB_API_KEY || !SMS_INDIA_HUB_SENDER_ID;
 }
 
 /**
  * Check if developer bypass OTP
  */
 function isDeveloperBypass(otp: string): boolean {
-  return (process.env.NODE_ENV !== 'production' || process.env.USE_MOCK_OTP === 'true') && otp === '999999';
+  return (
+    (process.env.NODE_ENV !== 'production' || process.env.USE_MOCK_OTP === 'true') &&
+    (otp === '999999' || otp === '9999' || otp === '1234')
+  );
+}
+
+/**
+ * Send OTP via the configured provider
+ */
+async function sendOtpToUser(mobile: string, otp: string): Promise<void> {
+  const provider = process.env.OTP_PROVIDER || 'SMS_INDIA_HUB';
+
+  try {
+    if (provider === '2FACTOR_SMS') {
+      const apiKey = process.env.TWOFACTOR_API_KEY;
+      if (!apiKey) {
+        throw new Error('2Factor API key is missing. Please check environment variables.');
+      }
+
+      // Normalize mobile to 10 digits or format with 91 country code
+      const cleanMobile = mobile.replace(/\D/g, '');
+      const targetMobile = cleanMobile.length === 10 ? '91' + cleanMobile : cleanMobile;
+
+      const templateName = process.env.TWOFACTOR_SMS_TEMPLATE || 'OTP_TEMPLATE';
+      const url = `https://2factor.in/API/V1/${apiKey.trim()}/SMS/${targetMobile}/${otp.trim()}/${templateName.trim()}`;
+
+      const response = await axios.get(url, { timeout: API_TIMEOUT });
+      if (response.data && response.data.Status !== 'Success') {
+        throw new Error(`2Factor SMS API Error: ${response.data.Details || 'Unknown error'}`);
+      }
+    } else if (provider === '2FACTOR_VOICE') {
+      const apiKey = process.env.TWOFACTOR_API_KEY;
+      if (!apiKey) {
+        throw new Error('2Factor API key is missing. Please check environment variables.');
+      }
+
+      const cleanMobile = mobile.replace(/\D/g, '');
+      const targetMobile = cleanMobile.length === 10 ? '91' + cleanMobile : cleanMobile;
+
+      const url = `https://2factor.in/API/V1/${apiKey.trim()}/VOICE/${targetMobile}/${otp.trim()}`;
+
+      const response = await axios.get(url, { timeout: API_TIMEOUT });
+      if (response.data && response.data.Status !== 'Success') {
+        throw new Error(`2Factor Voice API Error: ${response.data.Details || 'Unknown error'}`);
+      }
+    } else {
+      // Default to SMS India HUB
+      const message = buildOtpMessage(otp);
+      await sendSmsViaApi(mobile, message);
+    }
+  } catch (error: any) {
+    if (error.response && error.response.data) {
+      const details = typeof error.response.data === 'object' ? JSON.stringify(error.response.data) : error.response.data;
+      throw new Error(`2Factor API Error: ${details}`);
+    }
+    throw error;
+  }
 }
 
 // ==========================================
@@ -254,10 +319,9 @@ export async function sendSmsOtp(
       };
     }
 
-    // Real mode - Send via SMS India HUB
+    // Real mode - Send via configured provider
     await saveOtpToDb(mobile, otp, userType);
-    const message = buildOtpMessage(otp);
-    await sendSmsViaApi(mobile, message);
+    await sendOtpToUser(mobile, otp);
 
     return {
       success: true,
@@ -361,10 +425,9 @@ export async function sendOTP(
       };
     }
 
-    // Real mode - Send via SMS India HUB
+    // Real mode - Send via configured provider
     await saveOtpToDb(mobile, otp, userType);
-    const message = buildOtpMessage(otp);
-    await sendSmsViaApi(mobile, message);
+    await sendOtpToUser(mobile, otp);
 
     return {
       success: true,
