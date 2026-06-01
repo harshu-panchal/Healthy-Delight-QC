@@ -1,5 +1,5 @@
-import { useState, useCallback } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useState, useCallback, useEffect } from "react";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import Lottie from "lottie-react";
 import {
     sendOTP,
@@ -9,12 +9,23 @@ import { useAuth } from "../../context/AuthContext";
 import OTPInput from "../../components/OTPInput";
 
 // Assets
-import loginAnimationData from "../../../assets/login/login_screen_animation.json";
 import logoSrc from "../../../assets/logo.png";
 
 export default function Signup() {
     const navigate = useNavigate();
+    const location = useLocation();
     const { login } = useAuth();
+
+    const handleGoToLogin = () => {
+        navigate('/login', {
+            state: {
+                skipBranding: true,
+                showOTP: location.state?.fromShowOTP,
+                mobileNumber: location.state?.fromMobileNumber,
+                sessionId: location.state?.fromSessionId
+            }
+        });
+    };
 
     const [formData, setFormData] = useState({
         name: "",
@@ -26,6 +37,20 @@ export default function Signup() {
     const [sessionId, setSessionId] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
+    const [animationData, setAnimationData] = useState<any>(null);
+
+    // Load Lottie animation dynamically on mount
+    useEffect(() => {
+        let active = true;
+        import("../../../assets/login/login_screen_animation.json").then((module) => {
+            if (active) {
+                setAnimationData(module.default);
+            }
+        });
+        return () => {
+            active = false;
+        };
+    }, []);
 
     const handleContinue = async () => {
         if (formData.mobileNumber.length !== 10) return;
@@ -38,7 +63,7 @@ export default function Signup() {
         setError("");
 
         try {
-            const response = await sendOTP(formData.mobileNumber);
+            const response = await sendOTP(formData.mobileNumber, 'signup');
             if (response.sessionId) {
                 setSessionId(response.sessionId);
             }
@@ -66,7 +91,8 @@ export default function Signup() {
                 otpValue,
                 sessionId,
                 formData.name,
-                customerType
+                customerType,
+                'signup'
             );
             if (response.success && response.data) {
                 login(response.data.token, {
@@ -98,7 +124,14 @@ export default function Signup() {
         <div className="hd-login-root">
             {/* ── BACK BUTTON ── */}
             <button
-                onClick={() => navigate(-1)}
+                onClick={() => {
+                    if (showOTP) {
+                        setShowOTP(false);
+                        setError('');
+                    } else {
+                        handleGoToLogin();
+                    }
+                }}
                 className="hd-back-btn"
                 aria-label="Go back"
             >
@@ -110,15 +143,17 @@ export default function Signup() {
             {/* ── HERO PANEL ── */}
             <div className={`hd-top-panel ${showOTP ? 'hd-otp-focus' : ''}`}>
                 <div className="hd-hero-strip hd-hero-in">
-                    <Lottie
-                        animationData={loginAnimationData}
-                        loop={true}
-                        autoplay={true}
-                        rendererSettings={{
-                            preserveAspectRatio: 'xMidYMid slice'
-                        }}
-                        className="hd-lottie-player"
-                    />
+                    {animationData && (
+                        <Lottie
+                            animationData={animationData}
+                            loop={true}
+                            autoplay={true}
+                            rendererSettings={{
+                                preserveAspectRatio: 'xMidYMid slice'
+                            }}
+                            className="hd-lottie-player"
+                        />
+                    )}
                     <div className="hd-hero-bottom-overlay" />
                 </div>
 
@@ -247,7 +282,7 @@ export default function Signup() {
                                         Change details
                                     </button>
                                     <button onClick={handleContinue} disabled={loading} className="hd-action-btn hd-action-resend">
-                                        {loading ? 'Sending...' : 'Resend Code'}
+                                        {loading ? 'Sending...' : 'Resend OTP'}
                                     </button>
                                 </div>
                             </div>
@@ -256,7 +291,7 @@ export default function Signup() {
 
                     <p className="hd-signup-line text-[#94a3b8]">
                         Already have an account?{' '}
-                        <button onClick={() => navigate('/login')} className="hd-signup-link text-[#c5a059]">Login</button>
+                        <button onClick={handleGoToLogin} className="hd-signup-link text-[#c5a059]">Login</button>
                     </p>
 
                     {/* Privacy Text */}

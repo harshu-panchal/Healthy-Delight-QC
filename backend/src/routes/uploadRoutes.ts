@@ -17,7 +17,101 @@ import { asyncHandler } from "../utils/asyncHandler";
 
 const router = Router();
 
-// All upload routes require authentication
+/**
+ * POST /api/v1/upload/document
+ * Upload a document (image or PDF)
+ * Allowed for unauthenticated users during registration
+ */
+router.post(
+  "/document",
+  uploadDocument.single("document"),
+  handleUploadError,
+  asyncHandler(async (req: Request, res: Response) => {
+    if (!(req as any).file) {
+      return res.status(400).json({
+        success: false,
+        message: "No document file provided",
+      });
+    }
+
+    // Determine folder based on body, user type, or default
+    let folder: string = req.body.folder || CLOUDINARY_FOLDERS.SELLER_DOCUMENTS;
+    const userType = (req as any).user?.userType;
+
+    if (!req.body.folder) {
+      if (userType === "Delivery") {
+        folder = CLOUDINARY_FOLDERS.DELIVERY_DOCUMENTS;
+      } else if (userType === "Seller") {
+        folder = CLOUDINARY_FOLDERS.SELLER_DOCUMENTS;
+      }
+    }
+
+    // Check if it's an image or PDF
+    const isImage = (req as any).file.mimetype.startsWith("image/");
+    const resourceType = isImage ? "image" : "raw";
+
+    const result = await uploadDocumentFromBuffer((req as any).file.buffer, {
+      folder,
+      resourceType,
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: result,
+    });
+  })
+);
+
+/**
+ * POST /api/v1/upload/documents
+ * Upload multiple documents
+ * Allowed for unauthenticated users during registration
+ */
+router.post(
+  "/documents",
+  uploadMultipleDocuments.array("documents", 5), // Max 5 documents
+  handleUploadError,
+  asyncHandler(async (req: Request, res: Response) => {
+    if (!(req as any).files || ((req as any).files as any[]).length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "No document files provided",
+      });
+    }
+
+    // Determine folder based on body, user type, or default
+    let folder: string = req.body.folder || CLOUDINARY_FOLDERS.SELLER_DOCUMENTS;
+    const userType = (req as any).user?.userType;
+
+    if (!req.body.folder) {
+      if (userType === "Delivery") {
+        folder = CLOUDINARY_FOLDERS.DELIVERY_DOCUMENTS;
+      } else if (userType === "Seller") {
+        folder = CLOUDINARY_FOLDERS.SELLER_DOCUMENTS;
+      }
+    }
+
+    const files = (req as any).files as any[];
+
+    const uploadPromises = files.map((file) => {
+      const isImage = file.mimetype.startsWith("image/");
+      const resourceType = isImage ? "image" : "raw";
+      return uploadDocumentFromBuffer(file.buffer, {
+        folder,
+        resourceType,
+      });
+    });
+
+    const results = await Promise.all(uploadPromises);
+
+    return res.status(200).json({
+      success: true,
+      data: results,
+    });
+  })
+);
+
+// All subsequent upload routes require authentication
 router.use(authenticate);
 
 /**
@@ -76,96 +170,6 @@ router.post(
         resourceType: "image",
       })
     );
-
-    const results = await Promise.all(uploadPromises);
-
-    return res.status(200).json({
-      success: true,
-      data: results,
-    });
-  })
-);
-
-/**
- * POST /api/v1/upload/document
- * Upload a document (image or PDF)
- */
-router.post(
-  "/document",
-  authenticate, // All authenticated users can upload documents
-  uploadDocument.single("document"),
-  handleUploadError,
-  asyncHandler(async (req: Request, res: Response) => {
-    if (!(req as any).file) {
-      return res.status(400).json({
-        success: false,
-        message: "No document file provided",
-      });
-    }
-
-    // Determine folder based on user type
-    let folder: string = CLOUDINARY_FOLDERS.SELLER_DOCUMENTS;
-    const userType = (req as any).user?.userType;
-
-    if (userType === "Delivery") {
-      folder = CLOUDINARY_FOLDERS.DELIVERY_DOCUMENTS;
-    } else if (userType === "Seller") {
-      folder = CLOUDINARY_FOLDERS.SELLER_DOCUMENTS;
-    }
-
-    // Check if it's an image or PDF
-    const isImage = (req as any).file.mimetype.startsWith("image/");
-    const resourceType = isImage ? "image" : "raw";
-
-    const result = await uploadDocumentFromBuffer((req as any).file.buffer, {
-      folder,
-      resourceType,
-    });
-
-    return res.status(200).json({
-      success: true,
-      data: result,
-    });
-  })
-);
-
-/**
- * POST /api/v1/upload/documents
- * Upload multiple documents
- */
-router.post(
-  "/documents",
-  authenticate,
-  uploadMultipleDocuments.array("documents", 5), // Max 5 documents
-  handleUploadError,
-  asyncHandler(async (req: Request, res: Response) => {
-    if (!(req as any).files || ((req as any).files as any[]).length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: "No document files provided",
-      });
-    }
-
-    // Determine folder based on user type
-    let folder: string = CLOUDINARY_FOLDERS.SELLER_DOCUMENTS;
-    const userType = (req as any).user?.userType;
-
-    if (userType === "Delivery") {
-      folder = CLOUDINARY_FOLDERS.DELIVERY_DOCUMENTS;
-    } else if (userType === "Seller") {
-      folder = CLOUDINARY_FOLDERS.SELLER_DOCUMENTS;
-    }
-
-    const files = (req as any).files as any[];
-
-    const uploadPromises = files.map((file) => {
-      const isImage = file.mimetype.startsWith("image/");
-      const resourceType = isImage ? "image" : "raw";
-      return uploadDocumentFromBuffer(file.buffer, {
-        folder,
-        resourceType,
-      });
-    });
 
     const results = await Promise.all(uploadPromises);
 

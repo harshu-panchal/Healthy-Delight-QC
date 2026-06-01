@@ -1,21 +1,9 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Lottie from 'lottie-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLoading, LoadingVariant } from '../../context/LoadingContext';
 
-// JSON Animation Assets
-import milkDelivery from '@assets/animation/milk_delivery.json';
-import milkPouring from '@assets/animation/milk_pouring.json';
-import cowGrazing from '@assets/animation/cow_grazing.json';
-
 import './iconLoader.css';
-
-const VARIANT_ANIMATIONS: Record<LoadingVariant, any> = {
-  first: milkPouring,
-  milk_delivery: milkDelivery,
-  milk_pouring: milkPouring,
-  cow_grazing: cowGrazing,
-};
 
 interface IconLoaderProps {
   forceShow?: boolean;
@@ -23,12 +11,49 @@ interface IconLoaderProps {
 
 const IconLoader: React.FC<IconLoaderProps> = ({ forceShow = false }) => {
   const { isRouteLoading, loadingVariant, routeLoadingQuote } = useLoading();
+  const [animationData, setAnimationData] = useState<any>(null);
+  const [loadingAnim, setLoadingAnim] = useState(false);
+
   const show = isRouteLoading || forceShow;
   const path = typeof window !== 'undefined' ? window.location.pathname : '';
   const isRestrictedApp =
     path.startsWith('/seller') ||
     path.startsWith('/admin') ||
     path.startsWith('/delivery');
+
+  // Load Lottie JSON dynamic chunks on demand
+  useEffect(() => {
+    if (isRestrictedApp) return;
+
+    let active = true;
+    const loadAnim = async () => {
+      setLoadingAnim(true);
+      try {
+        let data: any = null;
+        if (loadingVariant === 'milk_delivery') {
+          data = (await import('../../../assets/animation/milk_delivery.json')).default;
+        } else if (loadingVariant === 'milk_pouring' || loadingVariant === 'first') {
+          data = (await import('../../../assets/animation/milk_pouring.json')).default;
+        } else if (loadingVariant === 'cow_grazing') {
+          data = (await import('../../../assets/animation/cow_grazing.json')).default;
+        }
+        if (active) {
+          setAnimationData(data);
+        }
+      } catch (err) {
+        console.error('Failed to load dynamic Lottie animation', err);
+      } finally {
+        if (active) {
+          setLoadingAnim(false);
+        }
+      }
+    };
+
+    loadAnim();
+    return () => {
+      active = false;
+    };
+  }, [loadingVariant, isRestrictedApp]);
 
   // Never show on restricted portals, regardless of forceShow
   if (isRestrictedApp) return null;
@@ -42,8 +67,6 @@ const IconLoader: React.FC<IconLoaderProps> = ({ forceShow = false }) => {
   // Should not show on login, or signup pages unless forced
   if (isAuthEntryPage && !forceShow) return null;
 
-  const animationSrc = VARIANT_ANIMATIONS[loadingVariant];
-
   return (
     <AnimatePresence>
       {show && (
@@ -56,9 +79,9 @@ const IconLoader: React.FC<IconLoaderProps> = ({ forceShow = false }) => {
         >
           <div className="loader-container">
             <div className={`lottie-wrapper ${loadingVariant === 'first' ? 'first-load-variant' : ''}`}>
-              {animationSrc && (
+              {!loadingAnim && animationData && (
                 <Lottie
-                  animationData={animationSrc}
+                  animationData={animationData}
                   loop={true}
                   autoplay={true}
                   className="loader-lottie"

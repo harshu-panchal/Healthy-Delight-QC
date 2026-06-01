@@ -278,12 +278,12 @@ export default function DeliverySignUp() {
           setShowOTP(true);
         } catch (otpErr: any) {
           setError(
-            otpErr.message || "Registration successful but failed to send OTP."
+            otpErr.response?.data?.message || otpErr.message || "Registration successful but failed to send OTP."
           );
         }
       }
     } catch (err: any) {
-      setError(err.message || "Registration failed. Please try again.");
+      setError(err.response?.data?.message || err.message || "Registration failed. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -308,7 +308,7 @@ export default function DeliverySignUp() {
         navigate("/delivery");
       }
     } catch (err: any) {
-      setError(err.message || "Invalid OTP. Please try again.");
+      setError(err.response?.data?.message || err.message || "Invalid OTP. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -713,7 +713,7 @@ export default function DeliverySignUp() {
                       const res = await sendOTP(formData.mobile);
                       if (res.sessionId) setSessionId(res.sessionId);
                     } catch (err: any) {
-                      setError(err.message || "Failed to resend OTP.");
+                      setError(err.response?.data?.message || err.message || "Failed to resend OTP.");
                     } finally {
                       setLoading(false);
                     }

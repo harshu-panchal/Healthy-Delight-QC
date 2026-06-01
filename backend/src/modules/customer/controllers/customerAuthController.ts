@@ -12,7 +12,7 @@ import { asyncHandler } from "../../../utils/asyncHandler";
  * Returns session_id for verification
  */
 export const sendSmsOtp = asyncHandler(async (req: Request, res: Response) => {
-  const { mobile } = req.body;
+  const { mobile, action } = req.body;
 
   if (!mobile || !/^[0-9]{10}$/.test(mobile)) {
     return res.status(400).json({
@@ -21,8 +21,24 @@ export const sendSmsOtp = asyncHandler(async (req: Request, res: Response) => {
     });
   }
 
-  // Send SMS OTP - no need to check if customer exists
-  // New customers will be auto-created upon OTP verification
+  // Check if customer already exists
+  const customer = await Customer.findOne({ phone: mobile });
+
+  if (action === "login" && !customer) {
+    return res.status(404).json({
+      success: false,
+      message: "This mobile number is not registered. Please sign up first.",
+    });
+  }
+
+  if (action === "signup" && customer) {
+    return res.status(400).json({
+      success: false,
+      message: "This mobile number is already registered. Please log in instead.",
+    });
+  }
+
+  // Send SMS OTP
   const result = await sendSmsOtpService(mobile, 'Customer');
 
   return res.status(200).json({
@@ -35,10 +51,10 @@ export const sendSmsOtp = asyncHandler(async (req: Request, res: Response) => {
 /**
  * Verify SMS OTP and login customer
  * Requires session_id and otp
- * Auto-creates customer if not exists
+ * Auto-creates customer if not exists (only on signup)
  */
 export const verifySmsOtp = asyncHandler(async (req: Request, res: Response) => {
-  const { mobile, otp, sessionId, name, customerType } = req.body;
+  const { mobile, otp, sessionId, name, customerType, action } = req.body;
 
   if (!mobile || !/^[0-9]{10}$/.test(mobile)) {
     return res.status(400).json({
@@ -70,11 +86,18 @@ export const verifySmsOtp = asyncHandler(async (req: Request, res: Response) => 
     });
   }
 
-  // Find or create customer
+  // Find customer
   let customer = await Customer.findOne({ phone: mobile });
   let isNewUser = false;
 
   if (!customer) {
+    if (action === "login") {
+      return res.status(404).json({
+        success: false,
+        message: "Customer account not found. Please sign up first.",
+      });
+    }
+
     // Auto-create new customer with signup data
     customer = await Customer.create({
       phone: mobile,
@@ -87,9 +110,18 @@ export const verifySmsOtp = asyncHandler(async (req: Request, res: Response) => 
       totalSpent: 0,
     });
     isNewUser = true;
-  } else if (customerType && customer.customerType !== customerType) {
-    customer.customerType = customerType;
-    await customer.save();
+  } else {
+    if (action === "signup") {
+      return res.status(400).json({
+        success: false,
+        message: "This mobile number is already registered. Please log in instead.",
+      });
+    }
+
+    if (customerType && customer.customerType !== customerType) {
+      customer.customerType = customerType;
+      await customer.save();
+    }
   }
 
   // Generate JWT token

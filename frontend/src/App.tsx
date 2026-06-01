@@ -18,14 +18,14 @@ import LoadingSpinner from "./components/LoadingSpinner";
 import ErrorBoundary from "./components/ErrorBoundary";
 import RouteTransition from "./components/RouteTransition";
 
-// Critical routes - load immediately (Cart, Checkout, ProductDetail)
-import Home from "./modules/user/Home";
-import Cart from "./modules/user/Cart";
-import Checkout from "./modules/user/Checkout";
-import CheckoutAddress from "./modules/user/CheckoutAddress";
-import ProductDetail from "./modules/user/ProductDetail";
-import Login from "./modules/user/Login";
-import Signup from "./modules/user/Signup";
+// Critical routes - lazy loaded for first paint optimization
+const Home = lazy(() => import("./modules/user/Home"));
+const Cart = lazy(() => import("./modules/user/Cart"));
+const Checkout = lazy(() => import("./modules/user/Checkout"));
+const CheckoutAddress = lazy(() => import("./modules/user/CheckoutAddress"));
+const ProductDetail = lazy(() => import("./modules/user/ProductDetail"));
+const Login = lazy(() => import("./modules/user/Login"));
+const Signup = lazy(() => import("./modules/user/Signup"));
 const LandingPage = lazy(() => import("./modules/user/LandingPage"));
 
 // Lazy load less critical routes for code splitting
@@ -318,7 +318,9 @@ function AppContent() {
                           path="/user/login"
                           element={
                             <PublicRoute>
-                              <Login />
+                              <Suspense fallback={<LoadingSpinner size="lg" className="min-h-screen" />}>
+                                <Login />
+                              </Suspense>
                             </PublicRoute>
                           }
                         />
@@ -327,7 +329,9 @@ function AppContent() {
                           path="/login"
                           element={
                             <PublicRoute>
-                              <Login />
+                              <Suspense fallback={<LoadingSpinner size="lg" className="min-h-screen" />}>
+                                <Login />
+                              </Suspense>
                             </PublicRoute>
                           }
                         />
@@ -336,7 +340,9 @@ function AppContent() {
                           path="/signup"
                           element={
                             <PublicRoute>
-                              <Signup />
+                              <Suspense fallback={<LoadingSpinner size="lg" className="min-h-screen" />}>
+                                <Signup />
+                              </Suspense>
                             </PublicRoute>
                           }
                         />

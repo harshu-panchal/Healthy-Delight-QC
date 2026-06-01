@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import Lottie from 'lottie-react';
 import { sendOTP, verifyOTP } from '../../services/api/auth/customerAuthService';
 import { useAuth } from '../../context/AuthContext';
@@ -7,22 +7,36 @@ import OTPInput from '../../components/OTPInput';
 import BrandingSequence from '../../components/BrandingSequence';
 
 // Assets
-import loginAnimationData from '../../../assets/login/login_screen_animation.json';
 import logoSrc from '../../../assets/logo.png';
 
 export default function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { login } = useAuth();
 
-  const [mobileNumber, setMobileNumber] = useState('');
-  const [showOTP, setShowOTP] = useState(false);
+  const [mobileNumber, setMobileNumber] = useState(() => location.state?.mobileNumber || '');
+  const [showOTP, setShowOTP] = useState(() => location.state?.showOTP || false);
   const [enteredOTP, setEnteredOTP] = useState('');
-  const [sessionId, setSessionId] = useState('');
+  const [sessionId, setSessionId] = useState(() => location.state?.sessionId || '');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const [showBranding, setShowBranding] = useState(true);
+  const [showBranding, setShowBranding] = useState(() => !location.state?.skipBranding);
   const [phase, setPhase] = useState(0);
+  const [animationData, setAnimationData] = useState<any>(null);
+
+  // Load Lottie animation dynamically on mount
+  useEffect(() => {
+    let active = true;
+    import('../../../assets/login/login_screen_animation.json').then((module) => {
+      if (active) {
+        setAnimationData(module.default);
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   // High-fidelity entrance phases (start after branding)
   useEffect(() => {
@@ -39,7 +53,7 @@ export default function Login() {
     setLoading(true);
     setError('');
     try {
-      const response = await sendOTP(mobileNumber);
+      const response = await sendOTP(mobileNumber, 'login');
       if (response.sessionId) setSessionId(response.sessionId);
       setShowOTP(true);
     } catch (err: any) {
@@ -56,7 +70,7 @@ export default function Login() {
     setLoading(true);
     setError('');
     try {
-      const response = await verifyOTP(mobileNumber, otpValue, sessionId);
+      const response = await verifyOTP(mobileNumber, otpValue, sessionId, undefined, undefined, 'login');
       if (response.success && response.data) {
         login(response.data.token, {
           id: response.data.user.id,
@@ -83,6 +97,25 @@ export default function Login() {
     handleVerifyOTP(otp);
   }, [handleVerifyOTP]);
 
+  const handleGoToSignup = () => {
+    navigate('/login', {
+      replace: true,
+      state: {
+        skipBranding: true,
+        showOTP,
+        mobileNumber,
+        sessionId
+      }
+    });
+    navigate('/signup', {
+      state: {
+        fromShowOTP: showOTP,
+        fromMobileNumber: mobileNumber,
+        fromSessionId: sessionId
+      }
+    });
+  };
+
   if (showBranding) {
     return <BrandingSequence onComplete={() => setShowBranding(false)} />;
   }
@@ -92,7 +125,14 @@ export default function Login() {
 
       {/* ── BACK BUTTON ── */}
       <button
-        onClick={() => navigate(-1)}
+        onClick={() => {
+          if (showOTP) {
+            setShowOTP(false);
+            setError('');
+          } else {
+            navigate(-1);
+          }
+        }}
         className="hd-back-btn"
         aria-label="Go back"
       >
@@ -104,15 +144,17 @@ export default function Login() {
       {/* ── HERO PANEL : Full-width Animation Strip ── */}
       <div className={`hd-top-panel ${showOTP ? 'hd-otp-focus' : ''}`}>
         <div className={`hd-hero-strip ${phase >= 1 ? 'hd-hero-in' : ''}`}>
-          <Lottie
-            animationData={loginAnimationData}
-            loop={true}
-            autoplay={true}
-            rendererSettings={{
-              preserveAspectRatio: 'xMidYMid slice'
-            }}
-            className="hd-lottie-player"
-          />
+          {animationData && (
+            <Lottie
+              animationData={animationData}
+              loop={true}
+              autoplay={true}
+              rendererSettings={{
+                preserveAspectRatio: 'xMidYMid slice'
+              }}
+              className="hd-lottie-player"
+            />
+          )}
           <div className="hd-hero-bottom-overlay" />
         </div>
 
@@ -191,7 +233,7 @@ export default function Login() {
                     Change number
                   </button>
                   <button onClick={handleContinue} disabled={loading} className="hd-action-btn hd-action-resend">
-                    {loading ? 'Sending...' : 'Resend Code'}
+                    {loading ? 'Sending...' : 'Resend OTP'}
                   </button>
                 </div>
               </div>
@@ -200,7 +242,7 @@ export default function Login() {
 
           <p className="hd-signup-line text-[#94a3b8]">
             New to Healthy Delight?{' '}
-            <button onClick={() => navigate('/signup')} className="hd-signup-link text-[#c5a059]">Sign Up</button>
+            <button onClick={handleGoToSignup} className="hd-signup-link text-[#c5a059]">Sign Up</button>
           </p>
         </div>
       </div>
