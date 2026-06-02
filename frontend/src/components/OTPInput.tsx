@@ -79,7 +79,7 @@ export default function OTPInput({ length = 4, onComplete, disabled = false }: O
           onKeyDown={(e) => handleKeyDown(index, e)}
           onPaste={handlePaste}
           disabled={disabled}
-          className="w-[48px] h-[56px] text-center text-2xl font-bold border-2 border-neutral-200 rounded-[12px] bg-white text-[#0a193b] focus:border-[#0a193b] focus:ring-4 focus:ring-[#0a193b]/5 outline-none transition-all disabled:bg-neutral-50 disabled:cursor-not-allowed"
+          className="w-[52px] h-[52px] text-center text-[22px] font-bold border-[1.5px] border-[#e2e8f0] rounded-[14px] bg-white text-[#0a193b] focus:border-[#c5a059] focus:ring-4 focus:ring-[#c5a059]/10 outline-none transition-all disabled:bg-neutral-50 disabled:cursor-not-allowed"
         />
       ))}
     </div>

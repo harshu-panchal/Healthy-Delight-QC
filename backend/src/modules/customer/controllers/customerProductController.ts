@@ -153,13 +153,23 @@ export const getProducts = async (req: Request, res: Response) => {
     const skip = (Number(page) - 1) * Number(limit);
 
     // Build sort object
-    let sortOptions: any = { createdAt: -1 }; // Default new to old
+    let sortOptions: any = {};
     if (sort === "price_asc") sortOptions = { price: 1 };
-    if (sort === "price_desc") sortOptions = { price: -1 };
-    if (sort === "discount") sortOptions = { discount: -1 };
-    if (sort === "popular") sortOptions = { popular: -1, dealOfDay: -1 };
+    else if (sort === "price_desc") sortOptions = { price: -1 };
+    else if (sort === "discount") sortOptions = { discount: -1 };
+    else if (sort === "popular") sortOptions = { popular: -1, dealOfDay: -1 };
+    else if (search) {
+      sortOptions = { score: { $meta: "textScore" } };
+    } else {
+      sortOptions = { createdAt: -1 };
+    }
 
-    const products = await Product.find(query)
+    const projection: any = {};
+    if (search && !sort) {
+      projection.score = { $meta: "textScore" };
+    }
+
+    const products = await Product.find(query, projection)
       .populate("category", "name icon image")
       .populate("subcategory", "name")
       .populate("brand", "name")

@@ -10,6 +10,7 @@ import Footer from './ui/Footer';
 import logo from '../../assets/logo.png';
 import ComingSoonModal from './ui/ComingSoonModal';
 import { useAuth } from '../context/AuthContext';
+import { getProducts, getCategories } from '../services/api/customerProductService';
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -90,6 +91,101 @@ export default function AppLayout({ children }: AppLayoutProps) {
     const query = searchParams.get('q') || '';
     setSearchQuery(query);
   }, [searchParams]);
+
+  const [suggestions, setSuggestions] = useState<any[]>([]);
+  const [allCategories, setAllCategories] = useState<any[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [, setIsSuggestionsLoading] = useState(false);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
+
+  // Fetch all categories for local filtering
+  useEffect(() => {
+    const fetchAllCategories = async () => {
+      try {
+        const res = await getCategories();
+        if (res && res.success && res.data) {
+          setAllCategories(res.data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch categories for suggestions", err);
+      }
+    };
+    fetchAllCategories();
+  }, []);
+
+  // Click outside to close suggestions
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(event.target as Node)) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  // Fetch matching products as suggestions
+  useEffect(() => {
+    if (searchQuery.trim().length < 2) {
+      setSuggestions([]);
+      return;
+    }
+
+    const fetchProductSuggestions = async () => {
+      setIsSuggestionsLoading(true);
+      try {
+        const params: any = { 
+          search: searchQuery.trim(),
+          limit: 5 
+        };
+        if (userLocation?.latitude && userLocation?.longitude) {
+          params.latitude = userLocation.latitude;
+          params.longitude = userLocation.longitude;
+        }
+        const res = await getProducts(params);
+        
+        // Filter categories locally
+        const matchedCategories = allCategories
+          .filter(cat => cat.name.toLowerCase().includes(searchQuery.toLowerCase()))
+          .slice(0, 3)
+          .map(cat => ({
+            id: cat.id || cat._id,
+            name: cat.name,
+            type: 'category',
+            image: cat.image
+          }));
+
+        const matchedProducts = (res.data || []).map((prod: any) => ({
+          id: prod.id || prod._id,
+          name: prod.productName,
+          type: 'product',
+          image: prod.mainImage,
+          price: prod.price
+        }));
+
+        // Standard keyword suggestions based on common words
+        const keywords = ['milk', 'curd', 'paneer', 'cheese', 'butter', 'ghee', 'lassi', 'ice cream', 'full cream milk', 'yogurt']
+          .filter(kw => kw.toLowerCase().includes(searchQuery.toLowerCase()) && kw.toLowerCase() !== searchQuery.toLowerCase())
+          .slice(0, 2)
+          .map(kw => ({
+            id: kw,
+            name: kw,
+            type: 'keyword'
+          }));
+
+        setSuggestions([...keywords, ...matchedCategories, ...matchedProducts]);
+      } catch (err) {
+        console.error("Error fetching suggestions", err);
+      } finally {
+        setIsSuggestionsLoading(false);
+      }
+    };
+
+    const timer = setTimeout(fetchProductSuggestions, 150); // Small debounce
+    return () => clearTimeout(timer);
+  }, [searchQuery, allCategories, userLocation]);
 
   const startVoiceSearch = () => {
     // @ts-expect-error Window interface lacks speech recognition
@@ -362,7 +458,10 @@ export default function AppLayout({ children }: AppLayoutProps) {
 
               {/* Delivery Location integrated into Header */}
               {userLocation && (userLocation.address || userLocation.city) && (
-                <div className="hidden lg:flex items-center gap-3 pl-6 ml-2 border-l border-white/10 h-10">
+                <div 
+                  onClick={() => navigate('/address-book')}
+                  className="hidden lg:flex items-center gap-3 pl-6 ml-2 border-l border-white/10 h-10 cursor-pointer hover:opacity-80 transition-opacity"
+                >
                   <div className="flex flex-col items-start leading-tight">
                     <div className="flex items-center gap-1.5 text-white opacity-60">
                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
@@ -376,7 +475,10 @@ export default function AppLayout({ children }: AppLayoutProps) {
                         {userLocation?.address || `${userLocation.city}, ${userLocation.state}`}
                       </span>
                       <button
-                        onClick={() => setShowLocationChangeModal(true)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowLocationChangeModal(true);
+                        }}
                         className="text-[10px] font-black text-white px-2 py-0.5 rounded-md bg-white/10 hover:bg-white/20 transition-all uppercase tracking-wider"
                       >
                         Change
@@ -388,14 +490,23 @@ export default function AppLayout({ children }: AppLayoutProps) {
             </div>
 
             {/* Search Bar Center (Fixed Width, Responsive centering) */}
-            <div className="flex-1 max-w-2xl mx-12">
+            <div ref={searchContainerRef} className="flex-1 max-w-2xl mx-12 relative">
               <div className="relative group">
                 <input
                   type="text"
                   value={searchQuery}
-                  onChange={(e) => handleSearchChange(e.target.value)}
+                  onChange={(e) => {
+                    handleSearchChange(e.target.value);
+                    setShowSuggestions(true);
+                  }}
+                  onFocus={() => setShowSuggestions(true)}
                   placeholder={getSearchPlaceholder()}
-                  onKeyDown={(e) => e.key === 'Enter' && navigate(`/search?q=${encodeURIComponent(searchQuery)}`)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      setShowSuggestions(false);
+                      navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
+                    }
+                  }}
                   className="w-full h-14 bg-white/10 rounded-2xl px-12 py-2 text-[15px] font-bold text-white placeholder-white/50 focus:ring-2 focus:ring-white/20 focus:bg-white/20 border border-transparent transition-all shadow-[0_2px_10px_rgba(0,0,0,0.1)] focus:shadow-[0_12px_40px_rgba(0,0,0,0.2)]"
                 />
                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/50 group-focus-within:text-white transition-colors">
@@ -403,18 +514,75 @@ export default function AppLayout({ children }: AppLayoutProps) {
                     <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
                   </svg>
                 </span>
-                <button
-                  onClick={startVoiceSearch}
-                  className={`absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-xl transition-all ${isListening ? 'bg-red-500/20 text-red-500 shadow-inner animate-pulse' : 'text-white/50 hover:text-white hover:bg-white/10'}`}
-                >
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z" />
-                    <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
-                    <line x1="12" y1="19" x2="12" y2="22" />
-                    <line x1="8" y1="22" x2="16" y2="22" />
-                  </svg>
-                </button>
               </div>
+
+              {/* Suggestions Dropdown */}
+              <AnimatePresence>
+                {showSuggestions && suggestions.length > 0 && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 10 }}
+                    transition={{ duration: 0.15 }}
+                    className="absolute left-0 right-0 top-full mt-2 bg-[#0a193b] border border-white/10 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.4)] overflow-hidden z-50 backdrop-blur-xl"
+                  >
+                    <div className="py-2 max-h-[380px] overflow-y-auto scrollbar-thin scrollbar-thumb-white/10">
+                      {suggestions.map((item, idx) => (
+                        <div
+                          key={`${item.type}-${item.id}-${idx}`}
+                          onClick={() => {
+                            setShowSuggestions(false);
+                            if (item.type === 'product') {
+                              navigate(`/product/${item.id}`);
+                            } else if (item.type === 'category') {
+                              navigate(`/category/${item.id}`);
+                            } else {
+                              setSearchQuery(item.name);
+                              navigate(`/search?q=${encodeURIComponent(item.name)}`);
+                            }
+                          }}
+                          className="px-4 py-2.5 flex items-center justify-between gap-3 hover:bg-white/10 transition-colors cursor-pointer text-white/90 group"
+                        >
+                          <div className="flex items-center gap-3 min-w-0">
+                            {/* Left icon or image */}
+                            {item.type === 'keyword' && (
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-white/40 group-hover:text-white/70 transition-colors">
+                                <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
+                              </svg>
+                            )}
+                            {item.type === 'category' && (
+                              <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center overflow-hidden border border-white/10 flex-shrink-0">
+                                {item.image ? (
+                                  <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                                ) : (
+                                  <span className="text-xs">📁</span>
+                                )}
+                              </div>
+                            )}
+                            {item.type === 'product' && (
+                              <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center overflow-hidden flex-shrink-0">
+                                {item.image ? (
+                                  <img src={item.image} alt={item.name} className="w-full h-full object-contain" />
+                                ) : (
+                                  <span className="text-xs">📦</span>
+                                )}
+                              </div>
+                            )}
+                            <span className="text-[13px] font-semibold truncate group-hover:text-white transition-colors">
+                              {item.name}
+                            </span>
+                          </div>
+                          
+                          {/* Right metadata badge/type */}
+                          <span className="text-[10px] font-black uppercase tracking-wider text-white/40 group-hover:text-white/60 transition-colors flex-shrink-0">
+                            {item.type === 'product' ? `₹${item.price}` : item.type}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
 
             {/* Profile Right */}
@@ -446,7 +614,10 @@ export default function AppLayout({ children }: AppLayoutProps) {
           >
             {/* Same location line for mobile */}
             {userLocation && (userLocation.address || userLocation.city) && (
-               <div className="px-5 py-2.5 flex items-center justify-between gap-4 border-b border-white/10 shadow-inner">
+               <div 
+                 onClick={() => navigate('/address-book')}
+                 className="px-5 py-2.5 flex items-center justify-between gap-4 border-b border-white/10 shadow-inner cursor-pointer hover:bg-white/5 transition-colors"
+               >
                  <div className="flex items-center gap-2 min-w-0">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="text-white/60 flex-shrink-0">
                       <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -457,7 +628,10 @@ export default function AppLayout({ children }: AppLayoutProps) {
                     </span>
                   </div>
                   <button
-                    onClick={() => setShowLocationChangeModal(true)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowLocationChangeModal(true);
+                    }}
                     className="text-white/60 text-[11px] font-black uppercase tracking-[0.2em] hover:text-white transition-colors flex-shrink-0"
                   >
                     Change

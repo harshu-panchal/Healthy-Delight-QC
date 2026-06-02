@@ -32,7 +32,7 @@ import {
 } from "../../services/api/customerAddressService";
 import GoogleMapsLocationPicker from "../../components/GoogleMapsLocationPicker";
 import { getProducts } from "../../services/api/customerProductService";
-import { addToWishlist } from "../../services/api/customerWishlistService";
+import { addToWishlist, getWishlist } from "../../services/api/customerWishlistService";
 import { getProfile, updateProfile } from "../../services/api/customerService";
 import { calculateProductPrice } from "../../utils/priceUtils";
 import { updateScheduledOrderItems } from "../../services/api/customerOrderService";
@@ -85,6 +85,63 @@ export default function Checkout() {
   const [similarProducts, setSimilarProducts] = useState<any[]>([]);
   const [showGstinSheet, setShowGstinSheet] = useState(false);
   const [gstin, setGstin] = useState<string>("");
+  const [gstinError, setGstinError] = useState<string | null>(null);
+  const [isMovingLastToWishlist, setIsMovingLastToWishlist] = useState(false);
+
+  const [wishlistProducts, setWishlistProducts] = useState<any[]>([]);
+  const [loadingWishlist, setLoadingWishlist] = useState(false);
+
+  const fetchWishlist = async () => {
+    try {
+      setLoadingWishlist(true);
+      let lat = userLocation?.latitude;
+      let lng = userLocation?.longitude;
+
+      if (!lat || !lng) {
+        const cached = localStorage.getItem('userLocation');
+        if (cached) {
+          try {
+            const parsed = JSON.parse(cached);
+            lat = parsed.latitude;
+            lng = parsed.longitude;
+          } catch (e) {
+            console.error('Failed to parse cached location in Checkout wishlist fetch:', e);
+          }
+        }
+      }
+
+      const res = await getWishlist({
+        latitude: lat,
+        longitude: lng
+      });
+
+      if (res.success && res.data) {
+        const validProducts = (res.data.products || []).filter((p: any) => p !== null && p !== undefined);
+        setWishlistProducts(validProducts.map(p => ({
+          ...p,
+          id: p._id || (p as any).id,
+          name: p.productName || (p as any).name,
+          imageUrl: p.mainImageUrl || p.mainImage || (p as any).imageUrl,
+          price: (p as any).price || (p as any).variations?.[0]?.price || 0,
+          pack: (p as any).pack || (p as any).variations?.[0]?.name || 'Standard'
+        })));
+      }
+    } catch (err) {
+      console.error('Failed to fetch wishlist on checkout:', err);
+    } finally {
+      setLoadingWishlist(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchWishlist();
+  }, [userLocation?.latitude, userLocation?.longitude]);
+
+  useEffect(() => {
+    if (!showGstinSheet) {
+      setGstinError(null);
+    }
+  }, [showGstinSheet]);
   const [showCancellationPolicy, setShowCancellationPolicy] = useState(false);
   const [giftPackaging, setGiftPackaging] = useState<boolean>(false);
   const [showRazorpayCheckout, setShowRazorpayCheckout] = useState(false);
@@ -149,11 +206,12 @@ export default function Checkout() {
     return () => clearTimeout(timer);
   }, []);
 
-  useEffect(() => {
-    if (initialCheckDone && !cartLoading && cart.items.length === 0 && !showOrderSuccess) {
-      navigate("/user");
-    }
-  }, [cart.items.length, cartLoading, navigate, showOrderSuccess, initialCheckDone]);
+  // Disable automatic redirection to allow empty-cart wishlist hub to display inline
+  // useEffect(() => {
+  //   if (initialCheckDone && !cartLoading && cart.items.length === 0 && !showOrderSuccess && !isMovingLastToWishlist) {
+  //     navigate("/user");
+  //   }
+  // }, [cart.items.length, cartLoading, navigate, showOrderSuccess, initialCheckDone, isMovingLastToWishlist]);
 
   // Handle Razorpay payment redirect verification
   useEffect(() => {
@@ -380,7 +438,7 @@ export default function Checkout() {
     );
   }
 
-  if (cartLoading || ((cart?.items?.length || 0) === 0 && !showOrderSuccess)) {
+  if (cartLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
         <div className="flex flex-col items-center">
@@ -575,7 +633,11 @@ export default function Checkout() {
       await removeFromCart(productId, variantId, variantTitle);
       // Show success message
       showGlobalToast("Item moved to wishlist");
+
+      // Refresh wishlist items to show them in the checkout empty state instantly!
+      fetchWishlist();
     } catch (error: any) {
+      setIsMovingLastToWishlist(false);
       console.error("Failed to move to wishlist:", error);
       const msg =
         error.response?.data?.message || "Failed to move item to wishlist";
@@ -1173,7 +1235,83 @@ export default function Checkout() {
         </div>
       </div>
 
-      {/* Ordering for someone else */}
+      {cart.items.length === 0 && !showOrderSuccess ? (
+        // Empty Cart / Wishlist Hub
+        <div className="flex-grow bg-[#f8f6f2] flex flex-col pt-8 pb-16 px-4 md:px-8 overflow-y-auto">
+          <div className="max-w-2xl mx-auto w-full flex flex-col items-center">
+            {/* Empty Cart Header Card */}
+            <div className="w-full bg-white rounded-3xl p-8 border border-neutral-100 shadow-[0_8px_30px_rgba(0,0,0,0.02)] flex flex-col items-center text-center mb-8">
+              <div className="text-5xl mb-4">🛒</div>
+              <h2 className="text-xl font-extrabold text-[#0a193b] mb-2">Your cart is empty</h2>
+              <p className="text-sm text-neutral-500 mb-6 font-medium">Add items from your wishlist or start exploring fresh delights!</p>
+              <button 
+                onClick={() => navigate('/user')} 
+                className="bg-[#0a193b] text-white px-8 py-3.5 rounded-full font-bold text-sm hover:bg-[#0a193b]/90 shadow-md transition-all active:scale-95"
+              >
+                Go to Shopping
+              </button>
+            </div>
+
+            {/* Wishlist Section */}
+            <div className="w-full">
+              <div className="flex items-center justify-between mb-4 px-2">
+                <h3 className="text-base font-extrabold text-[#0a193b] flex items-center gap-2">
+                  <span>❤️</span> Items in Wishlist
+                </h3>
+                {wishlistProducts.length > 0 && (
+                  <span className="text-xs font-bold text-[#0a193b] bg-[#0a193b]/5 px-2.5 py-1 rounded-full">
+                    {wishlistProducts.length} {wishlistProducts.length === 1 ? 'item' : 'items'}
+                  </span>
+                )}
+              </div>
+
+              {loadingWishlist ? (
+                <div className="w-full bg-white rounded-3xl p-12 border border-neutral-100 shadow-[0_8px_30px_rgba(0,0,0,0.02)] flex justify-center items-center">
+                  <div className="w-8 h-8 border-3 border-[#0a193b]/30 border-t-[#0a193b] rounded-full animate-spin"></div>
+                </div>
+              ) : wishlistProducts.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+                  {wishlistProducts.map((product) => {
+                    const { displayPrice, mrp, hasDiscount } = calculateProductPrice(product);
+                    return (
+                      <div key={product.id} className="bg-white rounded-2xl border border-neutral-100 shadow-sm p-4 flex gap-4 items-center">
+                        <div className="w-16 h-16 bg-neutral-50 rounded-xl flex-shrink-0 p-2 flex items-center justify-center">
+                          <img src={product.imageUrl || product.mainImage} alt={product.name} className="w-full h-full object-contain" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="text-xs font-bold text-neutral-900 truncate mb-0.5">{product.name}</h4>
+                          <p className="text-[10px] text-neutral-400 font-semibold mb-1.5">{product.pack}</p>
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-xs font-extrabold text-[#0a193b]">₹{displayPrice}</span>
+                            {hasDiscount && <span className="text-[10px] text-neutral-400 line-through">₹{mrp}</span>}
+                          </div>
+                        </div>
+                        <button
+                          onClick={async () => {
+                            await addToCart(product);
+                            showGlobalToast(`${product.name} added to cart`);
+                          }}
+                          className="bg-[#0a193b]/5 text-[#0a193b] hover:bg-[#0a193b] hover:text-white px-3 py-2 rounded-xl text-xs font-extrabold transition-all active:scale-95 border border-[#0a193b]/10 shadow-sm"
+                        >
+                          ADD TO CART
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="w-full bg-white rounded-3xl p-12 border border-neutral-100 shadow-[0_8px_30px_rgba(0,0,0,0.02)] flex flex-col items-center text-center">
+                  <span className="text-3xl mb-3">❤️</span>
+                  <p className="text-sm font-bold text-neutral-600">Your wishlist is currently empty</p>
+                  <p className="text-xs text-neutral-400 mt-1">Shortlist items to view them here later</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="flex-grow flex flex-col overflow-y-auto">
+          {/* Ordering for someone else */}
       <div className="px-4 md:px-6 lg:px-8 py-2 md:py-3 bg-neutral-50 border-b border-neutral-200">
         <div className="flex items-center justify-between">
           <span className="text-xs text-neutral-700">
@@ -1541,7 +1679,7 @@ export default function Checkout() {
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6" /></svg>
               </button>
             </div>
-            
+
             <div className="flex items-center gap-2.5">
               <div className="relative flex-1">
                 <input
@@ -1998,6 +2136,7 @@ export default function Checkout() {
                     .replace(/[^A-Z0-9]/g, "");
                   if (value.length <= 15) {
                     setGstin(value);
+                    setGstinError(null);
                   }
                 }}
                 placeholder="Enter 15-character GSTIN"
@@ -2007,13 +2146,19 @@ export default function Checkout() {
               <p className="text-xs text-neutral-500 mt-1">
                 Format: 15 characters (e.g., 27AAAAA0000A1Z5)
               </p>
+              {gstinError && (
+                <p className="text-xs font-semibold text-red-500 mt-1.5 animate-fadeIn">
+                  {gstinError}
+                </p>
+              )}
             </div>
             <button
               onClick={() => {
-                if (gstin.length === 15) {
+                const gstinRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
+                if (gstinRegex.test(gstin.toUpperCase())) {
                   setShowGstinSheet(false);
                 } else {
-                  alert("Please enter a valid 15-character GSTIN");
+                  setGstinError("Invalid GSTIN format. Please enter a valid 15-character GSTIN (e.g., 27AAAAA0000A1Z5)");
                 }
               }}
               className="w-full bg-[#0a193b] text-white py-3 px-4 font-bold text-sm uppercase tracking-wide hover:bg-[#0a193b]/90 transition-colors rounded-lg">
@@ -2104,8 +2249,30 @@ export default function Checkout() {
                   Contact Support
                 </h3>
                 <div className="space-y-1">
-                  <p className="text-sm text-neutral-600 font-medium">Email: <span className="text-neutral-900 font-bold">support@healthydelight.com</span></p>
-                  <p className="text-sm text-neutral-600 font-medium">Phone: <span className="text-neutral-900 font-bold">+91 9740234199</span></p>
+                  <p className="text-sm text-neutral-600 font-medium">
+                    Email:{" "}
+                    <a 
+                      href="mailto:support@healthydelight.com" 
+                      onClick={(e) => e.stopPropagation()}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-neutral-900 font-bold hover:text-[#0a193b] hover:underline transition-all"
+                    >
+                      support@healthydelight.com
+                    </a>
+                  </p>
+                  <p className="text-sm text-neutral-600 font-medium">
+                    Phone:{" "}
+                    <a 
+                      href="tel:+919740234199" 
+                      onClick={(e) => e.stopPropagation()}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-neutral-900 font-bold hover:text-[#0a193b] hover:underline transition-all"
+                    >
+                      +91 9740234199
+                    </a>
+                  </p>
                 </div>
               </div>
             </div>
@@ -2120,15 +2287,13 @@ export default function Checkout() {
         <div className="px-4 py-3.5 border-b border-neutral-200 bg-white">
           <div
             onClick={() => setUseWallet(!useWallet)}
-            className={`flex items-center gap-3 p-4 rounded-2xl border-2 cursor-pointer transition-all duration-300 ${
-              useWallet
-                ? "border-green-600 bg-green-50/30 shadow-[0_4px_15px_rgba(22,163,74,0.08)]"
-                : "border-neutral-100 bg-white hover:border-neutral-200"
-            }`}
+            className={`flex items-center gap-3 p-4 rounded-2xl border-2 cursor-pointer transition-all duration-300 ${useWallet
+              ? "border-green-600 bg-green-50/30 shadow-[0_4px_15px_rgba(22,163,74,0.08)]"
+              : "border-neutral-100 bg-white hover:border-neutral-200"
+              }`}
           >
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
-              useWallet ? "bg-green-100 text-green-700" : "bg-neutral-50 text-neutral-500"
-            }`}>
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${useWallet ? "bg-green-100 text-green-700" : "bg-neutral-50 text-neutral-500"
+              }`}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="2" y="4" width="20" height="16" rx="2" />
                 <line x1="12" y1="4" x2="12" y2="20" />
@@ -2438,6 +2603,8 @@ export default function Checkout() {
           />
         )
       }
+        </div>
+      )}
       {/* Animation Styles */}
       <style>{`
         @keyframes fadeIn {

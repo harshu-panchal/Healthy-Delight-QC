@@ -314,6 +314,8 @@ export default function OrderDetail() {
   // Modal states
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [showItemsModal, setShowItemsModal] = useState(false);
+  const [showShareSheet, setShowShareSheet] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   // Form states
   const [cancellationReason, setCancellationReason] = useState("");
@@ -515,23 +517,57 @@ export default function OrderDetail() {
 
   const handleShare = async () => {
     const friendlyId = formatOrderFriendly(order?.orderNumber, order?.id);
+    const shareText = `Track my Healthy Delight order: Order #${friendlyId}`;
+    const shareUrl = window.location.href;
     const shareData = {
       title: `Order #${friendlyId}`,
-      text: `Track my Healthy Delight order: Order #${friendlyId}`,
-      url: window.location.href,
+      text: shareText,
+      url: shareUrl,
     };
 
     try {
       if (navigator.share) {
         await navigator.share(shareData);
       } else {
-        // Fallback: copy link to clipboard
-        await navigator.clipboard.writeText(window.location.href);
-        alert("Link copied to clipboard!");
+        setShowShareSheet(true);
       }
-    } catch (error) {
-      console.error("Error sharing:", error);
+    } catch (error: any) {
+      if (error.name !== "AbortError") {
+        console.error("Error sharing with native sheet:", error);
+        setShowShareSheet(true);
+      }
     }
+  };
+
+  const handleShareOption = async (option: 'whatsapp' | 'telegram' | 'sms' | 'email' | 'copy') => {
+    const friendlyId = formatOrderFriendly(order?.orderNumber, order?.id);
+    const shareText = `Track my Healthy Delight order: Order #${friendlyId}`;
+    const shareUrl = window.location.href;
+
+    switch (option) {
+      case 'whatsapp':
+        window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(shareText + ' ' + shareUrl)}`, '_blank');
+        break;
+      case 'telegram':
+        window.open(`https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareText)}`, '_blank');
+        break;
+      case 'sms':
+        window.location.href = `sms:?body=${encodeURIComponent(shareText + ' ' + shareUrl)}`;
+        break;
+      case 'email':
+        window.location.href = `mailto:?subject=${encodeURIComponent(`Healthy Delight Order Tracking - #${friendlyId}`)}&body=${encodeURIComponent(shareText + '\n\nTrack here: ' + shareUrl)}`;
+        break;
+      case 'copy':
+        try {
+          await navigator.clipboard.writeText(shareUrl);
+          setCopied(true);
+          setTimeout(() => setCopied(false), 2000);
+        } catch (err) {
+          console.error("Failed to copy link:", err);
+        }
+        break;
+    }
+    setShowShareSheet(false);
   };
 
   const handleCallStore = () => {
@@ -1226,6 +1262,125 @@ export default function OrderDetail() {
         )}
       </AnimatePresence>
 
+      {/* Custom Bottom Share Sheet Fallback */}
+      <AnimatePresence>
+        {showShareSheet && (
+          <div className="fixed inset-0 z-50 flex items-end justify-center">
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm"
+              onClick={() => setShowShareSheet(false)}
+            />
+            {/* Drawer */}
+            <motion.div
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", damping: 25, stiffness: 220 }}
+              className="relative w-full max-w-lg bg-white rounded-t-[2.5rem] p-6 pb-10 shadow-2xl border-t border-slate-100/80 z-10 overflow-hidden">
+              
+              {/* Drag indicator handle */}
+              <div className="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-6" />
+
+              <h2 className="text-xl font-black text-slate-800 text-center tracking-tight mb-1">
+                Share Order Tracking
+              </h2>
+              <p className="text-xs font-semibold text-slate-400 text-center mb-6">
+                Share tracking link via available apps
+              </p>
+
+              {/* Share Apps Grid */}
+              <div className="grid grid-cols-5 gap-3 mb-6 px-2">
+                {/* WhatsApp */}
+                <button
+                  onClick={() => handleShareOption('whatsapp')}
+                  className="flex flex-col items-center gap-2 group cursor-pointer focus:outline-none">
+                  <div className="w-12 h-12 rounded-2xl bg-emerald-500 hover:bg-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-500/20 group-hover:scale-105 transition-all">
+                    <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.713-1.455L0 24zm6.59-11.758c.241.678.898 2.5 1.018 2.741.12.242.196.417.12.567-.075.15-.376.301-.527.452-.15.15-.327.316-.48.452-.178.158-.363.33-.157.678.206.348.916 1.507 1.963 2.438 1.35 1.198 2.486 1.568 2.837 1.719.351.15.556.12.766-.12.21-.24.902-1.053 1.143-1.413.241-.36.481-.3.812-.18.331.12 2.102 1.053 2.463 1.233.36.18.601.27.69.421.09.15.09.87-.27 1.23-.36.36-2.102 2.102-2.823 2.102-.72 0-1.652-.27-4.63-1.472-3.626-1.458-5.962-5.185-6.143-5.426-.18-.241-1.442-1.923-1.442-3.67 0-1.747.902-2.607 1.222-2.952.32-.345.702-.435.932-.435.23 0 .461.002.662.012.21.01.491-.037.766.632z"/>
+                    </svg>
+                  </div>
+                  <span className="text-[10px] font-bold text-slate-600">WhatsApp</span>
+                </button>
+
+                {/* Telegram */}
+                <button
+                  onClick={() => handleShareOption('telegram')}
+                  className="flex flex-col items-center gap-2 group cursor-pointer focus:outline-none">
+                  <div className="w-12 h-12 rounded-2xl bg-sky-500 hover:bg-sky-600 flex items-center justify-center shadow-lg shadow-sky-500/20 group-hover:scale-105 transition-all">
+                    <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.161c-.18.917-1.123 6.452-1.603 8.981-.203 1.071-.628 1.43-1.011 1.465-.831.077-1.461-.548-2.266-1.075-1.258-.826-1.968-1.341-3.19-2.146-1.411-.931-.497-1.442.308-2.278.211-.219 3.882-3.563 3.957-3.88.009-.04-.002-.187-.079-.255-.078-.068-.192-.045-.275-.026-.118.027-2.001 1.272-5.642 3.731-.533.366-1.017.545-1.451.535-.479-.01-1.401-.271-2.086-.493-.84-.272-1.507-.416-1.449-.878.03-.241.362-.488.997-.74 3.9-1.696 6.5-2.818 7.8-3.363 3.711-1.554 4.48-1.825 4.982-1.834.11-.002.356.025.516.155.134.109.171.256.183.359.012.096.015.289.006.398z"/>
+                    </svg>
+                  </div>
+                  <span className="text-[10px] font-bold text-slate-600">Telegram</span>
+                </button>
+
+                {/* SMS */}
+                <button
+                  onClick={() => handleShareOption('sms')}
+                  className="flex flex-col items-center gap-2 group cursor-pointer focus:outline-none">
+                  <div className="w-12 h-12 rounded-2xl bg-indigo-500 hover:bg-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-500/20 group-hover:scale-105 transition-all">
+                    <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                    </svg>
+                  </div>
+                  <span className="text-[10px] font-bold text-slate-600">SMS</span>
+                </button>
+
+                {/* Email */}
+                <button
+                  onClick={() => handleShareOption('email')}
+                  className="flex flex-col items-center gap-2 group cursor-pointer focus:outline-none">
+                  <div className="w-12 h-12 rounded-2xl bg-rose-500 hover:bg-rose-600 flex items-center justify-center shadow-lg shadow-rose-500/20 group-hover:scale-105 transition-all">
+                    <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                      <polyline points="22,6 12,13 2,6"/>
+                    </svg>
+                  </div>
+                  <span className="text-[10px] font-bold text-slate-600">Email</span>
+                </button>
+
+                {/* Copy Link */}
+                <button
+                  onClick={() => handleShareOption('copy')}
+                  className="flex flex-col items-center gap-2 group cursor-pointer focus:outline-none">
+                  <div className="w-12 h-12 rounded-2xl bg-slate-700 hover:bg-slate-800 flex items-center justify-center shadow-lg shadow-slate-700/20 group-hover:scale-105 transition-all">
+                    <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                    </svg>
+                  </div>
+                  <span className="text-[10px] font-bold text-slate-600">Copy Link</span>
+                </button>
+              </div>
+
+              {/* Close Button */}
+              <button
+                onClick={() => setShowShareSheet(false)}
+                className="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3.5 rounded-xl transition-all duration-200 cursor-pointer">
+                Cancel
+              </button>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Copied Toast Banner */}
+      <AnimatePresence>
+        {copied && (
+          <motion.div
+            initial={{ opacity: 0, y: -50, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -20, scale: 0.9 }}
+            className="fixed top-6 left-1/2 -translate-x-1/2 z-[100] bg-slate-900/95 backdrop-blur-md text-white text-xs font-bold px-5 py-3 rounded-full shadow-xl border border-white/10 flex items-center gap-2">
+            <span className="text-emerald-400 text-sm">✓</span>
+            <span>Link copied to clipboard!</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
     </div>
   );

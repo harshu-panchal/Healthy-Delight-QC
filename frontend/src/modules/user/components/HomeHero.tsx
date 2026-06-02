@@ -5,7 +5,8 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { getTheme } from "../../../utils/themes";
 import { useLocation } from "../../../hooks/useLocation";
 import { appConfig } from "../../../services/configService";
-import { getCategories } from "../../../services/api/customerProductService";
+import { getCategories, getProducts } from "../../../services/api/customerProductService";
+import { motion, AnimatePresence } from "framer-motion";
 import { Category } from "../../../types/domain";
 import { getHeaderCategoriesPublic } from "../../../services/api/headerCategoryService";
 import { getIconByName } from "../../../utils/iconLibrary";
@@ -73,6 +74,82 @@ export default function HomeHero({
   const [hasScrolled, setHasScrolled] = useState(false);
   const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0 });
   const [isListening, setIsListening] = useState(false);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [mobileSearchQuery, setMobileSearchQuery] = useState("");
+  const [suggestions, setSuggestions] = useState<any[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
+
+  // Click outside to close suggestions
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(event.target as Node)) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  // Fetch matching products as suggestions
+  useEffect(() => {
+    if (mobileSearchQuery.trim().length < 2) {
+      setSuggestions([]);
+      return;
+    }
+
+    const fetchSuggestions = async () => {
+      try {
+        const params: any = { 
+          search: mobileSearchQuery.trim(),
+          limit: 5 
+        };
+        if (userLocation?.latitude && userLocation?.longitude) {
+          params.latitude = userLocation.latitude;
+          params.longitude = userLocation.longitude;
+        }
+        const res = await getProducts(params);
+        
+        // Filter categories locally
+        const matchedCategories = categories
+          .filter(cat => cat.name.toLowerCase().includes(mobileSearchQuery.toLowerCase()))
+          .slice(0, 3)
+          .map(cat => ({
+            id: cat.id || (cat as any)._id,
+            name: cat.name,
+            type: 'category',
+            image: (cat as any).image
+          }));
+
+        const matchedProducts = (res.data || []).map((prod: any) => ({
+          id: prod.id || prod._id,
+          name: prod.productName,
+          type: 'product',
+          image: prod.mainImage,
+          price: prod.price
+        }));
+
+        // Standard keyword suggestions
+        const keywords = ['milk', 'curd', 'paneer', 'cheese', 'butter', 'ghee', 'lassi', 'ice cream', 'full cream milk', 'yogurt']
+          .filter(kw => kw.toLowerCase().includes(mobileSearchQuery.toLowerCase()) && kw.toLowerCase() !== mobileSearchQuery.toLowerCase())
+          .slice(0, 2)
+          .map(kw => ({
+            id: kw,
+            name: kw,
+            type: 'keyword'
+          }));
+
+        setSuggestions([...keywords, ...matchedCategories, ...matchedProducts]);
+      } catch (err) {
+        console.error("Error fetching suggestions", err);
+      }
+    };
+
+    const timer = setTimeout(fetchSuggestions, 150);
+    return () => clearTimeout(timer);
+  }, [mobileSearchQuery, categories, userLocation]);
 
   // Format location display text - only show if user has provided location
   const locationDisplayText = useMemo(() => {
@@ -91,8 +168,6 @@ export default function HomeHero({
     // No default - return empty string if no location provided
     return "";
   }, [userLocation]);
-
-  const [categories, setCategories] = useState<Category[]>([]);
 
   // Load dynamic header categories for tabs
   useEffect(() => {
@@ -212,6 +287,7 @@ export default function HomeHero({
 
     recognition.onresult = (event: { results: Array<Array<{ transcript: string }>> }) => {
       const speechResult = event.results[0][0].transcript;
+      setMobileSearchQuery(speechResult);
       navigate(`/search?q=${encodeURIComponent(speechResult.trim())}`);
     };
 
@@ -370,7 +446,7 @@ export default function HomeHero({
   return (
     <div
       ref={heroRef}
-      className="fixed md:hidden top-0 left-0 w-full z-50 overflow-hidden transition-all duration-300 pt-3"
+      className={`fixed md:hidden top-0 left-0 w-full z-50 transition-all duration-300 pt-3 ${showSuggestions && suggestions.length > 0 ? '' : 'overflow-hidden'}`}
       style={{
         background: isHeaderSolid
           ? '#0a193b'
@@ -401,7 +477,7 @@ export default function HomeHero({
           {/* Delivery on Left */}
           {locationDisplayText ? (
             <div
-              onClick={() => navigate('/account')}
+              onClick={() => navigate('/address-book')}
               className="flex items-center gap-2 cursor-pointer max-w-[35%] group"
             >
               <div className="text-white/80 group-hover:text-white transition-all">
@@ -415,7 +491,7 @@ export default function HomeHero({
               </span>
             </div>
           ) : (
-            <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/account')}>
+            <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/address-book')}>
               <div className="text-white/60">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                   <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" strokeLinecap="round" strokeLinejoin="round" />
@@ -462,16 +538,16 @@ export default function HomeHero({
         }}>
 
         {/* Search Bar Container */}
-        <div className="px-5 md:px-10 py-2 md:hidden">
+        <div ref={searchContainerRef} className="px-5 md:px-10 py-2 md:hidden relative">
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              const input = e.currentTarget.querySelector('input') as HTMLInputElement;
-              if (input.value.trim()) {
-                navigate(`/search?q=${encodeURIComponent(input.value.trim())}`);
+              if (mobileSearchQuery.trim()) {
+                setShowSuggestions(false);
+                navigate(`/search?q=${encodeURIComponent(mobileSearchQuery.trim())}`);
               }
             }}
-            className="w-full md:max-w-2xl md:mx-auto h-12 md:h-14 bg-white rounded-2xl flex items-center gap-4 px-5 transition-all shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-neutral-100 focus-within:ring-4 focus-within:ring-primary-500/10 focus-within:shadow-[0_12px_40px_rgb(0,0,0,0.16)]">
+            className="w-full md:max-w-2xl md:mx-auto h-12 md:h-14 bg-white rounded-2xl flex items-center gap-4 px-5 transition-all shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-neutral-100 focus-within:ring-4 focus-within:ring-primary-500/10 focus-within:shadow-[0_12px_40px_rgb(0,0,0,0.16)] relative z-20">
             <svg
               width="22"
               height="22"
@@ -487,23 +563,85 @@ export default function HomeHero({
             <input
               type="text"
               name="q"
-              placeholder={isListening ? "Listening..." : `Search for "${searchSuggestions[currentSearchIndex]}"`}
+              value={mobileSearchQuery}
+              onChange={(e) => {
+                setMobileSearchQuery(e.target.value);
+                setShowSuggestions(true);
+              }}
+              onFocus={() => setShowSuggestions(true)}
+              placeholder={`Search for "${searchSuggestions[currentSearchIndex]}"`}
               className="flex-1 bg-transparent border-none outline-none text-[16px] font-semibold text-neutral-high placeholder-slate-400"
               autoComplete="off"
             />
-            <button
-              type="button"
-              onClick={handleVoiceSearch}
-              className={`p-2 rounded-full transition-all ${isListening ? 'bg-red-50 text-red-500 shadow-inner' : 'text-slate-400 hover:text-primary-500 hover:bg-slate-50'}`}
-            >
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"></path>
-                <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
-                <line x1="12" y1="19" x2="12" y2="22"></line>
-                <line x1="8" y1="22" x2="16" y2="22"></line>
-              </svg>
-            </button>
           </form>
+
+          {/* Mobile Suggestions Dropdown */}
+          <AnimatePresence>
+            {showSuggestions && suggestions.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 10 }}
+                transition={{ duration: 0.15 }}
+                className="absolute left-5 right-5 top-full mt-2 bg-[#0a193b] border border-white/10 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.4)] overflow-hidden z-50 backdrop-blur-xl"
+              >
+                <div className="py-2 max-h-[280px] overflow-y-auto scrollbar-thin scrollbar-thumb-white/10">
+                  {suggestions.map((item, idx) => (
+                    <div
+                      key={`${item.type}-${item.id}-${idx}`}
+                      onClick={() => {
+                        setShowSuggestions(false);
+                        if (item.type === 'product') {
+                          navigate(`/product/${item.id}`);
+                        } else if (item.type === 'category') {
+                          navigate(`/category/${item.id}`);
+                        } else {
+                          setMobileSearchQuery(item.name);
+                          navigate(`/search?q=${encodeURIComponent(item.name)}`);
+                        }
+                      }}
+                      className="px-4 py-2.5 flex items-center justify-between gap-3 hover:bg-white/10 transition-colors cursor-pointer text-white/90 group"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        {/* Left icon or image */}
+                        {item.type === 'keyword' && (
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-white/40 group-hover:text-white/70 transition-colors">
+                            <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
+                          </svg>
+                        )}
+                        {item.type === 'category' && (
+                          <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center overflow-hidden border border-white/10 flex-shrink-0">
+                            {item.image ? (
+                              <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                            ) : (
+                              <span className="text-xs">📁</span>
+                            )}
+                          </div>
+                        )}
+                        {item.type === 'product' && (
+                          <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center overflow-hidden flex-shrink-0">
+                            {item.image ? (
+                              <img src={item.image} alt={item.name} className="w-full h-full object-contain" />
+                            ) : (
+                              <span className="text-xs">📦</span>
+                            )}
+                          </div>
+                        )}
+                        <span className="text-[13px] font-semibold truncate group-hover:text-white transition-colors">
+                          {item.name}
+                        </span>
+                      </div>
+                      
+                      {/* Right metadata badge/type */}
+                      <span className="text-[10px] font-black uppercase tracking-wider text-white/40 group-hover:text-white/60 transition-colors flex-shrink-0">
+                        {item.type === 'product' ? `₹${item.price}` : item.type}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
         {/* Category Navigation (slides up behind search bar on scroll) */}

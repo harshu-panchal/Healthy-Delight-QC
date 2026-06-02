@@ -30,15 +30,49 @@ export default function Wishlist() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const fetchWishlist = async () => {
+  const fetchWishlist = async (isRetry = false) => {
     try {
       setLoading(true);
+      
+      // Attempt to retrieve coordinates from context, fallback to localStorage if needed
+      let lat = userLocation?.latitude;
+      let lng = userLocation?.longitude;
+
+      if (!lat || !lng) {
+        try {
+          const cached = localStorage.getItem('userLocation');
+          if (cached) {
+            const parsed = JSON.parse(cached);
+            if (parsed.latitude && parsed.longitude) {
+              lat = parsed.latitude;
+              lng = parsed.longitude;
+              console.log('[Wishlist] Recovered coordinates from localStorage fallback:', lat, lng);
+            }
+          }
+        } catch (storageError) {
+          console.error('[Wishlist] LocalStorage retrieval failed:', storageError);
+        }
+      }
+
       const res = await getWishlist({
-        latitude: userLocation?.latitude,
-        longitude: userLocation?.longitude
+        latitude: lat,
+        longitude: lng
       });
+
       if (res.success && res.data) {
-        setProducts(res.data.products.map(p => ({
+        // Filter out null or undefined elements to prevent rendering crashes
+        const validProducts = (res.data.products || []).filter((p: any) => p !== null && p !== undefined);
+        
+        // Self-healing: If empty on initial mount, retry once after 500ms to allow DB writes to settle
+        if (validProducts.length === 0 && !isRetry) {
+          console.log('[Wishlist] Empty results on first load, retrying in 500ms...');
+          setTimeout(() => {
+            fetchWishlist(true);
+          }, 500);
+          return;
+        }
+
+        setProducts(validProducts.map(p => ({
           ...p,
           id: p._id || (p as any).id,
           name: p.productName || (p as any).name,
@@ -56,7 +90,7 @@ export default function Wishlist() {
   };
 
   useEffect(() => {
-    fetchWishlist();
+    fetchWishlist(false);
   }, [userLocation?.latitude, userLocation?.longitude]);
 
   const handleRemove = async (productId: string) => {

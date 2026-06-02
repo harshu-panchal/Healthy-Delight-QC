@@ -179,8 +179,12 @@ export default function Login() {
 
           {showOTP && (
             <div className="hd-tagline">
-              <h1 className="text-2xl font-bold text-[#0a193b] mb-1">Verify your number</h1>
-              <p className="text-sm font-medium text-[#64748b]">Code sent to +91 {mobileNumber}</p>
+              <h1 className="text-[18px] sm:text-[20px] font-semibold text-[#0a193b] leading-tight font-outfit">
+                Verify your number
+              </h1>
+              <p className="text-[12px] sm:text-[13px] text-[#64748b] mt-1 font-medium">
+                Code sent to +91 {mobileNumber}
+              </p>
             </div>
           )}
 
@@ -265,14 +269,14 @@ export default function Login() {
           position: relative; width: 100%; height: auto; min-height: 240px;
           overflow: hidden; display: flex; flex-direction: column;
           align-items: center; background: #f8f6f2;
-          transition: filter 0.5s ease;
+          transition: filter 0.5s ease, min-height 0.5s ease;
         }
         .hd-top-panel.hd-otp-focus { filter: brightness(0.9) blur(2px); }
 
         .hd-hero-strip {
           position: relative; width: 100%; height: 190px;
           overflow: hidden; opacity: 0; transform: translateY(-20px);
-          transition: all 1s cubic-bezier(0.22, 1, 0.36, 1);
+          transition: all 1s cubic-bezier(0.22, 1, 0.36, 1), height 0.5s ease;
         }
         .hd-hero-strip.hd-hero-in { opacity: 1; transform: translateY(0); }
 
@@ -356,6 +360,20 @@ export default function Login() {
           50% { transform: scale(1.05); }
         }
         @keyframes spin { to { transform: rotate(360deg); } }
+
+        @media (max-width: 1023px) {
+          .hd-top-panel.hd-otp-focus {
+            min-height: 160px !important;
+          }
+          .hd-otp-focus .hd-hero-strip {
+            height: 110px !important;
+            opacity: 1 !important;
+          }
+          .hd-logo-badge.hd-logo-otp {
+            margin-top: -25px !important;
+            transform: scale(0.85);
+          }
+        }
 
         @media (min-width: 1024px) {
           .hd-login-root { flex-direction: row; }
