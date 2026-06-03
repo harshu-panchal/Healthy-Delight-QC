@@ -88,6 +88,9 @@ export default function Checkout() {
   const [gstinError, setGstinError] = useState<string | null>(null);
   const [isMovingLastToWishlist, setIsMovingLastToWishlist] = useState(false);
 
+  const [showScheduledConflictModal, setShowScheduledConflictModal] = useState(false);
+  const [conflictModalDate, setConflictModalDate] = useState<string | null>(null);
+
   const [wishlistProducts, setWishlistProducts] = useState<any[]>([]);
   const [loadingWishlist, setLoadingWishlist] = useState(false);
 
@@ -438,13 +441,13 @@ export default function Checkout() {
     );
   }
 
-  if (cartLoading) {
+  if (cartLoading && cart.items.length === 0) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
         <div className="flex flex-col items-center">
           <div className="w-12 h-12 border-4 border-[#0a193b] border-t-transparent rounded-full animate-spin mb-4"></div>
           <p className="text-sm font-medium text-neutral-600">
-            {cartLoading ? "Loading checkout..." : "Redirecting..."}
+            Loading checkout...
           </p>
         </div>
       </div>
@@ -645,7 +648,18 @@ export default function Checkout() {
     }
   };
 
-  const handlePlaceOrder = async (arg?: any) => {
+  const handleConfirmScheduledConflict = async () => {
+    setShowScheduledConflictModal(false);
+    try {
+      showGlobalToast("Placing a new scheduled order...", "info");
+      await handlePlaceOrder(true, true);
+    } catch (newOrderError: any) {
+      console.error("Failed to place new scheduled order:", newOrderError);
+      alert(newOrderError.response?.data?.message || "Failed to place your new scheduled order.");
+    }
+  };
+
+  const handlePlaceOrder = async (arg?: any, forcePlaceNew?: boolean) => {
     // Only bypass if explicitly passed true (handles event objects from onClick)
     const bypassProfileCheck = arg === true;
 
@@ -704,7 +718,7 @@ export default function Checkout() {
 
     const effectivePaymentMethod = remainingTotal === 0 ? "Wallet" : paymentMethod;
 
-    const order: Order & { orderType?: string; scheduledDate?: string; scheduledTimeSlot?: string; useWallet?: boolean } = {
+    const order: Order & { orderType?: string; scheduledDate?: string; scheduledTimeSlot?: string; useWallet?: boolean; forcePlaceNewScheduled?: boolean } = {
       id: orderId,
       items: cart.items,
       totalItems: cart.itemCount,
@@ -724,6 +738,7 @@ export default function Checkout() {
       gstin: gstin || undefined,
       couponCode: selectedCoupon?.code || undefined,
       giftPackaging: giftPackaging,
+      forcePlaceNewScheduled: forcePlaceNew,
       ...(scheduledDateStr ? {
         orderType: "Scheduled",
         scheduledDate: scheduledDateStr,
@@ -752,36 +767,8 @@ export default function Checkout() {
     } catch (error: any) {
       console.error("Order placement failed", error);
       if (error.response?.status === 409 && error.response?.data?.canModify) {
-        const confirmMerge = window.confirm(
-          `You already have a scheduled delivery for ${new Date(scheduledDateStr || "").toLocaleDateString("en-US", {
-            weekday: "long",
-          })}. Would you like to modify it? (This will merge/update your existing scheduled order)`
-        );
-        if (confirmMerge) {
-          try {
-            const existingOrderId = error.response.data.existingOrderId;
-            const itemsToMerge = cart.items.map((item) => ({
-              product: item.product.id || (item.product as any)._id,
-              quantity: item.quantity,
-              variant: item.variant,
-            }));
-            const mergeResult = await updateScheduledOrderItems(existingOrderId, {
-              items: itemsToMerge,
-            });
-            if (mergeResult.success) {
-              setIsPlacedOrderScheduled(true);
-              sessionStorage.removeItem("scheduledDeliveryDate");
-              sessionStorage.removeItem("scheduledTimeSlot");
-              clearCart();
-              setPlacedOrderId(existingOrderId);
-              setShowOrderSuccess(true);
-              return;
-            }
-          } catch (mergeError: any) {
-            console.error("Merge order failed:", mergeError);
-            alert(mergeError.response?.data?.message || "Failed to update your existing scheduled order.");
-          }
-        }
+        setConflictModalDate(scheduledDateStr);
+        setShowScheduledConflictModal(true);
         return;
       }
 
@@ -1001,6 +988,61 @@ export default function Checkout() {
                     {isUpdatingProfile ? "Saving..." : "Save & Continue"}
                   </button>
                 </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Scheduled Order Conflict Modal */}
+      <AnimatePresence>
+        {showScheduledConflictModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[80] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+            onClick={() => setShowScheduledConflictModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl border border-neutral-100 flex flex-col items-center text-center"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Icon Container */}
+              <div className="w-16 h-16 rounded-full bg-amber-50 flex items-center justify-center mb-4 text-3xl animate-bounce">
+                📅
+              </div>
+
+              <h3 className="text-xl font-extrabold text-[#0a193b] mb-2">
+                Delivery Already Scheduled
+              </h3>
+              
+              <p className="text-sm text-neutral-600 font-medium mb-6 leading-relaxed">
+                You already have a scheduled delivery for{" "}
+                <span className="font-bold text-[#0a193b]">
+                  {conflictModalDate
+                    ? new Date(conflictModalDate).toLocaleDateString("en-US", { weekday: "long" })
+                    : "this day"}
+                </span>
+                . Would you like to place another new scheduled order for this day?
+              </p>
+
+              <div className="flex gap-3 w-full">
+                <button
+                  onClick={() => setShowScheduledConflictModal(false)}
+                  className="flex-1 py-3 text-sm font-bold text-neutral-600 bg-neutral-100 rounded-full hover:bg-neutral-200 transition-all active:scale-[0.98]"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleConfirmScheduledConflict}
+                  className="flex-1 py-3 text-sm font-bold text-white bg-[#0a193b] rounded-full hover:bg-[#0a193b]/90 shadow-md shadow-[#0a193b]/10 transition-all active:scale-[0.98]"
+                >
+                  Place New Order
+                </button>
               </div>
             </motion.div>
           </motion.div>

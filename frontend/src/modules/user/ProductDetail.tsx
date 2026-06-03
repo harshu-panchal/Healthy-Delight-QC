@@ -609,7 +609,7 @@ export default function ProductDetail() {
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-lg font-semibold text-neutral-900 tracking-tight">Similar Products</h2>
               <button
-                onClick={() => navigate('/category/' + (product.category?._id || product.category?.id))}
+                onClick={() => navigate('/category/' + (product.category?.slug || product.category?._id || product.category?.id))}
                 className="text-xs font-bold text-[#0a193b] uppercase tracking-widest">See All</button>
             </div>
 
@@ -624,7 +624,15 @@ export default function ProductDetail() {
                     key={item.id}
                     className="flex-shrink-0 w-44 bg-white rounded-2xl shadow-[0_4px_15px_rgba(0,0,0,0.02)] border border-neutral-100 p-3 space-y-3">
                     <div
-                      onClick={() => navigate(`/product/${item.id || item._id}`)}
+                       onClick={() => {
+                        const name = item.name || item.productName || '';
+                        const slug = item.slug || name
+                          .toLowerCase()
+                          .trim()
+                          .replace(/[^a-z0-9]+/g, '-')
+                          .replace(/(^-|-$)/g, '');
+                        navigate(`/product/${slug || item.id || item._id}`);
+                      }}
                       className="w-full aspect-square bg-neutral-50 rounded-xl flex items-center justify-center p-2 cursor-pointer relative overflow-hidden">
                       <img
                         src={item.imageUrl || item.mainImage}

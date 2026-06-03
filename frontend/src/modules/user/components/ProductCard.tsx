@@ -142,7 +142,13 @@ export default function ProductCard({
   );
 
   const handleCardClick = () => {
-    navigate(`/product/${((product as any).id || product._id) as string}`);
+    const name = product.name || product.productName || '';
+    const slug = (product as any).slug || name
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '');
+    navigate(`/product/${slug || ((product as any).id || product._id) as string}`);
   };
 
   const handleAdd = async (e: React.MouseEvent) => {

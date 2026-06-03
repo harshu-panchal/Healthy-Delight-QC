@@ -8,20 +8,23 @@ import {
   Category as ApiCategory,
 } from "../../services/api/customerProductService";
 import { useLocation as useLocationContext } from "../../hooks/useLocation";
+import { useAuth } from "../../context/AuthContext";
+import { calculateProductPrice } from "../../utils/priceUtils";
 
 export default function CategoryPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { location: userLocation } = useLocationContext();
+  const { user } = useAuth();
 
   const [category, setCategory] = useState<ApiCategory | null>(null);
   const [subcategories, setSubcategories] = useState<ApiCategory[]>([]);
   const [selectedSubcategory, setSelectedSubcategory] = useState("all");
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
-  const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
-  const [filterSearchQuery, setFilterSearchQuery] = useState("");
-  const [selectedFilterCategory, setSelectedFilterCategory] = useState("Type");
+  const [selectedFilterCategory, setSelectedFilterCategory] = useState("Price");
+  const [priceFilter, setPriceFilter] = useState<string>("all");
+  const [inStockOnly, setInStockOnly] = useState<boolean>(false);
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [categoryLoading, setCategoryLoading] = useState(true);
@@ -127,8 +130,26 @@ export default function CategoryPage() {
     }
   }, [id, selectedSubcategory, category?._id, userLocation]);
 
-  // Client-side filtering removed in favor of backend subcategory filtering
-  const categoryProducts = products;
+  // Client-side filtering of products
+  const categoryProducts = useMemo(() => {
+    return products.filter((product) => {
+      // 1. In Stock Filter
+      if (inStockOnly && product.isAvailable === false) {
+        return false;
+      }
+
+      // 2. Price Filter
+      const { displayPrice } = calculateProductPrice(product, undefined, user?.customerType);
+      if (priceFilter === "under100" && displayPrice >= 100) return false;
+      if (priceFilter === "100to200" && (displayPrice < 100 || displayPrice > 200)) return false;
+      if (priceFilter === "200to500" && (displayPrice < 200 || displayPrice > 500)) return false;
+      if (priceFilter === "above500" && displayPrice <= 500) return false;
+
+      return true;
+    });
+  }, [products, priceFilter, inStockOnly, user?.customerType]);
+
+  const activeFiltersCount = (priceFilter !== "all" ? 1 : 0) + (inStockOnly ? 1 : 0);
 
   if ((categoryLoading || loading) && !products.length && !category) {
     return null; // Let global IconLoader handle it
@@ -176,123 +197,12 @@ export default function CategoryPage() {
     );
   }
 
-  // Extract filter options from products
-  const getFilterOptions = () => {
-    // Current category ID from resolved category or from URL params
-    const currentId = category?._id || id;
-
-    // Filter products that belong to this category or subcategory
-    const categoryProducts = products.filter((p) => {
-      // Check for direct categoryId match, or match on populated category object
-      // Using String() to ensure safe comparison between potential ObjectId and String
-      const productCatId = String(p.categoryId || (p.category && (p.category._id || p.category.id)) || "");
-      return productCatId === String(currentId);
-    });
-
-    const filterMap = new Map<string, number>();
-
-    categoryProducts.forEach((product) => {
-      // Extract main ingredient/type from product name
-      // Use fallback to productName if name is missing
-      const rawName = product.name || (product as any).productName || "";
-      if (!rawName) return;
-
-      const name = rawName.toLowerCase();
-      // Remove common prefixes like "fresh", "organic", etc.
-      const cleanName = name
-        .replace(/^(fresh|organic|premium|best|new)\s+/i, "")
-        .trim();
-
-      const commonTypes = [
-        { keywords: ["tomato", "tomatoes"], display: "Tomato" },
-        { keywords: ["potato", "potatoes"], display: "Potato" },
-        { keywords: ["chilli", "chili", "chilies"], display: "Chilli" },
-        { keywords: ["spinach"], display: "Spinach" },
-        { keywords: ["brinjal", "eggplant"], display: "Brinjal" },
-        { keywords: ["onion", "onions"], display: "Onion" },
-        { keywords: ["peanut", "peanuts"], display: "Peanuts" },
-        { keywords: ["lemon", "lemons"], display: "Lemon" },
-        { keywords: ["mushroom", "mushrooms"], display: "Mushroom" },
-        {
-          keywords: ["capsicum", "bell pepper", "pepper"],
-          display: "Capsicum",
-        },
-        { keywords: ["ginger"], display: "Ginger" },
-        { keywords: ["carrot", "carrots"], display: "Carrot" },
-        { keywords: ["fenugreek", "methi"], display: "Fenugreek" },
-        { keywords: ["broccoli"], display: "Broccoli" },
-        { keywords: ["cucumber", "cucumbers"], display: "Cucumber" },
-        { keywords: ["cabbage"], display: "Cabbage" },
-        { keywords: ["cauliflower"], display: "Cauliflower" },
-        { keywords: ["ladyfinger", "okra"], display: "Ladyfinger" },
-        { keywords: ["beans"], display: "Beans" },
-        { keywords: ["peas"], display: "Peas" },
-        { keywords: ["garlic"], display: "Garlic" },
-        { keywords: ["apple", "apples"], display: "Apple" },
-        { keywords: ["banana", "bananas"], display: "Banana" },
-        { keywords: ["orange", "oranges"], display: "Orange" },
-        { keywords: ["mango", "mangoes"], display: "Mango" },
-      ];
-
-      for (const type of commonTypes) {
-        if (type.keywords.some((keyword) => cleanName.includes(keyword))) {
-          filterMap.set(type.display, (filterMap.get(type.display) || 0) + 1);
-          break;
-        }
-      }
-    });
-
-    return Array.from(filterMap.entries())
-      .map(([name, count]) => ({ name, count, icon: getIconForFilter(name) }))
-      .sort((a, b) => a.name.localeCompare(b.name));
-  };
-
-  const getIconForFilter = (name: string): string => {
-    const iconMap: Record<string, string> = {
-      Tomato: "🍅",
-      Potato: "🥔",
-      Chilli: "🌶️",
-      Spinach: "🥬",
-      Brinjal: "🍆",
-      Onion: "🧅",
-      Peanuts: "🥜",
-      Lemon: "🍋",
-      Mushroom: "🍄",
-      Capsicum: "🫑",
-      Ginger: "🫚",
-      Carrot: "🥕",
-      Fenugreek: "🌿",
-      Broccoli: "🥦",
-      Cucumber: "🥒",
-      Cabbage: "🥬",
-      Cauliflower: "🥦",
-      Apple: "🍎",
-      Banana: "🍌",
-      Orange: "🍊",
-      Mango: "🥭",
-    };
-    return iconMap[name] || "🥬";
-  };
-
-  const filterOptions = getFilterOptions();
-  const filteredOptions = filterOptions.filter((option) =>
-    option.name.toLowerCase().includes(filterSearchQuery.toLowerCase())
-  );
-
-  const handleFilterToggle = (filterName: string) => {
-    setSelectedFilters((prev) =>
-      prev.includes(filterName)
-        ? prev.filter((f) => f !== filterName)
-        : [...prev, filterName]
-    );
-  };
-
   const handleClearFilters = () => {
-    setSelectedFilters([]);
+    setPriceFilter("all");
+    setInStockOnly(false);
   };
 
   const handleApplyFilters = () => {
-    // Apply filters logic here
     setIsFiltersOpen(false);
   };
 
@@ -352,11 +262,11 @@ export default function CategoryPage() {
           </div>
         </div>
 
-        {/* Sticky Filter & Sort Bar */}
-        <div className="px-4 md:px-6 lg:px-8 py-2 border-t border-black/[0.02] flex items-center gap-3">
+        {/* Sticky Filter Bar */}
+        <div className="px-4 md:px-6 lg:px-8 py-2 border-t border-black/[0.02] flex items-center">
           <button
             onClick={() => setIsFiltersOpen(true)}
-            className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-black/[0.04] rounded-full shadow-sm hover:bg-neutral-50 transition-all text-sm font-bold text-[#0a193b]"
+            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-black/[0.04] rounded-full shadow-sm hover:bg-neutral-50 transition-all text-sm font-bold text-[#0a193b]"
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <line x1="4" y1="21" x2="4" y2="14" /><line x1="4" y1="10" x2="4" y2="3" />
@@ -364,16 +274,6 @@ export default function CategoryPage() {
               <line x1="20" y1="21" x2="20" y2="16" /><line x1="20" y1="12" x2="20" y2="3" />
             </svg>
             Filters
-          </button>
-          
-          <button
-            className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-black/[0.04] rounded-full shadow-sm hover:bg-neutral-50 transition-all text-sm font-bold text-[#0a193b]"
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="m3 16 4 4 4-4" /><path d="M7 20V4" />
-              <path d="m21 8-4-4-4 4" /><path d="M17 4v16" />
-            </svg>
-            Sort
           </button>
         </div>
       </div>
@@ -423,139 +323,135 @@ export default function CategoryPage() {
               }
             `}</style>
             <div className="fixed inset-0 z-[100]">
-              {/* Backdrop - Semi-transparent overlay */}
+              {/* Backdrop - Semi-transparent overlay with brand color blend */}
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.2 }}
-                className="absolute inset-0 bg-black/40"
+                className="absolute inset-0 bg-[#0a193b]/40 backdrop-blur-sm"
                 onClick={() => setIsFiltersOpen(false)}
               />
 
-              {/* Modal - Slides up from bottom, compact size matching image */}
+              {/* Modal - Slides up from bottom, compact size matching brand theme */}
               <motion.div
                 initial={{ y: "100%" }}
                 animate={{ y: 0 }}
                 exit={{ y: "100%" }}
                 transition={{ type: "spring", stiffness: 300, damping: 30 }}
                 onClick={(e) => e.stopPropagation()}
-                className="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl shadow-2xl max-h-[70vh] flex flex-col">
+                className="absolute bottom-0 left-0 right-0 bg-[#0a193b] rounded-t-[2.5rem] shadow-2xl max-h-[60vh] flex flex-col overflow-hidden border-t border-white/10">
+                
+                {/* Touch drag indicator pill */}
+                <div className="w-12 h-1 bg-white/20 rounded-full mx-auto mt-3 mb-1 flex-shrink-0" />
+
                 {/* Header */}
-                <div className="px-5 py-4 border-b border-neutral-200">
-                  <h2 className="text-base font-bold text-neutral-900">
+                <div className="px-6 py-4 bg-[#0a193b] border-b border-white/5">
+                  <h2 className="text-base font-black text-white tracking-tight">
                     Filters
                   </h2>
                 </div>
 
-                {/* Search Bar */}
-                <div className="px-5 py-3 border-b border-neutral-200">
-                  <div className="relative">
-                    <svg
-                      className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-neutral-400"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                      />
-                    </svg>
-                    <input
-                      type="text"
-                      placeholder="Search across filters..."
-                      value={filterSearchQuery}
-                      onChange={(e) => setFilterSearchQuery(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2.5 bg-white border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm text-neutral-700 placeholder:text-neutral-400"
-                    />
-                  </div>
-                </div>
-
                 {/* Content Area */}
-                <div className="flex flex-1 overflow-hidden min-h-0">
-                  {/* Left Column - Filter Categories */}
-                  <div className="w-24 border-r border-neutral-200 flex-shrink-0 bg-neutral-50">
+                <div className="flex flex-1 overflow-hidden min-h-0 bg-[#08122b]">
+                  {/* Left Column - Filter Categories (w-36 for safe text padding) */}
+                  <div className="w-36 border-r border-white/5 flex-shrink-0 bg-[#060e22]">
                     <button
-                      onClick={() => setSelectedFilterCategory("Type")}
-                      className={`w-full px-3 py-3 text-left text-sm font-medium transition-colors ${selectedFilterCategory === "Type"
-                        ? "bg-green-50 text-green-700"
-                        : "text-neutral-600 hover:bg-neutral-100"
+                      onClick={() => setSelectedFilterCategory("Price")}
+                      className={`w-full px-4 py-5 text-left text-xs font-black tracking-wider uppercase transition-all duration-150 border-b border-white/[0.02] ${selectedFilterCategory === "Price"
+                        ? "bg-[#0a193b] text-[#c5a059] border-l-4 border-[#c5a059]"
+                        : "text-white/60 hover:bg-[#0a193b]/50 hover:text-white"
                         }`}>
-                      Type
+                      Price
                     </button>
                     <button
-                      onClick={() => setSelectedFilterCategory("Properties")}
-                      className={`w-full px-3 py-3 text-left text-sm font-medium transition-colors ${selectedFilterCategory === "Properties"
-                        ? "bg-green-50 text-green-700"
-                        : "text-neutral-600 hover:bg-neutral-100"
+                      onClick={() => setSelectedFilterCategory("Availability")}
+                      className={`w-full px-4 py-5 text-left text-xs font-black tracking-wider uppercase transition-all duration-150 border-b border-white/[0.02] ${selectedFilterCategory === "Availability"
+                        ? "bg-[#0a193b] text-[#c5a059] border-l-4 border-[#c5a059]"
+                        : "text-white/60 hover:bg-[#0a193b]/50 hover:text-white"
                         }`}>
-                      Properties
+                      Availability
                     </button>
                   </div>
 
                   {/* Right Column - Filter Options */}
-                  <div className="flex-1 overflow-y-auto">
-                    <div className="p-4">
-                      {filteredOptions.map((option) => {
-                        const isChecked = selectedFilters.includes(option.name);
-                        return (
-                          <button
-                            key={option.name}
-                            onClick={() => handleFilterToggle(option.name)}
-                            className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-neutral-50 rounded-lg transition-colors">
-                            <span className="text-xl flex-shrink-0 w-6 h-6 flex items-center justify-center">
-                              {option.icon}
-                            </span>
-                            <span className="flex-1 text-left text-sm font-medium text-neutral-700">
-                              {option.name}
-                            </span>
-                            <span className="text-sm text-neutral-500">
-                              ({option.count})
-                            </span>
-                            <div className="w-5 h-5 flex items-center justify-center flex-shrink-0 ml-2">
-                              {isChecked ? (
-                                <div className="w-5 h-5 border-2 border-green-600 bg-green-600 rounded-sm flex items-center justify-center">
-                                  <svg
-                                    className="w-3 h-3 text-white"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24">
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      strokeWidth={3}
-                                      d="M5 13l4 4L19 7"
-                                    />
-                                  </svg>
+                  <div className="flex-1 overflow-y-auto bg-[#0a193b]">
+                    {selectedFilterCategory === "Price" && (
+                      <div className="p-4 space-y-2">
+                        {[
+                          { id: "all", label: "All Prices" },
+                          { id: "under100", label: "Under ₹100" },
+                          { id: "100to200", label: "₹100 - ₹200" },
+                          { id: "200to500", label: "₹200 - ₹500" },
+                          { id: "above500", label: "Above ₹500" },
+                        ].map((option) => {
+                          const isChecked = priceFilter === option.id;
+                          return (
+                            <button
+                              key={option.id}
+                              onClick={() => setPriceFilter(option.id)}
+                              className="w-full flex items-center gap-3 px-3 py-3 hover:bg-white/[0.04] rounded-xl transition-colors">
+                              <span className="flex-1 text-left text-sm font-semibold text-white/90">
+                                {option.label}
+                              </span>
+                              <div className="w-5 h-5 flex items-center justify-center flex-shrink-0">
+                                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
+                                  isChecked ? "border-[#c5a059] bg-transparent" : "border-white/20 bg-transparent"
+                                }`}>
+                                  {isChecked && <div className="w-2.5 h-2.5 rounded-full bg-[#c5a059]" />}
                                 </div>
-                              ) : (
-                                <div className="w-5 h-5 border-2 border-neutral-300 rounded-sm bg-white"></div>
-                              )}
-                            </div>
-                          </button>
-                        );
-                      })}
-                    </div>
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    {selectedFilterCategory === "Availability" && (
+                      <div className="p-4">
+                        <button
+                          onClick={() => setInStockOnly(!inStockOnly)}
+                          className="w-full flex items-center gap-3 px-3 py-3 hover:bg-white/[0.04] rounded-xl transition-colors">
+                          <span className="flex-1 text-left text-sm font-semibold text-white/90">
+                            In Stock Only
+                          </span>
+                          <div className="w-5 h-5 flex items-center justify-center flex-shrink-0">
+                            {inStockOnly ? (
+                              <div className="w-5 h-5 border-2 border-[#c5a059] bg-[#c5a059] rounded-md flex items-center justify-center">
+                                <svg
+                                  className="w-3.5 h-3.5 text-[#0a193b]"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth={4}
+                                  viewBox="0 0 24 24">
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    d="M5 13l4 4L19 7"
+                                  />
+                                </svg>
+                              </div>
+                            ) : (
+                              <div className="w-5 h-5 border-2 border-white/20 rounded-md bg-transparent"></div>
+                            )}
+                          </div>
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
 
                 {/* Footer Buttons */}
-                <div className="px-5 py-4 border-t border-neutral-200 flex gap-3 bg-white">
+                <div className="px-6 py-4 border-t border-white/5 flex gap-3 bg-[#08122b]">
                   <button
                     onClick={handleClearFilters}
-                    className="flex-1 px-4 py-2.5 border border-green-600 text-green-600 rounded-lg font-medium text-sm hover:bg-green-50 transition-colors bg-white">
+                    className="flex-1 px-4 py-2.5 border border-[#c5a059]/30 text-[#c5a059] hover:bg-[#c5a059]/10 rounded-xl font-bold text-sm transition-all duration-200 bg-transparent active:scale-95">
                     Clear Filter
                   </button>
                   <button
                     onClick={handleApplyFilters}
-                    className={`flex-1 px-4 py-2.5 rounded-lg font-medium text-sm transition-colors ${selectedFilters.length > 0
-                      ? "bg-green-600 text-white hover:bg-green-700"
-                      : "bg-neutral-300 text-neutral-500 cursor-not-allowed"
-                      }`}
-                    disabled={selectedFilters.length === 0}>
-                    Apply
+                    className="flex-1 px-4 py-2.5 bg-[#c5a059] hover:bg-[#b08e4f] text-[#0a193b] rounded-xl font-bold text-sm transition-all duration-200 shadow-md shadow-[#c5a059]/10 active:scale-95">
+                    Apply {activeFiltersCount > 0 ? `(${activeFiltersCount})` : ''}
                   </button>
                 </div>
               </motion.div>

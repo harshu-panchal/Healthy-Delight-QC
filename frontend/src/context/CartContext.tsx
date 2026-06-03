@@ -109,15 +109,27 @@ export function CartProvider({ children }: { children: ReactNode }) {
         longitude: lng ?? location?.longitude
       });
       if (response && response.data && response.data.items) {
-        setItems(mapApiItemsToState(response.data.items));
-        setEstimatedFee(response.data.estimatedDeliveryFee);
-        setPlatformFee(response.data.platformFee);
-        setFreeDeliveryThreshold(response.data.freeDeliveryThreshold);
+        if (pendingOperationsRef.current.size > 0) {
+          console.debug("Skipping fetchCart items update because operations are in progress");
+          // Still update fee structures if they are provided, but keep optimistic items!
+          setEstimatedFee(response.data.estimatedDeliveryFee);
+          setPlatformFee(response.data.platformFee);
+          setFreeDeliveryThreshold(response.data.freeDeliveryThreshold);
+        } else {
+          setItems(mapApiItemsToState(response.data.items));
+          setEstimatedFee(response.data.estimatedDeliveryFee);
+          setPlatformFee(response.data.platformFee);
+          setFreeDeliveryThreshold(response.data.freeDeliveryThreshold);
+        }
       } else {
-        setItems([]);
-        setEstimatedFee(undefined);
-        setPlatformFee(undefined);
-        setFreeDeliveryThreshold(undefined);
+        if (pendingOperationsRef.current.size === 0) {
+          setItems([]);
+          setEstimatedFee(undefined);
+          setPlatformFee(undefined);
+          setFreeDeliveryThreshold(undefined);
+        } else {
+          console.debug("Skipping fetchCart items clear because operations are in progress");
+        }
       }
     } catch (error) {
       console.error("Failed to fetch cart:", error);

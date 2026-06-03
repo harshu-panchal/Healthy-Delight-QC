@@ -29,7 +29,15 @@ export default function SimilarProducts({ products, currentProductId }: SimilarP
             return (
               <div
                 key={product.id}
-                onClick={() => navigate(`/product/${product.id}`)}
+                onClick={() => {
+                  const name = product.name || (product as any).productName || '';
+                  const slug = (product as any).slug || name
+                    .toLowerCase()
+                    .trim()
+                    .replace(/[^a-z0-9]+/g, '-')
+                    .replace(/(^-|-$)/g, '');
+                  navigate(`/product/${slug || product.id}`);
+                }}
                 className="flex-shrink-0 w-32 bg-white rounded-xl shadow-sm border border-neutral-200 overflow-hidden cursor-pointer hover:shadow-md transition-shadow"
               >
                 {/* Image */}

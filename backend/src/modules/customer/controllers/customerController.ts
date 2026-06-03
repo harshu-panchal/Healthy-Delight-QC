@@ -48,6 +48,7 @@ export const getProfile = asyncHandler(async (req: Request, res: Response) => {
       state: customer.state,
       pincode: customer.pincode,
       locationUpdatedAt: customer.locationUpdatedAt,
+      profileImage: (customer as any).profileImage,
     },
   });
 });
@@ -58,7 +59,7 @@ export const getProfile = asyncHandler(async (req: Request, res: Response) => {
 export const updateProfile = asyncHandler(
   async (req: Request, res: Response) => {
     const userId = req.user?.userId;
-    const { name, email, dateOfBirth, notificationPreferences, accountPrivacy } = req.body;
+    const { name, email, dateOfBirth, profileImage, notificationPreferences, accountPrivacy } = req.body;
 
 
     if (!userId || (req as any).user?.userType !== "Customer") {
@@ -96,6 +97,7 @@ export const updateProfile = asyncHandler(
       customer.email = email;
     }
     if (dateOfBirth) customer.dateOfBirth = new Date(dateOfBirth);
+    if (profileImage !== undefined) (customer as any).profileImage = profileImage;
     if (notificationPreferences) customer.notificationPreferences = { ...customer.notificationPreferences, ...notificationPreferences };
     if (accountPrivacy) customer.accountPrivacy = { ...customer.accountPrivacy, ...accountPrivacy };
 
@@ -124,6 +126,7 @@ export const updateProfile = asyncHandler(
         city: customer.city,
         state: customer.state,
         pincode: customer.pincode,
+        profileImage: (customer as any).profileImage,
         notificationPreferences: customer.notificationPreferences,
         accountPrivacy: customer.accountPrivacy,
         donationStats: customer.donationStats,

@@ -40,13 +40,6 @@ export default function DeliveryCalendarStrip({
   return (
     <div className="w-full bg-white/50 backdrop-blur-sm py-3 border-b border-neutral-100 overflow-hidden">
       <div className="flex items-center px-4 gap-3">
-        {/* Three Dots Action */}
-        <button className="flex-shrink-0 w-8 h-8 rounded-xl bg-neutral-100 flex items-center justify-center text-neutral-400 hover:bg-neutral-200 transition-colors">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round">
-            <circle cx="5" cy="12" r="1" /><circle cx="12" cy="12" r="1" /><circle cx="19" cy="12" r="1" />
-          </svg>
-        </button>
-
         {/* Horizontal Dates */}
         <div 
           ref={scrollRef}
@@ -105,13 +98,15 @@ export default function DeliveryCalendarStrip({
       </div>
 
       {/* Legend */}
-      <div className="flex items-center justify-center gap-3 mt-3 px-4 overflow-x-auto scrollbar-hide">
-        {Object.entries(STATUS_COLORS).map(([key, color]) => (
-          <div key={key} className="flex items-center gap-1.5 whitespace-nowrap">
-            <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: color }} />
-            <span className="text-[10px] font-bold text-neutral-400 capitalize">{key}</span>
-          </div>
-        ))}
+      <div className="flex items-center justify-center gap-4 mt-3 px-4">
+        {Object.entries(STATUS_COLORS)
+          .filter(([key]) => ["delivered", "upcoming"].includes(key))
+          .map(([key, color]) => (
+            <div key={key} className="flex items-center gap-1.5 whitespace-nowrap">
+              <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: color }} />
+              <span className="text-[10px] font-bold text-neutral-400 capitalize">{key}</span>
+            </div>
+          ))}
       </div>
     </div>
   );

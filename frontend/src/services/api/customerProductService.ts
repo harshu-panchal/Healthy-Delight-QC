@@ -12,6 +12,7 @@ export interface Category {
     icon?: string;
     description?: string;
     isActive: boolean;
+    slug?: string;
     children?: Category[];
     subcategories?: Category[];
     headerCategoryId?: string | { _id: string; name?: string };

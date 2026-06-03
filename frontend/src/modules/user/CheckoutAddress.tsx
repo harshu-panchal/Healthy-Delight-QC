@@ -1,13 +1,10 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useJsApiLoader } from '@react-google-maps/api';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { OrderAddress } from '../../types/order';
 import { getAddresses, addAddress, updateAddress, Address } from '../../services/api/customerAddressService';
-import { appConfig } from '../../services/configService';
-import { calculateProductPrice } from '../../utils/priceUtils';
 import GoogleMapsLocationPicker from '../../components/GoogleMapsLocationPicker';
 import LocationPickerMap from '../../components/LocationPickerMap';
 
@@ -15,7 +12,6 @@ type Libraries = ("places" | "drawing" | "geometry" | "visualization")[];
 const googleLibraries: Libraries = ['places'];
 
 export default function CheckoutAddress() {
-  const { cart } = useCart();
   const { isAuthenticated, user } = useAuth();
   const { showToast } = useToast();
   const navigate = useNavigate();
@@ -23,27 +19,70 @@ export default function CheckoutAddress() {
 
   // Get address from navigation state if editing
   const editAddress = (location.state as any)?.editAddress as OrderAddress | undefined;
+  const editAddressId = editAddress ? (editAddress.id || editAddress._id) : 'new';
+
+  const isFirstMount = useRef(true);
+
+  // Load draft if it exists and matches the current edit session
+  const draft = (() => {
+    try {
+      const savedDraftStr = sessionStorage.getItem('checkout_address_draft');
+      if (savedDraftStr) {
+        const parsedDraft = JSON.parse(savedDraftStr);
+        if (parsedDraft.editAddressId === editAddressId) {
+          return parsedDraft;
+        }
+      }
+    } catch (e) {
+      console.warn("Failed to parse checkout address draft:", e);
+    }
+    return null;
+  })();
 
   const [savedAddresses, setSavedAddresses] = useState<Address[]>([]);
-  const [address, setAddress] = useState<OrderAddress>({
-    name: editAddress?.name || '',
-    phone: editAddress?.phone || '',
-    flat: editAddress?.flat || '',
-    street: editAddress?.street || '',
-    city: editAddress?.city || '',
-    pincode: editAddress?.pincode || '',
-    state: editAddress?.state || '',
-    landmark: editAddress?.landmark || '',
+  const [address, setAddress] = useState<OrderAddress>(() => {
+    if (draft?.address) return draft.address;
+    return {
+      name: editAddress?.name || user?.name || '',
+      phone: editAddress?.phone || user?.phone || '',
+      flat: editAddress?.flat || '',
+      street: editAddress?.street || '',
+      city: editAddress?.city || '',
+      pincode: editAddress?.pincode || '',
+      state: editAddress?.state || '',
+      landmark: editAddress?.landmark || '',
+    };
   });
 
   const [errors, setErrors] = useState<Partial<Record<keyof OrderAddress, string>>>({});
   const [isSaving, setIsSaving] = useState(false);
-  const [orderingFor, setOrderingFor] = useState<'myself' | 'someone-else'>('myself');
-  const [addressType, setAddressType] = useState<'home' | 'work' | 'hotel' | 'other'>('home');
+  const [orderingFor, setOrderingFor] = useState<'myself' | 'someone-else'>(() => {
+    return draft?.orderingFor || 'myself';
+  });
+  const [addressType, setAddressType] = useState<'home' | 'work' | 'hotel' | 'other'>(() => {
+    return draft?.addressType || 'home';
+  });
 
   // Location picker state
-  const [selectedLatitude, setSelectedLatitude] = useState<number>(0);
-  const [selectedLongitude, setSelectedLongitude] = useState<number>(0);
+  const [selectedLatitude, setSelectedLatitude] = useState<number>(() => {
+    return draft?.selectedLatitude || 0;
+  });
+  const [selectedLongitude, setSelectedLongitude] = useState<number>(() => {
+    return draft?.selectedLongitude || 0;
+  });
+
+  // Save draft to sessionStorage on state changes
+  useEffect(() => {
+    const draftData = {
+      editAddressId,
+      address,
+      orderingFor,
+      addressType,
+      selectedLatitude,
+      selectedLongitude
+    };
+    sessionStorage.setItem('checkout_address_draft', JSON.stringify(draftData));
+  }, [address, orderingFor, addressType, selectedLatitude, selectedLongitude, editAddressId]);
 
   const { isLoaded } = useJsApiLoader({
     id: 'google-map-script',
@@ -53,6 +92,9 @@ export default function CheckoutAddress() {
 
   // Get user's current location on mount
   useEffect(() => {
+    if (draft?.selectedLatitude && draft?.selectedLongitude) {
+      return; // Skip geolocation if we already have a loaded draft location
+    }
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -137,25 +179,6 @@ export default function CheckoutAddress() {
           const response = await getAddresses();
           if (response.success && Array.isArray(response.data)) {
             setSavedAddresses(response.data);
-
-            // If not editing, try to load the default 'home' address if it exists
-            if (!editAddress) {
-              const homeAddr = response.data.find(a => a.type === 'Home');
-              if (homeAddr) {
-                const parts = homeAddr.address.split(', ');
-                setAddress({
-                  name: homeAddr.fullName,
-                  phone: homeAddr.phone,
-                  flat: parts[0] || '',
-                  street: parts[1] || '',
-                  city: homeAddr.city,
-                  state: homeAddr.state || '',
-                  pincode: homeAddr.pincode,
-                  landmark: homeAddr.landmark || '',
-                  id: homeAddr._id,
-                });
-              }
-            }
           }
         } catch (error) {
           console.error('Error fetching addresses:', error);
@@ -163,47 +186,13 @@ export default function CheckoutAddress() {
       };
       fetchAddresses();
     }
-  }, [isAuthenticated, editAddress]);
+  }, [isAuthenticated]);
 
-  // Update address when addressType changes
-  useEffect(() => {
-    if (!editAddress && savedAddresses.length > 0) {
-      const typeLabel = addressType.charAt(0).toUpperCase() + addressType.slice(1) as any;
-      const existingAddr = savedAddresses.find(a => a.type === typeLabel);
 
-      if (existingAddr) {
-        const parts = existingAddr.address.split(', ');
-        setAddress({
-          name: existingAddr.fullName,
-          phone: existingAddr.phone,
-          flat: parts[0] || '',
-          street: parts[1] || '',
-          city: existingAddr.city,
-          state: existingAddr.state || '',
-          pincode: existingAddr.pincode,
-          landmark: existingAddr.landmark || '',
-          id: existingAddr._id,
-        });
-      } else {
-        // Clear or reset to defaults if no address of this type
-        setAddress(prev => ({
-          ...prev,
-          flat: '',
-          street: '',
-          city: '',
-          state: '',
-          pincode: '',
-          landmark: '',
-          id: undefined,
-          _id: undefined,
-        }));
-      }
-    }
-  }, [addressType, savedAddresses, editAddress]);
 
   // Update address when editAddress changes
   useEffect(() => {
-    if (editAddress) {
+    if (editAddress && isFirstMount.current && !draft) {
       setAddress({
         name: editAddress.name || '',
         phone: editAddress.phone || '',
@@ -220,11 +209,10 @@ export default function CheckoutAddress() {
         setAddressType((editAddress as any).type.toLowerCase());
       }
     }
+    isFirstMount.current = false;
   }, [editAddress]);
 
-  const platformFee = appConfig.platformFee;
-  const deliveryFee = cart.total >= appConfig.freeDeliveryThreshold ? 0 : appConfig.deliveryFee;
-  const totalAmount = cart.total + platformFee + deliveryFee;
+
 
   const validateForm = (): boolean => {
     const newErrors: Partial<Record<keyof OrderAddress, string>> = {};
@@ -261,7 +249,7 @@ export default function CheckoutAddress() {
 
   const handleInputChange = (field: keyof OrderAddress, value: string) => {
     let filteredValue = value;
-    if (field === 'name') {
+    if (field === 'name' || field === 'city') {
       filteredValue = value.replace(/[^a-zA-Z\s]/g, "");
     }
     setAddress((prev) => ({ ...prev, [field]: filteredValue }));
@@ -339,7 +327,12 @@ export default function CheckoutAddress() {
       // Show success feedback logic if needed or just navigate
       setTimeout(() => {
         setIsSaving(false);
-        navigate('/checkout', { replace: true });
+        sessionStorage.removeItem('checkout_address_draft');
+        if ((location.state as any)?.fromAddressBook) {
+          navigate(-1);
+        } else {
+          navigate('/address-book', { replace: true });
+        }
       }, 500);
     } catch (error) {
       console.error('Error saving address:', error);
@@ -593,54 +586,7 @@ export default function CheckoutAddress() {
         </div>
       </div>
 
-      {/* Order Summary */}
-      <div className="px-4 mb-4">
-        <h2 className="text-sm font-bold text-neutral-900 mb-2.5">Order Summary</h2>
-        <div className="bg-white rounded-lg border border-neutral-200 p-2.5">
-          {/* Cart Items */}
-          <div className="space-y-2 mb-3">
-            {cart.items.map((item) => {
-              const { displayPrice } = calculateProductPrice(item.product, item.variant, user?.customerType, item.quantity);
-              return (
-                <div key={item.product.id} className="flex items-center justify-between text-xs">
-                  <div className="flex-1 min-w-0">
-                    <div className="font-medium text-neutral-900 truncate">{item.product.name}</div>
-                    <div className="text-[10px] text-neutral-500">
-                      {item.product.pack} × {item.quantity}
-                    </div>
-                  </div>
-                  <div className="font-semibold text-neutral-900 ml-2 flex-shrink-0">
-                    ₹{(displayPrice * item.quantity).toFixed(0)}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
 
-          <div className="border-t border-neutral-200 pt-2.5 space-y-1.5">
-            <div className="flex justify-between text-xs text-neutral-700">
-              <span>Subtotal</span>
-              <span className="font-medium">₹{cart.total.toFixed(0)}</span>
-            </div>
-            <div className="flex justify-between text-xs text-neutral-700">
-              <span>Platform Fee</span>
-              <span className="font-medium">₹{platformFee}</span>
-            </div>
-            <div className="flex justify-between text-xs text-neutral-700">
-              <span>Delivery Charges</span>
-              <span className={`font-medium ${deliveryFee === 0 ? 'text-[#0a193b]' : ''}`}>
-                {deliveryFee === 0 ? 'Free' : `₹${deliveryFee}`}
-              </span>
-            </div>
-            <div className="border-t border-neutral-200 pt-2 mt-2">
-              <div className="flex justify-between items-center">
-                <span className="text-sm font-bold text-neutral-900">Total</span>
-                <span className="text-base font-bold text-neutral-900">₹{totalAmount.toFixed(0)}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
 
       {/* Save Address Button */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-neutral-200 z-[60] shadow-lg">

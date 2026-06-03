@@ -138,7 +138,7 @@ export default function OrderAgain() {
 
               {/* Location (Only if available) */}
               {locationDisplayText && (
-                <div onClick={() => navigate('/account')} className="flex items-center gap-2 cursor-pointer max-w-[200px] md:max-w-md group">
+                <div onClick={() => navigate('/address-book')} className="flex items-center gap-2 cursor-pointer max-w-[200px] md:max-w-md group">
                   <div className="p-1.5 rounded-full bg-white/10 text-white/90 group-hover:bg-white/20 transition-all border border-white/20">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                       <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" strokeLinecap="round" strokeLinejoin="round" />

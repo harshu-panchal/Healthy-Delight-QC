@@ -592,9 +592,15 @@ export default function HomeHero({
                       onClick={() => {
                         setShowSuggestions(false);
                         if (item.type === 'product') {
-                          navigate(`/product/${item.id}`);
+                          const name = item.name || '';
+                          const slug = item.slug || name
+                            .toLowerCase()
+                            .trim()
+                            .replace(/[^a-z0-9]+/g, '-')
+                            .replace(/(^-|-$)/g, '');
+                          navigate(`/product/${slug || item.id}`);
                         } else if (item.type === 'category') {
-                          navigate(`/category/${item.id}`);
+                          navigate(`/category/${item.slug || item.id}`);
                         } else {
                           setMobileSearchQuery(item.name);
                           navigate(`/search?q=${encodeURIComponent(item.name)}`);

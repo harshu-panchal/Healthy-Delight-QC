@@ -12,6 +12,7 @@ export interface CustomerProfile {
   walletAmount: number;
   totalOrders: number;
   totalSpent: number;
+  profileImage?: string;
 }
 
 export interface GetProfileResponse {
@@ -24,6 +25,7 @@ export interface UpdateProfileData {
   name?: string;
   email?: string;
   dateOfBirth?: string;
+  profileImage?: string;
 }
 
 export interface UpdateProfileResponse {

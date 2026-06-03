@@ -1,10 +1,30 @@
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import logo from "../../../assets/logo.png";
+import { useToast } from "../../context/ToastContext";
 
 export default function AboutUs() {
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const [isHeaderSolid, setIsHeaderSolid] = useState(false);
+
+  const handleEmailClick = () => {
+    try {
+      navigator.clipboard.writeText("support@healthydelight.com");
+      showToast("Email copied to clipboard!", "success");
+    } catch (err) {
+      console.warn("Failed to copy email:", err);
+    }
+  };
+
+  const handlePhoneClick = () => {
+    try {
+      navigator.clipboard.writeText("+91 9740234199");
+      showToast("Phone number copied to clipboard!", "success");
+    } catch (err) {
+      console.warn("Failed to copy phone number:", err);
+    }
+  };
 
   // Scroll Listener for Dynamic Header
   useEffect(() => {
@@ -18,7 +38,7 @@ export default function AboutUs() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-transparent relative flex flex-col pt-[100px] pb-24 md:pb-8">
+    <div className="min-h-screen bg-transparent relative flex flex-col pt-[100px] pb-6 md:pb-8">
       {/* Premium Home-Style Fixed Header */}
       <header
         className="fixed top-0 left-0 w-full z-50 transition-all duration-300"
@@ -161,7 +181,9 @@ export default function AboutUs() {
                 </svg>
               </div>
               <div className="text-sm font-bold text-[#0a193b] mb-1">Email Us</div>
-              <div className="text-xs text-neutral-500">support@healthydelight.com</div>
+              <a href="mailto:support@healthydelight.com" onClick={handleEmailClick} className="text-xs text-neutral-500 hover:text-[#c5a059] transition-colors hover:underline">
+                support@healthydelight.com
+              </a>
             </div>
 
             <div className="flex flex-col items-center text-center p-6 rounded-2xl bg-[#0a193b]/[0.02] border border-neutral-100 hover:border-[#c5a059]/30 transition-colors">
@@ -171,7 +193,9 @@ export default function AboutUs() {
                 </svg>
               </div>
               <div className="text-sm font-bold text-[#0a193b] mb-1">Call Support</div>
-              <div className="text-xs text-neutral-500">+91 9740234199</div>
+              <a href="tel:+919740234199" onClick={handlePhoneClick} className="text-xs text-neutral-500 hover:text-[#c5a059] transition-colors hover:underline">
+                +91 9740234199
+              </a>
             </div>
 
             <div className="flex flex-col items-center text-center p-6 rounded-2xl bg-[#0a193b]/[0.02] border border-neutral-100 hover:border-[#c5a059]/30 transition-colors">

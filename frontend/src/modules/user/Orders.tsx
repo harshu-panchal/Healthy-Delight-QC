@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useOrders } from '../../hooks/useOrders';
 
 const formatOrderFriendly = (orderNumber?: string, orderId?: string) => {
@@ -50,67 +50,75 @@ const formatDate = (dateString: string) => {
 
 export default function Orders() {
   const { orders } = useOrders();
+  const navigate = useNavigate();
 
   console.log('📋 Orders component - orders:', orders);
   console.log('📋 Orders count:', orders.length);
 
-  if (orders.length === 0) {
-    return (
-      <div className="px-4 md:px-6 lg:px-8 py-12 md:py-16 text-center">
-        <div className="text-6xl md:text-8xl mb-4">📦</div>
-        <h2 className="text-xl md:text-2xl font-bold text-neutral-900 mb-2">No orders yet</h2>
-        <p className="text-neutral-600 mb-6 md:mb-8 md:text-lg">Start shopping to see your orders here!</p>
-        <Link
-          to="/"
-          className="inline-block bg-green-600 text-white px-6 md:px-8 py-3 md:py-4 rounded-lg font-semibold hover:bg-green-700 transition-colors md:text-lg"
-        >
-          Start Shopping
-        </Link>
-      </div>
-    );
-  }
-
   return (
     <div className="pb-4 md:pb-8">
-      <div className="px-4 md:px-6 lg:px-8 py-4 md:py-6 bg-white border-b border-neutral-200 mb-4 md:mb-6 sticky top-0 z-10">
+      <div className="px-4 md:px-6 lg:px-8 py-4 md:py-6 bg-white border-b border-neutral-200 mb-4 md:mb-6 sticky top-0 z-10 flex items-center gap-3">
+        <button
+          onClick={() => navigate(-1)}
+          className="w-10 h-10 rounded-full bg-neutral-50 text-[#0a193b] flex items-center justify-center border border-neutral-200 hover:bg-neutral-200 transition-all"
+          aria-label="Back"
+        >
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M15 18L9 12L15 6" />
+          </svg>
+        </button>
         <h1 className="text-xl md:text-2xl font-bold text-neutral-900">My Orders</h1>
       </div>
 
-      <div className="px-4 md:px-6 lg:px-8 space-y-4 md:space-y-6">
-        {orders.map((order) => {
-          return (
-            <Link
-              key={order.id}
-              to={`/orders/${order.id}`}
-              className="block bg-white rounded-xl border border-neutral-200 p-4 hover:shadow-md transition-shadow"
-            >
-              <div className="flex items-start justify-between mb-3">
-                <div>
-                  <div className="text-sm font-semibold text-neutral-900 mb-1">
-                    Order #{formatOrderFriendly(order.orderNumber, order.id)}
+      {orders.length === 0 ? (
+        <div className="px-4 md:px-6 lg:px-8 py-12 md:py-16 text-center">
+          <div className="text-6xl md:text-8xl mb-4">📦</div>
+          <h2 className="text-xl md:text-2xl font-bold text-neutral-900 mb-2">No orders yet</h2>
+          <p className="text-neutral-600 mb-6 md:mb-8 md:text-lg">Start shopping to see your orders here!</p>
+          <Link
+            to="/"
+            className="inline-block bg-green-600 text-white px-6 md:px-8 py-3 md:py-4 rounded-lg font-semibold hover:bg-green-700 transition-colors md:text-lg"
+          >
+            Start Shopping
+          </Link>
+        </div>
+      ) : (
+        <div className="px-4 md:px-6 lg:px-8 space-y-4 md:space-y-6">
+          {orders.map((order) => {
+            return (
+              <Link
+                key={order.id}
+                to={`/orders/${order.id}`}
+                className="block bg-white rounded-xl border border-neutral-200 p-4 hover:shadow-md transition-shadow"
+              >
+                <div className="flex items-start justify-between mb-3">
+                  <div>
+                    <div className="text-sm font-semibold text-neutral-900 mb-1">
+                      Order #{formatOrderFriendly(order.orderNumber, order.id)}
+                    </div>
+                    <div className="text-xs text-neutral-500">{formatDate(order.createdAt)}</div>
                   </div>
-                  <div className="text-xs text-neutral-500">{formatDate(order.createdAt)}</div>
+                  <span
+                    className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
+                      order.status
+                    )}`}
+                  >
+                    {order.status}
+                  </span>
                 </div>
-                <span
-                  className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
-                    order.status
-                  )}`}
-                >
-                  {order.status}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="text-sm text-neutral-600">
-                  {order.totalItems} {order.totalItems === 1 ? 'item' : 'items'}
+                <div className="flex items-center justify-between">
+                  <div className="text-sm text-neutral-600">
+                    {order.totalItems} {order.totalItems === 1 ? 'item' : 'items'}
+                  </div>
+                  <div className="text-lg font-bold text-neutral-900">
+                    ₹{order.totalAmount.toFixed(0)}
+                  </div>
                 </div>
-                <div className="text-lg font-bold text-neutral-900">
-                  ₹{order.totalAmount.toFixed(0)}
-                </div>
-              </div>
-            </Link>
-          );
-        })}
-      </div>
+              </Link>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

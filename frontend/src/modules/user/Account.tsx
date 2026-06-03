@@ -3,8 +3,10 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
 import {
   getProfile,
+  updateProfile,
   CustomerProfile,
 } from "../../services/api/customerService";
+import { uploadImage } from "../../services/api/uploadService";
 import logo from "../../../assets/logo.png";
 
 export default function Account() {
@@ -16,6 +18,16 @@ export default function Account() {
   const [showGstModal, setShowGstModal] = useState(false);
   const [gstNumber, setGstNumber] = useState("");
   const [isHeaderSolid, setIsHeaderSolid] = useState(false);
+
+  // Edit Profile States
+  const [showEditProfileModal, setShowEditProfileModal] = useState(false);
+  const [editName, setEditName] = useState("");
+  const [editEmail, setEditEmail] = useState("");
+  const [editDob, setEditDob] = useState("");
+  const [editSubmitting, setEditSubmitting] = useState(false);
+  const [editError, setEditError] = useState("");
+  const [editProfileImage, setEditProfileImage] = useState("");
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   // Scroll Listener for Dynamic Header
   useEffect(() => {
@@ -81,6 +93,46 @@ export default function Account() {
     navigate("/login");
   };
 
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingImage(true);
+    setEditError("");
+    try {
+      const result = await uploadImage(file, "kosil/customers/profile");
+      setEditProfileImage(result.secureUrl || result.url);
+    } catch (err: any) {
+      setEditError(err.message || "Failed to upload image");
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
+  const handleEditSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setEditSubmitting(true);
+    setEditError("");
+    try {
+      const response = await updateProfile({
+        name: editName.trim(),
+        email: editEmail.trim(),
+        dateOfBirth: editDob ? new Date(editDob).toISOString() : undefined,
+        profileImage: editProfileImage
+      });
+      if (response.success) {
+        setProfile(response.data);
+        setShowEditProfileModal(false);
+      } else {
+        setEditError("Failed to update profile");
+      }
+    } catch (err: any) {
+      setEditError(err.response?.data?.message || "Failed to update profile");
+    } finally {
+      setEditSubmitting(false);
+    }
+  };
+
   const handleGstSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setShowGstModal(false);
@@ -89,7 +141,7 @@ export default function Account() {
   // Show login/signup prompt for unregistered users
   if (!user) {
     return (
-      <div className="pb-24 md:pb-8 bg-transparent min-h-screen relative flex flex-col pt-[100px]">
+      <div className="pb-6 md:pb-8 bg-transparent min-h-screen relative flex flex-col pt-[100px]">
         {/* Premium Fixed Header */}
         <header
           className="fixed top-0 left-0 w-full z-50 transition-all duration-300"
@@ -188,7 +240,7 @@ export default function Account() {
   const displayDateOfBirth = profile?.dateOfBirth;
 
   return (
-    <div className="pb-24 md:pb-8 bg-transparent min-h-screen relative flex flex-col pt-[100px]">
+    <div className="pb-6 md:pb-8 bg-transparent min-h-screen relative flex flex-col pt-[100px]">
       {/* Premium Fixed Header */}
       <header
         className="fixed top-0 left-0 w-full z-50 transition-all duration-300"
@@ -230,10 +282,14 @@ export default function Account() {
       <div className="px-4 md:px-6 lg:px-8 mt-6">
         <div className="flex flex-col items-center mb-8">
           <div className="w-24 h-24 rounded-full bg-white flex items-center justify-center mb-4 border border-neutral-200 shadow-xl relative overflow-hidden group">
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" className="text-neutral-300">
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              <circle cx="12" cy="7" r="4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
+            {profile?.profileImage ? (
+              <img src={profile.profileImage} alt={displayName} className="w-full h-full object-cover" />
+            ) : (
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" className="text-neutral-300">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                <circle cx="12" cy="7" r="4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            )}
           </div>
           <h2 className="text-2xl font-black text-[#0a193b] mb-2 tracking-tight uppercase">
             {displayName}
@@ -344,6 +400,30 @@ export default function Account() {
           </h2>
           <div className="bg-white rounded-[24px] border border-neutral-100 overflow-hidden shadow-sm">
             <button
+              onClick={() => {
+                if (profile) {
+                  setEditName(profile.name || "");
+                  setEditEmail(profile.email || "");
+                  setEditDob(profile.dateOfBirth ? new Date(profile.dateOfBirth).toISOString().split('T')[0] : "");
+                }
+                setEditError("");
+                setShowEditProfileModal(true);
+              }}
+              className="w-full flex items-center justify-between px-5 py-4 hover:bg-neutral-50 transition-colors border-b border-neutral-50"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-8 h-8 rounded-lg bg-neutral-100 flex items-center justify-center text-neutral-400">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+                  </svg>
+                </div>
+                <span className="text-[14px] font-bold text-[#0a193b]">Edit Profile</span>
+              </div>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="text-neutral-300">
+                <path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+            <button
               onClick={() => navigate("/address-book")}
               className="w-full flex items-center justify-between px-5 py-4 hover:bg-neutral-50 transition-colors border-b border-neutral-50"
             >
@@ -370,22 +450,6 @@ export default function Account() {
                   </svg>
                 </div>
                 <span className="text-[14px] font-bold text-[#0a193b]">Your Wishlist</span>
-              </div>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="text-neutral-300">
-                <path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </button>
-            <button
-              onClick={() => setShowGstModal(true)}
-              className="w-full flex items-center justify-between px-5 py-4 hover:bg-neutral-50 transition-colors border-b border-neutral-50"
-            >
-              <div className="flex items-center gap-4">
-                <div className="w-8 h-8 rounded-lg bg-neutral-100 flex items-center justify-center text-neutral-400">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" />
-                  </svg>
-                </div>
-                <span className="text-[14px] font-bold text-[#0a193b]">GST Details</span>
               </div>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="text-neutral-300">
                 <path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -484,6 +548,109 @@ export default function Account() {
                     className="w-full rounded-2xl bg-[#0a193b] text-white font-black py-4 hover:bg-[#07122b] disabled:opacity-50 transition-all shadow-xl shadow-[#0a193b]/10 uppercase tracking-widest text-sm active:scale-[0.98]"
                   >
                     Authenticate GST
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+      {showEditProfileModal && (
+        <>
+          <div
+            className="fixed inset-0 z-[60] bg-[#0a193b]/40 backdrop-blur-sm animate-in fade-in duration-300"
+            onClick={() => setShowEditProfileModal(false)}
+          />
+          <div className="fixed inset-x-0 bottom-0 z-[70] animate-in slide-in-from-bottom duration-500 ease-out">
+            <div className="bg-white rounded-t-[32px] shadow-2xl max-w-lg mx-auto p-6 pt-10 relative">
+              <button
+                onClick={() => setShowEditProfileModal(false)}
+                className="absolute -top-12 right-4 w-10 h-10 rounded-full bg-neutral-900 flex items-center justify-center text-white">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                  <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+              <div className="text-center">
+                <div className="flex flex-col items-center mb-6">
+                  <div className="relative w-20 h-20 rounded-full border-2 border-neutral-100 shadow-md overflow-hidden bg-neutral-50 flex items-center justify-center">
+                    {uploadingImage ? (
+                      <div className="absolute inset-0 bg-white/80 flex items-center justify-center z-10">
+                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#0a193b]"></div>
+                      </div>
+                    ) : null}
+                    {editProfileImage ? (
+                      <img src={editProfileImage} alt="Preview" className="w-full h-full object-cover" />
+                    ) : (
+                      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" className="text-neutral-300">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        <circle cx="12" cy="7" r="4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    )}
+                  </div>
+                  <label className="mt-2 text-xs font-bold text-[#0a193b] cursor-pointer bg-[#0a193b]/5 hover:bg-[#0a193b]/10 px-3 py-1.5 rounded-full transition-colors flex items-center gap-1.5 border border-[#0a193b]/10">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                      <circle cx="12" cy="13" r="4" />
+                    </svg>
+                    <span>{uploadingImage ? "Uploading..." : "Upload Photo"}</span>
+                    <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
+                  </label>
+                </div>
+                <h3 className="text-xl font-black text-[#0a193b] mb-2 tracking-tight">
+                  Edit Profile
+                </h3>
+                <p className="text-[13px] text-neutral-500 font-medium mb-6 px-4 leading-relaxed">
+                  Update your contact details and personalization options.
+                </p>
+                {editError && (
+                  <p className="text-xs font-bold text-red-500 mb-4 bg-red-50 py-2 rounded-xl border border-red-100">
+                    {editError}
+                  </p>
+                )}
+                <form onSubmit={handleEditSubmit} className="space-y-4 text-left">
+                  <div>
+                    <label className="block text-[10px] font-black text-[#0a193b] uppercase tracking-widest mb-1.5 ml-2">
+                      Full Name
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={editName}
+                      onChange={(e) => setEditName(e.target.value)}
+                      placeholder="Enter Full Name"
+                      className="w-full rounded-2xl border border-neutral-100 bg-neutral-50 px-5 py-4 text-[15px] font-bold text-[#0a193b] placeholder-neutral-400 focus:outline-none focus:ring-4 focus:ring-[#0a193b]/5 focus:bg-white transition-all"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-black text-[#0a193b] uppercase tracking-widest mb-1.5 ml-2">
+                      Email Address
+                    </label>
+                    <input
+                      type="email"
+                      required
+                      value={editEmail}
+                      onChange={(e) => setEditEmail(e.target.value)}
+                      placeholder="Enter Email Address"
+                      className="w-full rounded-2xl border border-neutral-100 bg-neutral-50 px-5 py-4 text-[15px] font-bold text-[#0a193b] placeholder-neutral-400 focus:outline-none focus:ring-4 focus:ring-[#0a193b]/5 focus:bg-white transition-all"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-black text-[#0a193b] uppercase tracking-widest mb-1.5 ml-2">
+                      Date of Birth
+                    </label>
+                    <input
+                      type="date"
+                      value={editDob}
+                      onChange={(e) => setEditDob(e.target.value)}
+                      className="w-full rounded-2xl border border-neutral-100 bg-neutral-50 px-5 py-4 text-[15px] font-bold text-[#0a193b] placeholder-neutral-400 focus:outline-none focus:ring-4 focus:ring-[#0a193b]/5 focus:bg-white transition-all"
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={editSubmitting || !editName.trim() || !editEmail.trim()}
+                    className="w-full rounded-2xl bg-[#0a193b] text-white font-black py-4 hover:bg-[#07122b] disabled:opacity-50 transition-all shadow-xl shadow-[#0a193b]/10 uppercase tracking-widest text-sm active:scale-[0.98]"
+                  >
+                    {editSubmitting ? "Saving Updates..." : "Save Changes"}
                   </button>
                 </form>
               </div>

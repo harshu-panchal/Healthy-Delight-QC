@@ -533,9 +533,15 @@ export default function AppLayout({ children }: AppLayoutProps) {
                           onClick={() => {
                             setShowSuggestions(false);
                             if (item.type === 'product') {
-                              navigate(`/product/${item.id}`);
+                              const name = item.name || '';
+                              const slug = item.slug || name
+                                .toLowerCase()
+                                .trim()
+                                .replace(/[^a-z0-9]+/g, '-')
+                                .replace(/(^-|-$)/g, '');
+                              navigate(`/product/${slug || item.id}`);
                             } else if (item.type === 'category') {
-                              navigate(`/category/${item.id}`);
+                              navigate(`/category/${item.slug || item.id}`);
                             } else {
                               setSearchQuery(item.name);
                               navigate(`/search?q=${encodeURIComponent(item.name)}`);
@@ -680,22 +686,19 @@ export default function AppLayout({ children }: AppLayoutProps) {
           className={`flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide pb-24 md:pb-0 bg-transparent ${showFooter || showHeader ? 'md:pt-24' : 'md:pt-0'}`}
         >
           <div className={`w-full max-w-[1240px] mx-auto px-0 md:px-10 pt-0 pb-6 ${showFooter || showHeader ? 'md:py-10' : 'md:py-0'}`}>
-            <AnimatePresence mode="wait" initial={false}>
-              <motion.div
-                key={location.pathname}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
-                className="w-full min-h-full"
-                onAnimationComplete={() => {
-                  if (mainRef.current) mainRef.current.scrollTop = 0;
-                  window.scrollTo(0, 0);
-                }}
-              >
-                {children}
-              </motion.div>
-            </AnimatePresence>
+            <motion.div
+              key={location.pathname}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
+              className="w-full min-h-full"
+              onAnimationComplete={() => {
+                if (mainRef.current) mainRef.current.scrollTop = 0;
+                window.scrollTo(0, 0);
+              }}
+            >
+              {children}
+            </motion.div>
           </div>
 
           {/* Global Desktop Footer - Full Width Background */}

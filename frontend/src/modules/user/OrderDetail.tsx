@@ -1,5 +1,5 @@
 import { useParams, Link, useSearchParams, useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Button from "../../components/ui/button";
 import { useOrders } from "../../hooks/useOrders";
@@ -310,6 +310,7 @@ export default function OrderDetail() {
     distanceValue: number;
   } | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const trackingFailedRef = useRef(false);
 
   // Modal states
   const [showCancelModal, setShowCancelModal] = useState(false);
@@ -362,19 +363,27 @@ export default function OrderDetail() {
       setLoading(false);
 
       // Fetch initial tracking records for dynamic ETA
-      try {
-        const trackingResponse = await getOrderTracking(id);
-        if (trackingResponse?.success && trackingResponse?.data?.tracking?.eta) {
-          console.log("📍 Initialized estimatedTime from DB tracking ETA:", trackingResponse.data.tracking.eta);
-          setEstimatedTime(trackingResponse.data.tracking.eta);
+      if (!trackingFailedRef.current) {
+        try {
+          const trackingResponse = await getOrderTracking(id);
+          if (trackingResponse?.success && trackingResponse?.data?.tracking?.eta) {
+            console.log("📍 Initialized estimatedTime from DB tracking ETA:", trackingResponse.data.tracking.eta);
+            setEstimatedTime(trackingResponse.data.tracking.eta);
+          }
+        } catch (err) {
+          console.warn("Could not fetch initial order tracking ETA:", err);
+          trackingFailedRef.current = true;
+          // Retry after 1 minute
+          setTimeout(() => {
+            trackingFailedRef.current = false;
+          }, 60000);
         }
-      } catch (err) {
-        console.warn("Could not fetch initial order tracking ETA:", err);
       }
     };
 
     loadOrder();
-  }, [id, getOrderById, fetchOrderById]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
 
   // Fetch seller locations when order is loaded
   useEffect(() => {
@@ -981,13 +990,11 @@ export default function OrderDetail() {
 
         {/* Delivery Partner Safety */}
         {!["Cancelled", "Rejected"].includes(orderStatus) && (
-          <motion.button
-            onClick={() => window.open("/safety", "_blank")}
-            className="w-full bg-white border border-slate-100 rounded-2xl p-5 shadow-sm shadow-slate-100/50 flex items-center gap-4 relative overflow-hidden text-left cursor-pointer"
+          <motion.div
+            className="w-full bg-white border border-slate-100 rounded-2xl p-5 shadow-sm shadow-slate-100/50 flex items-center gap-4 relative overflow-hidden text-left"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6 }}
-            whileTap={{ scale: 0.99 }}>
+            transition={{ delay: 0.6 }}>
             <div className="absolute top-0 left-0 w-1.5 h-full bg-emerald-500" />
             <div className="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center flex-shrink-0 shadow-sm border border-emerald-100">
               <ShieldIcon className="w-6 h-6 text-emerald-600" />
@@ -1000,8 +1007,7 @@ export default function OrderDetail() {
                 100% vaccinated partners practicing contactless, clean delivery.
               </p>
             </div>
-            <ChevronRightIcon className="w-4 h-4 text-slate-400" />
-          </motion.button>
+          </motion.div>
         )}
 
         {/* Delivery Details Banner */}

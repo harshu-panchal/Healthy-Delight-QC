@@ -120,7 +120,7 @@ router.use(authenticate);
  */
 router.post(
   "/image",
-  requireUserType("Admin", "Seller"),
+  requireUserType("Admin", "Seller", "Customer"),
   uploadSingleImage.single("image"),
   handleUploadError,
   asyncHandler(async (req: Request, res: Response) => {

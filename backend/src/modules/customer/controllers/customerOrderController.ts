@@ -91,21 +91,25 @@ export const createOrder = async (req: Request, res: Response) => {
             const endOfScheduled = new Date(parsedDate);
             endOfScheduled.setHours(23, 59, 59, 999);
 
-            const existingOrder = await Order.findOne({
-                customer: userId,
-                orderType: "Scheduled",
-                scheduledDate: { $gte: startOfScheduled, $lte: endOfScheduled },
-                status: { $in: ["Scheduled", "Accepted", "Rider Assigned"] }
-            });
+            const forcePlaceNewScheduled = req.body.forcePlaceNewScheduled === true || req.body.forcePlaceNewScheduled === "true";
 
-            if (existingOrder) {
-                if (session) await session.abortTransaction();
-                return res.status(409).json({
-                    success: false,
-                    message: `You already have a scheduled delivery for ${parsedDate.toLocaleDateString("en-US", { weekday: "long" })}.`,
-                    canModify: true,
-                    existingOrderId: existingOrder._id,
+            if (!forcePlaceNewScheduled) {
+                const existingOrder = await Order.findOne({
+                    customer: userId,
+                    orderType: "Scheduled",
+                    scheduledDate: { $gte: startOfScheduled, $lte: endOfScheduled },
+                    status: { $in: ["Scheduled", "Accepted", "Rider Assigned"] }
                 });
+
+                if (existingOrder) {
+                    if (session) await session.abortTransaction();
+                    return res.status(409).json({
+                        success: false,
+                        message: `You already have a scheduled delivery for ${parsedDate.toLocaleDateString("en-US", { weekday: "long" })}.`,
+                        canModify: true,
+                        existingOrderId: existingOrder._id,
+                    });
+                }
             }
         }
 

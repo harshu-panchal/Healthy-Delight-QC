@@ -17,6 +17,7 @@ import { AnimatePresence, motion } from "framer-motion";
 
 import { useThemeContext } from "../../context/ThemeContext";
 import { useAuth } from "../../context/AuthContext";
+import { useOrders } from "../../hooks/useOrders";
 import DeliveryCalendarStrip from "./components/DeliveryCalendarStrip";
 
 export default function Home() {
@@ -31,7 +32,24 @@ export default function Home() {
 
   // Calendar State
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const deliveryData: Record<string, "delivered" | "upcoming" | "vacation" | "onhold"> = {};
+  const { orders } = useOrders();
+
+  const deliveryData = useMemo(() => {
+    const data: Record<string, "delivered" | "upcoming" | "vacation" | "onhold"> = {};
+    if (!orders) return data;
+
+    orders.forEach((order: any) => {
+      if (order.orderType === "Scheduled" && order.scheduledDate) {
+        const dateStr = format(new Date(order.scheduledDate), "yyyy-MM-dd");
+        if (["Scheduled", "Accepted", "Rider Assigned", "Received", "Pending"].includes(order.status)) {
+          data[dateStr] = "upcoming";
+        } else if (order.status === "Delivered") {
+          data[dateStr] = "delivered";
+        }
+      }
+    });
+    return data;
+  }, [orders]);
 
   // Sync selected calendar date on Home with sessionStorage
   useEffect(() => {
@@ -332,7 +350,7 @@ export default function Home() {
                 </div>
                 {(deliveryData[format(selectedDate, "yyyy-MM-dd")] || !isToday(selectedDate)) && (
                   <button
-                    onClick={() => navigate(deliveryData[format(selectedDate, "yyyy-MM-dd")] ? '/orders' : '/categories')}
+                    onClick={() => navigate(deliveryData[format(selectedDate, "yyyy-MM-dd")] ? '/manage-schedule' : '/categories')}
                     className="bg-[#0a193b] text-white px-4 py-2.5 rounded-xl text-xs font-bold shadow-md whitespace-nowrap"
                   >
                     {deliveryData[format(selectedDate, "yyyy-MM-dd")] ? "View Details" : "Add Products"}
@@ -378,7 +396,7 @@ export default function Home() {
               <button
                 key={cat._id || cat.id}
                 type="button"
-                onClick={() => navigate(`/category/${cat._id || cat.id}`)}
+                onClick={() => navigate(`/category/${cat.slug || cat._id || cat.id}`)}
                 className="hover-lift tap-scale group flex flex-col items-center gap-2 transition-all duration-300"
               >
                 <div className="w-16 h-16 md:w-24 md:h-24 rounded-[22px] bg-white p-2 flex items-center justify-center overflow-hidden transition-all duration-300 group-hover:translate-y-[-4px] shadow-[0_4px_12px_rgba(0,0,0,0.06),0_10px_24px_rgba(0,0,0,0.08)] group-hover:shadow-[0_12px_32px_rgba(0,0,0,0.12)] border border-black/[0.04] relative after:absolute after:inset-0 after:rounded-[22px] after:shadow-[inset_0_1.5px_1px_rgba(255,255,255,0.95)] after:pointer-events-none">

@@ -16,8 +16,8 @@ interface LoadingContextType {
 const LoadingContext = createContext<LoadingContextType | undefined>(undefined);
 
 const ROUTE_LOADER_VARIANTS: LoadingVariant[] = [
-  'milk_delivery', 
-  'milk_pouring', 
+  'milk_delivery',
+  'milk_pouring',
   'cow_grazing'
 ];
 const VARIANT_SPECIFIC_QUOTES: Record<string, string[]> = {
@@ -28,7 +28,7 @@ const VARIANT_SPECIFIC_QUOTES: Record<string, string[]> = {
 };
 
 export const LoadingProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const isExcludedInitially = 
+  const isExcludedInitially =
     window.location.pathname.startsWith('/seller') ||
     window.location.pathname.startsWith('/admin') ||
     window.location.pathname.startsWith('/delivery') ||
@@ -93,7 +93,7 @@ export const LoadingProvider: React.FC<{ children: React.ReactNode }> = ({ child
       if (hasCompletedFirstLoadRef.current) {
         const variant = ROUTE_LOADER_VARIANTS[Math.floor(Math.random() * ROUTE_LOADER_VARIANTS.length)];
         setLoadingVariant(variant);
-        
+
         const quotes = VARIANT_SPECIFIC_QUOTES[variant] || [];
         if (quotes.length > 0) {
           // Select a random quote from the specific variant's list

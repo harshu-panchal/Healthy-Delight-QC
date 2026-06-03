@@ -5,6 +5,7 @@ export interface ICustomer extends Document {
   email: string;
   phone: string;
   dateOfBirth?: Date;
+  profileImage?: string;
   registrationDate: Date;
   status: 'Active' | 'Inactive';
   customerType: 'retailer' | 'wholesaler';
@@ -78,6 +79,9 @@ const CustomerSchema = new Schema<ICustomer>(
     },
     dateOfBirth: {
       type: Date,
+    },
+    profileImage: {
+      type: String,
     },
     registrationDate: {
       type: Date,

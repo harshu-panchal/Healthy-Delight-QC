@@ -64,6 +64,9 @@ export default function AddToCartAnimation({
   const isInvoicePage = location.pathname.startsWith('/invoice/');
   const shouldHidePill = hideOnPages && (isCheckoutPage || isOrderPage || isAccountPage || isInvoicePage);
 
+  const isProductDetailPage = location.pathname.startsWith('/product/');
+  const dynamicBottomOffset = isProductDetailPage ? 136 : bottomOffset;
+
   // Detect removed products and trigger bounce-out animation
   useEffect(() => {
     const prevItems = prevItemsRef.current;
@@ -133,12 +136,17 @@ export default function AddToCartAnimation({
 
   // Handle fly-to-cart animation when product is added
   useEffect(() => {
-    if (lastAddEvent && lastAddEvent.sourcePosition && linkRef.current) {
+    if (lastAddEvent && lastAddEvent.sourcePosition) {
+      if (shouldHidePill || !linkRef.current) {
+        setFlyingProduct(null);
+        return;
+      }
+
       const { product, sourcePosition } = lastAddEvent;
       setFlyingProduct({ product, startPos: sourcePosition });
 
       // Wait a bit longer to ensure pill is fully rendered and in position
-      setTimeout(() => {
+      const timer = setTimeout(() => {
         if (flyingThumbnailRef.current && linkRef.current) {
           const thumbnail = flyingThumbnailRef.current;
           // Get fresh position after pill animation completes
@@ -215,10 +223,14 @@ export default function AddToCartAnimation({
               duration: 0.15,
               ease: 'power2.in',
             });
+        } else {
+          setFlyingProduct(null);
         }
       }, 150); // Increased delay to ensure pill animation completes
+
+      return () => clearTimeout(timer);
     }
-  }, [lastAddEvent]);
+  }, [lastAddEvent, shouldHidePill]);
 
   // Enhanced GSAP pulse animation when cart changes (but not on removal or fly-to-cart)
   useEffect(() => {
@@ -326,7 +338,7 @@ export default function AddToCartAnimation({
               mass: 0.8,
             }}
             className="fixed left-0 right-0 z-40 flex justify-center px-4"
-            style={{ bottom: `${bottomOffset}px` }}
+            style={{ bottom: `${dynamicBottomOffset}px` }}
           >
             <Link
               ref={linkRef}

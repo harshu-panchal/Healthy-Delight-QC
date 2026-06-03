@@ -123,7 +123,19 @@ export default function Search() {
                   <div
                     key={item.id || item._id}
                     className="bg-white rounded-lg border-2 border-green-600 p-3 cursor-pointer hover:shadow-md transition-shadow"
-                    onClick={() => navigate(item.type === 'category' ? `/category/${item.id || item._id}` : `/product/${item.id || item._id}`)}
+                    onClick={() => {
+                      if (item.type === 'category') {
+                        navigate(`/category/${item.slug || item.id || item._id}`);
+                      } else {
+                        const name = item.name || item.title || '';
+                        const slug = item.slug || name
+                          .toLowerCase()
+                          .trim()
+                          .replace(/[^a-z0-9]+/g, '-')
+                          .replace(/(^-|-$)/g, '');
+                        navigate(`/product/${slug || item.id || item._id}`);
+                      }
+                    }}
                   >
                     <div className="w-full h-24 rounded-lg mb-2 overflow-hidden bg-neutral-50 flex items-center justify-center">
                       {item.image || item.imageUrl ? (

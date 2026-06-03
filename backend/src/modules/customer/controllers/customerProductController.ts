@@ -223,25 +223,76 @@ export const getProductById = async (req: Request, res: Response) => {
     const { id } = req.params;
     const { latitude, longitude } = req.query; // User location
 
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid product ID",
-      });
+    let product = null;
+
+    if (mongoose.Types.ObjectId.isValid(id)) {
+      product = await Product.findOne({
+        _id: id,
+        status: "Active",
+        publish: true,
+      })
+        .populate("category", "name")
+        .populate("subcategory", "name")
+        .populate("brand", "name")
+        .populate(
+          "seller",
+          "storeName city fssaiLicNo address location serviceRadiusKm"
+        );
     }
 
-    const product = await Product.findOne({
-      _id: id,
-      status: "Active",
-      publish: true,
-    })
-      .populate("category", "name")
-      .populate("subcategory", "name")
-      .populate("brand", "name")
-      .populate(
-        "seller",
-        "storeName city fssaiLicNo address location serviceRadiusKm"
-      );
+    if (!product) {
+      // Try exact slug
+      let foundProduct = await Product.findOne({
+        slug: id,
+        status: "Active",
+        publish: true,
+      })
+        .populate("category", "name")
+        .populate("subcategory", "name")
+        .populate("brand", "name")
+        .populate(
+          "seller",
+          "storeName city fssaiLicNo address location serviceRadiusKm"
+        );
+
+      if (!foundProduct) {
+        // Try case-insensitive slug
+        foundProduct = await Product.findOne({
+          slug: { $regex: new RegExp(`^${id}$`, "i") },
+          status: "Active",
+          publish: true,
+        })
+          .populate("category", "name")
+          .populate("subcategory", "name")
+          .populate("brand", "name")
+          .populate(
+            "seller",
+            "storeName city fssaiLicNo address location serviceRadiusKm"
+          );
+      }
+
+      if (!foundProduct) {
+        // Try productName match with robust non-alphanumeric tolerant regex
+        let cleanId = id.replace(/[^a-zA-Z0-9]+/g, " ").trim();
+        if (cleanId) {
+          let regexPattern = cleanId.split(/\s+/).join("[^a-zA-Z0-9]+");
+          foundProduct = await Product.findOne({
+            productName: { $regex: new RegExp(`^[^a-zA-Z0-9]*${regexPattern}[^a-zA-Z0-9]*$`, "i") },
+            status: "Active",
+            publish: true,
+          })
+            .populate("category", "name")
+            .populate("subcategory", "name")
+            .populate("brand", "name")
+            .populate(
+              "seller",
+              "storeName city fssaiLicNo address location serviceRadiusKm"
+            );
+        }
+      }
+
+      product = foundProduct;
+    }
 
     if (!product) {
       return res.status(404).json({
