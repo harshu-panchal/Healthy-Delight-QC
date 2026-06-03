@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Suspense, lazy, startTransition, useEffect } from "react";
 import { CartProvider } from "./context/CartContext";
+import { getAppConfig } from "./services/configService";
 import { OrdersProvider } from "./context/OrdersContext";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { ThemeProvider } from "./context/ThemeContext";
@@ -282,8 +283,9 @@ function RootRoute() {
 function AppContent() {
   const { isAuthenticated, user } = useAuth();
 
-  // Initialize push notifications (service worker registration only)
+  // Initialize dynamic configuration and push notifications on startup
   useEffect(() => {
+    getAppConfig();
     initializePushNotifications();
     setupForegroundNotificationHandler();
   }, []);

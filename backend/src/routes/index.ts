@@ -59,12 +59,22 @@ router.get("/health", (_req, res) => {
 // Public App Settings
 router.get("/settings/public", async (_req, res) => {
   try {
-    const settings = await AppSettings.findOne().select("appName contactEmail contactPhone privacyPolicy customerAppPolicy deliveryAppPolicy deliveryPrivacyPolicy");
+    const settings = await AppSettings.findOne().select("appName contactEmail contactPhone privacyPolicy customerAppPolicy deliveryAppPolicy deliveryPrivacyPolicy platformFee deliveryCharges freeDeliveryThreshold deliveryConfig");
     return res.status(200).json({
       success: true,
       data: settings || {
         deliveryAppPolicy: "",
-        deliveryPrivacyPolicy: ""
+        deliveryPrivacyPolicy: "",
+        platformFee: 2,
+        deliveryCharges: 40,
+        freeDeliveryThreshold: 199,
+        deliveryConfig: {
+          isDistanceBased: false,
+          baseCharge: 40,
+          baseDistance: 0,
+          kmRate: 0,
+          deliveryBoyKmRate: 0
+        }
       }
     });
   } catch (error: any) {

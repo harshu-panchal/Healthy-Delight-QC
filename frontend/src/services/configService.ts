@@ -1,3 +1,5 @@
+import api from './api/config';
+
 export interface AppConfig {
     deliveryFee: number;
     freeDeliveryThreshold: number;
@@ -19,19 +21,30 @@ const defaultConfig: AppConfig = {
     estimatedDeliveryTime: '12-15 mins'
 };
 
+// Synchronous helper for immediate UI needs (until async context is fully adopted)
+export const appConfig = { ...defaultConfig };
+
 /**
- * Get application configuration
- * In the future, this should fetch from an API endpoint like /customer/config
+ * Get application configuration from backend settings
  */
 export const getAppConfig = async (): Promise<AppConfig> => {
-    // Simulate API delay
-    // return new Promise((resolve) => {
-    //   setTimeout(() => resolve(defaultConfig), 100);
-    // });
-
-    // For now, return sync/static config or fetch if endpoint existed
-    return defaultConfig;
+    try {
+        const response = await api.get('/settings/public');
+        if (response.data && response.data.success && response.data.data) {
+            const data = response.data.data;
+            const fetchedConfig = {
+                deliveryFee: typeof data.deliveryCharges === 'number' ? data.deliveryCharges : defaultConfig.deliveryFee,
+                freeDeliveryThreshold: typeof data.freeDeliveryThreshold === 'number' ? data.freeDeliveryThreshold : defaultConfig.freeDeliveryThreshold,
+                platformFee: typeof data.platformFee === 'number' ? data.platformFee : defaultConfig.platformFee,
+                taxes: {
+                    gst: typeof data.gstRate === 'number' ? data.gstRate : defaultConfig.taxes.gst
+                },
+                estimatedDeliveryTime: defaultConfig.estimatedDeliveryTime
+            };
+            Object.assign(appConfig, fetchedConfig);
+        }
+    } catch (e) {
+        console.error("Failed to fetch dynamic settings fallbacks:", e);
+    }
+    return appConfig;
 };
-
-// Synchronous helper for immediate UI needs (until async context is fully adopted)
-export const appConfig = defaultConfig;

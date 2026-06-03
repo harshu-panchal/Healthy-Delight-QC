@@ -5,6 +5,7 @@ import OrderItem from "../../../models/OrderItem";
 import Customer from "../../../models/Customer";
 import CustomerWalletTransaction from "../../../models/CustomerWalletTransaction";
 import Seller from "../../../models/Seller";
+import AppSettings from "../../../models/AppSettings";
 import mongoose from "mongoose";
 import { isWholesaleEligible, getVariationPrice } from "../../../utils/wholesaleHelper";
 import { calculateDistance } from "../../../utils/locationHelper";
@@ -187,6 +188,8 @@ export const createOrder = async (req: Request, res: Response) => {
             customerEmail: customer.email,
             customerPhone: customer.phone,
             deliveryAddress: {
+                fullName: address.fullName || address.name || 'N/A',
+                phone: address.phone || 'N/A',
                 address: address.address || address.street || 'N/A',
                 city: address.city || 'N/A',
                 state: address.state || '',
@@ -458,9 +461,56 @@ export const createOrder = async (req: Request, res: Response) => {
             }
         }
 
-        // Apply fees
-        const platformFee = Number(fees?.platformFee) || 0;
-        const deliveryFee = Number(fees?.deliveryFee) || 0;
+        // Calculate dynamic fees from AppSettings
+        const settings = await AppSettings.getSettings();
+        const platformFee = settings.platformFee || 0;
+        let deliveryFee = 0;
+        const freeDeliveryThreshold = settings.freeDeliveryThreshold || 0;
+
+        if (freeDeliveryThreshold > 0 && calculatedSubtotal >= freeDeliveryThreshold) {
+            deliveryFee = 0;
+        } else if (settings) {
+            if (settings.deliveryConfig?.isDistanceBased === true) {
+                const config = settings.deliveryConfig;
+                deliveryFee = config.baseCharge || 0;
+
+                if (deliveryLat != null && deliveryLng != null) {
+                    const uniqueSellerIds = Array.from(sellerIds).map(id => new mongoose.Types.ObjectId(id));
+                    const sellers = await Seller.find({ _id: { $in: uniqueSellerIds } }).select('location latitude longitude');
+
+                    const sellerLocations: { lat: number; lng: number }[] = [];
+                    sellers.forEach(seller => {
+                        let lat, lng;
+                        if (seller.location?.coordinates?.length === 2) {
+                            lng = seller.location.coordinates[0];
+                            lat = seller.location.coordinates[1];
+                        } else if (seller.latitude && seller.longitude) {
+                            lat = parseFloat(seller.latitude);
+                            lng = parseFloat(seller.longitude);
+                        }
+                        if (lat && lng) sellerLocations.push({ lat, lng });
+                    });
+
+                    if (sellerLocations.length > 0) {
+                        const { getRoadDistances } = await import("../../../services/mapService");
+                        const distances = await getRoadDistances(
+                            sellerLocations,
+                            { lat: deliveryLat, lng: deliveryLng },
+                            config.googleMapsKey
+                        );
+
+                        if (distances && distances.length > 0) {
+                            const maxDistance = Math.max(...distances);
+                            const extraKm = Math.max(0, maxDistance - config.baseDistance);
+                            deliveryFee = Math.ceil(config.baseCharge + (extraKm * config.kmRate));
+                        }
+                    }
+                }
+            } else {
+                deliveryFee = settings.deliveryCharges || 0;
+            }
+        }
+
         const tipVal = Number(tipAmount) || 0;
         const finalTotal = Number((calculatedSubtotal + platformFee + deliveryFee + calculatedTax + tipVal).toFixed(2));
 
@@ -510,6 +560,8 @@ export const createOrder = async (req: Request, res: Response) => {
         newOrder.subtotal = Number(calculatedSubtotal.toFixed(2));
         newOrder.tax = Number(calculatedTax.toFixed(2));
         newOrder.tipAmount = tipVal;
+        newOrder.shipping = deliveryFee;
+        newOrder.platformFee = platformFee;
         newOrder.total = remainingTotal;
         newOrder.items = orderItemIds;
 

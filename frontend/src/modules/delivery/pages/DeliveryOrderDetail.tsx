@@ -884,21 +884,74 @@ export default function DeliveryOrderDetail() {
                         Customer Details
                     </h3>
                     <div className="space-y-4">
-                        <div className="flex items-start gap-3">
-                            <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center flex-shrink-0 text-blue-600">
-                                <Icons.User size={20} />
-                            </div>
-                            <div>
-                                <p className="font-medium text-neutral-900">{order.customerName}</p>
-                                <p className="text-sm text-neutral-500">{order.customerPhone || 'N/A'}</p>
-                            </div>
-                            <button
-                                onClick={() => window.open(`tel:${order.customerPhone}`, '_system')}
-                                className="ml-auto p-3 bg-green-500 text-white rounded-full hover:bg-green-600 shadow-md transition-transform hover:scale-105 active:scale-95"
-                            >
-                                <Icons.Phone size={20} />
-                            </button>
-                        </div>
+                        {(() => {
+                            const isOrderedForSomeoneElse = !!(
+                                order.deliveryAddress?.fullName &&
+                                order.deliveryAddress.fullName !== 'N/A' &&
+                                (order.deliveryAddress.fullName.toLowerCase() !== order.customerName.toLowerCase() ||
+                                 (order.deliveryAddress.phone && order.deliveryAddress.phone !== 'N/A' && order.deliveryAddress.phone !== order.customerPhone))
+                            );
+
+                            if (isOrderedForSomeoneElse) {
+                                return (
+                                    <>
+                                        {/* Ordered By Customer */}
+                                        <div className="flex items-start gap-3">
+                                            <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center flex-shrink-0 text-blue-600">
+                                                <Icons.User size={20} />
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-[10px] text-neutral-400 font-bold uppercase tracking-wider">Ordered By (Customer)</p>
+                                                <p className="font-semibold text-sm text-neutral-900 truncate">{order.customerName}</p>
+                                                <p className="text-xs text-neutral-500">{order.customerPhone || 'N/A'}</p>
+                                            </div>
+                                            <button
+                                                onClick={() => window.open(`tel:${order.customerPhone}`, '_system')}
+                                                className="p-2.5 bg-green-500 text-white rounded-full hover:bg-green-600 shadow-sm transition-transform hover:scale-105 active:scale-95"
+                                            >
+                                                <Icons.Phone size={16} />
+                                            </button>
+                                        </div>
+
+                                        {/* Deliver To Recipient */}
+                                        <div className="flex items-start gap-3 pt-3 border-t border-neutral-100">
+                                            <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center flex-shrink-0 text-indigo-600">
+                                                <Icons.User size={20} />
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-[10px] text-neutral-400 font-bold uppercase tracking-wider">Deliver To (Recipient)</p>
+                                                <p className="font-semibold text-sm text-neutral-900 truncate">{order.deliveryAddress.fullName}</p>
+                                                <p className="text-xs text-neutral-500">{order.deliveryAddress.phone || 'N/A'}</p>
+                                            </div>
+                                            <button
+                                                onClick={() => window.open(`tel:${order.deliveryAddress.phone}`, '_system')}
+                                                className="p-2.5 bg-green-500 text-white rounded-full hover:bg-green-600 shadow-sm transition-transform hover:scale-105 active:scale-95"
+                                            >
+                                                <Icons.Phone size={16} />
+                                            </button>
+                                        </div>
+                                    </>
+                                );
+                            } else {
+                                return (
+                                    <div className="flex items-start gap-3">
+                                        <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center flex-shrink-0 text-blue-600">
+                                            <Icons.User size={20} />
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="font-semibold text-sm text-neutral-900 truncate">{order.customerName}</p>
+                                            <p className="text-xs text-neutral-500">{order.customerPhone || 'N/A'}</p>
+                                        </div>
+                                        <button
+                                            onClick={() => window.open(`tel:${order.customerPhone}`, '_system')}
+                                            className="p-2.5 bg-green-500 text-white rounded-full hover:bg-green-600 shadow-sm transition-transform hover:scale-105 active:scale-95"
+                                        >
+                                            <Icons.Phone size={16} />
+                                        </button>
+                                    </div>
+                                );
+                            }
+                        })()}
                         <div className="flex items-start gap-3 pt-3 border-t border-neutral-50">
                             <div className="w-10 h-10 rounded-full bg-orange-50 flex items-center justify-center flex-shrink-0 text-orange-600">
                                 <Icons.MapPin size={20} />

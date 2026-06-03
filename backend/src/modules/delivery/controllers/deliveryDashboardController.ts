@@ -189,7 +189,7 @@ export const getDashboardStats = asyncHandler(async (req: Request, res: Response
             }
         ]
     })
-        .select("orderNumber customerName deliveryAddress status total estimatedDeliveryDate") // Select necessary fields
+        .select("orderNumber customerName deliveryAddress status total estimatedDeliveryDate deliveryBoyStatus") // Select necessary fields
         .sort({ createdAt: -1 })
         .limit(5);
 

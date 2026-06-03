@@ -103,6 +103,8 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
       const payload = {
         timeSlot: order.timeSlot,
         address: {
+          fullName: order.address.name || "",
+          phone: order.address.phone || "",
           address: order.address.street || order.address.address || "",
           city: order.address.city,
           state: order.address.state || "",

@@ -582,6 +582,7 @@ export default function OrderDetail() {
   const handleCallStore = () => {
     const storeNumber =
       sellerLocations[0]?.mobile ||
+      order?.items?.[0]?.seller?.phone ||
       order?.items?.[0]?.product?.seller?.mobile ||
       order?.seller?.phone ||
       "1234567890";
@@ -1055,10 +1056,10 @@ export default function OrderDetail() {
           <div className="flex items-center gap-4.5 p-6 border-b border-dashed border-slate-100 bg-slate-50/30">
             <div className="flex-1 min-w-0">
               <p className="font-bold text-[#0a193b] text-base tracking-tight leading-snug">
-                {sellerLocations[0]?.storeName || order?.items?.[0]?.product?.seller?.storeName || "Healthy Delight Kitchen"}
+                {sellerLocations[0]?.storeName || order?.items?.[0]?.seller?.storeName || order?.items?.[0]?.product?.seller?.storeName || "Healthy Delight Kitchen"}
               </p>
               <p className="text-xs text-slate-400 font-semibold mt-0.5 leading-normal uppercase tracking-wider">
-                {sellerLocations[0]?.city || sellerLocations[0]?.address || "Local Kitchen Outlet"}
+                {sellerLocations[0]?.city || sellerLocations[0]?.address || order?.items?.[0]?.seller?.city || order?.items?.[0]?.seller?.address || "Local Kitchen Outlet"}
               </p>
             </div>
             <motion.button
@@ -1107,6 +1108,54 @@ export default function OrderDetail() {
                 </div>
               </div>
               <ChevronRightIcon className="w-4 h-4 text-slate-400 self-center" />
+            </div>
+          </div>
+
+          {/* Order placement and delivery shift metadata */}
+          <div className="px-6 py-5 bg-slate-50/25 border-t border-dashed border-slate-100">
+            <div className="grid grid-cols-2 gap-y-4 gap-x-6 text-xs">
+              <div className="flex flex-col gap-0.5">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                  Placed On
+                </span>
+                <span className="text-xs font-extrabold text-slate-700">
+                  {new Date(order.createdAt).toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric',
+                  })} at {new Date(order.createdAt).toLocaleTimeString('en-US', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })}
+                </span>
+              </div>
+
+              <div className="flex flex-col gap-0.5">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                  {order.orderType === 'Scheduled' ? 'Scheduled Shift' : 'Delivery Shift'}
+                </span>
+                <span className="text-xs font-extrabold text-slate-700">
+                  {order.orderType === 'Scheduled'
+                    ? order.scheduledTimeSlot || 'N/A'
+                    : order.timeSlot || 'N/A'}
+                </span>
+              </div>
+
+              {order.orderType === 'Scheduled' && order.scheduledDate && (
+                <div className="col-span-2 flex flex-col gap-1 bg-emerald-50/40 border border-emerald-100/50 rounded-xl p-3">
+                  <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider flex items-center gap-1.5">
+                    <span className="text-xs">📅</span> Scheduled Delivery Date
+                  </span>
+                  <span className="text-xs font-black text-emerald-800">
+                    {new Date(order.scheduledDate).toLocaleDateString('en-US', {
+                      weekday: 'long',
+                      month: 'short',
+                      day: 'numeric',
+                      year: 'numeric',
+                    })}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
         </motion.div>

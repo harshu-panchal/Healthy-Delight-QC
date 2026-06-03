@@ -716,6 +716,8 @@ export default function Checkout() {
       .substr(2, 6)
       .toUpperCase()}`;
 
+    const isEveningOrder = !!(timeSlot && timeSlot.includes("Evening"));
+    const isOrderScheduled = !!scheduledDateStr || isEveningOrder;
     const effectivePaymentMethod = remainingTotal === 0 ? "Wallet" : paymentMethod;
 
     const order: Order & { orderType?: string; scheduledDate?: string; scheduledTimeSlot?: string; useWallet?: boolean; forcePlaceNewScheduled?: boolean } = {
@@ -732,24 +734,24 @@ export default function Checkout() {
       timeSlot,
       paymentMethod: effectivePaymentMethod,
       useWallet: useWallet,
-      status: scheduledDateStr ? "Scheduled" : "Placed",
+      status: isOrderScheduled ? "Scheduled" : "Placed",
       createdAt: new Date().toISOString(),
       tipAmount: finalTipAmount,
       gstin: gstin || undefined,
       couponCode: selectedCoupon?.code || undefined,
       giftPackaging: giftPackaging,
       forcePlaceNewScheduled: forcePlaceNew,
-      ...(scheduledDateStr ? {
+      ...(isOrderScheduled ? {
         orderType: "Scheduled",
-        scheduledDate: scheduledDateStr,
-        scheduledTimeSlot: scheduledTimeSlot || undefined,
+        scheduledDate: scheduledDateStr || new Date().toISOString(),
+        scheduledTimeSlot: scheduledTimeSlot || (isEveningOrder ? "Evening" : "Morning"),
       } : {})
     };
 
     try {
       const placedId = await addOrder(order);
       if (placedId) {
-        setIsPlacedOrderScheduled(!!scheduledDateStr);
+        setIsPlacedOrderScheduled(isOrderScheduled);
         // Clear schedule keys from sessionStorage on order success
         sessionStorage.removeItem("scheduledDeliveryDate");
         sessionStorage.removeItem("scheduledTimeSlot");
@@ -1363,7 +1365,8 @@ export default function Checkout() {
             onClick={() =>
               navigate("/checkout/address", {
                 state: {
-                  editAddress: savedAddress,
+                  cloneAddress: savedAddress,
+                  isOrderingForSomeoneElse: true,
                 },
               })
             }
@@ -1520,7 +1523,7 @@ export default function Checkout() {
       )}
 
       {/* Scheduled Delivery Indicator */}
-      {scheduledDateStr && scheduledTimeSlot && (
+      {isPlacedOrderScheduled && (
         <div className="mx-4 md:mx-6 lg:mx-8 mt-4 p-4 rounded-3xl bg-blue-50/80 border border-blue-100 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-2xl bg-blue-100/50 flex items-center justify-center text-blue-600">
@@ -1534,7 +1537,7 @@ export default function Checkout() {
             <div>
               <p className="text-xs font-black text-[#0a193b]">Scheduled Delivery</p>
               <p className="text-[10px] text-neutral-600 font-semibold mt-0.5">
-                {new Date(scheduledDateStr).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })} • {scheduledTimeSlot === "Morning" ? "Morning (6-9 AM)" : "Evening (5-8 PM)"}
+                {new Date(scheduledDateStr || new Date()).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })} • {(scheduledTimeSlot || (timeSlot.includes("Evening") ? "Evening" : "Morning")) === "Morning" ? "Morning (6-9 AM)" : "Evening (5-8 PM)"}
               </p>
             </div>
           </div>

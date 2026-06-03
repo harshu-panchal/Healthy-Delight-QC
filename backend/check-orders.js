@@ -8,19 +8,8 @@ async function check() {
     await mongoose.connect(process.env.MONGODB_URI);
     console.log('Connected to MongoDB');
 
-    const orders = await Order.find().sort({ createdAt: -1 }).limit(5);
-    console.log(`Found ${orders.length} recent orders:`);
-    for (const order of orders) {
-        console.log({
-            id: order._id,
-            orderNumber: order.orderNumber,
-            total: order.total,
-            paymentMethod: order.paymentMethod,
-            paymentStatus: order.paymentStatus,
-            status: order.status,
-            createdAt: order.createdAt
-        });
-    }
+    const order = await Order.findOne({ orderNumber: { $regex: /391708$/ } });
+    console.log(JSON.stringify(order, null, 2));
 
     await mongoose.disconnect();
 }

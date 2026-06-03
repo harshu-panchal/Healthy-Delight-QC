@@ -307,11 +307,34 @@ export default function OrderNotificationCard({
                         <p className="text-base sm:text-lg font-semibold text-neutral-900 break-all">{formatOrderFriendly(notification.orderNumber, notification.orderId)}</p>
                     </div>
 
-                    <div>
-                        <p className="text-xs sm:text-sm text-neutral-600">Customer</p>
-                        <p className="text-sm sm:text-base font-medium text-neutral-900 break-words">{notification.customerName}</p>
-                        <p className="text-xs sm:text-sm text-neutral-500 break-all">{notification.customerPhone}</p>
-                    </div>
+                    {(() => {
+                        const isOrderedForSomeoneElse = !!(
+                            notification.deliveryAddress?.fullName &&
+                            notification.deliveryAddress.fullName !== 'N/A' &&
+                            (notification.deliveryAddress.fullName.toLowerCase() !== notification.customerName.toLowerCase() ||
+                             (notification.deliveryAddress.phone && notification.deliveryAddress.phone !== 'N/A' && notification.deliveryAddress.phone !== notification.customerPhone))
+                        );
+                        return isOrderedForSomeoneElse ? (
+                            <>
+                                <div>
+                                    <p className="text-xs sm:text-sm text-neutral-600">Ordered By (Customer)</p>
+                                    <p className="text-sm sm:text-base font-semibold text-neutral-900 break-words">{notification.customerName}</p>
+                                    <p className="text-xs sm:text-sm text-neutral-500 break-all">{notification.customerPhone}</p>
+                                </div>
+                                <div>
+                                    <p className="text-xs sm:text-sm text-neutral-600">Deliver To (Recipient)</p>
+                                    <p className="text-sm sm:text-base font-semibold text-neutral-900 break-words">{notification.deliveryAddress.fullName}</p>
+                                    <p className="text-xs sm:text-sm text-neutral-500 break-all">{notification.deliveryAddress.phone}</p>
+                                </div>
+                            </>
+                        ) : (
+                            <div>
+                                <p className="text-xs sm:text-sm text-neutral-600">Customer</p>
+                                <p className="text-sm sm:text-base font-semibold text-neutral-900 break-words">{notification.customerName}</p>
+                                <p className="text-xs sm:text-sm text-neutral-500 break-all">{notification.customerPhone}</p>
+                            </div>
+                        );
+                    })()}
 
                     <div>
                         <p className="text-xs sm:text-sm text-neutral-600">Delivery Address</p>

@@ -108,9 +108,9 @@ export default function Subscription() {
         }}
       >
         <div className="px-5 md:px-10 pt-5 pb-3">
-          <div className="flex items-center justify-between gap-6">
+          <div className="flex items-center justify-between gap-3 md:gap-6">
             {/* Nav & Logo & Location Container */}
-            <div className="flex items-center gap-4 md:gap-8 flex-1 min-w-0">
+            <div className="flex items-center gap-3 md:gap-8 flex-1 min-w-0">
               {/* Back & Logo */}
               <div className="flex items-center gap-3 md:gap-4 flex-shrink-0">
                 <button
@@ -129,7 +129,7 @@ export default function Subscription() {
 
               {/* Location (Only if available) */}
               {locationDisplayText && (
-                <div onClick={() => navigate('/account')} className="flex items-center gap-2 cursor-pointer max-w-[150px] md:max-w-md group overflow-hidden">
+                <div onClick={() => navigate('/account')} className="flex items-center gap-2 cursor-pointer flex-1 min-w-0 max-w-[130px] sm:max-w-[240px] md:max-w-md group overflow-hidden">
                   <div className="p-1.5 rounded-full bg-white/10 text-white/90 group-hover:bg-white/20 transition-all border border-white/20 hidden sm:flex">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                       <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" strokeLinecap="round" strokeLinejoin="round" />
@@ -138,9 +138,9 @@ export default function Subscription() {
                   </div>
                   <div className="flex flex-col min-w-0">
                     <span className="text-[10px] uppercase tracking-widest font-bold text-white/50 leading-none mb-0.5">Delivery to</span>
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1 min-w-0">
                       <span className="text-sm font-bold text-white/95 truncate group-hover:text-white transition-colors">{locationDisplayText}</span>
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" className="text-white/40 group-hover:text-white transition-colors">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" className="text-white/40 group-hover:text-white transition-colors flex-shrink-0">
                         <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
                       </svg>
                     </div>

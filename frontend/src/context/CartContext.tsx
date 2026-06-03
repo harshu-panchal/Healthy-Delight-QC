@@ -12,6 +12,7 @@ import {
   clearCart as apiClearCart
 } from '../services/api/customerCartService';
 import { calculateProductPrice } from '../utils/priceUtils';
+import { getAppConfig } from '../services/configService';
 
 const CART_STORAGE_KEY = 'saved_cart';
 
@@ -65,6 +66,21 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [estimatedFee, setEstimatedFee] = useState<number | undefined>(undefined);
   const [platformFee, setPlatformFee] = useState<number | undefined>(undefined);
   const [freeDeliveryThreshold, setFreeDeliveryThreshold] = useState<number | undefined>(undefined);
+
+  // Load public settings fallbacks on mount
+  useEffect(() => {
+    const loadPublicSettings = async () => {
+      try {
+        const config = await getAppConfig();
+        // Update states to trigger reactive UI re-renders with correct fallbacks
+        setPlatformFee(prev => prev ?? config.platformFee);
+        setFreeDeliveryThreshold(prev => prev ?? config.freeDeliveryThreshold);
+      } catch (e) {
+        console.error("Failed to load public settings fallbacks:", e);
+      }
+    };
+    loadPublicSettings();
+  }, []);
 
   // Helper to map API cart items to internal CartItem structure
   const mapApiItemsToState = (apiItems: any[]): ExtendedCartItem[] => {

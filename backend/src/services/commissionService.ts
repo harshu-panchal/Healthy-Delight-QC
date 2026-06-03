@@ -407,14 +407,16 @@ export const distributeCommissions = async (orderId: string) => {
                 type: "DELIVERY_BOY",
             }).session(session);
 
+            const tipAmount = order.tipAmount || 0;
+            const commissionAmount = (order.shipping || 0) + tipAmount;
+
             if (!existingDeliveryComm) {
                 console.log(
                     `Creating missing commission for Delivery Boy ${deliveryBoyId}`,
                 );
 
                 // Calculate Commission Logic
-                // Delivery boy always gets 100% of the delivery charge!
-                const commissionAmount = order.shipping || 0;
+                // Delivery boy gets 100% of the delivery charge + tip!
                 const commissionRate = 100;
 
                 // Create Commission Record
@@ -424,7 +426,7 @@ export const distributeCommissions = async (orderId: string) => {
                             order: order._id,
                             deliveryBoy: order.deliveryBoy,
                             type: "DELIVERY_BOY",
-                            orderAmount: order.shipping || 0,
+                            orderAmount: (order.shipping || 0) + tipAmount,
                             commissionRate,
                             commissionAmount: Math.round(commissionAmount * 100) / 100,
                             status: "Paid",
@@ -442,7 +444,9 @@ export const distributeCommissions = async (orderId: string) => {
                     deliveryBoyId,
                     "DELIVERY_BOY",
                     comm.commissionAmount,
-                    `Delivery earning for order ${order.orderNumber}`,
+                    tipAmount > 0
+                        ? `Delivery earning & tip for order ${order.orderNumber}`
+                        : `Delivery earning for order ${order.orderNumber}`,
                     orderId,
                     comm._id.toString(),
                     session,
@@ -452,6 +456,8 @@ export const distributeCommissions = async (orderId: string) => {
                 existingDeliveryComm.status === "Pending"
             ) {
                 // If it existed as pending, mark as paid and credit
+                existingDeliveryComm.commissionAmount += tipAmount;
+                existingDeliveryComm.orderAmount += tipAmount;
                 existingDeliveryComm.status = "Paid";
                 existingDeliveryComm.paidAt = new Date();
                 await existingDeliveryComm.save({ session });
@@ -461,7 +467,9 @@ export const distributeCommissions = async (orderId: string) => {
                     deliveryBoyId,
                     "DELIVERY_BOY",
                     existingDeliveryComm.commissionAmount,
-                    `Delivery earning for order ${order.orderNumber}`,
+                    tipAmount > 0
+                        ? `Delivery earning & tip for order ${order.orderNumber}`
+                        : `Delivery earning for order ${order.orderNumber}`,
                     orderId,
                     existingDeliveryComm._id.toString(),
                     session,
@@ -903,12 +911,17 @@ export const processCODOrderDelivery = async (
 
             await deliveryBoy.save({ session });
 
-            // Create wallet transaction for delivery boy commission
+            const tipAmount = order.tipAmount || 0;
+            const deliveryBoyEarning = breakdown.deliveryBoyCommission + tipAmount;
+
+            // Create wallet transaction for delivery boy commission & tip
             await creditWallet(
                 order.deliveryBoy.toString(),
                 "DELIVERY_BOY",
-                breakdown.deliveryBoyCommission,
-                `Delivery earning for COD order ${order.orderNumber}`,
+                deliveryBoyEarning,
+                tipAmount > 0
+                    ? `Delivery earning & tip for COD order ${order.orderNumber}`
+                    : `Delivery earning for COD order ${order.orderNumber}`,
                 orderId,
                 undefined,
                 session
@@ -924,11 +937,11 @@ export const processCODOrderDelivery = async (
                 order: orderId,
                 deliveryBoy: order.deliveryBoy,
                 type: "DELIVERY_BOY",
-                orderAmount: breakdown.deliveryDistanceKm || breakdown.totalDeliveryCharge,
+                orderAmount: (breakdown.deliveryDistanceKm || breakdown.totalDeliveryCharge) + tipAmount,
                 commissionRate: breakdown.deliveryDistanceKm
                     ? breakdown.deliveryBoyCommission / breakdown.deliveryDistanceKm
                     : (breakdown.deliveryBoyCommission / breakdown.totalDeliveryCharge) * 100,
-                commissionAmount: breakdown.deliveryBoyCommission,
+                commissionAmount: deliveryBoyEarning,
                 status: "Paid",
                 paidAt: new Date(),
             });

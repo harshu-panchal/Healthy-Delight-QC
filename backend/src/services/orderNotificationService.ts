@@ -707,6 +707,8 @@ export async function notifyRiderOfScheduledAssignment(
             customerName: order.customerName,
             customerPhone: order.customerPhone,
             deliveryAddress: {
+                fullName: order.deliveryAddress?.fullName || "",
+                phone: order.deliveryAddress?.phone || "",
                 address: order.deliveryAddress?.address || "",
                 city: order.deliveryAddress?.city || "",
                 state: order.deliveryAddress?.state || "",

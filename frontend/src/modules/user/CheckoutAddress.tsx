@@ -17,8 +17,10 @@ export default function CheckoutAddress() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Get address from navigation state if editing
+  // Get address from navigation state if editing or cloning for someone else
   const editAddress = (location.state as any)?.editAddress as OrderAddress | undefined;
+  const cloneAddress = (location.state as any)?.cloneAddress as OrderAddress | undefined;
+  const isOrderingForSomeoneElse = (location.state as any)?.isOrderingForSomeoneElse as boolean | undefined;
   const editAddressId = editAddress ? (editAddress.id || editAddress._id) : 'new';
 
   const isFirstMount = useRef(true);
@@ -42,22 +44,35 @@ export default function CheckoutAddress() {
   const [savedAddresses, setSavedAddresses] = useState<Address[]>([]);
   const [address, setAddress] = useState<OrderAddress>(() => {
     if (draft?.address) return draft.address;
+    const sourceAddress = editAddress || cloneAddress;
     return {
-      name: editAddress?.name || user?.name || '',
-      phone: editAddress?.phone || user?.phone || '',
-      flat: editAddress?.flat || '',
-      street: editAddress?.street || '',
-      city: editAddress?.city || '',
-      pincode: editAddress?.pincode || '',
-      state: editAddress?.state || '',
-      landmark: editAddress?.landmark || '',
+      name: isOrderingForSomeoneElse ? '' : (sourceAddress?.name || user?.name || ''),
+      phone: isOrderingForSomeoneElse ? '' : (sourceAddress?.phone || user?.phone || ''),
+      flat: sourceAddress?.flat || '',
+      street: sourceAddress?.street || '',
+      city: sourceAddress?.city || '',
+      pincode: sourceAddress?.pincode || '',
+      state: sourceAddress?.state || '',
+      landmark: sourceAddress?.landmark || '',
     };
   });
 
   const [errors, setErrors] = useState<Partial<Record<keyof OrderAddress, string>>>({});
   const [isSaving, setIsSaving] = useState(false);
   const [orderingFor, setOrderingFor] = useState<'myself' | 'someone-else'>(() => {
-    return draft?.orderingFor || 'myself';
+    if (draft?.orderingFor) return draft.orderingFor;
+    if (isOrderingForSomeoneElse) return 'someone-else';
+    const userProfileName = user?.name || '';
+    const userProfilePhone = user?.phone || '';
+    const addressName = editAddress?.name || '';
+    const addressPhone = editAddress?.phone || '';
+
+    const isSelfAddress = !editAddress || (
+      (userProfileName && addressName.toLowerCase() === userProfileName.toLowerCase()) ||
+      (userProfilePhone && addressPhone === userProfilePhone)
+    );
+
+    return isSelfAddress ? 'myself' : 'someone-else';
   });
   const [addressType, setAddressType] = useState<'home' | 'work' | 'hotel' | 'other'>(() => {
     return draft?.addressType || 'home';
@@ -65,10 +80,14 @@ export default function CheckoutAddress() {
 
   // Location picker state
   const [selectedLatitude, setSelectedLatitude] = useState<number>(() => {
-    return draft?.selectedLatitude || 0;
+    if (draft?.selectedLatitude) return draft.selectedLatitude;
+    const sourceAddress = editAddress || cloneAddress;
+    return sourceAddress?.latitude || 0;
   });
   const [selectedLongitude, setSelectedLongitude] = useState<number>(() => {
-    return draft?.selectedLongitude || 0;
+    if (draft?.selectedLongitude) return draft.selectedLongitude;
+    const sourceAddress = editAddress || cloneAddress;
+    return sourceAddress?.longitude || 0;
   });
 
   // Save draft to sessionStorage on state changes
@@ -92,7 +111,8 @@ export default function CheckoutAddress() {
 
   // Get user's current location on mount
   useEffect(() => {
-    if (draft?.selectedLatitude && draft?.selectedLongitude) {
+    const sourceAddress = editAddress || cloneAddress;
+    if ((draft?.selectedLatitude && draft?.selectedLongitude) || (sourceAddress?.latitude && sourceAddress?.longitude)) {
       return; // Skip geolocation if we already have a loaded draft location
     }
     if (navigator.geolocation) {
@@ -190,27 +210,44 @@ export default function CheckoutAddress() {
 
 
 
-  // Update address when editAddress changes
+  // Update address when editAddress or cloneAddress changes
   useEffect(() => {
-    if (editAddress && isFirstMount.current && !draft) {
+    const sourceAddress = editAddress || cloneAddress;
+    if (sourceAddress && isFirstMount.current && !draft) {
       setAddress({
-        name: editAddress.name || '',
-        phone: editAddress.phone || '',
-        flat: editAddress.flat || '',
-        street: editAddress.street || '',
-        city: editAddress.city || '',
-        pincode: editAddress.pincode || '',
-        state: editAddress.state || '',
-        landmark: editAddress.landmark || '',
+        name: isOrderingForSomeoneElse ? '' : (sourceAddress.name || ''),
+        phone: isOrderingForSomeoneElse ? '' : (sourceAddress.phone || ''),
+        flat: sourceAddress.flat || '',
+        street: sourceAddress.street || '',
+        city: sourceAddress.city || '',
+        pincode: sourceAddress.pincode || '',
+        state: sourceAddress.state || '',
+        landmark: sourceAddress.landmark || '',
       });
 
-      // Try to set address type based on editAddress if it has one
-      if ((editAddress as any).type) {
-        setAddressType((editAddress as any).type.toLowerCase());
+      // Try to set address type based on sourceAddress if it has one
+      if ((sourceAddress as any).type) {
+        setAddressType((sourceAddress as any).type.toLowerCase());
+      }
+
+      if (isOrderingForSomeoneElse) {
+        setOrderingFor('someone-else');
+      } else {
+        // Determine if editing an address for someone else
+        const userProfileName = user?.name || '';
+        const userProfilePhone = user?.phone || '';
+        const addressName = sourceAddress.name || '';
+        const addressPhone = sourceAddress.phone || '';
+
+        const isSelfAddress = (
+          (userProfileName && addressName.toLowerCase() === userProfileName.toLowerCase()) ||
+          (userProfilePhone && addressPhone === userProfilePhone)
+        );
+        setOrderingFor(isSelfAddress ? 'myself' : 'someone-else');
       }
     }
     isFirstMount.current = false;
-  }, [editAddress]);
+  }, [editAddress, cloneAddress, user]);
 
 
 
@@ -316,8 +353,23 @@ export default function CheckoutAddress() {
         longitude: finalLng,
       };
 
-      // If editing an existing address, use updateAddress instead
-      if (editAddress && (editAddress.id || editAddress._id)) {
+      // If editing an address:
+      // - If ordering for myself: we update the existing address.
+      // - If ordering for someone else:
+      //   - If the address being edited was already for someone else (editAddress name/phone !== user name/phone), we can update it.
+      //   - If the address being edited was for myself (editAddress name/phone === user name/phone), we must add it as a new address to avoid overwriting!
+      const userProfileName = user?.name || '';
+      const userProfilePhone = user?.phone || '';
+      const addressName = editAddress?.name || '';
+      const addressPhone = editAddress?.phone || '';
+
+      const isEditingSelfAddress = editAddress && (
+        (userProfileName && addressName.toLowerCase() === userProfileName.toLowerCase()) ||
+        (userProfilePhone && addressPhone === userProfilePhone)
+      );
+      const shouldCreateNew = orderingFor === 'someone-else' && isEditingSelfAddress;
+
+      if (editAddress && (editAddress.id || editAddress._id) && !shouldCreateNew) {
         const addressId = editAddress.id || editAddress._id;
         await updateAddress(addressId!, payload);
       } else {

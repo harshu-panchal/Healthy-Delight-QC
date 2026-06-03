@@ -7,6 +7,8 @@ export interface OrderNotificationData {
     customerName: string;
     customerPhone: string;
     deliveryAddress: {
+        fullName?: string;
+        phone?: string;
         address: string;
         city: string;
         state?: string;

@@ -290,7 +290,7 @@ export default function DeliveryDashboard() {
 
         {/* Today's Pending Order Section */}
         <div className="mt-6">
-          <h2 className="text-neutral-900 text-lg font-semibold mb-4">Todays Pending Order</h2>
+          <h2 className="text-neutral-900 text-lg font-semibold mb-4">Today's Pending Order</h2>
           {stats?.pendingOrdersList && stats.pendingOrdersList.length > 0 ? (
             <div className="space-y-3">
               {stats.pendingOrdersList.map((order: any) => (
@@ -305,13 +305,12 @@ export default function DeliveryDashboard() {
                       <p className="text-neutral-600 text-xs mt-1">{order.customerName}</p>
                     </div>
                     <span
-                      className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        order.deliveryBoyStatus === 'Pending'
+                      className={`px-2 py-1 rounded-full text-xs font-medium ${order.deliveryBoyStatus === 'Pending'
                           ? 'bg-amber-100 text-amber-800'
                           : order.status === 'Ready for pickup'
                             ? 'bg-yellow-100 text-yellow-700'
                             : 'bg-blue-100 text-blue-700'
-                      }`}
+                        }`}
                     >
                       {order.deliveryBoyStatus === 'Pending' ? 'Assigned' : order.status}
                     </span>

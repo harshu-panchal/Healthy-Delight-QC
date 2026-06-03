@@ -435,7 +435,20 @@ export default function Signup() {
                     transition: border-color 0.2s;
                 }
                 .hd-phone-row:focus-within { border-color: #c5a059; }
-                .hd-prefix { width: 64px; display: flex; align-items: center; justify-content: center; font-weight: 700; background: #f8fafc; border-right: 1.5px solid #e2e8f0; color: #475569; font-size: 14px; }
+                .hd-prefix {
+                    width: auto;
+                    min-width: 64px;
+                    padding: 0 14px;
+                    flex-shrink: 0;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-weight: 700;
+                    background: #f8fafc;
+                    border-right: 1.5px solid #e2e8f0;
+                    color: #475569;
+                    font-size: 14px;
+                }
                 .hd-phone-input { flex: 1; border: none; outline: none; padding: 0 16px; font-weight: 600; font-size: 15px; }
                 
                 .hd-cta-btn { 
