@@ -28,11 +28,13 @@ export interface Customer {
 
 export interface GetCustomersParams {
   page?: number;
-  limit?: number;
+  limit?: number | string;
   status?: "Active" | "Inactive";
   search?: string;
   sortBy?: string;
   sortOrder?: "asc" | "desc";
+  dateFrom?: string;
+  dateTo?: string;
 }
 
 export interface UpdateCustomerStatusData {

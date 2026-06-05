@@ -51,7 +51,8 @@ export const getAllOrders = asyncHandler(
       query._id = { $in: orderItems };
     }
 
-    const skip = (parseInt(page as string) - 1) * parseInt(limit as string);
+    const parsedLimit = limit === "All" ? 1000000 : parseInt(limit as string);
+    const skip = (parseInt(page as string) - 1) * parsedLimit;
 
     const [orders, total] = await Promise.all([
       Order.find(query)
@@ -60,7 +61,7 @@ export const getAllOrders = asyncHandler(
         .populate("items")
         .sort({ orderDate: -1 })
         .skip(skip)
-        .limit(parseInt(limit as string)),
+        .limit(parsedLimit),
       Order.countDocuments(query),
     ]);
 
@@ -70,9 +71,9 @@ export const getAllOrders = asyncHandler(
       data: orders,
       pagination: {
         page: parseInt(page as string),
-        limit: parseInt(limit as string),
+        limit: limit === "All" ? total : parsedLimit,
         total,
-        pages: Math.ceil(total / parseInt(limit as string)),
+        pages: limit === "All" ? 1 : Math.ceil(total / parsedLimit),
       },
     });
   }
@@ -313,7 +314,14 @@ export const assignDeliveryBoy = asyncHandler(
 export const getOrdersByStatus = asyncHandler(
   async (req: Request, res: Response) => {
     const { status } = req.params;
-    const { page = 1, limit = 10 } = req.query;
+    const {
+      page = 1,
+      limit = 10,
+      seller,
+      dateFrom,
+      dateTo,
+      search,
+    } = req.query;
 
     const validStatuses = [
       "Received",
@@ -334,17 +342,41 @@ export const getOrdersByStatus = asyncHandler(
       });
     }
 
-    const skip = (parseInt(page as string) - 1) * parseInt(limit as string);
+    const query: any = { status };
+
+    if (dateFrom || dateTo) {
+      query.orderDate = {};
+      if (dateFrom) query.orderDate.$gte = new Date(dateFrom as string);
+      if (dateTo) query.orderDate.$lte = new Date(dateTo as string);
+    }
+
+    if (search) {
+      query.$or = [
+        { orderNumber: { $regex: search as string, $options: "i" } },
+        { customerName: { $regex: search as string, $options: "i" } },
+        { customerEmail: { $regex: search as string, $options: "i" } },
+        { customerPhone: { $regex: search as string, $options: "i" } },
+      ];
+    }
+
+    // If seller filter, need to check order items
+    if (seller) {
+      const orderItems = await OrderItem.find({ seller }).distinct("order");
+      query._id = { $in: orderItems };
+    }
+
+    const parsedLimit = limit === "All" ? 1000000 : parseInt(limit as string);
+    const skip = (parseInt(page as string) - 1) * parsedLimit;
 
     const [orders, total] = await Promise.all([
-      Order.find({ status })
+      Order.find(query)
         .populate("customer", "name email phone")
         .populate("deliveryBoy", "name mobile")
         .populate("items")
         .sort({ orderDate: -1 })
         .skip(skip)
-        .limit(parseInt(limit as string)),
-      Order.countDocuments({ status }),
+        .limit(parsedLimit),
+      Order.countDocuments(query),
     ]);
 
     return res.status(200).json({
@@ -353,9 +385,9 @@ export const getOrdersByStatus = asyncHandler(
       data: orders,
       pagination: {
         page: parseInt(page as string),
-        limit: parseInt(limit as string),
+        limit: limit === "All" ? total : parsedLimit,
         total,
-        pages: Math.ceil(total / parseInt(limit as string)),
+        pages: limit === "All" ? 1 : Math.ceil(total / parsedLimit),
       },
     });
   }

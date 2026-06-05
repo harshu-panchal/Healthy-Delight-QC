@@ -15,9 +15,7 @@ export default function AdminCashCollection() {
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
   const [selectedDeliveryBoy, setSelectedDeliveryBoy] = useState("all");
-  const [selectedMethod, setSelectedMethod] = useState("all");
   const [entriesPerPage, setEntriesPerPage] = useState(10);
-  const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
@@ -65,10 +63,6 @@ export default function AdminCashCollection() {
         params.toDate = toDate;
       }
 
-      if (searchTerm) {
-        params.search = searchTerm;
-      }
-
       const cashResponse = await getCashCollections(params);
       if (cashResponse.success) {
         setCashCollections(cashResponse.data);
@@ -97,7 +91,6 @@ export default function AdminCashCollection() {
     selectedDeliveryBoy,
     fromDate,
     toDate,
-    searchTerm,
   ]);
 
   const handleSort = (column: string) => {
@@ -155,8 +148,6 @@ export default function AdminCashCollection() {
     const headers = [
       "ID",
       "Delivery Boy",
-      "Order ID",
-      "Total",
       "Amount Collected",
       "Remark",
       "Date",
@@ -167,8 +158,6 @@ export default function AdminCashCollection() {
         [
           collection._id.slice(-6),
           `"${collection.deliveryBoyName}"`,
-          collection.orderId,
-          collection.total.toFixed(2),
           collection.amount.toFixed(2),
           `"${collection.remark || ""}"`,
           new Date(collection.collectedAt).toLocaleDateString('en-GB'),
@@ -194,7 +183,6 @@ export default function AdminCashCollection() {
     setToDate("");
   };
 
-  const methods = ["All", "Cash", "Card", "Online"];
   const pendingCollections = deliveryBoys
     .filter(
       (boy) =>
@@ -310,14 +298,26 @@ export default function AdminCashCollection() {
                       <input
                         type="date"
                         value={fromDate}
-                        onChange={(e) => setFromDate(e.target.value)}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setFromDate(val);
+                          if (toDate && val && toDate < val) {
+                            setToDate("");
+                          }
+                        }}
                         className="flex-1 sm:flex-none px-3 py-2 border border-neutral-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary min-w-[140px] bg-white"
                       />
                       <span className="text-neutral-500">to</span>
                       <input
                         type="date"
                         value={toDate}
-                        onChange={(e) => setToDate(e.target.value)}
+                        min={fromDate}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          if (!fromDate || !val || val >= fromDate) {
+                            setToDate(val);
+                          }
+                        }}
                         className="flex-1 sm:flex-none px-3 py-2 border border-neutral-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary min-w-[140px] bg-white"
                       />
                       <button
@@ -364,28 +364,6 @@ export default function AdminCashCollection() {
               {/* Filter Row 2 */}
               <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
                 <div className="flex flex-wrap items-center gap-4 w-full sm:w-auto">
-                  {/* Filter by Method */}
-                  <div className="flex items-center gap-2">
-                    <label className="text-sm font-medium text-neutral-700 whitespace-nowrap">
-                      Method:
-                    </label>
-                    <select
-                      value={selectedMethod}
-                      onChange={(e) => {
-                        setSelectedMethod(e.target.value);
-                        setCurrentPage(1);
-                      }}
-                      className="px-3 py-2 border border-neutral-300 rounded text-sm bg-white focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary min-w-[120px]">
-                      {methods.map((method) => (
-                        <option
-                          key={method}
-                          value={method === "All" ? "all" : method}>
-                          {method}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
                   {/* Per Page */}
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-medium text-neutral-700">
@@ -407,31 +385,6 @@ export default function AdminCashCollection() {
                 </div>
 
                 <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
-                  {/* Search */}
-                  <div className="relative flex-1 sm:min-w-[250px]">
-                    <svg
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400">
-                      <circle cx="11" cy="11" r="8"></circle>
-                      <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                    </svg>
-                    <input
-                      type="text"
-                      value={searchTerm}
-                      onChange={(e) => {
-                        setSearchTerm(e.target.value);
-                        setCurrentPage(1);
-                      }}
-                      placeholder="Search collection info..."
-                      className="w-full pl-10 pr-3 py-2 border border-neutral-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-primary bg-white"
-                    />
-                  </div>
-
                   {/* Export Button */}
                   <button
                     onClick={handleExport}
@@ -471,16 +424,6 @@ export default function AdminCashCollection() {
                   </th>
                   <th
                     className="px-6 py-4 text-left text-xs font-bold text-neutral-600 uppercase tracking-wider cursor-pointer hover:bg-neutral-200 transition-colors"
-                    onClick={() => handleSort("orderId")}>
-                    <div className="flex items-center gap-2">Order ID</div>
-                  </th>
-                  <th
-                    className="px-6 py-4 text-left text-xs font-bold text-neutral-600 uppercase tracking-wider cursor-pointer hover:bg-neutral-200 transition-colors"
-                    onClick={() => handleSort("total")}>
-                    <div className="flex items-center gap-2">Order Total</div>
-                  </th>
-                  <th
-                    className="px-6 py-4 text-left text-xs font-bold text-neutral-600 uppercase tracking-wider cursor-pointer hover:bg-neutral-200 transition-colors"
                     onClick={() => handleSort("amount")}>
                     <div className="flex items-center gap-2">Collected</div>
                   </th>
@@ -499,7 +442,7 @@ export default function AdminCashCollection() {
               <tbody className="bg-white divide-y divide-neutral-200">
                 {loading ? (
                   <tr>
-                    <td colSpan={7} className="px-6 py-12 text-center">
+                    <td colSpan={5} className="px-6 py-12 text-center">
                       <div className="flex flex-col items-center gap-3">
                         <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
                         <span className="text-sm font-medium text-neutral-500">
@@ -511,7 +454,7 @@ export default function AdminCashCollection() {
                 ) : displayedCollections.length === 0 ? (
                   <tr>
                     <td
-                      colSpan={7}
+                      colSpan={5}
                       className="px-6 py-12 text-center text-sm text-neutral-500 italic">
                       No cash collections found for the current selection
                     </td>
@@ -528,12 +471,6 @@ export default function AdminCashCollection() {
                         <div className="text-sm font-semibold text-neutral-900 border-b border-transparent hover:border-primary inline-block transition-colors cursor-default">
                           {collection.deliveryBoyName}
                         </div>
-                      </td>
-                      <td className="px-6 py-4 text-sm text-neutral-700">
-                        {collection.orderId || "-"}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-neutral-500">
-                        ₹{collection.total.toFixed(2)}
                       </td>
                       <td className="px-6 py-4 text-sm font-bold text-primary">
                         ₹{collection.amount.toFixed(2)}
@@ -572,48 +509,6 @@ export default function AdminCashCollection() {
                 {cashCollections.length}
               </span>{" "}
               entries
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-                disabled={currentPage === 1 || totalPages === 0}
-                className={`flex items-center gap-2 px-4 py-2 border-2 rounded transition-all active:scale-95 text-sm font-medium ${
-                  currentPage === 1 || totalPages === 0
-                    ? "border-neutral-200 text-neutral-400 cursor-not-allowed bg-neutral-50"
-                    : "border-primary text-primary hover:bg-primary hover:text-white"
-                }`}>
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.5">
-                  <path d="M15 18L9 12L15 6" />
-                </svg>
-                Previous
-              </button>
-              <button
-                onClick={() =>
-                  setCurrentPage((prev) => Math.min(totalPages, prev + 1))
-                }
-                disabled={currentPage === totalPages || totalPages === 0}
-                className={`flex items-center gap-2 px-4 py-2 border-2 rounded transition-all active:scale-95 text-sm font-medium ${
-                  currentPage === totalPages || totalPages === 0
-                    ? "border-neutral-200 text-neutral-400 cursor-not-allowed bg-neutral-50"
-                    : "border-primary text-primary hover:bg-primary hover:text-white"
-                }`}>
-                Next
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.5">
-                  <path d="M9 18L15 12L9 6" />
-                </svg>
-              </button>
             </div>
           </div>
         </div>

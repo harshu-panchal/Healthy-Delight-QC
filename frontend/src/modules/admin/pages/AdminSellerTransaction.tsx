@@ -362,7 +362,11 @@ export default function AdminSellerTransaction() {
                       type="date"
                       value={fromDate}
                       onChange={(e) => {
-                        setFromDate(e.target.value);
+                        const value = e.target.value;
+                        setFromDate(value);
+                        if (toDate && value && toDate < value) {
+                          setToDate("");
+                        }
                         setCurrentPage(1);
                       }}
                       className="pl-10 pr-3 py-2 border border-neutral-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary min-w-[140px]"
@@ -389,9 +393,13 @@ export default function AdminSellerTransaction() {
                     <input
                       type="date"
                       value={toDate}
+                      min={fromDate || undefined}
                       onChange={(e) => {
-                        setToDate(e.target.value);
-                        setCurrentPage(1);
+                        const value = e.target.value;
+                        if (!fromDate || value >= fromDate) {
+                          setToDate(value);
+                          setCurrentPage(1);
+                        }
                       }}
                       className="pl-10 pr-3 py-2 border border-neutral-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary min-w-[140px]"
                     />

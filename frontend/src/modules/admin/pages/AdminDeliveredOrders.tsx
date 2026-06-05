@@ -2,15 +2,39 @@ import { useState, useMemo, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { getOrdersByStatus, type Order } from '../../../services/api/admin/adminOrderService';
 import { useAuth } from '../../../context/AuthContext';
+import { getSellers, type Seller } from '../../../services/api/admin/adminProductService';
 
-type SortField = 'orderId' | 'customerDetails' | 'address' | 'deliveryDate' | 'orderDate' | 'status' | 'deliveryBoyStatus' | 'amount';
+const formatOrderFriendly = (orderNumber?: string, orderId?: string) => {
+  if (orderNumber && orderNumber !== 'N/A') {
+    if (orderNumber.startsWith('ORD')) {
+      const numericPart = orderNumber.replace('ORD', '');
+      if (numericPart.length > 6) {
+        return `ORD-${numericPart.slice(-6)}`;
+      }
+      return orderNumber;
+    }
+    return orderNumber.length > 10 ? orderNumber.slice(0, 8) : orderNumber;
+  }
+  if (orderId) {
+    const cleanId = orderId.includes('-') ? orderId.split('-').slice(-1)[0] : orderId;
+    if (cleanId.length > 6) {
+      return `ORD-${cleanId.slice(-6).toUpperCase()}`;
+    }
+    return `ORD-${cleanId.toUpperCase()}`;
+  }
+  return 'Unknown';
+};
+
+type SortField = 'orderId' | 'customerDetails' | 'address' | 'orderDate' | 'status' | 'deliveryBoyStatus' | 'amount';
 type SortDirection = 'asc' | 'desc';
 
 export default function AdminDeliveredOrders() {
   const { isAuthenticated, token } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
-  const [dateRange, setDateRange] = useState('');
-  const [seller, setSeller] = useState('All Sellers');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [seller, setSeller] = useState('');
+  const [sellersList, setSellersList] = useState<Seller[]>([]);
   const [status, setStatus] = useState('Delivered');
   const [entriesPerPage, setEntriesPerPage] = useState('10');
   const [searchQuery, setSearchQuery] = useState('');
@@ -19,6 +43,23 @@ export default function AdminDeliveredOrders() {
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Fetch sellers on component mount
+  useEffect(() => {
+    const fetchSellers = async () => {
+      try {
+        const res = await getSellers();
+        if (res.success && res.data) {
+          setSellersList(res.data);
+        }
+      } catch (err) {
+        console.error('Error fetching sellers:', err);
+      }
+    };
+    if (isAuthenticated && token) {
+      fetchSellers();
+    }
+  }, [isAuthenticated, token]);
 
   useEffect(() => {
     if (!isAuthenticated || !token) {
@@ -33,23 +74,22 @@ export default function AdminDeliveredOrders() {
 
         const params: any = {
           page: currentPage,
-          limit: parseInt(entriesPerPage),
+          limit: entriesPerPage === "All" ? "All" : parseInt(entriesPerPage),
         };
 
         if (searchQuery) {
           params.search = searchQuery;
         }
 
-        if (dateRange && dateRange.includes(' - ')) {
-          const [dateFrom, dateTo] = dateRange.split(' - ').map(d => {
-            const parts = d.trim().split('/');
-            if (parts.length === 3) {
-              return `${parts[2]}-${parts[0].padStart(2, '0')}-${parts[1].padStart(2, '0')}`;
-            }
-            return d.trim();
-          });
-          params.dateFrom = dateFrom;
-          params.dateTo = dateTo;
+        if (startDate) {
+          params.dateFrom = startDate;
+        }
+        if (endDate) {
+          params.dateTo = endDate;
+        }
+
+        if (seller) {
+          params.seller = seller;
         }
 
         const response = await getOrdersByStatus('Delivered', params);
@@ -70,10 +110,11 @@ export default function AdminDeliveredOrders() {
     };
 
     fetchOrders();
-  }, [isAuthenticated, token, currentPage, entriesPerPage, searchQuery, dateRange]);
+  }, [isAuthenticated, token, currentPage, entriesPerPage, searchQuery, startDate, endDate, seller]);
 
   const handleClearDate = () => {
-    setDateRange('');
+    setStartDate('');
+    setEndDate('');
     setCurrentPage(1);
   };
 
@@ -87,7 +128,7 @@ export default function AdminDeliveredOrders() {
   };
 
   const handleExport = () => {
-    const headers = ['O. Id', 'Customer Details', 'Address', 'D. Date', 'O. Date', 'Status', 'Delivery Boy Assign Status', 'Amount'];
+    const headers = ['O. Id', 'Customer Details', 'Address', 'O. Date', 'Status', 'Delivery Boy Assign Status', 'Amount'];
     const csvContent = [
       headers.join(','),
       ...filteredAndSortedOrders.map(order =>
@@ -95,7 +136,6 @@ export default function AdminDeliveredOrders() {
           order.orderNumber || '',
           order.customerName || '',
           order.deliveryAddress?.address || '',
-          order.estimatedDeliveryDate ? new Date(order.estimatedDeliveryDate).toLocaleDateString('en-GB') : '',
           order.orderDate ? new Date(order.orderDate).toLocaleDateString('en-GB') : '',
           order.status || '',
           order.deliveryBoyStatus || 'Not Assigned',
@@ -136,10 +176,7 @@ export default function AdminDeliveredOrders() {
             aValue = a.deliveryAddress?.address || '';
             bValue = b.deliveryAddress?.address || '';
             break;
-          case 'deliveryDate':
-            aValue = a.estimatedDeliveryDate || '';
-            bValue = b.estimatedDeliveryDate || '';
-            break;
+
           case 'orderDate':
             aValue = a.orderDate || '';
             bValue = b.orderDate || '';
@@ -176,9 +213,10 @@ export default function AdminDeliveredOrders() {
     return filtered;
   }, [orders, sortField, sortDirection]);
 
-  const totalPages = Math.ceil(filteredAndSortedOrders.length / parseInt(entriesPerPage));
-  const startIndex = (currentPage - 1) * parseInt(entriesPerPage);
-  const endIndex = startIndex + parseInt(entriesPerPage);
+  const limitVal = entriesPerPage === "All" ? filteredAndSortedOrders.length || 1 : parseInt(entriesPerPage);
+  const totalPages = Math.ceil(filteredAndSortedOrders.length / limitVal);
+  const startIndex = (currentPage - 1) * limitVal;
+  const endIndex = startIndex + limitVal;
   const paginatedOrders = filteredAndSortedOrders.slice(startIndex, endIndex);
 
   const handlePreviousPage = () => {
@@ -257,37 +295,30 @@ export default function AdminDeliveredOrders() {
                 <label className="text-xs sm:text-sm font-medium text-neutral-700 whitespace-nowrap">
                   From - To Order Date
                 </label>
-                <div className="flex items-center gap-2 bg-white border border-neutral-300 rounded px-2 sm:px-3 py-1.5 sm:py-2 w-full sm:w-auto">
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="text-neutral-500 flex-shrink-0"
-                  >
-                    <path
-                      d="M8 2V6M16 2V6M3 10H21M5 4H19C20.1046 4 21 4.89543 21 6V20C21 21.1046 20.1046 22 19 22H5C3.89543 22 3 21.1046 3 20V6C3 4.89543 3.89543 4 5 4Z"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
+                <div className="flex items-center gap-2 w-full sm:w-auto">
                   <input
-                    type="text"
-                    value={dateRange}
+                    type="date"
+                    value={startDate}
                     onChange={(e) => {
-                      setDateRange(e.target.value);
+                      setStartDate(e.target.value);
                       setCurrentPage(1);
                     }}
-                    className="flex-1 sm:w-48 text-xs sm:text-sm text-neutral-600 bg-transparent focus:outline-none placeholder:text-neutral-400"
-                    placeholder="MM/DD/YYYY - MM/DD/YYYY"
+                    className="px-3 py-1.5 border border-neutral-300 rounded text-xs sm:text-sm text-neutral-900 bg-white focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary w-full sm:w-auto"
                   />
-                  {dateRange && (
+                  <span className="text-neutral-500 text-xs sm:text-sm">to</span>
+                  <input
+                    type="date"
+                    value={endDate}
+                    onChange={(e) => {
+                      setEndDate(e.target.value);
+                      setCurrentPage(1);
+                    }}
+                    className="px-3 py-1.5 border border-neutral-300 rounded text-xs sm:text-sm text-neutral-900 bg-white focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary w-full sm:w-auto"
+                  />
+                  {(startDate || endDate) && (
                     <button
                       onClick={handleClearDate}
-                      className="ml-2 px-2 py-1 text-xs font-medium text-neutral-700 bg-neutral-200 hover:bg-neutral-300 rounded transition-colors flex-shrink-0"
+                      className="px-2 py-1 text-xs font-medium text-neutral-700 bg-neutral-200 hover:bg-neutral-300 rounded transition-colors flex-shrink-0"
                     >
                       Clear
                     </button>
@@ -308,10 +339,12 @@ export default function AdminDeliveredOrders() {
                   }}
                   className="w-full sm:w-auto px-3 py-2 border border-neutral-300 rounded text-xs sm:text-sm text-neutral-900 bg-white focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
                 >
-                  <option>All Sellers</option>
-                  <option>Seller 1</option>
-                  <option>Seller 2</option>
-                  <option>Seller 3</option>
+                  <option value="">All Sellers</option>
+                  {sellersList.map((s) => (
+                    <option key={s._id} value={s._id}>
+                      {s.storeName || s.sellerName}
+                    </option>
+                  ))}
                 </select>
               </div>
 
@@ -349,10 +382,11 @@ export default function AdminDeliveredOrders() {
                   }}
                   className="w-full sm:w-auto px-3 py-2 border border-neutral-300 rounded text-xs sm:text-sm text-neutral-900 bg-white focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
                 >
-                  <option>10</option>
-                  <option>25</option>
-                  <option>50</option>
-                  <option>100</option>
+                  <option value="10">10</option>
+                  <option value="25">25</option>
+                  <option value="50">50</option>
+                  <option value="100">100</option>
+                  <option value="All">All</option>
                 </select>
               </div>
 
@@ -412,7 +446,7 @@ export default function AdminDeliveredOrders() {
                     setCurrentPage(1);
                   }}
                   className="flex-1 w-full sm:w-auto px-3 py-2 border border-neutral-300 rounded text-xs sm:text-sm text-neutral-900 bg-white focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
-                  placeholder="Search by Order ID, Customer, or Amount"
+                  placeholder="Search by Order ID or Customer"
                 />
               </div>
             </div>
@@ -492,29 +526,7 @@ export default function AdminDeliveredOrders() {
                       )}
                     </div>
                   </th>
-                  <th
-                    onClick={() => handleSort('deliveryDate')}
-                    className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider cursor-pointer hover:bg-neutral-100"
-                  >
-                    <div className="flex items-center gap-1">
-                      D. Date
-                      {sortField === 'deliveryDate' && (
-                        <svg
-                          width="12"
-                          height="12"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          {sortDirection === 'asc' ? (
-                            <path d="M7 14L12 9L17 14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                          ) : (
-                            <path d="M17 10L12 15L7 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                          )}
-                        </svg>
-                      )}
-                    </div>
-                  </th>
+
                   <th
                     onClick={() => handleSort('orderDate')}
                     className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider cursor-pointer hover:bg-neutral-100"
@@ -615,34 +627,31 @@ export default function AdminDeliveredOrders() {
               <tbody className="bg-white divide-y divide-neutral-200">
                 {loading ? (
                   <tr>
-                    <td colSpan={9} className="px-4 sm:px-6 py-8 text-center text-sm text-neutral-500">
+                    <td colSpan={8} className="px-4 sm:px-6 py-8 text-center text-sm text-neutral-500">
                       Loading orders...
                     </td>
                   </tr>
                 ) : error ? (
                   <tr>
-                    <td colSpan={9} className="px-4 sm:px-6 py-8 text-center text-sm text-red-600">
+                    <td colSpan={8} className="px-4 sm:px-6 py-8 text-center text-sm text-red-600">
                       {error}
                     </td>
                   </tr>
                 ) : paginatedOrders.length === 0 ? (
                   <tr>
-                    <td colSpan={9} className="px-4 sm:px-6 py-8 text-center text-sm text-neutral-500">
+                    <td colSpan={8} className="px-4 sm:px-6 py-8 text-center text-sm text-neutral-500">
                       No data available in table
                     </td>
                   </tr>
                 ) : (
                   paginatedOrders.map((order) => (
                     <tr key={order._id} className="hover:bg-neutral-50">
-                      <td className="px-4 sm:px-6 py-3 text-sm text-neutral-900">{order.orderNumber}</td>
+                      <td className="px-4 sm:px-6 py-3 text-sm text-neutral-900" title={order.orderNumber}>{formatOrderFriendly(order.orderNumber, order._id)}</td>
                       <td className="px-4 sm:px-6 py-3 text-sm text-neutral-600">
                         {order.customerName || (typeof order.customer === 'object' ? order.customer.name : '')}
                       </td>
                       <td className="px-4 sm:px-6 py-3 text-sm text-neutral-600">
                         {order.deliveryAddress?.address || '-'}
-                      </td>
-                      <td className="px-4 sm:px-6 py-3 text-sm text-neutral-600">
-                        {order.estimatedDeliveryDate ? new Date(order.estimatedDeliveryDate).toLocaleDateString('en-GB') : '-'}
                       </td>
                       <td className="px-4 sm:px-6 py-3 text-sm text-neutral-600">
                         {order.orderDate ? new Date(order.orderDate).toLocaleDateString('en-GB') : '-'}
@@ -680,31 +689,7 @@ export default function AdminDeliveredOrders() {
             <div className="text-xs sm:text-sm text-neutral-700">
               Showing {filteredAndSortedOrders.length === 0 ? 0 : startIndex + 1} to {Math.min(endIndex, filteredAndSortedOrders.length)} of {filteredAndSortedOrders.length} entries
             </div>
-            <div className="flex items-center gap-1">
-              <button
-                onClick={handlePreviousPage}
-                disabled={currentPage === 1}
-                className="px-2 py-1 border-2 border-primary rounded text-xs sm:text-sm text-primary bg-white hover:bg-primary hover:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:border-neutral-200 disabled:text-neutral-400 transition-all active:scale-95 shadow-sm"
-                aria-label="Previous page"
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </button>
-              <button className="px-3 py-1 border-2 border-primary bg-primary text-white rounded font-semibold text-xs sm:text-sm transition-all shadow-sm">
-                {currentPage}
-              </button>
-              <button
-                onClick={handleNextPage}
-                disabled={currentPage === totalPages || totalPages === 0}
-                className="px-2 py-1 border-2 border-primary rounded text-xs sm:text-sm text-primary bg-white hover:bg-primary hover:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:border-neutral-200 disabled:text-neutral-400 transition-all active:scale-95 shadow-sm"
-                aria-label="Next page"
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M9 18L15 12L9 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </button>
-            </div>
+
           </div>
         </div>
       </div>

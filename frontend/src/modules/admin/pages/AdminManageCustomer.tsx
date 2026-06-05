@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from "react";
 import {
   getAllCustomers,
   type Customer,
+  type GetCustomersParams,
 } from "../../../services/api/admin/adminCustomerService";
 import { useAuth } from "../../../context/AuthContext";
 
@@ -19,7 +20,14 @@ type SortDirection = "asc" | "desc";
 export default function AdminManageCustomer() {
   const { isAuthenticated, token } = useAuth();
   const [customers, setCustomers] = useState<Customer[]>([]);
-  const [dateRange, setDateRange] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+
+  const handleClearDate = () => {
+    setStartDate("");
+    setEndDate("");
+    setCurrentPage(1);
+  };
   const [statusFilter, setStatusFilter] = useState<"Active" | "Inactive" | undefined>(
     undefined
   );
@@ -43,14 +51,9 @@ export default function AdminManageCustomer() {
         setLoading(true);
         setError(null);
 
-        const params: {
-          page: number;
-          limit: number;
-          status?: "Active" | "Inactive";
-          search?: string;
-        } = {
+        const params: GetCustomersParams = {
           page: currentPage,
-          limit: parseInt(entriesPerPage),
+          limit: entriesPerPage === "All" ? "All" : parseInt(entriesPerPage),
         };
 
         if (statusFilter) {
@@ -59,6 +62,14 @@ export default function AdminManageCustomer() {
 
         if (searchQuery) {
           params.search = searchQuery;
+        }
+
+        if (startDate) {
+          params.dateFrom = startDate;
+        }
+
+        if (endDate) {
+          params.dateTo = endDate;
         }
 
         const response = await getAllCustomers(params);
@@ -91,6 +102,8 @@ export default function AdminManageCustomer() {
     entriesPerPage,
     statusFilter,
     searchQuery,
+    startDate,
+    endDate,
   ]);
 
   const handleSort = (field: SortField) => {
@@ -165,11 +178,10 @@ export default function AdminManageCustomer() {
     return filtered;
   }, [customers, sortField, sortDirection]);
 
-  const totalPages = Math.ceil(
-    filteredAndSortedCustomers.length / Number(entriesPerPage)
-  );
-  const startIndex = (currentPage - 1) * Number(entriesPerPage);
-  const endIndex = startIndex + Number(entriesPerPage);
+  const limitVal = entriesPerPage === "All" ? filteredAndSortedCustomers.length || 1 : parseInt(entriesPerPage);
+  const totalPages = Math.ceil(filteredAndSortedCustomers.length / limitVal);
+  const startIndex = (currentPage - 1) * limitVal;
+  const endIndex = startIndex + limitVal;
   const displayedCustomers = filteredAndSortedCustomers.slice(
     startIndex,
     endIndex
@@ -250,18 +262,40 @@ export default function AdminManageCustomer() {
         <div className="bg-white rounded-lg shadow-sm border border-neutral-200 overflow-hidden">
           {/* Filters */}
           <div className="p-4 sm:p-6 border-b border-neutral-200 bg-neutral-50">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div>
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+              <div className="md:col-span-2">
                 <label className="block text-xs font-medium text-neutral-700 mb-1">
-                  Date Range
+                  Registration Date Range (From - To)
                 </label>
-                <input
-                  type="text"
-                  value={dateRange}
-                  onChange={(e) => setDateRange(e.target.value)}
-                  placeholder="MM/DD/YYYY - MM/DD/YYYY"
-                  className="w-full px-3 py-2 text-sm border border-neutral-300 rounded focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
-                />
+                <div className="flex flex-row items-center gap-2">
+                  <input
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => {
+                      setStartDate(e.target.value);
+                      setCurrentPage(1);
+                    }}
+                    className="w-full px-3 py-2 text-sm border border-neutral-300 rounded focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary bg-white text-neutral-900"
+                  />
+                  <span className="text-neutral-500 text-sm">to</span>
+                  <input
+                    type="date"
+                    value={endDate}
+                    onChange={(e) => {
+                      setEndDate(e.target.value);
+                      setCurrentPage(1);
+                    }}
+                    className="w-full px-3 py-2 text-sm border border-neutral-300 rounded focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary bg-white text-neutral-900"
+                  />
+                  {(startDate || endDate) && (
+                    <button
+                      onClick={handleClearDate}
+                      className="px-3 py-2 text-xs font-medium text-neutral-700 bg-neutral-200 hover:bg-neutral-300 rounded transition-colors flex-shrink-0"
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
               </div>
               <div>
                 <label className="block text-xs font-medium text-neutral-700 mb-1">
@@ -295,6 +329,7 @@ export default function AdminManageCustomer() {
                   <option value="20">20</option>
                   <option value="50">50</option>
                   <option value="100">100</option>
+                  <option value="All">All</option>
                 </select>
               </div>
               <div className="flex items-end">
@@ -319,9 +354,6 @@ export default function AdminManageCustomer() {
           {/* Search */}
           <div className="p-4 sm:p-6 border-b border-neutral-200">
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 text-sm">
-                Search:
-              </span>
               <input
                 type="text"
                 value={searchQuery}
@@ -329,8 +361,8 @@ export default function AdminManageCustomer() {
                   setSearchQuery(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="w-full pl-14 pr-3 py-2 bg-neutral-100 border-none rounded text-sm focus:ring-1 focus:ring-primary"
-                placeholder="Search by name, email, phone, or ref code..."
+                className="w-full px-3 py-2 bg-neutral-100 border-none rounded text-sm focus:ring-1 focus:ring-primary"
+                placeholder="Search by ID, name, email, phone, or ref code..."
               />
             </div>
           </div>
@@ -478,47 +510,7 @@ export default function AdminManageCustomer() {
               {Math.min(endIndex, filteredAndSortedCustomers.length)} of{" "}
               {filteredAndSortedCustomers.length} entries
             </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-                disabled={currentPage === 1}
-                className={`p-2 border border-neutral-800 rounded ${currentPage === 1
-                  ? "text-neutral-400 cursor-not-allowed bg-neutral-50"
-                  : "text-primary hover:bg-cream"
-                  }`}>
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2">
-                  <path d="M15 18L9 12L15 6"></path>
-                </svg>
-              </button>
-              <button className="px-3 py-1.5 border border-neutral-800 bg-primary border-primary text-white rounded font-medium text-sm transition-all active:scale-95">
-                {currentPage}
-              </button>
-              <button
-                onClick={() =>
-                  setCurrentPage((prev) => Math.min(totalPages, prev + 1))
-                }
-                disabled={currentPage === totalPages}
-                className={`p-2 border border-neutral-800 rounded ${currentPage === totalPages
-                  ? "text-neutral-400 cursor-not-allowed bg-neutral-50"
-                  : "text-primary hover:bg-cream"
-                  }`}>
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2">
-                  <path d="M9 18L15 12L9 6"></path>
-                </svg>
-              </button>
-            </div>
+
           </div>
         </div>
       </div>

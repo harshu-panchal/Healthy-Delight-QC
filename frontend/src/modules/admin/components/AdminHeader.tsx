@@ -24,6 +24,22 @@ export default function AdminHeader({
   const [unreadCount, setUnreadCount] = useState(0);
   const [notifications, setNotifications] = useState<any[]>([]);
 
+  // Menu items for search
+  const menuItems = [
+    { label: "Orders", path: "/admin/orders", keywords: ["orders", "order list"] },
+    { label: "Manage Customer", path: "/admin/customers", keywords: ["customer", "customers", "manage customer"] },
+    { label: "Collect Cash", path: "/admin/collect-cash", keywords: ["collect cash", "cash", "collection"] },
+    { label: "Dashboard", path: "/admin", keywords: ["dashboard", "home"] },
+    { label: "Products", path: "/admin/products", keywords: ["product", "products", "inventory"] },
+    { label: "Categories", path: "/admin/categories", keywords: ["category", "categories"] },
+    { label: "Orders", path: "/admin/all-orders", keywords: ["all orders"] },
+  ];
+
+  const filteredMenuItems = searchQuery.trim() === "" ? [] : menuItems.filter(item =>
+    item.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    item.keywords.some(kw => kw.includes(searchQuery.toLowerCase()))
+  );
+
   const fetchNotifications = async () => {
     try {
       if (!isAuthenticated) return;
@@ -224,16 +240,19 @@ export default function AdminHeader({
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onKeyDown={(e) => {
-                      if (e.key === "Enter" && searchQuery.trim()) {
-                        // Navigate to search results or perform search
-                        navigate(
-                          `/admin?search=${encodeURIComponent(searchQuery)}`
-                        );
+                      if (e.key === "Enter") {
+                        if (filteredMenuItems.length > 0) {
+                          navigate(filteredMenuItems[0].path);
+                          setShowSearchModal(false);
+                          setSearchQuery("");
+                        }
+                      }
+                      if (e.key === "Escape") {
                         setShowSearchModal(false);
                         setSearchQuery("");
                       }
                     }}
-                    placeholder="Search orders, customers, products..."
+                    placeholder="What are you searching for?"
                     className="w-full px-4 py-2 pl-10 border border-neutral-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
                     autoFocus
                   />
@@ -266,9 +285,30 @@ export default function AdminHeader({
                     </svg>
                   </button>
                 </div>
-                {searchQuery && (
-                  <div className="mt-2 text-xs text-neutral-500">
-                    Press Enter to search
+                {filteredMenuItems.length > 0 && (
+                  <div className="mt-3 border-t border-neutral-200 pt-3 space-y-1">
+                    {filteredMenuItems.map((item) => (
+                      <button
+                        key={item.path}
+                        onClick={() => {
+                          navigate(item.path);
+                          setShowSearchModal(false);
+                          setSearchQuery("");
+                        }}
+                        className="w-full text-left px-3 py-2 rounded-lg hover:bg-neutral-100 transition-colors text-sm text-neutral-900 font-medium">
+                        {item.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {searchQuery && filteredMenuItems.length === 0 && (
+                  <div className="mt-3 text-center text-sm text-neutral-500">
+                    No results found
+                  </div>
+                )}
+                {!searchQuery && (
+                  <div className="mt-3 text-xs text-neutral-500 text-center">
+                    Start typing to search menu items
                   </div>
                 )}
               </div>

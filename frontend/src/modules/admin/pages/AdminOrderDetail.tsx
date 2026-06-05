@@ -2,6 +2,27 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { getOrderById, Order } from '../../../services/api/admin/adminOrderService';
 
+const formatOrderFriendly = (orderNumber?: string, orderId?: string) => {
+  if (orderNumber && orderNumber !== 'N/A') {
+    if (orderNumber.startsWith('ORD')) {
+      const numericPart = orderNumber.replace('ORD', '');
+      if (numericPart.length > 6) {
+        return `ORD-${numericPart.slice(-6)}`;
+      }
+      return orderNumber;
+    }
+    return orderNumber.length > 10 ? orderNumber.slice(0, 8) : orderNumber;
+  }
+  if (orderId) {
+    const cleanId = orderId.includes('-') ? orderId.split('-').slice(-1)[0] : orderId;
+    if (cleanId.length > 6) {
+      return `ORD-${cleanId.slice(-6).toUpperCase()}`;
+    }
+    return `ORD-${cleanId.toUpperCase()}`;
+  }
+  return 'Unknown';
+};
+
 export default function AdminOrderDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -105,7 +126,7 @@ export default function AdminOrderDetail() {
           Back to Orders
         </button>
         <h1 className="text-2xl font-bold text-neutral-900">Order Details</h1>
-        <p className="text-neutral-600 mt-1">Order #{order.orderNumber}</p>
+        <p className="text-neutral-600 mt-1" title={order.orderNumber}>Order #{formatOrderFriendly(order.orderNumber, order._id)}</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

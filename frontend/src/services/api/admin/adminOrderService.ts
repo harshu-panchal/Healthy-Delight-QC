@@ -81,7 +81,7 @@ export interface Order {
 
 export interface GetOrdersParams {
   page?: number;
-  limit?: number;
+  limit?: number | string;
   status?: string;
   paymentStatus?: string;
   seller?: string;
@@ -147,7 +147,7 @@ export const getAllOrders = async (
  */
 export const getOrdersByStatus = async (
   status: string,
-  params?: { page?: number; limit?: number }
+  params?: GetOrdersParams
 ): Promise<ApiResponse<Order[]>> => {
   const response = await api.get<ApiResponse<Order[]>>(
     `/admin/orders/status/${status}`,

@@ -17,10 +17,11 @@ export const getAllCustomers = asyncHandler(
       search,
       sortBy = "registrationDate",
       sortOrder = "desc",
+      dateFrom,
+      dateTo,
     } = req.query;
 
     const query: any = {};
-
     if (status) query.status = status;
     if (search) {
       query.$or = [
@@ -28,19 +29,46 @@ export const getAllCustomers = asyncHandler(
         { email: { $regex: search as string, $options: "i" } },
         { phone: { $regex: search as string, $options: "i" } },
         { refCode: { $regex: search as string, $options: "i" } },
+        {
+          $expr: {
+            $regexMatch: {
+              input: { $toString: "$_id" },
+              regex: search as string,
+              options: "i"
+            }
+          }
+        }
       ];
+    }
+
+    if (dateFrom || dateTo) {
+      query.registrationDate = {};
+      if (dateFrom) {
+        query.registrationDate.$gte = new Date(dateFrom as string);
+      }
+      if (dateTo) {
+        const endDate = new Date(dateTo as string);
+        endDate.setHours(23, 59, 59, 999);
+        query.registrationDate.$lte = endDate;
+      }
     }
 
     const sort: any = {};
     sort[sortBy as string] = sortOrder === "asc" ? 1 : -1;
 
-    const skip = (parseInt(page as string) - 1) * parseInt(limit as string);
+    let queryLimit = parseInt(limit as string);
+    let querySkip = (parseInt(page as string) - 1) * queryLimit;
+
+    if (limit === "All") {
+      queryLimit = 1000000;
+      querySkip = 0;
+    }
 
     const [customers, total] = await Promise.all([
       Customer.find(query)
         .sort(sort)
-        .skip(skip)
-        .limit(parseInt(limit as string)),
+        .skip(querySkip)
+        .limit(queryLimit),
       Customer.countDocuments(query),
     ]);
 
@@ -77,10 +105,10 @@ export const getAllCustomers = asyncHandler(
       message: "Customers fetched successfully",
       data: enrichedCustomers,
       pagination: {
-        page: parseInt(page as string),
-        limit: parseInt(limit as string),
+        page: limit === "All" ? 1 : parseInt(page as string),
+        limit: limit === "All" ? total : queryLimit,
         total,
-        pages: Math.ceil(total / parseInt(limit as string)),
+        pages: limit === "All" ? 1 : Math.ceil(total / queryLimit),
       },
     });
   }

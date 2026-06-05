@@ -281,13 +281,15 @@ export default function BannerFormModal({
                 </label>
                 <input
                   type="number"
+                  min={0}
                   value={formData.order}
-                  onChange={(e) =>
+                  onChange={(e) => {
+                    const value = parseInt(e.target.value, 10);
                     setFormData({
                       ...formData,
-                      order: parseInt(e.target.value) || 0,
-                    })
-                  }
+                      order: isNaN(value) || value < 0 ? 0 : value,
+                    });
+                  }}
                   className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-4 focus:ring-primary/30 focus:border-primary outline-none transition-all"
                   placeholder="0"
                 />
