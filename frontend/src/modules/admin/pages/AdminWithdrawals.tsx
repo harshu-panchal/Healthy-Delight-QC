@@ -161,7 +161,7 @@ export default function AdminWithdrawals() {
                                         {withdrawal.userId?.sellerName || withdrawal.userId?.storeName || withdrawal.userId?.name || withdrawal.userId?.firstName || 'N/A'}
                                     </p>
                                     <p className="text-xs text-gray-500">
-                                        Requested: {new Date(withdrawal.createdAt || withdrawal.requestDate).toLocaleString('en-IN')}
+                                        Requested: {new Date(withdrawal.createdAt || withdrawal.requestDate).toLocaleString('en-GB')}
                                     </p>
                                 </div>
                                 <div className="text-left md:text-right w-full md:w-auto">

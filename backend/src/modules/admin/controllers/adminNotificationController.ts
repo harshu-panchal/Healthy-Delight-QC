@@ -2,35 +2,67 @@ import { Request, Response } from "express";
 import { asyncHandler } from "../../../utils/asyncHandler";
 import Notification from "../../../models/Notification";
 import Customer from "../../../models/Customer";
+import Seller from "../../../models/Seller";
+import Delivery from "../../../models/Delivery";
+import Admin from "../../../models/Admin";
 import { sendPushNotification } from "../../../services/firebaseAdmin";
 
 const sendPushForNotification = async (notification: any) => {
   if (!notification) return { attempted: 0, successCount: 0, failureCount: 0 };
 
-  const shouldSendToCustomers =
-    notification.recipientType === "Customer" ||
-    notification.recipientType === "All";
-
-  if (!shouldSendToCustomers) {
-    return { attempted: 0, successCount: 0, failureCount: 0 };
-  }
-
-  const customerQuery: any = {};
-  if (
-    notification.recipientType === "Customer" &&
-    notification.recipientId
-  ) {
-    customerQuery._id = notification.recipientId;
-  }
-
-  const customers = await Customer.find(customerQuery).select(
-    "fcmTokens fcmTokenMobile"
-  );
-
+  const { recipientType, recipientId } = notification;
   const tokens = new Set<string>();
-  for (const customer of customers) {
-    for (const token of customer.fcmTokens || []) tokens.add(token);
-    for (const token of customer.fcmTokenMobile || []) tokens.add(token);
+
+  // 1. Fetch Customer Tokens
+  if (recipientType === "Customer" || recipientType === "All") {
+    const query: any = {};
+    if (recipientType === "Customer" && recipientId) {
+      query._id = recipientId;
+    }
+    const customers = await Customer.find(query).select("fcmTokens fcmTokenMobile");
+    for (const c of customers) {
+      for (const t of c.fcmTokens || []) tokens.add(t);
+      for (const t of c.fcmTokenMobile || []) tokens.add(t);
+    }
+  }
+
+  // 2. Fetch Seller Tokens
+  if (recipientType === "Seller" || recipientType === "All") {
+    const query: any = {};
+    if (recipientType === "Seller" && recipientId) {
+      query._id = recipientId;
+    }
+    const sellers = await Seller.find(query).select("fcmTokens fcmTokenMobile");
+    for (const s of sellers) {
+      for (const t of s.fcmTokens || []) tokens.add(t);
+      for (const t of s.fcmTokenMobile || []) tokens.add(t);
+    }
+  }
+
+  // 3. Fetch Delivery Tokens
+  if (recipientType === "Delivery" || recipientType === "All") {
+    const query: any = {};
+    if (recipientType === "Delivery" && recipientId) {
+      query._id = recipientId;
+    }
+    const deliveries = await Delivery.find(query).select("fcmTokens fcmTokenMobile");
+    for (const d of deliveries) {
+      for (const t of d.fcmTokens || []) tokens.add(t);
+      for (const t of d.fcmTokenMobile || []) tokens.add(t);
+    }
+  }
+
+  // 4. Fetch Admin Tokens
+  if (recipientType === "Admin" || recipientType === "All") {
+    const query: any = {};
+    if (recipientType === "Admin" && recipientId) {
+      query._id = recipientId;
+    }
+    const admins = await Admin.find(query).select("fcmTokens fcmTokenMobile");
+    for (const a of admins) {
+      for (const t of a.fcmTokens || []) tokens.add(t);
+      for (const t of a.fcmTokenMobile || []) tokens.add(t);
+    }
   }
 
   const allTokens = Array.from(tokens);

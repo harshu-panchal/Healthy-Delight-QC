@@ -776,12 +776,12 @@ export default function AdminAllOrders() {
                         {order.estimatedDeliveryDate
                           ? new Date(
                               order.estimatedDeliveryDate
-                            ).toLocaleDateString()
+                            ).toLocaleDateString('en-GB')
                           : "-"}
                       </td>
                       <td className="px-4 sm:px-6 py-3 text-sm text-neutral-600">
                         {order.orderDate
-                          ? new Date(order.orderDate).toLocaleDateString()
+                          ? new Date(order.orderDate).toLocaleDateString('en-GB')
                           : "-"}
                       </td>
                       <td className="px-4 sm:px-6 py-3">

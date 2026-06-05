@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../../context/AuthContext";
 import kosilLogo from "@assets/logo.png";
+import { getNotifications, markMultipleAsRead } from "../../../services/api/admin/adminNotificationService";
 
 interface AdminHeaderProps {
   onMenuClick: () => void;
@@ -14,12 +15,61 @@ export default function AdminHeader({
 }: AdminHeaderProps) {
   const navigate = useNavigate();
   const location = useLocation();
-  const { logout } = useAuth();
+  const { logout, isAuthenticated } = useAuth();
   const [showNotificationsDropdown, setShowNotificationsDropdown] =
     useState(false);
   const [showSearchModal, setShowSearchModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const notificationsRef = useRef<HTMLDivElement>(null);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [notifications, setNotifications] = useState<any[]>([]);
+
+  const fetchNotifications = async () => {
+    try {
+      if (!isAuthenticated) return;
+      const response = await getNotifications({ limit: 10 });
+      if (response.success && response.data) {
+        setNotifications(response.data);
+        const unread = response.data.filter((n: any) => !n.isRead).length;
+        setUnreadCount(unread);
+      }
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+    }
+  };
+
+  const handleDropdownOpen = async () => {
+    setShowNotificationsDropdown(!showNotificationsDropdown);
+    setShowSearchModal(false);
+    
+    if (!showNotificationsDropdown) {
+      try {
+        if (!isAuthenticated) return;
+        const response = await getNotifications({ limit: 10 });
+        if (response.success && response.data) {
+          setNotifications(response.data);
+          const unread = response.data.filter((n: any) => !n.isRead);
+          setUnreadCount(unread.length);
+          
+          if (unread.length > 0) {
+            const unreadIds = unread.map((n: any) => n._id);
+            await markMultipleAsRead({ notificationIds: unreadIds });
+            setUnreadCount(0);
+            setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+          }
+        }
+      } catch (error) {
+        console.error("Error in handleDropdownOpen:", error);
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    fetchNotifications();
+    const interval = setInterval(fetchNotifications, 30000);
+    return () => clearInterval(interval);
+  }, [isAuthenticated]);
 
   const isActive = (path: string) => location.pathname.includes(path);
 
@@ -228,10 +278,7 @@ export default function AdminHeader({
           {/* Notifications Button */}
           <div className="relative" ref={notificationsRef}>
             <button
-              onClick={() => {
-                setShowNotificationsDropdown(!showNotificationsDropdown);
-                setShowSearchModal(false);
-              }}
+              onClick={handleDropdownOpen}
               className="p-2 text-neutral-600 hover:text-neutral-900 transition-colors relative"
               aria-label="Notifications">
               <svg
@@ -255,7 +302,9 @@ export default function AdminHeader({
                   strokeLinejoin="round"
                 />
               </svg>
-              <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
+              {unreadCount > 0 && (
+                <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
+              )}
             </button>
             {showNotificationsDropdown && (
               <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-neutral-200 py-2 z-50 max-h-96 overflow-y-auto">
@@ -264,8 +313,22 @@ export default function AdminHeader({
                     Notifications
                   </h3>
                 </div>
-                <div className="py-4 px-4 text-center text-sm text-neutral-500">
-                  <p>No new notifications</p>
+                <div className="divide-y divide-neutral-100 max-h-64 overflow-y-auto">
+                  {notifications.length === 0 ? (
+                    <div className="py-4 px-4 text-center text-sm text-neutral-500">
+                      <p>No new notifications</p>
+                    </div>
+                  ) : (
+                    notifications.slice(0, 5).map((noti) => (
+                      <div key={noti._id} className="px-4 py-3 hover:bg-neutral-50 transition-colors">
+                        <p className="text-xs font-semibold text-neutral-900">{noti.title}</p>
+                        <p className="text-[11px] text-neutral-600 mt-0.5">{noti.message}</p>
+                        <p className="text-[9px] text-neutral-400 mt-1">
+                          {noti.createdAt ? new Date(noti.createdAt).toLocaleString('en-GB') : ''}
+                        </p>
+                      </div>
+                    ))
+                  )}
                 </div>
                 <div className="px-4 py-2 border-t border-neutral-200">
                   <button

@@ -12,6 +12,7 @@ import {
   getIconByName,
   IconDef,
 } from "../../../utils/iconLibrary";
+import { uploadImage } from "../../../services/api/uploadService";
 
 // Map theme keys (slug) to user-friendly color names shown in the UI
 const THEME_COLOR_LABELS: Record<string, string> = {
@@ -47,6 +48,7 @@ export default function AdminHeaderCategory() {
     "Published" | "Unpublished"
   >("Published");
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [uploadingIcon, setUploadingIcon] = useState(false);
 
   // Icon search state
   const [iconSearchTerm, setIconSearchTerm] = useState("");
@@ -230,6 +232,57 @@ export default function AdminHeaderCategory() {
     }
   };
 
+  const handleCustomIconUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validations
+    // 1. File Type Validation
+    const allowedTypes = ["image/svg+xml", "image/png", "image/jpeg", "image/jpg"];
+    if (!allowedTypes.includes(file.type)) {
+      alert("Invalid file type. Only SVG, PNG, and JPG/JPEG files are allowed.");
+      e.target.value = ""; // Clear file input
+      return;
+    }
+
+    // 2. File Size Validation (e.g. 500KB)
+    const maxSize = 500 * 1024; // 500KB
+    if (file.size > maxSize) {
+      alert("File is too large. Maximum size allowed is 500KB.");
+      e.target.value = ""; // Clear file input
+      return;
+    }
+
+    try {
+      setUploadingIcon(true);
+      const result = await uploadImage(file, "kosil/header-categories/icons");
+      if (result && result.secureUrl) {
+        setHeaderCategoryIcon(result.secureUrl);
+        setSelectedIconLibrary("Upload");
+        alert("Custom icon uploaded successfully!");
+      }
+    } catch (err: any) {
+      console.error("Custom icon upload failed:", err);
+      let errorDetails = "Unknown error";
+      if (err.response?.data) {
+        if (typeof err.response.data === "string") {
+          errorDetails = err.response.data;
+        } else if (err.response.data.message) {
+          errorDetails = err.response.data.message;
+        } else if (err.response.data.error?.message) {
+          errorDetails = err.response.data.error.message;
+        } else {
+          errorDetails = JSON.stringify(err.response.data);
+        }
+      } else if (err.message) {
+        errorDetails = err.message;
+      }
+      alert(`Failed to upload custom icon. Reason: ${errorDetails}`);
+    } finally {
+      setUploadingIcon(false);
+    }
+  };
+
   const handleCancelEdit = () => {
     resetForm();
   };
@@ -241,12 +294,6 @@ export default function AdminHeaderCategory() {
         <h1 className="text-2xl font-semibold text-neutral-800">
           Header Category
         </h1>
-        <div className="text-sm text-neutral-600">
-          <span className="text-primary-dark hover:underline cursor-pointer">
-            Home
-          </span>{" "}
-          <span className="text-neutral-400">/</span> Dashboard
-        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
@@ -290,6 +337,34 @@ export default function AdminHeaderCategory() {
                 />
               </div>
 
+              {/* Custom Icon Upload Option */}
+              <div className="mb-3 p-3 bg-neutral-50 rounded border border-neutral-200">
+                <label className="block text-xs font-semibold text-neutral-600 mb-1.5">
+                  Or Upload Custom Icon (SVG, PNG, JPG - max 500KB):
+                </label>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="file"
+                    accept=".svg,.png,.jpg,.jpeg"
+                    onChange={handleCustomIconUpload}
+                    className="block w-full text-xs text-neutral-500
+                      file:mr-4 file:py-1.5 file:px-3
+                      file:rounded-full file:border-0
+                      file:text-xs file:font-semibold
+                      file:bg-primary-50 file:text-primary
+                      hover:file:bg-primary-100 cursor-pointer"
+                  />
+                  {uploadingIcon && (
+                    <span className="text-xs text-neutral-500 animate-pulse">Uploading...</span>
+                  )}
+                  {headerCategoryIcon && (headerCategoryIcon.startsWith('http') || headerCategoryIcon.startsWith('/uploads')) && (
+                    <div className="w-8 h-8 rounded border border-neutral-200 flex items-center justify-center p-1 bg-white">
+                      <img src={headerCategoryIcon} alt="Preview" className="w-full h-full object-contain" />
+                    </div>
+                  )}
+                </div>
+              </div>
+
               <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 bg-neutral-50 p-3 rounded border border-neutral-200 h-64 overflow-y-auto custom-scrollbar">
                 {filteredIcons.length > 0 ? (
                   filteredIcons.map((option) => {
@@ -331,7 +406,7 @@ export default function AdminHeaderCategory() {
               </p>
             </div>
 
-            {/* Theme / Color Selection */}
+            {/* Theme / Color Selection - Commented out for now
             <div>
               <label className="block text-sm font-medium text-neutral-700 mb-2">
                 Select Theme Color:
@@ -365,7 +440,7 @@ export default function AdminHeaderCategory() {
                 })}
               </div>
             </div>
-
+            */}
             {/* Status */}
             <div>
               <label className="block text-sm font-medium text-neutral-700 mb-2">
@@ -430,7 +505,7 @@ export default function AdminHeaderCategory() {
             <table className="w-full text-left border-collapse">
               <thead className="bg-neutral-50 sticky top-0 z-10">
                 <tr>
-                  {["Name", "Icon", "Theme", "Status", "Actions"].map(
+                  {["Name", "Icon", "Status", "Actions"].map(
                     (header) => (
                       <th
                         key={header}
@@ -463,6 +538,7 @@ export default function AdminHeaderCategory() {
                           </span>
                         </div>
                       </td>
+                      {/* Theme column commented out
                       <td className="px-4 py-3 text-sm text-neutral-600">
                         <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-neutral-100 text-neutral-800 capitalize border border-neutral-200">
                           {(() => {
@@ -485,7 +561,7 @@ export default function AdminHeaderCategory() {
                           })()}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-sm">
+                      */}                      <td className="px-4 py-3 text-sm">
                         <span
                           className={`
                             px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full

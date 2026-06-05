@@ -4,9 +4,23 @@ import Customer from '../models/Customer';
 import Delivery from '../models/Delivery';
 import Admin from '../models/Admin';
 import Seller from '../models/Seller';
-import { sendPushNotification } from '../services/firebaseAdmin';
+import { sendPushNotification, getFirebaseStatus } from '../services/firebaseAdmin';
 
 const router = express.Router();
+
+/**
+ * @route   GET /api/v1/fcm-tokens/status
+ * @desc    Get FCM / Firebase Admin SDK initialization status
+ * @access  Public
+ */
+router.get('/status', (req: Request, res: Response) => {
+    try {
+        const initialized = getFirebaseStatus();
+        res.json({ success: true, data: { initialized } });
+    } catch (error: any) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
 
 // In-memory cache to prevent duplicate notifications within a short window (cooldown)
 const recentlyNotifiedTokens = new Map<string, number>();
@@ -57,29 +71,30 @@ router.post('/save', authenticate, async (req: Request, res: Response) => {
             return;
         }
 
+        let isNewToken = false;
+
         if (platform === 'web') {
             if (!user.fcmTokens) user.fcmTokens = [];
-            if (!user.fcmTokens.includes(token)) {
+            const isNewWebToken = !user.fcmTokens.includes(token);
+            if (isNewWebToken) {
                 user.fcmTokens.push(token);
                 // Limit to 10 tokens per user per platform to prevent unlimited growth
                 if (user.fcmTokens.length > 10) {
                     user.fcmTokens = user.fcmTokens.slice(-10);
                 }
             }
+            isNewToken = isNewWebToken;
         } else if (platform === 'mobile') {
             if (!user.fcmTokenMobile) user.fcmTokenMobile = [];
-            if (!user.fcmTokenMobile.includes(token)) {
+            const isNewMobileToken = !user.fcmTokenMobile.includes(token);
+            if (isNewMobileToken) {
                 user.fcmTokenMobile.push(token);
                 if (user.fcmTokenMobile.length > 10) {
                     user.fcmTokenMobile = user.fcmTokenMobile.slice(-10);
                 }
             }
+            isNewToken = isNewMobileToken;
         }
-
-        // Check if this is a NEW token (not a re-registration)
-        const isNewToken = platform === 'web'
-            ? !user.fcmTokens?.includes(token)
-            : !user.fcmTokenMobile?.includes(token);
 
         await user.save();
 

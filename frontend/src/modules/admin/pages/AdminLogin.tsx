@@ -118,7 +118,12 @@ export default function AdminLogin() {
         <div className="px-6 py-6 sm:p-8 space-y-5">
           {!showOTP ? (
             /* Mobile Login Form */
-            <div className="space-y-5">
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleMobileLogin();
+              }}
+              className="space-y-5">
               <div>
                 <label className="block text-xs font-bold text-[#0a193b]/70 uppercase tracking-widest mb-2">
                   Mobile Number
@@ -150,7 +155,7 @@ export default function AdminLogin() {
               )}
 
               <button
-                onClick={handleMobileLogin}
+                type="submit"
                 disabled={mobileNumber.length !== 10 || loading}
                 className={`w-full h-12 rounded-2xl font-bold text-sm transition-all flex items-center justify-center ${
                   mobileNumber.length === 10 && !loading
@@ -159,7 +164,7 @@ export default function AdminLogin() {
                 }`}>
                 {loading ? "Sending OTP..." : "Continue"}
               </button>
-            </div>
+            </form>
           ) : (
             /* OTP Verification Form */
             <div className="space-y-5">

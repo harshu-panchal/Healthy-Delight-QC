@@ -36,6 +36,13 @@ export const createCategory = asyncHandler(
       });
     }
 
+    if (!image || !image.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: "Category image is required",
+      });
+    }
+
     let finalHeaderCategoryId = headerCategoryId;
 
     // Validate parent if provided
@@ -252,6 +259,33 @@ export const updateCategory = asyncHandler(
       });
     }
 
+    // Enforce that categories must have an image
+    const finalImage = updateData.image !== undefined ? updateData.image : category.image;
+    if (!finalImage || !finalImage.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: "Category image is required",
+      });
+    }
+
+    // Enforce parent category status check if activating a subcategory
+    const finalStatus = updateData.status !== undefined ? updateData.status : category.status;
+    const finalParentId = updateData.parentId !== undefined ? updateData.parentId : category.parentId;
+    if (finalStatus === "Active" && finalParentId) {
+      let currentParentId: any = finalParentId;
+      while (currentParentId) {
+        const parent = await Category.findById(currentParentId);
+        if (!parent) break;
+        if (parent.status === "Inactive") {
+          return res.status(400).json({
+            success: false,
+            message: "Please activate the main category to activate this subcategory",
+          });
+        }
+        currentParentId = parent.parentId;
+      }
+    }
+
     // Validate parent change if parentId is being updated
     if (updateData.parentId !== undefined) {
       const validation = await Category.validateParentChange(
@@ -446,6 +480,22 @@ export const toggleCategoryStatus = asyncHandler(
         success: false,
         message: "Category not found",
       });
+    }
+
+    // Enforce parent category status check if activating a subcategory
+    if (status === "Active" && category.parentId) {
+      let currentParentId: any = category.parentId;
+      while (currentParentId) {
+        const parent = await Category.findById(currentParentId);
+        if (!parent) break;
+        if (parent.status === "Inactive") {
+          return res.status(400).json({
+            success: false,
+            message: "Please activate the main category to activate this subcategory",
+          });
+        }
+        currentParentId = parent.parentId;
+      }
     }
 
     // Update category status

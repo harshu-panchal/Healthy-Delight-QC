@@ -656,7 +656,7 @@ export default function AdminPromoStrip() {
                           <td className="py-2 px-3 text-sm text-neutral-700">{promoStrip.headerCategorySlug}</td>
                           <td className="py-2 px-3 text-sm text-neutral-700">{promoStrip.heading}</td>
                           <td className="py-2 px-3 text-sm text-neutral-700">
-                            {new Date(promoStrip.startDate).toLocaleDateString()} - {new Date(promoStrip.endDate).toLocaleDateString()}
+                            {new Date(promoStrip.startDate).toLocaleDateString('en-GB')} - {new Date(promoStrip.endDate).toLocaleDateString('en-GB')}
                           </td>
                           <td className="py-2 px-3 text-sm">
                             <span

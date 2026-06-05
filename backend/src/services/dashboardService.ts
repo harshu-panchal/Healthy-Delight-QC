@@ -19,6 +19,7 @@ export interface DashboardStats {
   lowStockProducts: number;
   totalRevenue: number;
   avgCompletedOrderValue: number;
+  maxCompletedOrderValue: number;
 }
 
 export interface SalesData {
@@ -51,7 +52,7 @@ export const getDashboardStats = async (): Promise<DashboardStats> => {
       soldOutProducts,
       lowStockProducts,
       revenueData,
-      avgOrderValue,
+      completedOrderStats,
     ] = await Promise.all([
       Customer.countDocuments({ status: "Active" }).catch(() => 0),
       Category.countDocuments().catch(() => 0),
@@ -74,12 +75,19 @@ export const getDashboardStats = async (): Promise<DashboardStats> => {
       ]).catch(() => []),
       Order.aggregate([
         { $match: { status: "Delivered", paymentStatus: "Paid" } },
-        { $group: { _id: null, avg: { $avg: { $ifNull: ["$total", 0] } } } },
+        {
+          $group: {
+            _id: null,
+            avg: { $avg: { $ifNull: ["$total", 0] } },
+            max: { $max: { $ifNull: ["$total", 0] } },
+          },
+        },
       ]).catch(() => []),
     ]);
 
     const totalRevenue = revenueData[0]?.total || 0;
-    const avgCompletedOrderValue = avgOrderValue[0]?.avg || 0;
+    const avgCompletedOrderValue = completedOrderStats[0]?.avg || 0;
+    const maxCompletedOrderValue = completedOrderStats[0]?.max || 0;
 
     return {
       totalUser: totalUser || 0,
@@ -94,6 +102,7 @@ export const getDashboardStats = async (): Promise<DashboardStats> => {
       lowStockProducts: lowStockProducts || 0,
       totalRevenue: totalRevenue || 0,
       avgCompletedOrderValue: Math.round((avgCompletedOrderValue || 0) * 100) / 100,
+      maxCompletedOrderValue: Math.round((maxCompletedOrderValue || 0) * 100) / 100,
     };
   } catch (error) {
     console.error("Error fetching dashboard stats:", error);
@@ -111,6 +120,7 @@ export const getDashboardStats = async (): Promise<DashboardStats> => {
       lowStockProducts: 0,
       totalRevenue: 0,
       avgCompletedOrderValue: 0,
+      maxCompletedOrderValue: 0,
     };
   }
 };

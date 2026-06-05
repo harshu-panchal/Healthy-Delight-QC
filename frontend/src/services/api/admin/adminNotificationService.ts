@@ -142,3 +142,24 @@ export const deleteNotification = async (
   );
   return response.data;
 };
+
+/**
+ * Get FCM Firebase Admin initialization status
+ */
+export const getFCMStatus = async (): Promise<ApiResponse<{ initialized: boolean }>> => {
+  const response = await api.get<ApiResponse<{ initialized: boolean }>>("/fcm-tokens/status");
+  return response.data;
+};
+
+/**
+ * Send direct FCM push notification to a specific token
+ */
+export const sendDirectPush = async (data: {
+  token: string;
+  title: string;
+  body: string;
+  platform?: string;
+}): Promise<any> => {
+  const response = await api.post<any>("/fcm-tokens/send-direct", data);
+  return response.data;
+};

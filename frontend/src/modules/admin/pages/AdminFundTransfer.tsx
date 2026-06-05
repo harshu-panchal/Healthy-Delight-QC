@@ -9,6 +9,21 @@ import {
   DeliveryBoy,
 } from '../../../services/api/admin/adminDeliveryService';
 
+const shortenReferenceId = (ref: string) => {
+  if (!ref) return '';
+  const parts = ref.split('-');
+  if (parts.length === 3) {
+    return `${parts[0]}-${parts[2]}`;
+  }
+  if (parts.length === 2) {
+    return `${parts[0]}-${parts[1].slice(-8)}`;
+  }
+  if (ref.length > 12) {
+    return ref.slice(-8).toUpperCase();
+  }
+  return ref;
+};
+
 export default function AdminFundTransfer() {
   const { showToast } = useToast();
 
@@ -232,7 +247,7 @@ export default function AdminFundTransfer() {
         `₹${t.amount.toFixed(2)}`,
         t.type,
         t.description,
-        new Date(t.createdAt).toLocaleDateString(),
+        new Date(t.createdAt).toLocaleDateString('en-GB'),
       ];
     });
 
@@ -528,7 +543,9 @@ export default function AdminFundTransfer() {
                   const calculated = computedBalances.get(t._id.toString()) || { opening: 0, closing: 0 };
                   return (
                     <tr key={t._id} className="hover:bg-neutral-50">
-                      <td className="px-4 sm:px-6 py-3 text-sm text-neutral-900 font-mono font-medium">{t.reference || t._id.slice(-8).toUpperCase()}</td>
+                      <td className="px-4 sm:px-6 py-3 text-sm text-neutral-900 font-mono font-medium" title={t.reference || t._id}>
+                        {shortenReferenceId(t.reference || t._id)}
+                      </td>
                       <td className="px-4 sm:px-6 py-3 text-sm text-neutral-900 font-medium">{t.userName}</td>
                       <td className="px-4 sm:px-6 py-3 text-sm text-neutral-600">{t.userId?.mobile || 'N/A'}</td>
                       <td className="px-4 sm:px-6 py-3 text-sm text-neutral-900 font-semibold">₹{calculated.closing.toFixed(2)}</td>
@@ -543,7 +560,7 @@ export default function AdminFundTransfer() {
                         </span>
                       </td>
                       <td className="px-4 sm:px-6 py-3 text-sm text-neutral-600 max-w-[250px] truncate" title={t.description}>{t.description}</td>
-                      <td className="px-4 sm:px-6 py-3 text-sm text-neutral-600">{new Date(t.createdAt).toLocaleDateString()}</td>
+                      <td className="px-4 sm:px-6 py-3 text-sm text-neutral-600">{new Date(t.createdAt).toLocaleDateString('en-GB')}</td>
                     </tr>
                   );
                 })

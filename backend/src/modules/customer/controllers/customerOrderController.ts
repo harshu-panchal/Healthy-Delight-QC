@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import Order from "../../../models/Order";
 import Product from "../../../models/Product";
+import Category from "../../../models/Category";
 import OrderItem from "../../../models/OrderItem";
 import Customer from "../../../models/Customer";
 import CustomerWalletTransaction from "../../../models/CustomerWalletTransaction";
@@ -13,6 +14,26 @@ import { notifySellersOfOrderUpdate } from "../../../services/sellerNotification
 import { getOrderItemCommissionRate } from "../../../services/commissionService";
 import { generateDeliveryOtp } from "../../../services/deliveryOtpService";
 import { Server as SocketIOServer } from "socket.io";
+
+// Helper to get all fully active category IDs (self active + all ancestors active)
+async function getFullyActiveCategoryIds(): Promise<Set<string>> {
+  const activeCategories = await Category.find({ status: "Active" }).select("_id parentId").lean();
+  const activeMap = new Map(activeCategories.map(c => [c._id.toString(), c]));
+
+  const isAncestorsActive = (cat: any): boolean => {
+    let current = cat;
+    while (current.parentId) {
+      const parentIdStr = current.parentId.toString();
+      const parent = activeMap.get(parentIdStr);
+      if (!parent) return false;
+      current = parent;
+    }
+    return true;
+  };
+
+  const fullyActive = activeCategories.filter(isAncestorsActive);
+  return new Set(fullyActive.map(c => c._id.toString()));
+}
 
 // Create a new order
 export const createOrder = async (req: Request, res: Response) => {
@@ -221,6 +242,8 @@ export const createOrder = async (req: Request, res: Response) => {
         const orderItemIds: mongoose.Types.ObjectId[] = [];
         const sellerIds = new Set<string>(); // Track unique sellers
 
+        const fullyActiveIds = await getFullyActiveCategoryIds();
+
         for (const item of items) {
             if (!item.product || !item.product.id) {
                 throw new Error("Invalid item structure: product.id is missing");
@@ -229,6 +252,17 @@ export const createOrder = async (req: Request, res: Response) => {
             const qty = Number(item.quantity) || 0;
             if (qty <= 0) {
                 throw new Error("Invalid item quantity");
+            }
+
+            // Verify product exists, is active/published, and category/subcategory are active
+            const dbProduct = await Product.findById(item.product.id);
+            if (!dbProduct || dbProduct.status !== "Active" || !dbProduct.publish) {
+                throw new Error(`Product not found or unavailable: ${item.product.name || item.product.id}`);
+            }
+            const prodCatId = dbProduct.category?.toString();
+            const prodSubId = dbProduct.subcategory?.toString();
+            if ((prodCatId && !fullyActiveIds.has(prodCatId)) || (prodSubId && !fullyActiveIds.has(prodSubId))) {
+                throw new Error(`Product category or subcategory is no longer active: ${dbProduct.productName}`);
             }
 
             // Atomically check stock and decrement to prevent race conditions

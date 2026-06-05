@@ -291,10 +291,11 @@ function AppContent() {
   }, []);
 
   // Register customer token after auth so admin customer notifications can be pushed.
-  // Duplicates are avoided by localStorage checks inside registerFCMToken().
+  // Pass userType to use a role-specific cache key (fcm_token_Customer, fcm_token_Delivery, etc.)
+  // This prevents token collisions when Delivery and Customer share the same browser/device.
   useEffect(() => {
     if (!isAuthenticated || user?.userType !== "Customer") return;
-    registerFCMToken();
+    registerFCMToken(false, "Customer");
   }, [isAuthenticated, user?.userType]);
 
   return (

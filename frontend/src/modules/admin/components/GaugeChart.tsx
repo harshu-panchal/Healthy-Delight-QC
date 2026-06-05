@@ -9,7 +9,7 @@ export default function GaugeChart({ value, maxValue, label }: GaugeChartProps) 
   const angle = (percentage / 100) * 180 - 90; // -90 to 90 degrees
   
   const radius = 80;
-  const centerX = 120;
+  const centerX = 130;
   const centerY = 120;
   
   // Calculate needle position
@@ -19,7 +19,7 @@ export default function GaugeChart({ value, maxValue, label }: GaugeChartProps) 
 
   return (
     <div className="flex flex-col items-center">
-      <svg width="240" height="160" viewBox="0 0 240 160" className="w-full h-auto">
+      <svg width="260" height="160" viewBox="0 0 260 160" className="w-full h-auto">
         <defs>
           <linearGradient id="gaugeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
             <stop offset="0%" stopColor="#eab308" />
@@ -52,8 +52,8 @@ export default function GaugeChart({ value, maxValue, label }: GaugeChartProps) 
         <circle cx={centerX} cy={centerY} r="8" fill="#1f2937" />
 
         {/* Scale labels */}
-        <text x={centerX - radius - 10} y={centerY + 5} className="text-xs fill-neutral-600" textAnchor="end">0</text>
-        <text x={centerX + radius + 10} y={centerY + 5} className="text-xs fill-neutral-600" textAnchor="start">{maxValue}</text>
+        <text x={centerX - radius - 18} y={centerY + 5} className="text-xs font-bold fill-neutral-600" fontWeight="bold" textAnchor="end">0</text>
+        <text x={centerX + radius + 18} y={centerY + 5} className="text-xs font-bold fill-neutral-600" fontWeight="bold" textAnchor="start">{maxValue}</text>
       </svg>
       
       <div className="mt-2 text-center">

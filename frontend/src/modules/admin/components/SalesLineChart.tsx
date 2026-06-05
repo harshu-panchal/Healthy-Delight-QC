@@ -8,9 +8,21 @@ interface SalesLineChartProps {
 }
 
 export default function SalesLineChart({ thisMonthData, lastMonthData, height = 250 }: SalesLineChartProps) {
-  // Prepare data for ApexCharts
-  // We assume the dates align roughly or we use the 'thisMonthData' dates as categories
-  const categories = thisMonthData.map(item => item.date);
+  const formatChartDate = (dateStr: string) => {
+    if (dateStr && dateStr.includes('-')) {
+      const parts = dateStr.split('-');
+      if (parts.length === 3) {
+        const [year, month, day] = parts;
+        return `${day}/${month}/${year}`;
+      } else if (parts.length === 2) {
+        const [year, month] = parts;
+        return `${month}/${year}`;
+      }
+    }
+    return dateStr;
+  };
+
+  const categories = thisMonthData.map(item => formatChartDate(item.date));
   const thisMonthValues = thisMonthData.map(item => item.value);
   const lastMonthValues = lastMonthData.map(item => item.value);
 

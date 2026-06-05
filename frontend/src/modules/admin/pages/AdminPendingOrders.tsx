@@ -137,9 +137,9 @@ export default function AdminPendingOrders() {
           order.customerName || "",
           order.deliveryAddress?.address || "",
           order.estimatedDeliveryDate
-            ? new Date(order.estimatedDeliveryDate).toLocaleDateString()
+            ? new Date(order.estimatedDeliveryDate).toLocaleDateString('en-GB')
             : "",
-          order.orderDate ? new Date(order.orderDate).toLocaleDateString() : "",
+          order.orderDate ? new Date(order.orderDate).toLocaleDateString('en-GB') : "",
           order.status || "",
           order.deliveryBoyStatus || "Not Assigned",
           `₹${order.total?.toFixed(2) || "0.00"}`,
@@ -781,12 +781,12 @@ export default function AdminPendingOrders() {
                         {order.estimatedDeliveryDate
                           ? new Date(
                               order.estimatedDeliveryDate
-                            ).toLocaleDateString()
+                            ).toLocaleDateString('en-GB')
                           : "-"}
                       </td>
                       <td className="px-4 sm:px-6 py-3 text-sm text-neutral-600">
                         {order.orderDate
-                          ? new Date(order.orderDate).toLocaleDateString()
+                          ? new Date(order.orderDate).toLocaleDateString('en-GB')
                           : "-"}
                       </td>
                       <td className="px-4 sm:px-6 py-3">

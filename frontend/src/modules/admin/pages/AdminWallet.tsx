@@ -270,7 +270,7 @@ export default function AdminWallet() {
                       {transactions.map((trx) => (
                         <tr key={trx._id} className="border-b border-gray-50 hover:bg-gray-50">
                           <td className="py-3 px-4 text-sm text-gray-600">
-                            {new Date(trx.createdAt).toLocaleString()}
+                            {new Date(trx.createdAt).toLocaleString('en-GB')}
                           </td>
                           <td className="py-3 px-4">
                             <div className="flex flex-col">
@@ -322,7 +322,7 @@ export default function AdminWallet() {
                       {earnings.map((earning) => (
                         <tr key={earning.id} className="border-b border-gray-50 hover:bg-gray-50">
                           <td className="py-3 px-4 text-sm text-gray-600">
-                            {new Date(earning.date).toLocaleDateString()}
+                            {new Date(earning.date).toLocaleDateString('en-GB')}
                           </td>
                           <td className="py-3 px-4 text-sm font-medium text-gray-900">
                             {earning.source}

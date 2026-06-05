@@ -203,7 +203,11 @@ export const removeAuthToken = (role?: UserRole) => {
       }
     );
   }
-  localStorage.removeItem("fcm_token_web"); // Clear FCM registration cache on logout
+  // Clear all role-specific FCM token caches on logout
+  ['Customer', 'Delivery', 'Admin', 'Seller'].forEach((role) => {
+    localStorage.removeItem(`fcm_token_${role}`);
+  });
+  localStorage.removeItem("fcm_token_web"); // Clear legacy shared key as well
 };
 
 // Export storage key helpers for AuthContext and services

@@ -5,11 +5,21 @@ interface DashboardCardProps {
   title: string;
   value: number | string;
   accentColor: string;
+  onClick?: () => void;
 }
 
-export default function DashboardCard({ icon, title, value, accentColor }: DashboardCardProps) {
+export default function DashboardCard({ icon, title, value, accentColor, onClick }: DashboardCardProps) {
+  const isClickable = !!onClick;
+  
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-neutral-200 p-3 sm:p-4 md:p-5">
+    <div 
+      onClick={onClick}
+      className={`bg-white rounded-lg shadow-sm border border-neutral-200 p-3 sm:p-4 md:p-5 transition-all duration-200 ${
+        isClickable 
+          ? 'cursor-pointer hover:shadow-md hover:-translate-y-0.5 hover:border-neutral-300 active:scale-[0.98]' 
+          : ''
+      }`}
+    >
       <div className="flex items-start justify-between mb-2 sm:mb-3">
         <div className="p-2 sm:p-3 rounded-lg" style={{ backgroundColor: `${accentColor}20` }}>
           <div style={{ color: accentColor }} className="w-6 h-6 sm:w-8 sm:h-8">{icon}</div>

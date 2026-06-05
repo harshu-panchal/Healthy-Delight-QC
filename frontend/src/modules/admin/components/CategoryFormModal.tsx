@@ -285,6 +285,28 @@ export default function CategoryFormModal({
       newErrors.name = "Only letters and spaces are allowed";
     }
 
+    if (!imageFile && !formData.image) {
+      newErrors.image = "Category image is required";
+    }
+
+    if (formData.status === "Active" && formData.parentId) {
+      let parent = flatCategories.find((c) => c._id === formData.parentId);
+      while (parent) {
+        if (parent.status === "Inactive") {
+          newErrors.status = "Please activate the main category to activate this subcategory";
+          break;
+        }
+        const parentParentId = parent.parentId
+          ? typeof parent.parentId === "string"
+            ? parent.parentId
+            : (parent.parentId as any)._id
+          : null;
+        parent = parentParentId
+          ? flatCategories.find((c) => c._id === parentParentId)
+          : undefined;
+      }
+    }
+
     if (formData.order < 0) {
       newErrors.order = "Display order must be a positive number";
     }
@@ -595,7 +617,7 @@ export default function CategoryFormModal({
           {/* Category Image */}
           <div className="mb-4">
             <label className="block text-sm font-medium text-neutral-700 mb-2">
-              Category Image
+              Category Image <span className="text-red-500">*</span>
             </label>
             <label
               className={`block border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-colors ${isDragging
@@ -732,6 +754,9 @@ export default function CategoryFormModal({
                 Active Status
               </span>
             </label>
+            {errors.status && (
+              <p className="mt-1 text-sm text-red-600">{errors.status}</p>
+            )}
           </div>
 
           {/* Commission Rate - Only for SubSubCategories (Level 3) or when parent is selected */}

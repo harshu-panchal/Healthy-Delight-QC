@@ -109,13 +109,6 @@ export default function AdminSellerLocation() {
         <h1 className="text-2xl font-semibold text-neutral-800">
           Seller Locations
         </h1>
-        <div className="text-sm text-neutral-600">
-          <span className="text-primary hover:text-primary-dark cursor-pointer">
-            Home
-          </span>
-          <span className="mx-2">/</span>
-          <span className="text-neutral-800">Seller Locations</span>
-        </div>
       </div>
 
       {/* Filters */}

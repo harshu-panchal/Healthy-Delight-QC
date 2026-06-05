@@ -58,6 +58,10 @@ try {
     console.error('CRITICAL: Error during Firebase initialization logic:', error);
 }
 
+export function getFirebaseStatus(): boolean {
+    return isFirebaseInitialized;
+}
+
 export interface PushNotificationPayload {
     title: string;
     body: string;

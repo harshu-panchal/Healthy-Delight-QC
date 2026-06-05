@@ -5,6 +5,26 @@ import SubCategory from "../../../models/SubCategory";
 import mongoose from "mongoose";
 import { findSellersWithinRange } from "../../../utils/locationHelper";
 
+// Helper to get all fully active category IDs (self active + all ancestors active)
+async function getFullyActiveCategoryIds(): Promise<Set<string>> {
+  const activeCategories = await Category.find({ status: "Active" }).select("_id parentId").lean();
+  const activeMap = new Map(activeCategories.map(c => [c._id.toString(), c]));
+
+  const isAncestorsActive = (cat: any): boolean => {
+    let current = cat;
+    while (current.parentId) {
+      const parentIdStr = current.parentId.toString();
+      const parent = activeMap.get(parentIdStr);
+      if (!parent) return false;
+      current = parent;
+    }
+    return true;
+  };
+
+  const fullyActive = activeCategories.filter(isAncestorsActive);
+  return new Set(fullyActive.map(c => c._id.toString()));
+}
+
 // Get products with filtering options (public)
 export const getProducts = async (req: Request, res: Response) => {
   try {
@@ -106,14 +126,25 @@ export const getProducts = async (req: Request, res: Response) => {
       return null;
     };
 
+    const fullyActiveIds = await getFullyActiveCategoryIds();
+    const activeCategoryIdsArr = Array.from(fullyActiveIds).map(id => new mongoose.Types.ObjectId(id));
+
     if (category) {
       const categoryValues = (category as string).split(',');
       const categoryIds = await Promise.all(categoryValues.map(val => resolveId(Category, val.trim(), "Category")));
-      const validCategoryIds = categoryIds.filter(id => id);
+      const validCategoryIds = categoryIds.filter(id => id && fullyActiveIds.has(id.toString()));
 
       if (validCategoryIds.length > 0) {
         query.category = validCategoryIds.length > 1 ? { $in: validCategoryIds } : validCategoryIds[0];
+      } else {
+        return res.status(200).json({
+          success: true,
+          data: [],
+          pagination: { page: Number(page), limit: Number(limit), total: 0, pages: 0 },
+        });
       }
+    } else {
+      query.category = { $in: activeCategoryIdsArr };
     }
 
     if (subcategory) {
@@ -123,11 +154,26 @@ export const getProducts = async (req: Request, res: Response) => {
         if (!id) id = await resolveId(SubCategory, val.trim(), "SubCategory");
         return id;
       }));
-      const validSubcategoryIds = subcategoryIds.filter(id => id);
+      const validSubcategoryIds = subcategoryIds.filter(id => id && fullyActiveIds.has(id.toString()));
 
       if (validSubcategoryIds.length > 0) {
         query.subcategory = validSubcategoryIds.length > 1 ? { $in: validSubcategoryIds } : validSubcategoryIds[0];
+      } else {
+        return res.status(200).json({
+          success: true,
+          data: [],
+          pagination: { page: Number(page), limit: Number(limit), total: 0, pages: 0 },
+        });
       }
+    } else {
+      query.$and = query.$and || [];
+      query.$and.push({
+        $or: [
+          { subcategory: { $exists: false } },
+          { subcategory: null },
+          { subcategory: { $in: activeCategoryIdsArr } }
+        ]
+      });
     }
 
     if (brand) {
@@ -292,6 +338,19 @@ export const getProductById = async (req: Request, res: Response) => {
       }
 
       product = foundProduct;
+    }
+
+    if (product) {
+      const fullyActiveIds = await getFullyActiveCategoryIds();
+      const prodCatId = product.category?._id?.toString() || product.category?.toString();
+      const prodSubId = product.subcategory?._id?.toString() || product.subcategory?.toString();
+
+      if (prodCatId && !fullyActiveIds.has(prodCatId)) {
+        product = null;
+      }
+      if (product && prodSubId && !fullyActiveIds.has(prodSubId)) {
+        product = null;
+      }
     }
 
     if (!product) {

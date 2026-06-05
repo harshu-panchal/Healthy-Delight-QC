@@ -272,7 +272,7 @@ export default function AdminSellerTransaction() {
       `₹${t.amount.toFixed(2)}`,
       t.type,
       t.remark || "",
-      new Date(t.date).toLocaleDateString(),
+      new Date(t.date).toLocaleDateString('en-GB'),
     ]);
 
     const csvContent =
@@ -684,7 +684,7 @@ export default function AdminSellerTransaction() {
                       {transaction.remark || "N/A"}
                     </td>
                     <td className="px-4 sm:px-6 py-3 text-sm text-neutral-600">
-                      {new Date(transaction.date).toLocaleDateString()}
+                      {new Date(transaction.date).toLocaleDateString('en-GB')}
                     </td>
                   </tr>
                 ))

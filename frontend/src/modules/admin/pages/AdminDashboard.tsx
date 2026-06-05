@@ -23,6 +23,27 @@ import {
 
 import { useNavigate } from "react-router-dom";
 
+const formatOrderFriendly = (orderNumber?: string, orderId?: string) => {
+  if (orderNumber && orderNumber !== 'N/A') {
+    if (orderNumber.startsWith('ORD')) {
+      const numericPart = orderNumber.replace('ORD', '');
+      if (numericPart.length > 6) {
+        return `ORD-${numericPart.slice(-6)}`;
+      }
+      return orderNumber;
+    }
+    return orderNumber.length > 10 ? orderNumber.slice(0, 8) : orderNumber;
+  }
+  if (orderId) {
+    const cleanId = orderId.includes('-') ? orderId.split('-').slice(-1)[0] : orderId;
+    if (cleanId.length > 6) {
+      return `ORD-${cleanId.slice(-6).toUpperCase()}`;
+    }
+    return `ORD-${cleanId.toUpperCase()}`;
+  }
+  return 'Unknown';
+};
+
 export default function AdminDashboard() {
   const { isAuthenticated, token } = useAuth();
   const navigate = useNavigate();
@@ -452,60 +473,70 @@ export default function AdminDashboard() {
           title="Total User"
           value={stats.totalUser}
           accentColor="#3b82f6"
+          onClick={() => navigate("/admin/users")}
         />
         <DashboardCard
           icon={categoryIcon}
           title="Total Category"
           value={stats.totalCategory}
           accentColor="#eab308"
+          onClick={() => navigate("/admin/category")}
         />
         <DashboardCard
           icon={subcategoryIcon}
           title="Total Subcategory"
           value={stats.totalSubcategory ?? 0}
           accentColor="#ec4899"
+          onClick={() => navigate("/admin/subcategory")}
         />
         <DashboardCard
           icon={productIcon}
           title="Total Product"
           value={stats.totalProduct}
           accentColor="#ef4444"
+          onClick={() => navigate("/admin/product/list")}
         />
         <DashboardCard
           icon={ordersIcon}
           title="Total Orders"
           value={stats.totalOrders}
           accentColor="#3b82f6"
+          onClick={() => navigate("/admin/orders/all")}
         />
         <DashboardCard
           icon={completedOrdersIcon}
           title="Completed Orders"
           value={stats.completedOrders}
           accentColor="#16a34a"
+          onClick={() => navigate("/admin/orders/delivered")}
         />
         <DashboardCard
           icon={pendingOrdersIcon}
           title="Pending Orders"
           value={stats.pendingOrders}
           accentColor="#a855f7"
+          onClick={() => navigate("/admin/orders/pending")}
         />
         <DashboardCard
           icon={cancelledOrdersIcon}
           title="Cancelled Orders"
           value={stats.cancelledOrders}
           accentColor="#ef4444"
+          onClick={() => navigate("/admin/orders/cancelled")}
         />
         <DashboardCard
           icon={soldOutIcon}
           title="Product Sold Out"
           value={stats.soldOutProducts}
           accentColor="#ec4899"
+          onClick={() => navigate("/admin/product/list?stock=out")}
         />
         <DashboardCard
           icon={lowStockIcon}
           title="Product low on Stock"
           value={stats.lowStockProducts}
           accentColor="#eab308"
+          onClick={() => navigate("/admin/product/list?stock=low")}
         />
       </div>
 
@@ -575,7 +606,7 @@ export default function AdminDashboard() {
             </h3>
             <GaugeChart
               value={stats.avgCompletedOrderValue}
-              maxValue={521}
+              maxValue={stats.maxCompletedOrderValue || 500}
               label="Average Order Value"
             />
           </div>
@@ -636,83 +667,19 @@ export default function AdminDashboard() {
               <thead className="bg-neutral-50 border-b border-neutral-200">
                 <tr>
                   <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">
-                    <div className="flex items-center gap-2">
-                      ID
-                      <svg
-                        width="12"
-                        height="12"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        className="text-neutral-400 cursor-pointer">
-                        <path
-                          d="M7 10L12 5L17 10M7 14L12 19L17 14"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    </div>
+                    ID
                   </th>
                   <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">
                     User Details
                   </th>
                   <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">
-                    <div className="flex items-center gap-2">
-                      O. Date
-                      <svg
-                        width="12"
-                        height="12"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        className="text-neutral-400 cursor-pointer">
-                        <path
-                          d="M7 10L12 5L17 10M7 14L12 19L17 14"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    </div>
+                    O. Date
                   </th>
                   <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">
-                    <div className="flex items-center gap-2">
-                      Status
-                      <svg
-                        width="12"
-                        height="12"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        className="text-neutral-400 cursor-pointer">
-                        <path
-                          d="M7 10L12 5L17 10M7 14L12 19L17 14"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    </div>
+                    Status
                   </th>
                   <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">
-                    <div className="flex items-center gap-2">
-                      Amount
-                      <svg
-                        width="12"
-                        height="12"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        className="text-neutral-400 cursor-pointer">
-                        <path
-                          d="M7 10L12 5L17 10M7 14L12 19L17 14"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    </div>
+                    Amount
                   </th>
                   <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">
                     Action
@@ -732,13 +699,13 @@ export default function AdminDashboard() {
                   displayedNewOrders.map((order) => (
                     <tr key={order.id} className="hover:bg-neutral-50">
                       <td className="px-4 sm:px-6 py-3 text-sm text-neutral-900">
-                        {order.orderNumber || order.id}
+                        {formatOrderFriendly(order.orderNumber, order.id)}
                       </td>
                       <td className="px-4 sm:px-6 py-3 text-sm text-neutral-600">
                         {order.customerName}
                       </td>
                       <td className="px-4 sm:px-6 py-3 text-sm text-neutral-600">
-                        {new Date(order.orderDate).toLocaleDateString()}
+                        {new Date(order.orderDate).toLocaleDateString('en-GB')}
                       </td>
                       <td className="px-4 sm:px-6 py-3">
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium text-neutral-600 bg-neutral-50">
@@ -880,23 +847,7 @@ export default function AdminDashboard() {
               <thead className="bg-neutral-50 border-b border-neutral-200">
                 <tr>
                   <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">
-                    <div className="flex items-center gap-2">
-                      ID
-                      <svg
-                        width="12"
-                        height="12"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        className="text-neutral-400 cursor-pointer">
-                        <path
-                          d="M7 10L12 5L17 10M7 14L12 19L17 14"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    </div>
+                    ID
                   </th>
                   <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">
                     Seller Name
@@ -905,23 +856,7 @@ export default function AdminDashboard() {
                     Store Name
                   </th>
                   <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">
-                    <div className="flex items-center gap-2">
-                      Total Revenue
-                      <svg
-                        width="12"
-                        height="12"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        className="text-neutral-400 cursor-pointer">
-                        <path
-                          d="M7 10L12 5L17 10M7 14L12 19L17 14"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    </div>
+                    Total Revenue
                   </th>
                   <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">
                     Action
@@ -941,7 +876,7 @@ export default function AdminDashboard() {
                   displayedTopSellers.map((seller) => (
                     <tr key={seller.sellerId} className="hover:bg-neutral-50">
                       <td className="px-4 sm:px-6 py-3 text-sm text-neutral-900">
-                        {seller.sellerId}
+                        {parseInt(seller.sellerId.slice(-6), 16) || seller.sellerId.slice(-6)}
                       </td>
                       <td className="px-4 sm:px-6 py-3 text-sm text-neutral-600">
                         {seller.sellerName}

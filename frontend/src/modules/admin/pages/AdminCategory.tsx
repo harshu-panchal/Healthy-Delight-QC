@@ -259,6 +259,31 @@ export default function AdminCategory() {
   // Handle toggle status
   const handleToggleStatus = async (category: Category) => {
     const newStatus = category.status === "Active" ? "Inactive" : "Active";
+
+    if (newStatus === "Active" && category.parentId) {
+      const flatCategories = flattenTree(categories);
+      const categoryParentId = typeof category.parentId === "string" ? category.parentId : (category.parentId as any)._id;
+      let parent = flatCategories.find(c => c._id === categoryParentId);
+      while (parent) {
+        if (parent.status === "Inactive") {
+          alert("Please activate the main category to activate this subcategory");
+          return;
+        }
+        const nextParentId = parent.parentId ? (typeof parent.parentId === "string" ? parent.parentId : (parent.parentId as any)._id) : null;
+        parent = nextParentId ? flatCategories.find(c => c._id === nextParentId) : undefined;
+      }
+    }
+
+    // Show a confirmation pop-up when deactivating a category
+    if (newStatus === "Inactive") {
+      const confirmDeactivate = window.confirm(
+        `Are you sure you want to deactivate the category "${category.name}"?`
+      );
+      if (!confirmDeactivate) {
+        return;
+      }
+    }
+
     const cascade =
       category.childrenCount && category.childrenCount > 0
         ? window.confirm(
@@ -422,11 +447,6 @@ export default function AdminCategory() {
           <h1 className="text-xl sm:text-2xl font-bold text-neutral-900">
             Manage Categories
           </h1>
-          <div className="flex items-center gap-2 text-xs sm:text-sm">
-            <span className="text-neutral-500">Dashboard</span>
-            <span className="text-neutral-400">/</span>
-            <span className="text-neutral-700">Categories</span>
-          </div>
         </div>
       </div>
 

@@ -5,7 +5,10 @@ import {
   deleteNotification,
   Notification as NotificationType,
   CreateNotificationData,
+  getFCMStatus,
+  sendDirectPush,
 } from '../../../services/api/admin/adminNotificationService';
+import { getFCMToken, registerFCMToken } from '../../../services/pushNotificationService';
 
 export default function AdminNotification() {
   const [formData, setFormData] = useState({
@@ -123,6 +126,94 @@ export default function AdminNotification() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const [isDiagnosticsOpen, setIsDiagnosticsOpen] = useState(false);
+  const [fcmStatus, setFcmStatus] = useState<boolean | null>(null);
+  const [fcmStatusLoading, setFcmStatusLoading] = useState(false);
+  const [browserToken, setBrowserToken] = useState('');
+  const [targetToken, setTargetToken] = useState('');
+  const [testTitle, setTestTitle] = useState('Test FCM Push');
+  const [testBody, setTestBody] = useState('Hello from Firebase Cloud Messaging!');
+  const [fcmResult, setFcmResult] = useState<any>(null);
+  const [fcmResultLoading, setFcmResultLoading] = useState(false);
+
+  const fetchFCMStatus = async () => {
+    setFcmStatusLoading(true);
+    try {
+      const response = await getFCMStatus();
+      if (response.success && response.data) {
+        setFcmStatus(response.data.initialized);
+      } else {
+        setFcmStatus(false);
+      }
+    } catch (err) {
+      console.error('Error fetching FCM status:', err);
+      setFcmStatus(false);
+    } finally {
+      setFcmStatusLoading(false);
+    }
+  };
+
+  const loadBrowserToken = async () => {
+    try {
+      const token = await getFCMToken();
+      if (token) {
+        setBrowserToken(token);
+        setTargetToken(prev => prev || token);
+      }
+    } catch (err) {
+      console.warn('Failed to load browser token silently:', err);
+    }
+  };
+
+  const handleRegisterBrowser = async () => {
+    try {
+      setFcmResultLoading(true);
+      setFcmResult({ status: 'Requesting permission & getting FCM token...' });
+      const token = await registerFCMToken(true);
+      if (token) {
+        setBrowserToken(token);
+        setTargetToken(token);
+        setFcmResult({ status: 'Browser registered successfully with backend!', token });
+      } else {
+        setFcmResult({ error: 'Failed to get FCM token or permission denied.' });
+      }
+    } catch (err: any) {
+      setFcmResult({ error: err.message || 'Error registering browser' });
+    } finally {
+      setFcmResultLoading(false);
+    }
+  };
+
+  const handleSendTestPush = async () => {
+    if (!targetToken.trim()) {
+      alert('Please enter a target FCM token');
+      return;
+    }
+    setFcmResultLoading(true);
+    setFcmResult({ status: 'Sending test push notification...' });
+    try {
+      const response = await sendDirectPush({
+        token: targetToken.trim(),
+        title: testTitle.trim(),
+        body: testBody.trim(),
+        platform: /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ? 'mobile' : 'web'
+      });
+      setFcmResult(response);
+    } catch (err: any) {
+      setFcmResult({
+        error: err.response?.data?.message || err.message || 'Error sending test push'
+      });
+    } finally {
+      setFcmResultLoading(false);
+    }
+  };
+
+  const openDiagnostics = () => {
+    setIsDiagnosticsOpen(true);
+    fetchFCMStatus();
+    loadBrowserToken();
   };
 
   const handleDelete = async (id: string) => {
@@ -281,8 +372,8 @@ export default function AdminNotification() {
               </div>
             )}
 
-            <div className="p-6 flex-1 flex flex-col">
-              <form onSubmit={handleSendNotification} className="space-y-4 flex-1 flex flex-col">
+            <div className="p-6">
+              <form onSubmit={handleSendNotification} className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-neutral-700 mb-2">
                     Select User Type
@@ -295,7 +386,6 @@ export default function AdminNotification() {
                     className="w-full px-3 py-2 border border-neutral-300 rounded focus:ring-2 focus:ring-primary focus:border-primary outline-none bg-white"
                   >
                     <option value="All">All Users</option>
-                    <option value="Admin">Admin</option>
                     <option value="Seller">Seller</option>
                     <option value="Customer">Customer</option>
                     <option value="Delivery">Delivery</option>
@@ -318,7 +408,7 @@ export default function AdminNotification() {
                   />
                 </div>
 
-                <div className="flex-1">
+                <div>
                   <label className="block text-sm font-medium text-neutral-700 mb-2">
                     Message <span className="text-red-500">*</span>
                   </label>
@@ -334,7 +424,15 @@ export default function AdminNotification() {
                   />
                 </div>
 
-                <div className="mt-auto">
+                <div className="pt-2 flex flex-col gap-2">
+                  <button
+                    type="button"
+                    onClick={openDiagnostics}
+                    disabled={loading}
+                    className="w-full bg-neutral-50 border-2 border-neutral-200 text-neutral-600 hover:bg-neutral-100 hover:text-neutral-800 disabled:opacity-50 disabled:cursor-not-allowed px-4 py-2 rounded font-semibold transition-all active:scale-95 shadow-sm"
+                  >
+                    Test Notification
+                  </button>
                   <button
                     type="submit"
                     disabled={loading}
@@ -367,7 +465,6 @@ export default function AdminNotification() {
                   className="bg-white border border-neutral-300 rounded py-1.5 px-3 text-sm focus:ring-1 focus:ring-primary focus:outline-none cursor-pointer"
                 >
                   <option value="All">All</option>
-                  <option value="Admin">Admin</option>
                   <option value="Seller">Seller</option>
                   <option value="Customer">Customer</option>
                   <option value="Delivery">Delivery</option>
@@ -599,6 +696,162 @@ export default function AdminNotification() {
           </div>
         </div>
       </div>
+
+      {/* Firebase FCM Diagnostics Modal */}
+      {isDiagnosticsOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 bg-black bg-opacity-50"
+            onClick={() => setIsDiagnosticsOpen(false)}
+          ></div>
+
+          {/* Modal Container */}
+          <div className="relative bg-white rounded-lg shadow-xl max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto z-10">
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-neutral-200">
+              <h2 className="text-lg font-semibold text-neutral-900 flex items-center gap-2">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 2L2 22H22L12 2Z" fill="#FFC107" />
+                  <path d="M12 12V17M12 9H12.01" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                Firebase FCM Diagnostics
+              </h2>
+              <button
+                onClick={() => setIsDiagnosticsOpen(false)}
+                className="text-neutral-400 hover:text-neutral-600 transition-colors"
+                disabled={fcmResultLoading}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className="px-6 py-4 space-y-4">
+              {/* Server Connection Status */}
+              <div className="p-3 bg-neutral-50 rounded-lg flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-neutral-500 uppercase tracking-wider font-semibold">Firebase Admin SDK Status</p>
+                  <p className="text-sm font-medium text-neutral-800">
+                    {fcmStatusLoading ? 'Checking...' : fcmStatus ? 'Initialized successfully' : 'Not initialized (Push disabled)'}
+                  </p>
+                </div>
+                <div>
+                  {fcmStatusLoading ? (
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary"></div>
+                  ) : fcmStatus ? (
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-800">
+                      Connected
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">
+                      Push Disabled
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Browser Registration Status */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="block text-sm font-medium text-neutral-700">
+                    Current Browser FCM Token
+                  </label>
+                  <button
+                    type="button"
+                    onClick={handleRegisterBrowser}
+                    disabled={fcmResultLoading}
+                    className="text-xs text-primary hover:text-primary-dark font-medium underline"
+                  >
+                    Register This Browser
+                  </button>
+                </div>
+                <input
+                  type="text"
+                  readOnly
+                  value={browserToken || 'No token registered for this browser.'}
+                  className="w-full px-3 py-2 bg-neutral-50 border border-neutral-300 rounded text-xs text-neutral-600 focus:outline-none cursor-text select-all"
+                  onClick={(e) => (e.target as HTMLInputElement).select()}
+                />
+              </div>
+
+              {/* Target Token Input */}
+              <div className="space-y-1">
+                <label className="block text-sm font-medium text-neutral-700">
+                  Target FCM Token <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  value={targetToken}
+                  onChange={(e) => setTargetToken(e.target.value)}
+                  placeholder="Paste an FCM token here (e.g. from the mobile app or another browser)"
+                  rows={3}
+                  className="w-full px-3 py-2 border border-neutral-300 rounded text-xs focus:ring-1 focus:ring-primary focus:border-primary outline-none"
+                />
+              </div>
+
+              {/* Test Notification Payload */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="block text-xs font-medium text-neutral-700">
+                    Test Title
+                  </label>
+                  <input
+                    type="text"
+                    value={testTitle}
+                    onChange={(e) => setTestTitle(e.target.value)}
+                    className="w-full px-3 py-1.5 border border-neutral-300 rounded text-sm focus:ring-1 focus:ring-primary focus:border-primary outline-none"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="block text-xs font-medium text-neutral-700">
+                    Test Message
+                  </label>
+                  <input
+                    type="text"
+                    value={testBody}
+                    onChange={(e) => setTestBody(e.target.value)}
+                    className="w-full px-3 py-1.5 border border-neutral-300 rounded text-sm focus:ring-1 focus:ring-primary focus:border-primary outline-none"
+                  />
+                </div>
+              </div>
+
+              {/* Result Console */}
+              {fcmResult && (
+                <div className="space-y-1">
+                  <p className="text-xs font-medium text-neutral-700">FCM Response Console</p>
+                  <pre className="w-full p-3 bg-neutral-900 rounded text-[11px] font-mono text-neutral-300 overflow-x-auto max-h-40 whitespace-pre-wrap select-text">
+                    {JSON.stringify(fcmResult, null, 2)}
+                  </pre>
+                </div>
+              )}
+            </div>
+
+            {/* Footer Actions */}
+            <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-neutral-200">
+              <button
+                onClick={() => setIsDiagnosticsOpen(false)}
+                className="px-4 py-2 text-sm font-medium text-neutral-700 bg-white border border-neutral-300 rounded hover:bg-neutral-50 transition-colors"
+                disabled={fcmResultLoading}
+              >
+                Close
+              </button>
+              <button
+                onClick={handleSendTestPush}
+                disabled={!targetToken.trim() || fcmResultLoading}
+                className={`px-4 py-2 text-sm font-medium text-white rounded transition-colors ${
+                  !targetToken.trim() || fcmResultLoading
+                    ? 'bg-neutral-400 cursor-not-allowed'
+                    : 'bg-primary hover:bg-primary-dark shadow-md active:scale-95 transition-all'
+                }`}
+              >
+                {fcmResultLoading ? 'Processing...' : 'Send Test Push'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Footer */}
       <footer className="text-center py-4 text-sm text-neutral-600 border-t border-neutral-200 bg-white">

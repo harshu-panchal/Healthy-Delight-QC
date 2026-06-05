@@ -684,7 +684,7 @@ export default function AdminReturnRequest() {
                       </span>
                     </td>
                     <td className="px-4 sm:px-6 py-3 text-sm text-neutral-600">
-                      {new Date(request.requestedAt).toLocaleDateString()}
+                      {new Date(request.requestedAt).toLocaleDateString('en-GB')}
                     </td>
                     <td className="px-4 sm:px-6 py-3">
                       <div className="flex items-center gap-2">

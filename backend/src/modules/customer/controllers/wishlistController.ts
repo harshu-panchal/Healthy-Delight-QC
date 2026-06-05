@@ -2,7 +2,28 @@
 import { Request, Response } from 'express';
 import Wishlist from '../../../models/Wishlist';
 import Product from '../../../models/Product';
+import Category from '../../../models/Category';
 import { findSellersWithinRange } from '../../../utils/locationHelper';
+
+// Helper to get all fully active category IDs (self active + all ancestors active)
+async function getFullyActiveCategoryIds(): Promise<Set<string>> {
+  const activeCategories = await Category.find({ status: "Active" }).select("_id parentId").lean();
+  const activeMap = new Map(activeCategories.map(c => [c._id.toString(), c]));
+
+  const isAncestorsActive = (cat: any): boolean => {
+    let current = cat;
+    while (current.parentId) {
+      const parentIdStr = current.parentId.toString();
+      const parent = activeMap.get(parentIdStr);
+      if (!parent) return false;
+      current = parent;
+    }
+    return true;
+  };
+
+  const fullyActive = activeCategories.filter(isAncestorsActive);
+  return new Set(fullyActive.map(c => c._id.toString()));
+}
 
 export const getWishlist = async (req: Request, res: Response) => {
     try {
@@ -40,6 +61,16 @@ export const getWishlist = async (req: Request, res: Response) => {
         if (!wishlist) {
             // Return empty if not created yet
             wishlist = new Wishlist({ customer: userId, products: [] });
+        } else if (wishlist.products && wishlist.products.length > 0) {
+            const fullyActiveIds = await getFullyActiveCategoryIds();
+            wishlist.products = wishlist.products.filter((product: any) => {
+                if (!product) return false;
+                const prodCatId = product.category?.toString();
+                const prodSubId = product.subcategory?.toString();
+                if (prodCatId && !fullyActiveIds.has(prodCatId)) return false;
+                if (prodSubId && !fullyActiveIds.has(prodSubId)) return false;
+                return true;
+            });
         }
 
         return res.status(200).json({
@@ -82,6 +113,13 @@ export const addToWishlist = async (req: Request, res: Response) => {
             return res.status(404).json({ success: false, message: 'Product not found or unavailable' });
         }
 
+        const fullyActiveIds = await getFullyActiveCategoryIds();
+        const prodCatId = product.category?.toString();
+        const prodSubId = product.subcategory?.toString();
+        if ((prodCatId && !fullyActiveIds.has(prodCatId)) || (prodSubId && !fullyActiveIds.has(prodSubId))) {
+            return res.status(404).json({ success: false, message: 'Product not found or unavailable' });
+        }
+
         const nearbySellerIds = await findSellersWithinRange(userLat, userLng);
         const isAvailable = nearbySellerIds.some(id => id.toString() === product.seller.toString());
 
@@ -108,6 +146,18 @@ export const addToWishlist = async (req: Request, res: Response) => {
             path: 'products',
             match: { seller: { $in: nearbySellerIds } }
         });
+
+        if (populatedWishlist && populatedWishlist.products) {
+            const fullyActiveIds = await getFullyActiveCategoryIds();
+            populatedWishlist.products = populatedWishlist.products.filter((product: any) => {
+                if (!product) return false;
+                const prodCatId = product.category?.toString();
+                const prodSubId = product.subcategory?.toString();
+                if (prodCatId && !fullyActiveIds.has(prodCatId)) return false;
+                if (prodSubId && !fullyActiveIds.has(prodSubId)) return false;
+                return true;
+            });
+        }
 
         return res.status(200).json({
             success: true,

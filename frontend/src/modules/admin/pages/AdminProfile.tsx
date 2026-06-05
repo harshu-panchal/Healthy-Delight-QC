@@ -294,7 +294,7 @@ export default function AdminProfile() {
                                         Created At
                                     </label>
                                     <p className="text-neutral-900 py-2">
-                                        {new Date(profile.createdAt).toLocaleString()}
+                                        {new Date(profile.createdAt).toLocaleString('en-GB')}
                                     </p>
                                 </div>
                             </div>

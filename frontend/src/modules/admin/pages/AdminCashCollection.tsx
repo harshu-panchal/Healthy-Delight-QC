@@ -171,7 +171,7 @@ export default function AdminCashCollection() {
           collection.total.toFixed(2),
           collection.amount.toFixed(2),
           `"${collection.remark || ""}"`,
-          new Date(collection.collectedAt).toLocaleDateString(),
+          new Date(collection.collectedAt).toLocaleDateString('en-GB'),
         ].join(",")
       ),
     ].join("\n");
@@ -544,7 +544,7 @@ export default function AdminCashCollection() {
                       <td className="px-6 py-4 text-sm text-neutral-600">
                         <div className="flex flex-col">
                           <span className="font-medium">
-                            {new Date(collection.collectedAt).toLocaleDateString()}
+                            {new Date(collection.collectedAt).toLocaleDateString('en-GB')}
                           </span>
                           <span className="text-xs text-neutral-400">
                             {new Date(collection.collectedAt).toLocaleTimeString()}

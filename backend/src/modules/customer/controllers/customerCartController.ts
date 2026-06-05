@@ -4,6 +4,7 @@ import Cart from '../../../models/Cart';
 import CartItem from '../../../models/CartItem';
 import Product from '../../../models/Product';
 import Customer from '../../../models/Customer';
+import Category from '../../../models/Category';
 import { findSellersWithinRange } from '../../../utils/locationHelper';
 import { isWholesaleEligible, getVariationPrice } from '../../../utils/wholesaleHelper';
 import mongoose from 'mongoose';
@@ -11,6 +12,26 @@ import mongoose from 'mongoose';
 import Seller from '../../../models/Seller';
 import { getRoadDistances } from '../../../services/mapService';
 import AppSettings from '../../../models/AppSettings';
+
+// Helper to get all fully active category IDs (self active + all ancestors active)
+async function getFullyActiveCategoryIds(): Promise<Set<string>> {
+  const activeCategories = await Category.find({ status: "Active" }).select("_id parentId").lean();
+  const activeMap = new Map(activeCategories.map(c => [c._id.toString(), c]));
+
+  const isAncestorsActive = (cat: any): boolean => {
+    let current = cat;
+    while (current.parentId) {
+      const parentIdStr = current.parentId.toString();
+      const parent = activeMap.get(parentIdStr);
+      if (!parent) return false;
+      current = parent;
+    }
+    return true;
+  };
+
+  const fullyActive = activeCategories.filter(isAncestorsActive);
+  return new Set(fullyActive.map(c => c._id.toString()));
+}
 
 // Helper to calculate item price matching frontend logic
 const calculateItemPrice = (product: any, variationSelector: any, quantity: number = 1, customerType?: string) => {
@@ -51,13 +72,20 @@ const calculateItemPrice = (product: any, variationSelector: any, quantity: numb
 const calculateCartTotal = async (cartId: any, nearbySellerIds: mongoose.Types.ObjectId[] = [], customerType?: string) => {
     const items = await CartItem.find({ cart: cartId }).populate({
         path: 'product',
-        select: 'price discPrice variations seller status publish productName'
+        select: 'price discPrice variations seller status publish productName category subcategory'
     });
+
+    const fullyActiveIds = await getFullyActiveCategoryIds();
 
     let total = 0;
     for (const item of items) {
         const product = item.product as any;
         if (product && product.status === 'Active' && product.publish) {
+            const prodCatId = product.category?.toString();
+            const prodSubId = product.subcategory?.toString();
+            if (prodCatId && !fullyActiveIds.has(prodCatId)) continue;
+            if (prodSubId && !fullyActiveIds.has(prodSubId)) continue;
+
             // Check if seller is in range
             const isAvailable = nearbySellerIds.some(id => id.toString() === product.seller.toString());
             if (isAvailable) {
@@ -171,7 +199,7 @@ export const getCart = async (req: Request, res: Response) => {
             path: 'items',
             populate: {
                 path: 'product',
-                select: 'productName price mainImage stock pack mrp category seller status publish discPrice variations tax',
+                select: 'productName price mainImage stock pack mrp category subcategory seller status publish discPrice variations tax',
                 populate: {
                     path: 'tax',
                     select: 'name percentage'
@@ -189,12 +217,18 @@ export const getCart = async (req: Request, res: Response) => {
         const customerType = customerObj?.customerType || 'retailer';
 
         // Filter items based on location availability and update total
+        const fullyActiveIds = await getFullyActiveCategoryIds();
         const filteredItems = [];
         let total = 0;
 
         for (const item of (cart.items as any)) {
             const product = item.product;
             if (product && product.status === 'Active' && product.publish) {
+                const prodCatId = product.category?.toString();
+                const prodSubId = product.subcategory?.toString();
+                if (prodCatId && !fullyActiveIds.has(prodCatId)) continue;
+                if (prodSubId && !fullyActiveIds.has(prodSubId)) continue;
+
                 const isAvailable = nearbySellerIds.some(id => id.toString() === product.seller.toString());
                 if (isAvailable) {
                     filteredItems.push(item);
@@ -256,6 +290,13 @@ export const addToCart = async (req: Request, res: Response) => {
         // Verify product exists and is available at location
         const product = await Product.findOne({ _id: productId, status: 'Active', publish: true }).populate('seller');
         if (!product) {
+            return res.status(404).json({ success: false, message: 'Product not found or unavailable' });
+        }
+
+        const fullyActiveIds = await getFullyActiveCategoryIds();
+        const prodCatId = product.category?.toString();
+        const prodSubId = product.subcategory?.toString();
+        if ((prodCatId && !fullyActiveIds.has(prodCatId)) || (prodSubId && !fullyActiveIds.has(prodSubId))) {
             return res.status(404).json({ success: false, message: 'Product not found or unavailable' });
         }
 
@@ -338,7 +379,7 @@ export const addToCart = async (req: Request, res: Response) => {
             path: 'items',
             populate: {
                 path: 'product',
-                select: 'productName price mainImage stock pack mrp category seller status publish discPrice variations tax',
+                select: 'productName price mainImage stock pack mrp category subcategory seller status publish discPrice variations tax',
                 populate: {
                     path: 'tax',
                     select: 'name percentage'
@@ -348,7 +389,12 @@ export const addToCart = async (req: Request, res: Response) => {
 
         const filteredItems = (updatedCart?.items as any[] || []).filter(item => {
             const prod = item.product;
-            return prod && nearbySellerIds.some(id => id.toString() === prod.seller.toString());
+            if (!prod) return false;
+            const prodCatId = prod.category?.toString();
+            const prodSubId = prod.subcategory?.toString();
+            if (prodCatId && !fullyActiveIds.has(prodCatId)) return false;
+            if (prodSubId && !fullyActiveIds.has(prodSubId)) return false;
+            return nearbySellerIds.some(id => id.toString() === prod.seller.toString());
         });
 
         // Calculate fees
@@ -411,7 +457,12 @@ export const updateCartItem = async (req: Request, res: Response) => {
 
         // Verify item is still available at location
         const product = cartItem.product as any;
-        const isAvailable = product && nearbySellerIds.some(id => id.toString() === product.seller.toString());
+        const fullyActiveIds = await getFullyActiveCategoryIds();
+        const prodCatId = product?.category?.toString();
+        const prodSubId = product?.subcategory?.toString();
+        const isCatActive = prodCatId ? fullyActiveIds.has(prodCatId) : true;
+        const isSubCatActive = prodSubId ? fullyActiveIds.has(prodSubId) : true;
+        const isAvailable = product && isCatActive && isSubCatActive && nearbySellerIds.some(id => id.toString() === product.seller.toString());
 
         if (!isAvailable) {
             return res.status(403).json({
@@ -456,12 +507,17 @@ export const updateCartItem = async (req: Request, res: Response) => {
             path: 'items',
             populate: {
                 path: 'product',
-                select: 'productName price mainImage stock pack mrp category seller status publish discPrice variations'
+                select: 'productName price mainImage stock pack mrp category subcategory seller status publish discPrice variations'
             }
         });
 
         const filteredItems = (updatedCart?.items as any[] || []).filter(item => {
             const prod = item.product;
+            if (!prod) return false;
+            const prodCatId = prod.category?.toString();
+            const prodSubId = prod.subcategory?.toString();
+            if (prodCatId && !fullyActiveIds.has(prodCatId)) return false;
+            if (prodSubId && !fullyActiveIds.has(prodSubId)) return false;
             return prod && nearbySellerIds.some(id => id.toString() === prod.seller.toString());
         });
 
@@ -525,12 +581,18 @@ export const removeFromCart = async (req: Request, res: Response) => {
             path: 'items',
             populate: {
                 path: 'product',
-                select: 'productName price mainImage stock pack mrp category seller status publish discPrice variations'
+                select: 'productName price mainImage stock pack mrp category subcategory seller status publish discPrice variations'
             }
         });
 
+        const fullyActiveIds = await getFullyActiveCategoryIds();
         const filteredItems = (updatedCart?.items as any[] || []).filter(item => {
             const prod = item.product;
+            if (!prod) return false;
+            const prodCatId = prod.category?.toString();
+            const prodSubId = prod.subcategory?.toString();
+            if (prodCatId && !fullyActiveIds.has(prodCatId)) return false;
+            if (prodSubId && !fullyActiveIds.has(prodSubId)) return false;
             if (nearbySellerIds.length > 0) {
                 return prod && nearbySellerIds.some(id => id.toString() === prod.seller.toString());
             }

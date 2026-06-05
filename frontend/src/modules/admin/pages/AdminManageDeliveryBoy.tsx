@@ -598,20 +598,7 @@ export default function AdminManageDeliveryBoy() {
                                                             </svg>
                                                         )}
                                                     </button>
-                                                    <button
-                                                        onClick={() => handleAvailabilityChange(deliveryBoy._id, deliveryBoy.available === 'Available' ? 'Not Available' : 'Available')}
-                                                        disabled={processing === deliveryBoy._id}
-                                                        className={`p-1.5 rounded transition-colors ${deliveryBoy.available === 'Available'
-                                                            ? 'text-yellow-600 hover:bg-yellow-50'
-                                                            : 'text-neutral-700 hover:bg-cream'
-                                                            }`}
-                                                        title={deliveryBoy.available === 'Available' ? 'Mark as Not Available' : 'Mark as Available'}
-                                                    >
-                                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                                            <circle cx="12" cy="12" r="10"></circle>
-                                                            <path d="M9 12l2 2 4-4"></path>
-                                                        </svg>
-                                                    </button>
+
                                                     <button
                                                         onClick={() => handleDelete(deliveryBoy._id)}
                                                         disabled={processing === deliveryBoy._id}
@@ -782,7 +769,7 @@ export default function AdminManageDeliveryBoy() {
                                         <span className="block text-xs font-semibold text-neutral-400 uppercase">Date of Birth</span>
                                         <span className="font-medium text-neutral-800">
                                             {selectedDeliveryBoy.dateOfBirth 
-                                                ? new Date(selectedDeliveryBoy.dateOfBirth).toLocaleDateString('en-US', {
+                                                ? new Date(selectedDeliveryBoy.dateOfBirth).toLocaleDateString('en-GB', {
                                                     day: 'numeric',
                                                     month: 'long',
                                                     year: 'numeric'

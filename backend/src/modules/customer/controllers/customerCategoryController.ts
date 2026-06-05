@@ -4,6 +4,26 @@ import SubCategory from "../../../models/SubCategory";
 import mongoose from "mongoose";
 import { cache } from "../../../utils/cache";
 
+// Helper to get all fully active category IDs (self active + all ancestors active)
+async function getFullyActiveCategoryIds(): Promise<Set<string>> {
+  const activeCategories = await Category.find({ status: "Active" }).select("_id parentId").lean();
+  const activeMap = new Map(activeCategories.map(c => [c._id.toString(), c]));
+
+  const isAncestorsActive = (cat: any): boolean => {
+    let current = cat;
+    while (current.parentId) {
+      const parentIdStr = current.parentId.toString();
+      const parent = activeMap.get(parentIdStr);
+      if (!parent) return false;
+      current = parent;
+    }
+    return true;
+  };
+
+  const fullyActive = activeCategories.filter(isAncestorsActive);
+  return new Set(fullyActive.map(c => c._id.toString()));
+}
+
 // Get all categories (public) - with caching
 export const getCategories = async (_req: Request, res: Response) => {
   try {
@@ -13,12 +33,15 @@ export const getCategories = async (_req: Request, res: Response) => {
     let categories = cache.get(cacheKey);
 
     if (!categories) {
-      categories = await Category.find({
+      const allActive = await Category.find({
         status: "Active", // Only return active categories
       })
         .sort({ order: 1 })
-        .select("name image icon description color slug _id")
+        .select("name image icon description color slug _id parentId")
         .lean(); // Use lean() for better performance
+
+      const fullyActiveIds = await getFullyActiveCategoryIds();
+      categories = allActive.filter(c => fullyActiveIds.has(c._id.toString()));
 
       // Cache for 10 minutes
       cache.set(cacheKey, categories, 10 * 60 * 1000);
@@ -53,23 +76,42 @@ export const getCategoriesWithSubs = async (_req: Request, res: Response) => {
     }
 
     // Fetch all active categories
-    const categories = await Category.find({ status: "Active" })
+    const allActive = await Category.find({ status: "Active" })
       .sort({ order: 1 })
       .lean();
+
+    const fullyActiveIds = await getFullyActiveCategoryIds();
+    const categories = allActive.filter(c => fullyActiveIds.has(c._id.toString()));
 
     // Attach subcategories if present, but DO NOT filter by product counts.
     // This ensures newly created categories (even without products yet) are visible to customers.
     categoriesWithSubs = await Promise.all(
       categories.map(async (category) => {
+        // Find child subcategories in Category model that are also fully active
+        const children = categories.filter(
+          (c) => c.parentId && c.parentId.toString() === category._id.toString()
+        );
+
         const subcategories = await SubCategory.find({
           category: category._id,
         })
           .sort({ order: 1 })
           .select("name image order");
 
+        const mergedSubs = [
+          ...children.map((c) => ({
+            _id: c._id,
+            name: c.name,
+            image: c.image || "",
+            order: c.order || 0,
+            slug: c.slug,
+          })),
+          ...subcategories,
+        ].sort((a, b) => (a.order || 0) - (b.order || 0));
+
         return {
           ...category,
-          subcategories,
+          subcategories: mergedSubs,
         };
       }),
     );
@@ -152,6 +194,11 @@ export const getCategoryById = async (req: Request, res: Response) => {
       }
     }
 
+    const fullyActiveIds = await getFullyActiveCategoryIds();
+    if (category && !fullyActiveIds.has(category._id.toString())) {
+      category = null;
+    }
+
     if (!category) {
       // Check if it's a subcategory
       if (mongoose.Types.ObjectId.isValid(id)) {
@@ -159,7 +206,7 @@ export const getCategoryById = async (req: Request, res: Response) => {
         if (subcategory) {
           // Find the parent category
           category = await Category.findById(subcategory.category).lean();
-          if (category) {
+          if (category && fullyActiveIds.has(category._id.toString())) {
             // Return both for the frontend to decide
             const subcategories = await SubCategory.find({
               category: category._id,
@@ -213,11 +260,13 @@ export const getCategoryById = async (req: Request, res: Response) => {
         order: 1,
       });
 
-    console.log(`[getCategoryById] Found ${subcategories.length} subcategories for ${category.name}`);
+    const activeSubcategories = subcategories.filter(sub => fullyActiveIds.has(sub._id.toString()));
+
+    console.log(`[getCategoryById] Found ${activeSubcategories.length} active subcategories for ${category.name}`);
 
     const responseData = {
       category,
-      subcategories,
+      subcategories: activeSubcategories,
       currentSubcategory: null,
     };
 

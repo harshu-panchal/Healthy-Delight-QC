@@ -101,6 +101,11 @@ export default function AdminTaxes() {
       return;
     }
 
+    if (!/^[a-zA-Z\s]+$/.test(taxTitle)) {
+      alert("Tax title can only contain letters and spaces");
+      return;
+    }
+
     const percentageValue = parseFloat(percentage);
     if (
       isNaN(percentageValue) ||
@@ -253,7 +258,10 @@ export default function AdminTaxes() {
                   <input
                     type="text"
                     value={taxTitle}
-                    onChange={(e) => setTaxTitle(e.target.value)}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/[^a-zA-Z\s]/g, "");
+                      setTaxTitle(val);
+                    }}
                     placeholder="Enter Tax Title"
                     className="w-full px-3 py-2 border border-neutral-300 rounded focus:ring-2 focus:ring-primary focus:border-primary outline-none"
                   />
@@ -334,33 +342,18 @@ export default function AdminTaxes() {
                     onClick={handleExport}
                     className="bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white px-3 py-1.5 rounded text-sm font-medium flex items-center gap-1 transition-all active:scale-95">
                     Export
-                    <svg
-                      width="10"
-                      height="10"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="ml-1">
-                      <polyline points="6 9 12 15 18 9"></polyline>
-                    </svg>
                   </button>
                 </div>
                 <div className="relative">
-                  <span className="absolute left-2 top-1/2 -translate-y-1/2 text-neutral-400 text-xs">
-                    Search:
-                  </span>
                   <input
                     type="text"
-                    className="pl-14 pr-3 py-1.5 bg-neutral-100 border-none rounded text-sm focus:ring-1 focus:ring-primary w-48"
+                    className="px-3 py-1.5 bg-neutral-100 border-none rounded text-sm focus:ring-1 focus:ring-primary w-48"
                     value={searchTerm}
                     onChange={(e) => {
                       setSearchTerm(e.target.value);
                       setCurrentPage(1);
                     }}
-                    placeholder=""
+                    placeholder="Search..."
                   />
                 </div>
               </div>

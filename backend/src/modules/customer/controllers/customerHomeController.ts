@@ -13,6 +13,26 @@ import mongoose from "mongoose";
 import { cache } from "../../../utils/cache";
 import { findSellersWithinRange } from "../../../utils/locationHelper";
 
+// Helper to get all fully active category IDs (self active + all ancestors active)
+async function getFullyActiveCategoryIds(): Promise<Set<string>> {
+  const activeCategories = await Category.find({ status: "Active" }).select("_id parentId").lean();
+  const activeMap = new Map(activeCategories.map(c => [c._id.toString(), c]));
+
+  const isAncestorsActive = (cat: any): boolean => {
+    let current = cat;
+    while (current.parentId) {
+      const parentIdStr = current.parentId.toString();
+      const parent = activeMap.get(parentIdStr);
+      if (!parent) return false;
+      current = parent;
+    }
+    return true;
+  };
+
+  const fullyActive = activeCategories.filter(isAncestorsActive);
+  return new Set(fullyActive.map(c => c._id.toString()));
+}
+
 // Helper function to fetch data for a home section based on its configuration
 async function fetchSectionData(
   section: any,
@@ -20,6 +40,7 @@ async function fetchSectionData(
 ): Promise<any[]> {
   try {
     const { categories, subCategories, displayType, limit } = section;
+    const fullyActiveIds = await getFullyActiveCategoryIds();
 
     // If displayType is "subcategories", fetch subcategories
     if (displayType === "subcategories") {
@@ -56,8 +77,10 @@ async function fetchSectionData(
 
       console.log(`[fetchSectionData] Found ${subcategoryDocs.length} subcategories in Category model`);
 
-      if (subcategoryDocs.length > 0) {
-        return subcategoryDocs.map((sub: any) => ({
+      const activeSubcategoryDocs = subcategoryDocs.filter((sub: any) => fullyActiveIds.has(sub._id.toString()));
+
+      if (activeSubcategoryDocs.length > 0) {
+        return activeSubcategoryDocs.map((sub: any) => ({
           id: sub._id.toString(),
           subcategoryId: sub._id.toString(),
           categoryId: sub.parentId?.toString() || "",
@@ -77,7 +100,12 @@ async function fetchSectionData(
         .limit(limit || 10)
         .lean();
 
-      return legacySubcategories.map((sub: any) => ({
+      const activeLegacySubcategories = legacySubcategories.filter((sub: any) => {
+        const parentIdStr = sub.category?.toString();
+        return parentIdStr && fullyActiveIds.has(parentIdStr);
+      });
+
+      return activeLegacySubcategories.map((sub: any) => ({
         id: sub._id.toString(),
         subcategoryId: sub._id.toString(),
         categoryId: sub.category?.toString() || "",
@@ -132,11 +160,19 @@ async function fetchSectionData(
         .sort({ createdAt: -1 }) // Show newest items first
         .limit(limit || 8)
         .select(
-          "productName mainImage price discPrice compareAtPrice mrp discount rating reviewsCount pack seller variations",
+          "productName mainImage price discPrice compareAtPrice mrp discount rating reviewsCount pack seller variations category subcategory",
         )
         .lean();
 
-      return products.map((p: any) => {
+      const activeProducts = products.filter((p: any) => {
+        const catId = p.category?.toString();
+        const subId = p.subcategory?.toString();
+        if (catId && !fullyActiveIds.has(catId)) return false;
+        if (subId && !fullyActiveIds.has(subId)) return false;
+        return true;
+      });
+
+      return activeProducts.map((p: any) => {
         // Check if the product's seller is within range
         const isAvailable =
           nearbySellerIds && nearbySellerIds.length > 0 && p.seller
@@ -190,7 +226,9 @@ async function fetchSectionData(
           .limit(limit || 8)
           .lean();
 
-        return fetchedCategories.map((c: any) => ({
+        const activeFetchedCategories = fetchedCategories.filter((c: any) => fullyActiveIds.has(c._id.toString()));
+
+        return activeFetchedCategories.map((c: any) => ({
           id: c._id.toString(),
           categoryId: c.slug || c._id.toString(), // Use slug for SEO-friendly URLs, fallback to _id
           name: c.name,
@@ -247,6 +285,8 @@ export const getHomeContent = async (req: Request, res: Response) => {
       nearbySellerIds = [];
     }
 
+    const fullyActiveIds = await getFullyActiveCategoryIds();
+
     // 1. Featured / Bestsellers - Get bestseller cards from admin configuration
     const bestsellerCards = await BestsellerCard.find({
       isActive: true,
@@ -256,9 +296,14 @@ export const getHomeContent = async (req: Request, res: Response) => {
       .limit(6)
       .lean();
 
+    const activeBestsellerCards = bestsellerCards.filter((card: any) => {
+      const catId = card.category?._id || card.category;
+      return catId && fullyActiveIds.has(catId.toString());
+    });
+
     // For each bestseller card, get 4 products from the associated category
     const bestsellers = await Promise.all(
-      bestsellerCards.map(async (card: any) => {
+      activeBestsellerCards.map(async (card: any) => {
         const categoryId = card.category?._id || card.category;
 
         // Build product query for images (ignore location to show category preview)
@@ -334,9 +379,17 @@ export const getHomeContent = async (req: Request, res: Response) => {
       .sort({ order: 1 })
       .lean();
 
-    // Filter out any products that were null (due to match condition)
+    // Filter out any products that were null (due to match condition) and whose category or subcategory is deactivated
     const validLowestPricesProducts = lowestPricesProducts
-      .filter((item: any) => item.product !== null)
+      .filter((item: any) => {
+        const product = item.product;
+        if (!product) return false;
+        const catId = product.category?._id?.toString() || product.category?.toString();
+        const subId = product.subcategory?._id?.toString() || product.subcategory?.toString();
+        if (catId && !fullyActiveIds.has(catId)) return false;
+        if (subId && !fullyActiveIds.has(subId)) return false;
+        return true;
+      })
       .map((item: any) => {
         const product = item.product;
         // Check if the product's seller is within range
@@ -384,9 +437,11 @@ export const getHomeContent = async (req: Request, res: Response) => {
       categoriesQuery.headerCategoryId = activeHeaderCategory._id;
     }
 
-    const categories = await Category.find(categoriesQuery)
-      .select("name image icon color slug headerCategoryId")
+    const rawCategories = await Category.find(categoriesQuery)
+      .select("name image icon color slug headerCategoryId parentId")
       .sort({ order: 1 });
+
+    const categories = rawCategories.filter((c: any) => fullyActiveIds.has(c._id.toString()));
 
     // 4. Shop By Store - Fetch from database
     const shopDocuments = await Shop.find({ isActive: true })
@@ -405,10 +460,18 @@ export const getHomeContent = async (req: Request, res: Response) => {
             status: "Active",
             publish: true,
           })
-            .select("mainImage")
+            .select("mainImage category subcategory")
             .lean();
 
-          productImages = shopProducts
+          const activeShopProducts = shopProducts.filter((p: any) => {
+            const catId = p.category?.toString();
+            const subId = p.subcategory?.toString();
+            if (catId && !fullyActiveIds.has(catId)) return false;
+            if (subId && !fullyActiveIds.has(subId)) return false;
+            return true;
+          });
+
+          productImages = activeShopProducts
             .map((p: any) => p.mainImage)
             .filter(Boolean);
         }
@@ -430,10 +493,13 @@ export const getHomeContent = async (req: Request, res: Response) => {
     const trendingCategories = await Category.find({
       status: "Active",
     })
-      .limit(5)
       .select("name image slug");
 
-    const trending = trendingCategories.map((c) => ({
+    const activeTrendingCategories = trendingCategories
+      .filter((c: any) => fullyActiveIds.has(c._id.toString()))
+      .slice(0, 5);
+
+    const trending = activeTrendingCategories.map((c) => ({
       id: c._id,
       name: c.name,
       image: c.image || `/assets/categories/${c.slug}.jpg`,
@@ -450,10 +516,20 @@ export const getHomeContent = async (req: Request, res: Response) => {
     };
 
     const foodProducts = await Product.find(foodProductsQuery)
-      .limit(3)
-      .select("productName mainImage");
+      .select("productName mainImage category subcategory")
+      .lean();
 
-    const cookingIdeas = foodProducts.map((p) => ({
+    const activeFoodProducts = foodProducts
+      .filter((p: any) => {
+        const catId = p.category?.toString();
+        const subId = p.subcategory?.toString();
+        if (catId && !fullyActiveIds.has(catId)) return false;
+        if (subId && !fullyActiveIds.has(subId)) return false;
+        return true;
+      })
+      .slice(0, 3);
+
+    const cookingIdeas = activeFoodProducts.map((p) => ({
       id: p._id,
       title: p.productName,
       image: p.mainImage,
@@ -493,11 +569,14 @@ export const getHomeContent = async (req: Request, res: Response) => {
     const categoriesWithHeaderCategory = await Category.find(categoryQuery)
       .populate("headerCategoryId", "name status")
       .sort({ order: 1 })
-      .limit(4) // Limit to 4 promo cards
       .lean();
 
+    const activeCategoriesWithHeader = categoriesWithHeaderCategory
+      .filter((c: any) => fullyActiveIds.has(c._id.toString()))
+      .slice(0, 4);
+
     const promoCards = await Promise.all(
-      categoriesWithHeaderCategory.map(async (category: any) => {
+      activeCategoriesWithHeader.map(async (category: any) => {
         // Get child categories (subcategories) for this category
         const childCategories = await Category.find({
           parentId: category._id,
@@ -505,11 +584,14 @@ export const getHomeContent = async (req: Request, res: Response) => {
         })
           .select("name image _id")
           .sort({ order: 1 })
-          .limit(4) // Limit to 4 subcategory images
           .lean();
 
+        const activeChildCategories = childCategories
+          .filter((c: any) => fullyActiveIds.has(c._id.toString()))
+          .slice(0, 4);
+
         // Extract subcategory images
-        const subcategoryImages = childCategories
+        const subcategoryImages = activeChildCategories
           .map((child: any) => child.image)
           .filter((img: string) => img && img.trim() !== "");
 
@@ -881,10 +963,18 @@ export const getStoreProducts = async (req: Request, res: Response) => {
       .populate("brand", "name")
       .populate("seller", "storeName")
       .sort({ createdAt: -1 })
-      .limit(50)
       .lean({ virtuals: true });
 
-    const total = await Product.countDocuments(query);
+    const fullyActiveIds = await getFullyActiveCategoryIds();
+    const activeProducts = products.filter((p: any) => {
+      const catId = p.category?._id?.toString() || p.category?.toString();
+      const subId = p.subcategory?._id?.toString() || p.subcategory?.toString();
+      if (catId && !fullyActiveIds.has(catId)) return false;
+      if (subId && !fullyActiveIds.has(subId)) return false;
+      return true;
+    }).slice(0, 50);
+
+    const total = activeProducts.length;
 
     console.log(
       `[getStoreProducts] Found ${total} products matching query, returning ${products.length}`,
@@ -892,7 +982,7 @@ export const getStoreProducts = async (req: Request, res: Response) => {
 
     return res.status(200).json({
       success: true,
-      data: products.map((p) => ({ ...p, isAvailable: true })),
+      data: activeProducts.map((p) => ({ ...p, isAvailable: true })),
       shop: shopData,
       pagination: {
         page: 1,

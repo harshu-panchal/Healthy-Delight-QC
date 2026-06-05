@@ -16,6 +16,7 @@ export interface DashboardStats {
   lowStockProducts: number;
   totalRevenue: number;
   avgCompletedOrderValue: number;
+  maxCompletedOrderValue: number;
 }
 
 export interface SalesData {

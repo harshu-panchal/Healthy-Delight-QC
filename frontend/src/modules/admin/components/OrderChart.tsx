@@ -9,8 +9,21 @@ interface OrderChartProps {
 }
 
 export default function OrderChart({ title, data, maxValue, height = 400 }: OrderChartProps) {
-  // Extract categories (dates) and series data (values)
-  const categories = data.map(item => item.date);
+  const formatChartDate = (dateStr: string) => {
+    if (dateStr && dateStr.includes('-')) {
+      const parts = dateStr.split('-');
+      if (parts.length === 3) {
+        const [year, month, day] = parts;
+        return `${day}/${month}/${year}`;
+      } else if (parts.length === 2) {
+        const [year, month] = parts;
+        return `${month}/${year}`;
+      }
+    }
+    return dateStr;
+  };
+
+  const categories = data.map(item => formatChartDate(item.date));
   const seriesData = data.map(item => item.value);
 
   const options: ApexOptions = {

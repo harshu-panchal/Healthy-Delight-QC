@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 
 interface SubMenuItem {
@@ -837,6 +837,21 @@ export default function AdminSidebar({ onClose }: AdminSidebarProps) {
     );
   };
 
+  // Auto-expand the menu section that has the active submenu item when pathname changes
+  useEffect(() => {
+    menuSections.forEach((section) => {
+      section.items.forEach((item) => {
+        if (item.hasSubmenu && item.submenuItems && isSubmenuActive(item.submenuItems)) {
+          setExpandedMenus((prev) => {
+            const newSet = new Set(prev);
+            newSet.add(item.path);
+            return newSet;
+          });
+        }
+      });
+    });
+  }, [location.pathname]);
+
   const handleNavigation = (path: string) => {
     navigate(path);
     if (onClose && window.innerWidth < 1024) {
@@ -857,13 +872,7 @@ export default function AdminSidebar({ onClose }: AdminSidebarProps) {
   };
 
   const isExpanded = (path: string) => {
-    const menuItem = menuSections
-      .flatMap((section) => section.items)
-      .find((item) => item.path === path);
-    return (
-      expandedMenus.has(path) ||
-      (menuItem?.submenuItems && isSubmenuActive(menuItem.submenuItems))
-    );
+    return expandedMenus.has(path);
   };
 
   // Filter menu items based on search query

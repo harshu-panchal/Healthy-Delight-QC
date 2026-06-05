@@ -109,17 +109,22 @@ export async function getFCMToken() {
 }
 
 // Register FCM token with backend
-export async function registerFCMToken(forceUpdate = false) {
+// userType is used to namespace the localStorage cache key so Customer/Delivery/Admin
+// tokens don't collide when multiple user types share the same browser.
+export async function registerFCMToken(forceUpdate = false, userType: string = 'Customer') {
     if (!messaging) {
         console.warn('⚠️ Firebase Messaging is not supported or initialized. Push notifications are disabled.');
         return null;
     }
 
+    // Use a user-type-specific cache key so tokens are not shared between roles
+    const cacheKey = `fcm_token_${userType}`;
+
     try {
-        // Check if already registered
-        const savedToken = localStorage.getItem('fcm_token_web');
+        // Check if already registered for this specific user type
+        const savedToken = localStorage.getItem(cacheKey);
         if (savedToken && !forceUpdate) {
-            console.log('FCM token already registered locally');
+            console.log(`FCM token already registered locally for ${userType}`);
             return savedToken;
         }
 
@@ -143,15 +148,15 @@ export async function registerFCMToken(forceUpdate = false) {
 
         // Save to backend
         try {
-            console.log(`Attempting to save FCM token to backend for ${platform}...`);
+            console.log(`Attempting to save FCM token to backend for ${platform} as ${userType}...`);
             const response = await api.post(`/fcm-tokens/save`, {
                 token: token,
                 platform: platform
             });
 
             if (response.data.success) {
-                localStorage.setItem('fcm_token_web', token);
-                console.log(`✅ FCM token registered with backend as ${platform}`);
+                localStorage.setItem(cacheKey, token);
+                console.log(`✅ FCM token registered with backend as ${platform} (${userType})`);
                 return token;
             }
         } catch (apiError: any) {

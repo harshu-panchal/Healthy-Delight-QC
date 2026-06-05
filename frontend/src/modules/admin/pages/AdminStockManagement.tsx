@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   getProducts,
   getCategories,
@@ -24,10 +24,19 @@ interface ProductVariation {
 }
 
 const STATUS_OPTIONS = ["All Products", "Published", "Unpublished"];
-const STOCK_OPTIONS = ["All Products", "In Stock", "Out of Stock", "Unlimited"];
+const STOCK_OPTIONS = ["All Products", "In Stock", "Out of Stock", "Low Stock", "Unlimited"];
 
 export default function AdminStockManagement() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const stockParam = searchParams.get("stock");
+  
+  const initialStockFilter = useMemo(() => {
+    if (stockParam === "out") return "Out of Stock";
+    if (stockParam === "low") return "Low Stock";
+    return "All Products";
+  }, [stockParam]);
+
   const { isAuthenticated, token } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -42,7 +51,13 @@ export default function AdminStockManagement() {
   const [filterCategory, setFilterCategory] = useState("All Category");
   const [filterSeller, setFilterSeller] = useState("All Sellers");
   const [filterStatus, setFilterStatus] = useState("All Products");
-  const [filterStock, setFilterStock] = useState("All Products");
+  const [filterStock, setFilterStock] = useState(initialStockFilter);
+
+  // Sync state if URL search parameters change
+  useEffect(() => {
+    setFilterStock(initialStockFilter);
+    setCurrentPage(1);
+  }, [initialStockFilter]);
 
   // Fetch products and categories
   const fetchData = async () => {
@@ -242,7 +257,12 @@ export default function AdminStockManagement() {
         (filterStock === "Out of Stock" &&
           product.stock !== "Unlimited" &&
           typeof product.stock === "number" &&
-          product.stock === 0);
+          product.stock === 0) ||
+        (filterStock === "Low Stock" &&
+          product.stock !== "Unlimited" &&
+          typeof product.stock === "number" &&
+          product.stock > 0 &&
+          product.stock <= 10);
       const matchesSearch =
         product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         product.seller.toLowerCase().includes(searchTerm.toLowerCase());
@@ -460,31 +480,17 @@ export default function AdminStockManagement() {
                   onClick={handleExport}
                   className="bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white px-3 py-1.5 rounded text-sm font-medium flex items-center gap-1 transition-all active:scale-95">
                   Export
-                  <svg
-                    width="10"
-                    height="10"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round">
-                    <polyline points="6 9 12 15 18 9"></polyline>
-                  </svg>
                 </button>
                 <div className="relative">
-                  <span className="absolute left-2 top-1/2 -translate-y-1/2 text-neutral-400 text-xs">
-                    Search:
-                  </span>
                   <input
                     type="text"
-                    className="pl-14 pr-3 py-1.5 bg-neutral-100 border-none rounded text-sm focus:ring-1 focus:ring-primary w-48"
+                    className="px-3 py-1.5 bg-neutral-100 border-none rounded text-sm focus:ring-1 focus:ring-primary w-48"
                     value={searchTerm}
                     onChange={(e) => {
                       setSearchTerm(e.target.value);
                       setCurrentPage(1);
                     }}
-                    placeholder=""
+                    placeholder="Search..."
                   />
                 </div>
               </div>

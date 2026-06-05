@@ -197,7 +197,7 @@ export default function AdminManageCustomer() {
           customer.email,
           customer.phone,
           customer.registrationDate
-            ? new Date(customer.registrationDate).toLocaleString()
+            ? new Date(customer.registrationDate).toLocaleString('en-GB')
             : "",
           customer.status,
           customer.refCode,
@@ -443,7 +443,7 @@ export default function AdminManageCustomer() {
                       </td>
                       <td className="p-4 border border-neutral-200">
                         {customer.registrationDate
-                          ? new Date(customer.registrationDate).toLocaleString()
+                          ? new Date(customer.registrationDate).toLocaleString('en-GB')
                           : "-"}
                       </td>
                       <td className="p-4 border border-neutral-200">

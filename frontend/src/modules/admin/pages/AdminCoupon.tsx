@@ -14,6 +14,15 @@ import { useAuth } from "../../../context/AuthContext";
 
 export default function AdminCoupon() {
   const { isAuthenticated, token } = useAuth();
+  
+  const getLocalDateString = () => {
+    const d = new Date();
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
   const [formData, setFormData] = useState({
     userType: "",
     numberOfTimes: "Single Time Valid",
@@ -123,6 +132,12 @@ export default function AdminCoupon() {
       !formData.couponDescription
     ) {
       setUploadError("Please fill in all required fields");
+      return;
+    }
+
+    const todayStr = getLocalDateString();
+    if (formData.couponExpiryDate < todayStr) {
+      setUploadError("Coupon expiry date cannot be in the past");
       return;
     }
 
@@ -394,6 +409,7 @@ export default function AdminCoupon() {
                     value={formData.couponExpiryDate}
                     onChange={handleInputChange}
                     required
+                    min={getLocalDateString()}
                     className="w-full px-3 py-2 border border-neutral-300 rounded focus:ring-2 focus:ring-primary focus:border-primary outline-none"
                   />
                 </div>
@@ -670,7 +686,7 @@ export default function AdminCoupon() {
                           : "N/A"}
                       </td>
                       <td className="p-4 align-middle">
-                        {new Date(coupon.endDate).toLocaleDateString()}
+                        {new Date(coupon.endDate).toLocaleDateString('en-GB')}
                       </td>
                       <td className="p-4 align-middle">
                         <span
