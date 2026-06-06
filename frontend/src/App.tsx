@@ -7,6 +7,8 @@ import { AuthProvider, useAuth } from "./context/AuthContext";
 import { ThemeProvider } from "./context/ThemeContext";
 import { LocationProvider } from "./context/LocationContext";
 import { ToastProvider } from "./context/ToastContext";
+import { WishlistProvider } from "./context/WishlistContext";
+
 
 import { LoadingProvider } from "./context/LoadingContext";
 import { AxiosLoadingInterceptor } from "./context/AxiosLoadingInterceptor";
@@ -306,9 +308,10 @@ function AppContent() {
           <ThemeProvider>
             <LocationProvider>
               <ToastProvider>
-                <CartProvider>
-                  <OrdersProvider>
-                    <BrowserRouter
+                <WishlistProvider>
+                  <CartProvider>
+                    <OrdersProvider>
+                      <BrowserRouter
                       future={{
                         v7_startTransition: true,
                         v7_relativeSplatPath: true,
@@ -922,9 +925,10 @@ function AppContent() {
                     </BrowserRouter>
                   </OrdersProvider>
                 </CartProvider>
-              </ToastProvider>
-            </LocationProvider>
-          </ThemeProvider>
+              </WishlistProvider>
+            </ToastProvider>
+          </LocationProvider>
+        </ThemeProvider>
         </AxiosLoadingInterceptor>
       </LoadingProvider>
     </ErrorBoundary >

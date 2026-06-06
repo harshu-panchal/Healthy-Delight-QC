@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { getWishlist, removeFromWishlist } from '../../services/api/customerWishlistService';
+import { useWishlistContext } from '../../context/WishlistContext';
 import { Product } from '../../types/domain';
 import { useCart } from '../../context/CartContext';
 import { useLocation } from '../../hooks/useLocation';
@@ -14,9 +14,7 @@ export default function Wishlist() {
   const navigate = useNavigate();
   const { location: userLocation } = useLocation();
   const { addToCart } = useCart();
-  const { showToast } = useToast();
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { wishlistItems: products, loading, toggleWishlist } = useWishlistContext();
   const [isHeaderSolid, setIsHeaderSolid] = useState(false);
 
   // Scroll Listener for Dynamic Header
@@ -30,75 +28,10 @@ export default function Wishlist() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const fetchWishlist = async (isRetry = false) => {
-    try {
-      setLoading(true);
-      
-      // Attempt to retrieve coordinates from context, fallback to localStorage if needed
-      let lat = userLocation?.latitude;
-      let lng = userLocation?.longitude;
-
-      if (!lat || !lng) {
-        try {
-          const cached = localStorage.getItem('userLocation');
-          if (cached) {
-            const parsed = JSON.parse(cached);
-            if (parsed.latitude && parsed.longitude) {
-              lat = parsed.latitude;
-              lng = parsed.longitude;
-              console.log('[Wishlist] Recovered coordinates from localStorage fallback:', lat, lng);
-            }
-          }
-        } catch (storageError) {
-          console.error('[Wishlist] LocalStorage retrieval failed:', storageError);
-        }
-      }
-
-      const res = await getWishlist({
-        latitude: lat,
-        longitude: lng
-      });
-
-      if (res.success && res.data) {
-        // Filter out null or undefined elements to prevent rendering crashes
-        const validProducts = (res.data.products || []).filter((p: any) => p !== null && p !== undefined);
-        
-        // Self-healing: If empty on initial mount, retry once after 500ms to allow DB writes to settle
-        if (validProducts.length === 0 && !isRetry) {
-          console.log('[Wishlist] Empty results on first load, retrying in 500ms...');
-          setTimeout(() => {
-            fetchWishlist(true);
-          }, 500);
-          return;
-        }
-
-        setProducts(validProducts.map(p => ({
-          ...p,
-          id: p._id || (p as any).id,
-          name: p.productName || (p as any).name,
-          imageUrl: p.mainImageUrl || p.mainImage || (p as any).imageUrl,
-          price: (p as any).price || (p as any).variations?.[0]?.price || 0,
-          pack: (p as any).pack || (p as any).variations?.[0]?.name || 'Standard'
-        })) as any);
-      }
-    } catch (error: any) {
-      console.error('Failed to fetch wishlist:', error);
-      showToast(error.message || 'Failed to fetch wishlist', 'error');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchWishlist(false);
-  }, [userLocation?.latitude, userLocation?.longitude]);
-
   const handleRemove = async (productId: string) => {
-    try {
-      await removeFromWishlist(productId);
-      setProducts(products.filter(p => (p.id !== productId && p._id !== productId)));
-    } catch (error) {
-      console.error('Failed to remove from wishlist:', error);
+    const product = products.find(p => p.id === productId || p._id === productId);
+    if (product) {
+      await toggleWishlist(product);
     }
   };
 

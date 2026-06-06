@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   register,
@@ -20,7 +20,7 @@ export default function DeliverySignUp() {
     .toISOString()
     .split("T")[0];
 
-  const [formData, setFormData] = useState({
+  const defaultFormData = {
     name: "",
     mobile: "",
     email: "",
@@ -36,7 +36,29 @@ export default function DeliverySignUp() {
     accountNumber: "",
     ifscCode: "",
     bonusType: "",
+  };
+
+  const [formData, setFormData] = useState(() => {
+    try {
+      const saved = localStorage.getItem("deliverySignUpFormData");
+      return saved
+        ? {
+            ...defaultFormData,
+            ...JSON.parse(saved),
+          }
+        : defaultFormData;
+    } catch {
+      return defaultFormData;
+    }
   });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("deliverySignUpFormData", JSON.stringify(formData));
+    } catch {
+      // Ignore storage errors
+    }
+  }, [formData]);
 
   // File state for UI
   const [drivingLicenseFile, setDrivingLicenseFile] = useState<File | null>(
@@ -80,7 +102,7 @@ export default function DeliverySignUp() {
     } else if (name === "accountNumber") {
       setFormData((prev) => ({
         ...prev,
-        [name]: value.replace(/\D/g, ""),
+        [name]: value.replace(/\D/g, "").slice(0, 18),
       }));
     } else if (name === "accountName" || name === "bankName") {
       setFormData((prev) => ({
@@ -211,6 +233,21 @@ export default function DeliverySignUp() {
       return;
     }
 
+    if (
+      formData.accountNumber &&
+      (formData.accountNumber.length < 9 || formData.accountNumber.length > 18)
+    ) {
+      setError("Account number must be between 9 and 18 digits");
+      return;
+    }
+
+    if (
+      formData.ifscCode &&
+      !/^[A-Z]{4}\d{7}$/.test(formData.ifscCode)
+    ) {
+      setError("IFSC code must be 4 letters followed by 7 digits");
+      return;
+    }
 
     if (!drivingLicenseFile) {
       setError("Please upload your Driving License");
@@ -275,6 +312,11 @@ export default function DeliverySignUp() {
         try {
           const otpRes = await sendOTP(formData.mobile);
           if (otpRes.sessionId) setSessionId(otpRes.sessionId);
+          try {
+            localStorage.removeItem("deliverySignUpFormData");
+          } catch {
+            // ignore storage errors
+          }
           setShowOTP(true);
         } catch (otpErr: any) {
           setError(
@@ -565,6 +607,7 @@ export default function DeliverySignUp() {
                     name="accountNumber"
                     inputMode="numeric"
                     pattern="[0-9]*"
+                    maxLength={18}
                     value={formData.accountNumber}
                     onChange={handleInputChange}
                     placeholder="Account number"
@@ -583,8 +626,7 @@ export default function DeliverySignUp() {
                     value={formData.ifscCode}
                     onChange={handleInputChange}
                     placeholder="IFSC code"
-                    maxLength={11}
-                    className="w-full px-4 py-2.5 text-sm font-semibold text-neutral-800 bg-white border border-neutral-200 rounded-2xl focus:outline-none focus:border-[#c5a059] focus:ring-2 focus:ring-[#c5a059]/20 shadow-sm transition-all"
+                    maxLength={11}                    pattern="[A-Za-z]{4}[0-9]{7}"                    className="w-full px-4 py-2.5 text-sm font-semibold text-neutral-800 bg-white border border-neutral-200 rounded-2xl focus:outline-none focus:border-[#c5a059] focus:ring-2 focus:ring-[#c5a059]/20 shadow-sm transition-all"
                     disabled={loading}
                   />
                 </div>
@@ -605,8 +647,7 @@ export default function DeliverySignUp() {
                       type="file"
                       name="drivingLicense"
                       onChange={handleFileChange}
-                      accept="image/*,.pdf"
-                      required
+                      accept="image/*,.pdf"                    capture="filesystem"                      required
                       className="w-full px-4 py-2.5 text-sm font-semibold text-neutral-800 bg-white border border-neutral-200 rounded-2xl focus:outline-none focus:border-[#c5a059] focus:ring-2 focus:ring-[#c5a059]/20 shadow-sm transition-all"
                       disabled={loading || uploadingDocs}
                     />
@@ -627,8 +668,7 @@ export default function DeliverySignUp() {
                       type="file"
                       name="nationalIdentityCard"
                       onChange={handleFileChange}
-                      accept="image/*,.pdf"
-                      required
+                      accept="image/*,.pdf"                    capture="filesystem"                      required
                       className="w-full px-4 py-2.5 text-sm font-semibold text-neutral-800 bg-white border border-neutral-200 rounded-2xl focus:outline-none focus:border-[#c5a059] focus:ring-2 focus:ring-[#c5a059]/20 shadow-sm transition-all"
                       disabled={loading || uploadingDocs}
                     />

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DeliveryHeader from '../components/DeliveryHeader';
 import DeliveryBottomNav from '../components/DeliveryBottomNav';
@@ -6,6 +7,7 @@ import { useAuth } from '../../../context/AuthContext';
 export default function DeliveryMenu() {
   const navigate = useNavigate();
   const { logout } = useAuth();
+  const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
 
   const menuItems = [
     { id: 'menu-1', title: 'Profile', route: '/delivery/profile' },
@@ -98,13 +100,20 @@ export default function DeliveryMenu() {
 
   const handleMenuClick = (route: string) => {
     if (route === '/delivery/login') {
-      // Properly logout using AuthContext to clear all auth state
-      logout();
-      navigate(route);
+      setLogoutConfirmOpen(true);
     } else {
-      // Navigate to the selected route
       navigate(route);
     }
+  };
+
+  const confirmLogout = () => {
+    setLogoutConfirmOpen(false);
+    logout();
+    navigate('/delivery/login');
+  };
+
+  const cancelLogout = () => {
+    setLogoutConfirmOpen(false);
   };
 
   return (
@@ -155,6 +164,46 @@ export default function DeliveryMenu() {
           </div>
         )}
       </div>
+
+      {logoutConfirmOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-md rounded-[28px] border border-[#c5a059]/20 bg-[#0a193b] text-white shadow-2xl p-6">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <h3 className="text-xl font-semibold">Are you sure?</h3>
+                <p className="mt-2 text-sm text-[#d8d8d8] leading-6">
+                  Logging out will end your delivery session. You can sign in again anytime.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={cancelLogout}
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/15"
+              >
+                <span className="text-lg">×</span>
+              </button>
+            </div>
+
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
+              <button
+                type="button"
+                onClick={cancelLogout}
+                className="w-full rounded-2xl border border-white/20 bg-white/10 px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/15 sm:w-auto"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmLogout}
+                className="w-full rounded-2xl bg-[#c5a059] px-4 py-3 text-sm font-semibold text-[#0a193b] transition hover:bg-[#d4b76b] sm:w-auto"
+              >
+                Yes, Logout
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <DeliveryBottomNav />
     </div>
   );
