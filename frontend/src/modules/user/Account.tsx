@@ -464,6 +464,23 @@ export default function Account() {
               </svg>
             </button>
             <button
+              onClick={() => navigate("/notifications")}
+              className="w-full flex items-center justify-between px-5 py-4 hover:bg-neutral-50 transition-colors border-b border-neutral-50"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-8 h-8 rounded-lg bg-neutral-100 flex items-center justify-center text-neutral-400">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                    <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                  </svg>
+                </div>
+                <span className="text-[14px] font-bold text-[#0a193b]">Notifications</span>
+              </div>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="text-neutral-300">
+                <path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+            <button
               onClick={() => navigate("/wishlist")}
               className="w-full flex items-center justify-between px-5 py-4 hover:bg-neutral-50 transition-colors border-b border-neutral-50"
             >

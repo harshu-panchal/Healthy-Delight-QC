@@ -1,6 +1,7 @@
 import { Router } from "express";
 import * as customerController from "../modules/customer/controllers/customerController";
 import * as customerFAQController from "../modules/customer/controllers/customerFAQController";
+import * as customerNotificationController from "../modules/customer/controllers/customerNotificationController";
 import { authenticate } from "../middleware/auth";
 
 const router = Router();
@@ -25,6 +26,12 @@ router.get("/wallet/transactions", authenticate, customerController.getWalletTra
 
 // Get FAQs for customer app (protected route)
 router.get("/faqs", authenticate, customerFAQController.getFAQs);
+
+// Get notifications for customer (protected route)
+router.get("/notifications", authenticate, customerNotificationController.getNotifications);
+
+// Mark customer notification as read (protected route)
+router.put("/notifications/:id/read", authenticate, customerNotificationController.markNotificationRead);
 
 // Get active shifts (protected route)
 import * as customerShiftController from "../modules/customer/controllers/customerShiftController";
