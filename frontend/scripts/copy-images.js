@@ -223,7 +223,7 @@ function copyBannerImage() {
   }
 }
 
-// Copy login video
+// Copy login video and animations
 function copyLoginVideo() {
   const loginDir = path.join(assetsDir, "login");
   if (!fs.existsSync(loginDir)) return;
@@ -233,14 +233,17 @@ function copyLoginVideo() {
     fs.mkdirSync(publicLoginDir, { recursive: true });
   }
 
-  const videoPath = path.join(loginDir, "loginvideo.mp4");
-  if (fs.existsSync(videoPath)) {
-    const destPath = path.join(publicLoginDir, "loginvideo.mp4");
-    if (!fs.existsSync(destPath)) {
-      fs.copyFileSync(videoPath, destPath);
-      console.log("Copied login video: loginvideo.mp4");
+  const files = fs.readdirSync(loginDir);
+  files.forEach((file) => {
+    if (file.endsWith(".mp4") || file.endsWith(".json")) {
+      const srcPath = path.join(loginDir, file);
+      const destPath = path.join(publicLoginDir, file);
+      if (!fs.existsSync(destPath)) {
+        fs.copyFileSync(srcPath, destPath);
+        console.log(`Copied login asset: ${file}`);
+      }
     }
-  }
+  });
 }
 
 // Copy shopbystore images
@@ -329,6 +332,29 @@ function copyDeliveryIcon() {
   }
 }
 
+// Copy animation files
+function copyAnimationFiles() {
+  const animDir = path.join(assetsDir, "animation");
+  if (!fs.existsSync(animDir)) return;
+
+  const publicAnimDir = path.join(publicAssetsDir, "animation");
+  if (!fs.existsSync(publicAnimDir)) {
+    fs.mkdirSync(publicAnimDir, { recursive: true });
+  }
+
+  const files = fs.readdirSync(animDir);
+  files.forEach((file) => {
+    if (file.endsWith(".json") || file.endsWith(".lottie")) {
+      const srcPath = path.join(animDir, file);
+      const destPath = path.join(publicAnimDir, file);
+      if (!fs.existsSync(destPath)) {
+        fs.copyFileSync(srcPath, destPath);
+        console.log(`Copied animation file: ${file}`);
+      }
+    }
+  });
+}
+
 // Copy base root assets (bg, logo, etc)
 function copyBaseAssets() {
   const baseAssets = ["bg.png", "logo.png", "HomeBackground.png", "Home_Bg_2.png", "Home_Bg_3.png", "Home_Bg_4.png", "HeaderBg.jpg"];
@@ -354,4 +380,5 @@ copyShopByStoreImages();
 copyLoginVideo();
 copyKosilLogo();
 copyDeliveryIcon();
+copyAnimationFiles();
 console.log("Image copy completed!");

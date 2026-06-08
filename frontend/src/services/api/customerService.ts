@@ -74,3 +74,11 @@ export const getCustomerFAQs = async (): Promise<GetCustomerFAQsResponse> => {
   return response.data;
 };
 
+/**
+ * Delete customer account
+ */
+export const deleteAccount = async (): Promise<{ success: boolean; message: string }> => {
+  const response = await api.delete<{ success: boolean; message: string }>('/customer/profile');
+  return response.data;
+};
+

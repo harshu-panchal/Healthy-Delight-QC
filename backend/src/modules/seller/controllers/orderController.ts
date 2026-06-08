@@ -66,12 +66,7 @@ export const getOrders = asyncHandler(
 
     // Search filter
     if (search) {
-      query.$or = [
-        { orderId: { $regex: search, $options: "i" } },
-        { invoiceNumber: { $regex: search, $options: "i" } },
-        { 'deliveryAddress.name': { $regex: search, $options: "i" } },
-        { 'deliveryAddress.phone': { $regex: search, $options: "i" } },
-      ];
+      query.orderNumber = { $regex: search, $options: "i" };
     }
 
     // Pagination

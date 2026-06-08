@@ -18,6 +18,7 @@ interface DeliveryStatusContextType {
   sellersInRange: SellerInRange[];
   locationError: string | null;
   isLoadingSellers: boolean;
+  riderStatus: 'Active' | 'Inactive' | null;
 }
 
 const DeliveryStatusContext = createContext<DeliveryStatusContextType | undefined>(undefined);
@@ -29,6 +30,7 @@ export function DeliveryStatusProvider({ children }: { children: ReactNode }) {
   const [sellersInRange, setSellersInRange] = useState<SellerInRange[]>([]);
   const [isLoadingSellers, setIsLoadingSellers] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
+  const [riderStatus, setRiderStatus] = useState<'Active' | 'Inactive' | null>(null);
   const watchIdRef = useRef<number | null>(null);
   const lastUpdateTimeRef = useRef<number>(0);
 
@@ -38,6 +40,7 @@ export function DeliveryStatusProvider({ children }: { children: ReactNode }) {
       try {
         const profile = await getDeliveryProfile();
         setIsOnlineLocal(profile.isOnline || false);
+        setRiderStatus(profile.status || 'Inactive');
       } catch (error) {
         console.error("Failed to fetch initial status", error);
       }
@@ -124,6 +127,10 @@ export function DeliveryStatusProvider({ children }: { children: ReactNode }) {
   };
 
   const toggleStatus = async () => {
+    if (riderStatus !== 'Active') {
+      console.warn("Cannot go online: Rider is not active");
+      return;
+    }
     const newStatus = !isOnline;
     // Optimistic update
     setIsOnlineLocal(newStatus);
@@ -137,6 +144,10 @@ export function DeliveryStatusProvider({ children }: { children: ReactNode }) {
   };
 
   const setIsOnline = (status: boolean) => {
+    if (riderStatus !== 'Active' && status) {
+      console.warn("Cannot go online: Rider is not active");
+      return;
+    }
     // Direct setting if needed, but prefer toggleStatus for API sync
     setIsOnlineLocal(status);
     updateStatus(status).catch(err => console.error(err));
@@ -151,7 +162,8 @@ export function DeliveryStatusProvider({ children }: { children: ReactNode }) {
       sellersInRangeCount,
       sellersInRange,
       locationError,
-      isLoadingSellers
+      isLoadingSellers,
+      riderStatus
     }}>
       {children}
     </DeliveryStatusContext.Provider>

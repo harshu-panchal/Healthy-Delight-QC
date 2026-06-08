@@ -175,8 +175,14 @@ const SellerAccountSettings = () => {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     let filteredValue = value;
-    if (name === 'sellerName' || name === 'accountName') {
+    if (name === 'sellerName' || name === 'accountName' || name === 'bankName') {
       filteredValue = value.replace(/[^a-zA-Z\s]/g, "");
+    } else if (name === 'accountNumber') {
+      filteredValue = value.replace(/\D/g, "").slice(0, 18);
+    } else if (name === 'panCard') {
+      filteredValue = value.replace(/[^a-zA-Z0-9]/g, "").toUpperCase().slice(0, 10);
+    } else if (name === 'taxNumber') {
+      filteredValue = value.replace(/[^a-zA-Z0-9]/g, "").toUpperCase().slice(0, 15);
     }
     setSellerData(prev => ({
       ...prev,
@@ -201,6 +207,27 @@ const SellerAccountSettings = () => {
       const radius = parseFloat(sellerData.serviceRadiusKm);
       if (isNaN(radius) || radius < 0.1 || radius > 100) {
         setError('Service radius must be between 0.1 and 100 kilometers');
+        setSaveLoading(false);
+        return;
+      }
+
+      // Validate account number
+      if (sellerData.accountNumber && (sellerData.accountNumber.length < 9 || sellerData.accountNumber.length > 18)) {
+        setError('Account Number must be between 9 and 18 digits');
+        setSaveLoading(false);
+        return;
+      }
+
+      // Validate PAN Card
+      if (sellerData.panCard && !/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(sellerData.panCard.toUpperCase())) {
+        setError('Invalid PAN Card format. Must be 5 letters, 4 numbers, followed by 1 letter (e.g., ABCDE1234F)');
+        setSaveLoading(false);
+        return;
+      }
+
+      // Validate Tax Number (GST)
+      if (sellerData.taxNumber && !/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[A-Z0-9]{1}Z[A-Z0-9]{1}$/.test(sellerData.taxNumber)) {
+        setError('Invalid Tax Number (GST) format. Enforce standard 15-character GSTIN format (e.g., 27AAAAA1111A1Z1)');
         setSaveLoading(false);
         return;
       }
@@ -661,8 +688,8 @@ const SellerAccountSettings = () => {
                           </div>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 bg-gray-50/50 p-6 rounded-xl border border-gray-100">
                             <InputGroup label="Account Holder Name" name="accountName" value={sellerData.accountName} onChange={handleInputChange} disabled={!isEditing} />
-                            <InputGroup label="Bank Name" name="bankName" value={sellerData.bankName} onChange={handleInputChange} disabled={!isEditing} />
-                            <InputGroup label="Account Number" name="accountNumber" value={sellerData.accountNumber} onChange={handleInputChange} disabled={!isEditing} />
+                            <InputGroup label="Bank Name" name="bankName" value={sellerData.bankName} onChange={handleInputChange} disabled={!isEditing} pattern="[a-zA-Z\s]+" title="Bank Name can only contain letters and spaces" />
+                            <InputGroup label="Account Number" name="accountNumber" value={sellerData.accountNumber} onChange={handleInputChange} disabled={!isEditing} pattern="[0-9]{9,18}" maxLength={18} title="Account number must be between 9 and 18 digits" />
                             <InputGroup label="IFSC Code" name="ifsc" value={sellerData.ifsc} onChange={handleInputChange} disabled={!isEditing} />
                           </div>
                         </section>
@@ -675,8 +702,8 @@ const SellerAccountSettings = () => {
                             <h4 className="text-lg font-bold text-gray-900">Tax Information</h4>
                           </div>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 bg-gray-50/50 p-6 rounded-xl border border-gray-100">
-                            <InputGroup label="PAN Card Number" name="panCard" value={sellerData.panCard} onChange={handleInputChange} disabled={!isEditing} />
-                            <InputGroup label="Tax Number (GST)" name="taxNumber" value={sellerData.taxNumber} onChange={handleInputChange} disabled={!isEditing} />
+                            <InputGroup label="PAN Card Number" name="panCard" value={sellerData.panCard} onChange={handleInputChange} disabled={!isEditing} pattern="[a-zA-Z]{5}[0-9]{4}[a-zA-Z]{1}" maxLength={10} title="PAN Card number must be in the format: 5 letters, 4 numbers, and 1 letter (e.g., ABCDE1234F)" />
+                            <InputGroup label="Tax Number (GST)" name="taxNumber" value={sellerData.taxNumber} onChange={handleInputChange} disabled={!isEditing} pattern="[0-9]{2}[a-zA-Z]{5}[0-9]{4}[a-zA-Z]{1}[a-zA-Z0-9]{1}[zZ][a-zA-Z0-9]{1}" maxLength={15} title="GST number must follow standard format: e.g., 27AAAAA1111A1Z1" />
                           </div>
                         </section>
                       </div>
@@ -720,7 +747,7 @@ const SellerAccountSettings = () => {
   );
 };
 
-const InputGroup = ({ label, name, value, onChange, disabled, type = "text", placeholder = "", autoComplete }: any) => (
+const InputGroup = ({ label, name, value, onChange, disabled, type = "text", placeholder = "", autoComplete, ...rest }: any) => (
 
   <div className="space-y-1.5">
     <label className="text-sm font-semibold text-gray-700 ml-1">{label}</label>
@@ -732,6 +759,7 @@ const InputGroup = ({ label, name, value, onChange, disabled, type = "text", pla
       disabled={disabled}
       placeholder={placeholder}
       autoComplete={autoComplete}
+      {...rest}
       className={`w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all ${disabled ? 'bg-gray-50/50 text-gray-500 cursor-default' : 'bg-white'
 
         }`}

@@ -75,6 +75,9 @@ import * as promoStripController from "../modules/admin/controllers/adminPromoSt
 // Banner Controllers
 import * as bannerController from "../modules/admin/controllers/adminBannerController";
 
+// Shift Controllers
+import * as shiftController from "../modules/admin/controllers/adminShiftController";
+
 const router = Router();
 
 // All routes require admin authentication
@@ -391,5 +394,13 @@ router.get("/banners", bannerController.getAllBanners);
 router.post("/banners", bannerController.createBanner);
 router.put("/banners/:id", bannerController.updateBanner);
 router.delete("/banners/:id", bannerController.deleteBanner);
+
+// ==================== Shift Routes ====================
+router.get("/shifts", shiftController.getShifts);
+router.get("/shifts/:id", shiftController.getShiftById);
+router.post("/shifts", shiftController.createShift);
+router.put("/shifts/:id", shiftController.updateShift);
+router.delete("/shifts/:id", shiftController.deleteShift);
+router.patch("/shifts/:id/status", shiftController.updateShiftStatus);
 
 export default router;

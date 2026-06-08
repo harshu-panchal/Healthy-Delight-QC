@@ -45,11 +45,20 @@ export default function CheckoutAddress() {
   const [address, setAddress] = useState<OrderAddress>(() => {
     if (draft?.address) return draft.address;
     const sourceAddress = editAddress || cloneAddress;
+    
+    let flatVal = sourceAddress?.flat || '';
+    let streetVal = sourceAddress?.street || '';
+    if (!flatVal && !streetVal && (sourceAddress as any)?.address) {
+      const parts = (sourceAddress as any).address.split(',');
+      flatVal = parts[0]?.trim() || '';
+      streetVal = parts.slice(1).join(',')?.trim() || '';
+    }
+
     return {
       name: isOrderingForSomeoneElse ? '' : (sourceAddress?.name || user?.name || ''),
       phone: isOrderingForSomeoneElse ? '' : (sourceAddress?.phone || user?.phone || ''),
-      flat: sourceAddress?.flat || '',
-      street: sourceAddress?.street || '',
+      flat: flatVal,
+      street: streetVal,
       city: sourceAddress?.city || '',
       pincode: sourceAddress?.pincode || '',
       state: sourceAddress?.state || '',
@@ -137,6 +146,20 @@ export default function CheckoutAddress() {
     setSelectedLatitude(lat);
     setSelectedLongitude(lng);
 
+    // Prevent reverse-geocoding of default fallback centers to avoid auto-filling fields on load
+    const isDefaultIndore = (lat === 22.7196 && lng === 75.8577);
+    const isDefaultIndia = (lat === 20.5937 && lng === 78.9629);
+    if (isDefaultIndore || isDefaultIndia) {
+      return;
+    }
+
+    // Prevent overwriting fields with geocoding of the initial saved/cloned coordinates on mount
+    const isInitialSavedCoords = editAddress && lat === editAddress.latitude && lng === editAddress.longitude;
+    const isInitialClonedCoords = cloneAddress && lat === cloneAddress.latitude && lng === cloneAddress.longitude;
+    if (isInitialSavedCoords || isInitialClonedCoords) {
+      return;
+    }
+
     if (isLoaded) {
       try {
         const geocoder = new google.maps.Geocoder();
@@ -188,7 +211,7 @@ export default function CheckoutAddress() {
         console.error("Reverse geocoding error:", e);
       }
     }
-  }, [isLoaded]);
+  }, [isLoaded, editAddress, cloneAddress]);
 
 
   // Fetch all addresses on mount
@@ -214,11 +237,19 @@ export default function CheckoutAddress() {
   useEffect(() => {
     const sourceAddress = editAddress || cloneAddress;
     if (sourceAddress && isFirstMount.current && !draft) {
+      let flatVal = sourceAddress.flat || '';
+      let streetVal = sourceAddress.street || '';
+      if (!flatVal && !streetVal && (sourceAddress as any).address) {
+        const parts = (sourceAddress as any).address.split(',');
+        flatVal = parts[0]?.trim() || '';
+        streetVal = parts.slice(1).join(',')?.trim() || '';
+      }
+
       setAddress({
         name: isOrderingForSomeoneElse ? '' : (sourceAddress.name || ''),
         phone: isOrderingForSomeoneElse ? '' : (sourceAddress.phone || ''),
-        flat: sourceAddress.flat || '',
-        street: sourceAddress.street || '',
+        flat: flatVal,
+        street: streetVal,
         city: sourceAddress.city || '',
         pincode: sourceAddress.pincode || '',
         state: sourceAddress.state || '',
@@ -380,8 +411,11 @@ export default function CheckoutAddress() {
       setTimeout(() => {
         setIsSaving(false);
         sessionStorage.removeItem('checkout_address_draft');
-        if ((location.state as any)?.fromAddressBook) {
-          navigate(-1);
+        const stateFrom = (location.state as any)?.from;
+        if (stateFrom) {
+          navigate(stateFrom, { replace: true });
+        } else if ((location.state as any)?.fromAddressBook) {
+          navigate('/address-book', { replace: true });
         } else {
           navigate('/address-book', { replace: true });
         }

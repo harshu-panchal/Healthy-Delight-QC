@@ -155,6 +155,11 @@ export default function SellerLogin() {
                         e.target.value.replace(/\D/g, "").slice(0, 10)
                       )
                     }
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && mobileNumber.length === 10 && !loading) {
+                        handleMobileLogin();
+                      }
+                    }}
                     placeholder="Enter mobile number"
                     className="flex-1 px-4 py-2 text-sm font-semibold text-neutral-800 placeholder:text-neutral-400 focus:outline-none bg-white"
                     maxLength={10}

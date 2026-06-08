@@ -319,6 +319,14 @@ export default function SellerAddProduct({ isAdmin = false }: SellerAddProductPr
       value = value.replace(/[^a-zA-Z\s]/g, "");
     }
 
+    if (name === "fssaiLicNo") {
+      value = value.replace(/\D/g, "").slice(0, 14);
+    }
+
+    if (name === "madeIn") {
+      value = value.replace(/[^a-zA-Z\s]/g, "");
+    }
+
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
@@ -389,6 +397,11 @@ export default function SellerAddProduct({ isAdmin = false }: SellerAddProductPr
     const discPrice = parseFloat(variationForm.discPrice || "0");
     const stock = parseInt(variationForm.stock || "0");
 
+    if (price < 0 || discPrice < 0 || stock < 0) {
+      setVariationError("Price, Discounted Price, and Stock cannot be negative");
+      return;
+    }
+
     if (discPrice > price) {
       setVariationError("Discounted price cannot be greater than price");
       return;
@@ -399,9 +412,18 @@ export default function SellerAddProduct({ isAdmin = false }: SellerAddProductPr
     const wholesalePrice = variationForm.wholesalePrice ? parseFloat(variationForm.wholesalePrice) : undefined;
     const wholesaleDiscPrice = variationForm.wholesaleDiscPrice ? parseFloat(variationForm.wholesaleDiscPrice) : 0;
 
+    if (minWholesaleQty < 0 || (wholesalePrice !== undefined && wholesalePrice < 0) || wholesaleDiscPrice < 0) {
+      setVariationError("Wholesale quantities and prices cannot be negative");
+      return;
+    }
+
     if (wholesalePrice !== undefined) {
       if (wholesalePrice <= 0) {
         setVariationError("Wholesale price must be greater than 0");
+        return;
+      }
+      if (wholesalePrice > price) {
+        setVariationError("Wholesale price cannot exceed the original price");
         return;
       }
       if (wholesaleDiscPrice > wholesalePrice) {
@@ -508,6 +530,16 @@ export default function SellerAddProduct({ isAdmin = false }: SellerAddProductPr
         setUploadError("Please select a category.");
         return;
       }
+    }
+
+    if (formData.fssaiLicNo && formData.fssaiLicNo.length !== 14) {
+      setUploadError("FSSAI License Number must be exactly 14 digits");
+      return;
+    }
+
+    if (formData.madeIn && /[^a-zA-Z\s]/.test(formData.madeIn)) {
+      setUploadError("Made In field must not contain numbers or special characters");
+      return;
     }
 
     setUploading(true);
@@ -876,13 +908,16 @@ export default function SellerAddProduct({ isAdmin = false }: SellerAddProductPr
                   </label>
                   <input
                     type="number"
+                    min="0"
                     value={variationForm.price}
-                    onChange={(e) =>
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val !== "" && parseFloat(val) < 0) return;
                       setVariationForm({
                         ...variationForm,
-                        price: e.target.value,
-                      })
-                    }
+                        price: val,
+                      });
+                    }}
                     placeholder="100"
                     className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                   />
@@ -893,13 +928,16 @@ export default function SellerAddProduct({ isAdmin = false }: SellerAddProductPr
                   </label>
                   <input
                     type="number"
+                    min="0"
                     value={variationForm.discPrice}
-                    onChange={(e) =>
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val !== "" && parseFloat(val) < 0) return;
                       setVariationForm({
                         ...variationForm,
-                        discPrice: e.target.value,
-                      })
-                    }
+                        discPrice: val,
+                      });
+                    }}
                     placeholder="80"
                     className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                   />
@@ -910,13 +948,16 @@ export default function SellerAddProduct({ isAdmin = false }: SellerAddProductPr
                   </label>
                   <input
                     type="number"
+                    min="0"
                     value={variationForm.stock}
-                    onChange={(e) =>
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val !== "" && parseInt(val) < 0) return;
                       setVariationForm({
                         ...variationForm,
-                        stock: e.target.value,
-                      })
-                    }
+                        stock: val,
+                      });
+                    }}
                     placeholder="0"
                     className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                   />
@@ -936,13 +977,16 @@ export default function SellerAddProduct({ isAdmin = false }: SellerAddProductPr
                     </label>
                     <input
                       type="number"
+                      min="0"
                       value={variationForm.minWholesaleQty}
-                      onChange={(e) =>
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        if (val !== "" && parseInt(val) < 0) return;
                         setVariationForm({
                           ...variationForm,
-                          minWholesaleQty: e.target.value,
-                        })
-                      }
+                          minWholesaleQty: val,
+                        });
+                      }}
                       placeholder="10"
                       className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                     />
@@ -953,13 +997,16 @@ export default function SellerAddProduct({ isAdmin = false }: SellerAddProductPr
                     </label>
                     <input
                       type="number"
+                      min="0"
                       value={variationForm.wholesalePrice}
-                      onChange={(e) =>
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        if (val !== "" && parseFloat(val) < 0) return;
                         setVariationForm({
                           ...variationForm,
-                          wholesalePrice: e.target.value,
-                        })
-                      }
+                          wholesalePrice: val,
+                        });
+                      }}
                       placeholder="e.g. 70"
                       className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                     />
@@ -970,13 +1017,16 @@ export default function SellerAddProduct({ isAdmin = false }: SellerAddProductPr
                     </label>
                     <input
                       type="number"
+                      min="0"
                       value={variationForm.wholesaleDiscPrice}
-                      onChange={(e) =>
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        if (val !== "" && parseFloat(val) < 0) return;
                         setVariationForm({
                           ...variationForm,
-                          wholesaleDiscPrice: e.target.value,
-                        })
-                      }
+                          wholesaleDiscPrice: val,
+                        });
+                      }}
                       placeholder="e.g. 60"
                       className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                     />
@@ -1122,6 +1172,8 @@ export default function SellerAddProduct({ isAdmin = false }: SellerAddProductPr
                     value={formData.madeIn}
                     onChange={handleChange}
                     placeholder="Enter Made In"
+                    pattern="[a-zA-Z\s]*"
+                    title="Made In should not contain numbers or special characters"
                     className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
                   />
                 </div>
@@ -1153,6 +1205,9 @@ export default function SellerAddProduct({ isAdmin = false }: SellerAddProductPr
                     value={formData.fssaiLicNo}
                     onChange={handleChange}
                     placeholder="Enter FSSAI Lic. No."
+                    maxLength={14}
+                    pattern="\d{14}"
+                    title="FSSAI License Number must be exactly 14 digits"
                     className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
                   />
                 </div>

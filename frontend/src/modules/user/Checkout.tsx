@@ -37,10 +37,71 @@ import { getProfile, updateProfile } from "../../services/api/customerService";
 import { calculateProductPrice } from "../../utils/priceUtils";
 import { updateScheduledOrderItems } from "../../services/api/customerOrderService";
 import { verifyPayment } from "../../services/api/paymentService";
+import { getActiveShifts } from "../../services/api/customerShiftService";
 
 // const STORAGE_KEY = 'saved_address'; // Removed
 
+const formatTimeSlotForCheckout = (slotStr: string) => {
+  if (!slotStr) return "";
+  const parenMatch = slotStr.match(/\(([^)]+)\)/);
+  if (parenMatch) {
+    const timeRange = parenMatch[1];
+    const slotName = slotStr.split("(")[0].trim();
+    const rangeMatch = timeRange.match(/(\d+):?(\d*)\s*(AM|PM)?\s*-\s*(\d+):?(\d*)\s*(AM|PM)/i);
+    if (rangeMatch) {
+      const startHour = rangeMatch[1];
+      const startMin = rangeMatch[2];
+      const startModifier = (rangeMatch[3] || rangeMatch[6]).toUpperCase();
+      const endHour = rangeMatch[4];
+      const endMin = rangeMatch[5];
+      const endModifier = rangeMatch[6].toUpperCase();
+      
+      if (startModifier === endModifier && (!startMin || parseInt(startMin) === 0) && (!endMin || parseInt(endMin) === 0)) {
+        return `${slotName} (${startHour}-${endHour} ${startModifier})`;
+      }
+      const startDisplay = `${startHour}${startMin && parseInt(startMin) > 0 ? `:${startMin}` : ""} ${startModifier}`;
+      const endDisplay = `${endHour}${endMin && parseInt(endMin) > 0 ? `:${endMin}` : ""} ${endModifier}`;
+      return `${slotName} (${startDisplay} - ${endDisplay})`;
+    }
+    return slotStr;
+  }
+  
+  if (slotStr === "Morning") return "Morning (6-9 AM)";
+  if (slotStr === "Evening") return "Evening (6-9 PM)";
+  return slotStr;
+};
+
 // Similar products helper removed - using API
+
+const isShiftTimePassed = (endTimeStr: string): boolean => {
+  if (!endTimeStr) return false;
+  try {
+    const match = endTimeStr.trim().match(/(\d+):?(\d*)\s*(AM|PM)/i);
+    if (!match) return false;
+
+    let hours = parseInt(match[1], 10);
+    const minutes = match[2] ? parseInt(match[2], 10) : 0;
+    const modifier = match[3].toUpperCase();
+
+    if (modifier === "PM" && hours < 12) {
+      hours += 12;
+    }
+    if (modifier === "AM" && hours === 12) {
+      hours = 0;
+    }
+
+    const now = new Date();
+    const currentHours = now.getHours();
+    const currentMinutes = now.getMinutes();
+
+    if (currentHours > hours) return true;
+    if (currentHours === hours && currentMinutes >= minutes) return true;
+    return false;
+  } catch (error) {
+    console.error("Error parsing shift time:", error);
+    return false;
+  }
+};
 
 export default function Checkout() {
   const {
@@ -164,16 +225,81 @@ export default function Checkout() {
     return sessionStorage.getItem("scheduledTimeSlot");
   });
 
+  const isScheduledForToday = useMemo(() => {
+    if (!scheduledDateStr) return true;
+    try {
+      const scheduledDate = new Date(scheduledDateStr);
+      const today = new Date();
+      return (
+        scheduledDate.getFullYear() === today.getFullYear() &&
+        scheduledDate.getMonth() === today.getMonth() &&
+        scheduledDate.getDate() === today.getDate()
+      );
+    } catch (e) {
+      return true;
+    }
+  }, [scheduledDateStr]);
+
+  const [activeShifts, setActiveShifts] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchActiveShiftsList = async () => {
+      try {
+        const response = await getActiveShifts("Scheduled");
+        if (response.success && response.data.length > 0) {
+          setActiveShifts(response.data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch active shifts on checkout:", err);
+      }
+    };
+    fetchActiveShiftsList();
+  }, []);
+
   // Map scheduledTimeSlot to timeSlot on mount/change
   useEffect(() => {
     if (scheduledDateStr && scheduledTimeSlot) {
-      if (scheduledTimeSlot === "Morning") {
-        setTimeSlot("Morning (6:00 AM - 9:00 AM)");
-      } else if (scheduledTimeSlot === "Evening") {
-        setTimeSlot("Evening (6:00 PM - 9:00 PM)");
+      const matched = activeShifts.find(s => s.name.toLowerCase() === scheduledTimeSlot.toLowerCase());
+      if (matched) {
+        const formatTime = (t: string) => t.replace(/^0/, '');
+        setTimeSlot(`${matched.name} (${formatTime(matched.startTime)} - ${formatTime(matched.endTime)})`);
+      } else {
+        // Fallbacks
+        if (scheduledTimeSlot === "Morning") {
+          setTimeSlot("Morning (6:00 AM - 9:00 AM)");
+        } else if (scheduledTimeSlot === "Evening") {
+          setTimeSlot("Evening (6:00 PM - 9:00 PM)");
+        }
       }
     }
-  }, [scheduledDateStr, scheduledTimeSlot]);
+  }, [scheduledDateStr, scheduledTimeSlot, activeShifts]);
+
+  // Auto-clear timeslot if the selected one has passed today
+  useEffect(() => {
+    if (timeSlot && isScheduledForToday) {
+      // Find matches in activeShifts first, fallback to hardcoded list
+      const matchedShift = activeShifts.find(s => {
+        const formatTime = (t: string) => t.replace(/^0/, '');
+        const displayStr = `${s.name} (${formatTime(s.startTime)} - ${formatTime(s.endTime)})`;
+        return displayStr === timeSlot;
+      });
+
+      if (matchedShift) {
+        if (isShiftTimePassed(matchedShift.endTime)) {
+          setTimeSlot("");
+        }
+      } else {
+        const matchedSlotFallback = [
+          { value: "Morning (6:00 AM - 9:00 AM)", endTime: "9:00 AM" },
+          { value: "Evening (6:00 PM - 9:00 PM)", endTime: "9:00 PM" },
+        ].find(s => s.value === timeSlot);
+        
+        if (matchedSlotFallback && isShiftTimePassed(matchedSlotFallback.endTime)) {
+          setTimeSlot("");
+        }
+      }
+    }
+  }, [timeSlot, isScheduledForToday, activeShifts]);
 
   // Profile completion modal state
   const [showProfileModal, setShowProfileModal] = useState(false);
@@ -1537,7 +1663,7 @@ export default function Checkout() {
             <div>
               <p className="text-xs font-black text-[#0a193b]">Scheduled Delivery</p>
               <p className="text-[10px] text-neutral-600 font-semibold mt-0.5">
-                {new Date(scheduledDateStr || new Date()).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })} • {(scheduledTimeSlot || (timeSlot.includes("Evening") ? "Evening" : "Morning")) === "Morning" ? "Morning (6-9 AM)" : "Evening (5-8 PM)"}
+                {new Date(scheduledDateStr || new Date()).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })} • {formatTimeSlotForCheckout(timeSlot || scheduledTimeSlot || "Morning")}
               </p>
             </div>
           </div>
@@ -1781,23 +1907,33 @@ export default function Checkout() {
               { value: "Evening (6:00 PM - 9:00 PM)", label: "Evening", sub: "6:00 PM - 9:00 PM" },
             ].map((slot) => {
               const selected = timeSlot === slot.value;
+              const isPassed = isScheduledForToday && isShiftTimePassed(slot.sub.split(" - ")[1] || "");
               return (
                 <button
                   key={slot.value}
                   type="button"
-                  onClick={() => setTimeSlot(slot.value)}
-                  className={`group relative p-3.5 rounded-2xl border-2 transition-all duration-300 ${selected
-                    ? "border-[#0a193b] bg-[#0a193b]/5 shadow-[0_4px_15px_rgba(10,25,59,0.1)]"
-                    : "border-neutral-100 bg-white hover:border-neutral-200"
-                    }`}
+                  disabled={isPassed}
+                  onClick={() => !isPassed && setTimeSlot(slot.value)}
+                  className={`group relative p-3.5 rounded-2xl border-2 transition-all duration-300 ${
+                    isPassed
+                      ? "border-neutral-200 bg-neutral-50 text-neutral-400 cursor-not-allowed opacity-60"
+                      : selected
+                      ? "border-[#0a193b] bg-[#0a193b]/5 shadow-[0_4px_15px_rgba(10,25,59,0.1)]"
+                      : "border-neutral-100 bg-white hover:border-neutral-200"
+                  }`}
                 >
                   <div className="flex flex-col gap-1">
-                    <span className={`text-xs font-bold leading-tight ${selected ? "text-[#0a193b]" : "text-neutral-900"}`}>
+                    <span className={`text-xs font-bold leading-tight ${isPassed ? "text-neutral-400" : selected ? "text-[#0a193b]" : "text-neutral-900"}`}>
                       {slot.label}
                     </span>
-                    <span className="text-[9px] font-medium text-neutral-500 uppercase tracking-tight">{slot.sub}</span>
+                    <span className={`text-[9px] font-medium uppercase tracking-tight ${isPassed ? "text-neutral-400" : "text-neutral-500"}`}>{slot.sub}</span>
                   </div>
-                  {selected && (
+                  {isPassed && (
+                    <span className="absolute top-2 right-2 text-[8px] font-bold text-red-500 bg-red-50 px-1.5 py-0.5 rounded-full uppercase border border-red-200/50">
+                      Ended
+                    </span>
+                  )}
+                  {selected && !isPassed && (
                     <div className="absolute top-2 right-2 w-4 h-4 bg-[#0a193b] rounded-full flex items-center justify-center">
                       <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
                         <polyline points="20 6 9 17 4 12" />
@@ -1880,6 +2016,12 @@ export default function Checkout() {
                 value={customTipAmount || ""}
                 onChange={(e) => setCustomTipAmount(Math.max(0, Number(e.target.value)))}
                 placeholder="Enter tip amount"
+                autoFocus
+                onFocus={(e) => {
+                  setTimeout(() => {
+                    e.target.scrollIntoView({ behavior: "smooth", block: "center" });
+                  }, 300);
+                }}
                 className="flex-1 px-4 py-2.5 bg-white border border-[#0a193b]/20 rounded-xl text-xs font-bold focus:outline-none focus:ring-2 focus:ring-[#0a193b]/10"
               />
               <button onClick={() => { setShowCustomTipInput(false); setTipAmount(null); }} className="text-[10px] font-bold text-neutral-400 uppercase">Cancel</button>

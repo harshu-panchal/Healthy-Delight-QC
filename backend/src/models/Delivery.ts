@@ -122,14 +122,35 @@ const DeliverySchema = new Schema<IDelivery>(
     accountName: {
       type: String,
       trim: true,
+      validate: {
+        validator: function (v: string) {
+          if (!v) return true;
+          return /^[a-zA-Z\s]+$/.test(v);
+        },
+        message: 'Account name must only contain letters and spaces',
+      },
     },
     bankName: {
       type: String,
       trim: true,
+      validate: {
+        validator: function (v: string) {
+          if (!v) return true;
+          return /^[a-zA-Z\s]+$/.test(v);
+        },
+        message: 'Bank name must only contain letters and spaces',
+      },
     },
     accountNumber: {
       type: String,
       trim: true,
+      validate: {
+        validator: function (v: string) {
+          if (!v) return true;
+          return /^\d{9,18}$/.test(v);
+        },
+        message: 'Account number must be between 9 and 18 digits',
+      },
     },
     ifscCode: {
       type: String,

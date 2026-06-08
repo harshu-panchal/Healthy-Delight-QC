@@ -245,6 +245,12 @@ const ProductSchema = new Schema<IProduct>(
     madeIn: {
       type: String,
       trim: true,
+      validate: {
+        validator: function (v: string) {
+          return !v || /^[a-zA-Z\s]+$/.test(v);
+        },
+        message: "Made In field must only contain letters and spaces",
+      },
     },
     tax: {
       type: Schema.Types.ObjectId,
@@ -253,6 +259,12 @@ const ProductSchema = new Schema<IProduct>(
     fssaiLicNo: {
       type: String,
       trim: true,
+      validate: {
+        validator: function (v: string) {
+          return !v || /^\d{14}$/.test(v);
+        },
+        message: "FSSAI License Number must be exactly 14 digits",
+      },
     },
     totalAllowedQuantity: {
       type: Number,

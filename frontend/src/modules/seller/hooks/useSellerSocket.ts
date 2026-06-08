@@ -39,6 +39,7 @@ export interface SellerNotification {
     orderType?: string;
     scheduledDate?: string;
     scheduledTimeSlot?: string;
+    timeSlot?: string;
 }
 
 export const useSellerSocket = (onNotificationReceived?: (notification: SellerNotification) => void) => {

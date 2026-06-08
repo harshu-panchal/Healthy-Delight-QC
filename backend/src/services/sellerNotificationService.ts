@@ -75,7 +75,8 @@ export async function notifySellersOfOrderUpdate(
                 timestamp: new Date(),
                 orderType: order.orderType,
                 scheduledDate: order.scheduledDate,
-                scheduledTimeSlot: order.scheduledTimeSlot
+                scheduledTimeSlot: order.scheduledTimeSlot,
+                timeSlot: order.timeSlot
             };
 
             // Emit to seller-specific room

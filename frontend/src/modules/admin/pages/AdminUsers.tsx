@@ -22,7 +22,7 @@ export default function AdminUsers() {
     const [error, setError] = useState<string | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('All');
-    const [entriesPerPage, setEntriesPerPage] = useState(10);
+    const [entriesPerPage, setEntriesPerPage] = useState<number | string>(10);
     const [currentPage, setCurrentPage] = useState(1);
     const [sortColumn, setSortColumn] = useState<string | null>(null);
     const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
@@ -114,7 +114,7 @@ export default function AdminUsers() {
             ...users.map(user => [
                 user._id.slice(-6),
                 `"${user.name}"`,
-                `"${user.email}"`,
+                `"${user.email.endsWith('@kosil.temp') || user.email.endsWith('@healthydelight.temp') ? 'Email Not Provided' : user.email}"`,
                 `"${user.phone || ''}"`,
                 `"${new Date(user.registrationDate).toLocaleString('en-GB')}"`,
                 user.status,
@@ -136,7 +136,8 @@ export default function AdminUsers() {
 
     // Use backend data directly (already paginated)
     const displayedUsers = users;
-    const startIndex = (currentPage - 1) * entriesPerPage;
+    const limitVal = typeof entriesPerPage === 'number' ? entriesPerPage : totalUsers;
+    const startIndex = (currentPage - 1) * limitVal;
 
     const handleStatusChange = async (userId: string, newStatus: 'Active' | 'Suspended') => {
         try {
@@ -208,7 +209,8 @@ export default function AdminUsers() {
                             <select
                                 value={entriesPerPage}
                                 onChange={(e) => {
-                                    setEntriesPerPage(Number(e.target.value));
+                                    const val = e.target.value;
+                                    setEntriesPerPage(val === 'All' ? 'All' : Number(val));
                                     setCurrentPage(1);
                                 }}
                                 className="bg-white border border-neutral-300 rounded py-1 px-2 text-sm focus:ring-1 focus:ring-primary focus:outline-none cursor-pointer text-neutral-800"
@@ -217,6 +219,7 @@ export default function AdminUsers() {
                                 <option value={20}>20</option>
                                 <option value={50}>50</option>
                                 <option value={100}>100</option>
+                                <option value="All">All</option>
                             </select>
                             <span className="text-sm">entries</span>
                         </div>
@@ -320,7 +323,11 @@ export default function AdminUsers() {
                                             <td className="p-4 align-middle">{user.name}</td>
                                             <td className="p-4 align-middle">
                                                 <div className="text-xs">
-                                                    <div>{user.email}</div>
+                                                    <div>
+                                                        {user.email.endsWith('@kosil.temp') || user.email.endsWith('@healthydelight.temp')
+                                                            ? 'Email Not Provided'
+                                                            : user.email}
+                                                    </div>
                                                     {user.phone && (
                                                         <div className="text-neutral-500">{user.phone}</div>
                                                     )}

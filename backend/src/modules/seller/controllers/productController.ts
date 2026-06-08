@@ -88,6 +88,14 @@ export const createProduct = asyncHandler(
           message: `Discounted price (${variation.discPrice}) cannot be greater than price (${variation.price}) for variation ${variation.title}`,
         });
       }
+      if (variation.wholesalePrice !== undefined && variation.wholesalePrice !== null && variation.wholesalePrice !== "") {
+        if (Number(variation.wholesalePrice) > Number(variation.price)) {
+          return res.status(400).json({
+            success: false,
+            message: `Wholesale price (${variation.wholesalePrice}) cannot exceed original price (${variation.price}) for variation ${variation.title}`,
+          });
+        }
+      }
     }
 
     // 6. Set product status - All products are published automatically without approval
@@ -335,6 +343,16 @@ export const updateProduct = asyncHandler(
               variation.title || variation.value
             }`,
           });
+        }
+        if (variation.wholesalePrice !== undefined && variation.wholesalePrice !== null && variation.wholesalePrice !== "") {
+          if (Number(variation.wholesalePrice) > Number(variation.price)) {
+            return res.status(400).json({
+              success: false,
+              message: `Wholesale price cannot exceed original price for variation ${
+                variation.title || variation.value
+              }`,
+            });
+          }
         }
       }
 

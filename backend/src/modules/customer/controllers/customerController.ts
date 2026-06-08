@@ -2,6 +2,12 @@ import { Request, Response } from "express";
 import Customer from "../../../models/Customer";
 import CustomerWalletTransaction from "../../../models/CustomerWalletTransaction";
 import { asyncHandler } from "../../../utils/asyncHandler";
+import Address from "../../../models/Address";
+import Cart from "../../../models/Cart";
+import CartItem from "../../../models/CartItem";
+import Wishlist from "../../../models/Wishlist";
+import Review from "../../../models/Review";
+import Notification from "../../../models/Notification";
 
 /**
  * Get customer profile
@@ -264,3 +270,58 @@ export const getWalletTransactions = asyncHandler(async (req: Request, res: Resp
     data: transactions,
   });
 });
+
+/**
+ * Delete customer account and all stored details
+ */
+export const deleteAccount = asyncHandler(
+  async (req: Request, res: Response) => {
+    const userId = req.user?.userId;
+
+    if (!userId || (req as any).user?.userType !== "Customer") {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized or not a customer",
+      });
+    }
+
+    const customer = await Customer.findById(userId);
+
+    if (!customer) {
+      return res.status(404).json({
+        success: false,
+        message: "Customer not found",
+      });
+    }
+
+    // 1. Delete all Address documents
+    await Address.deleteMany({ customer: userId });
+
+    // 2. Delete Cart Items & Cart
+    const cart = await Cart.findOne({ customer: userId });
+    if (cart) {
+      await CartItem.deleteMany({ cart: cart._id });
+      await Cart.deleteOne({ _id: cart._id });
+    }
+
+    // 3. Delete Wishlist
+    await Wishlist.deleteOne({ customer: userId });
+
+    // 4. Delete Reviews
+    await Review.deleteMany({ customer: userId });
+
+    // 5. Delete Wallet Transactions
+    await CustomerWalletTransaction.deleteMany({ customerId: userId });
+
+    // 6. Delete Notifications
+    await Notification.deleteMany({ recipientType: "Customer", recipientId: userId });
+
+    // 7. Delete Customer document
+    await Customer.findByIdAndDelete(userId);
+
+    return res.status(200).json({
+      success: true,
+      message: "Account and associated data deleted successfully",
+    });
+  }
+);

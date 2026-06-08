@@ -94,7 +94,14 @@ export default function DeliveryNotifications() {
                     {getNotificationIcon(notification.type)}
                   </div>
                   <div className="flex-1">
-                    <h3 className={`text-sm font-semibold ${notification.isRead ? 'text-neutral-900' : 'text-neutral-900'}`}>{notification.title}</h3>
+                    <div className="flex justify-between items-start gap-2">
+                      <h3 className="text-sm font-semibold text-neutral-900">{notification.title}</h3>
+                      {notification.isRead && (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[9px] font-bold bg-neutral-100 text-neutral-500 border border-neutral-200 uppercase tracking-wider flex-shrink-0">
+                          Read
+                        </span>
+                      )}
+                    </div>
                     <p className="text-neutral-600 text-xs mt-1 line-clamp-2">{notification.message}</p>
                     <p className="text-neutral-400 text-[10px] mt-2">{formatTime(notification.createdAt)}</p>
                   </div>

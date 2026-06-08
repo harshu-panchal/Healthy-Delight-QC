@@ -7,7 +7,7 @@ interface DeliveryHeaderProps {
 }
 
 export default function DeliveryHeader({ userName }: DeliveryHeaderProps) {
-  const { isOnline, setIsOnline } = useDeliveryStatus();
+  const { isOnline, setIsOnline, riderStatus } = useDeliveryStatus();
   const { userName: contextUserName } = useDeliveryUser();
   const displayName = userName || contextUserName;
 
@@ -37,9 +37,11 @@ export default function DeliveryHeader({ userName }: DeliveryHeaderProps) {
         <div className="flex justify-end items-center min-w-[80px]">
           <button
             onClick={() => setIsOnline(!isOnline)}
+            disabled={riderStatus !== 'Active'}
             className={`relative w-12 h-6 rounded-full transition-colors focus:outline-none ${
               isOnline ? 'bg-blue-600' : 'bg-neutral-300'
-            }`}
+            } ${riderStatus !== 'Active' ? 'opacity-50 cursor-not-allowed' : ''}`}
+            title={riderStatus !== 'Active' ? 'Your application must be approved to go online' : ''}
           >
             <div
               className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform ${

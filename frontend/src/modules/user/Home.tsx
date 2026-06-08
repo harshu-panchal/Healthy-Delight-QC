@@ -20,6 +20,45 @@ import { useAuth } from "../../context/AuthContext";
 import { useOrders } from "../../hooks/useOrders";
 import DeliveryCalendarStrip from "./components/DeliveryCalendarStrip";
 
+const formatTimeSlotForHome = (timeSlotStr: string, scheduledSlot?: string): string => {
+  const slotLower = (timeSlotStr || "").toLowerCase();
+  const schedLower = (scheduledSlot || "").toLowerCase();
+  
+  if (schedLower === "evening" || slotLower.includes("evening") || slotLower.includes("5-8 pm") || slotLower.includes("5 pm - 8 pm")) {
+    return "6-9 PM";
+  }
+  if (schedLower === "morning" || slotLower.includes("morning") || slotLower.includes("6-9 am") || slotLower.includes("6 am - 9 am")) {
+    return "6-9 AM";
+  }
+
+  if (!timeSlotStr) {
+    return "6-9 AM";
+  }
+  
+  const parenMatch = timeSlotStr.match(/\(([^)]+)\)/);
+  const timeRange = parenMatch ? parenMatch[1] : timeSlotStr;
+  
+  const rangeMatch = timeRange.match(/(\d+):?(\d*)\s*(AM|PM)\s*-\s*(\d+):?(\d*)\s*(AM|PM)/i);
+  if (rangeMatch) {
+    const startHour = rangeMatch[1];
+    const startMin = rangeMatch[2];
+    const startModifier = rangeMatch[3].toUpperCase();
+    const endHour = rangeMatch[4];
+    const endMin = rangeMatch[5];
+    const endModifier = rangeMatch[6].toUpperCase();
+    
+    if (startModifier === endModifier && (!startMin || parseInt(startMin) === 0) && (!endMin || parseInt(endMin) === 0)) {
+      return `${startHour}-${endHour} ${startModifier}`;
+    }
+    
+    const startDisplay = `${startHour}${startMin && parseInt(startMin) > 0 ? `:${startMin}` : ""} ${startModifier}`;
+    const endDisplay = `${endHour}${endMin && parseInt(endMin) > 0 ? `:${endMin}` : ""} ${endModifier}`;
+    return `${startDisplay} - ${endDisplay}`;
+  }
+  
+  return timeRange;
+};
+
 export default function Home() {
   const navigate = useNavigate();
   const { location } = useLocation();
@@ -50,6 +89,38 @@ export default function Home() {
     });
     return data;
   }, [orders]);
+
+  const scheduledOrdersForSelectedDate = useMemo(() => {
+    if (!orders || !selectedDate) return [];
+    const targetDateStr = format(selectedDate, "yyyy-MM-dd");
+    return orders.filter((order: any) => {
+      if (order.orderType === "Scheduled" && order.scheduledDate) {
+        const orderDateStr = format(new Date(order.scheduledDate), "yyyy-MM-dd");
+        return orderDateStr === targetDateStr && ["Scheduled", "Accepted", "Rider Assigned", "Received", "Pending"].includes(order.status);
+      }
+      return false;
+    });
+  }, [orders, selectedDate]);
+
+  const deliveryStatusText = useMemo(() => {
+    if (scheduledOrdersForSelectedDate.length === 0) {
+      return "Manage your delivery schedule";
+    }
+    
+    const count = scheduledOrdersForSelectedDate.length;
+    const firstOrder = scheduledOrdersForSelectedDate[0];
+    const slotFormatted = formatTimeSlotForHome(firstOrder.timeSlot, (firstOrder as any).scheduledTimeSlot);
+    
+    const allSameSlot = scheduledOrdersForSelectedDate.every(
+      (order: any) => formatTimeSlotForHome(order.timeSlot, order.scheduledTimeSlot) === slotFormatted
+    );
+    
+    if (allSameSlot) {
+      return `${count} ${count === 1 ? "delivery" : "deliveries"} coming between ${slotFormatted}`;
+    } else {
+      return `${count} deliveries scheduled for today`;
+    }
+  }, [scheduledOrdersForSelectedDate]);
 
   // Sync selected calendar date on Home with sessionStorage
   useEffect(() => {
@@ -339,13 +410,11 @@ export default function Home() {
                 <div className="flex-1">
                   <h3 className="text-sm font-bold text-neutral-800 leading-tight">
                     {deliveryData[format(selectedDate, "yyyy-MM-dd")] 
-                      ? "Orders scheduled for today" 
+                      ? (isToday(selectedDate) ? "Orders scheduled for today" : "Orders scheduled for this day")
                       : "There are no orders scheduled for this day"}
                   </h3>
                   <p className="text-[11px] text-neutral-500 font-medium mt-0.5">
-                    {deliveryData[format(selectedDate, "yyyy-MM-dd")] 
-                      ? "1 delivery coming between 6-9 AM" 
-                      : "Manage your delivery schedule"}
+                    {deliveryStatusText}
                   </p>
                 </div>
                 {(deliveryData[format(selectedDate, "yyyy-MM-dd")] || !isToday(selectedDate)) && (

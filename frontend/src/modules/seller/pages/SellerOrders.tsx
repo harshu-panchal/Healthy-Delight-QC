@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { getOrders, Order, GetOrdersParams } from '../../../services/api/orderService';
 
 
@@ -25,16 +25,27 @@ const formatOrderFriendly = (orderNumber?: string, orderId?: string) => {
 
 export default function SellerOrders() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>('');
   const [dateRange, setDateRange] = useState('');
-  const [status, setStatus] = useState('All Status');
+  const [status, setStatus] = useState(searchParams.get('status') || 'All Status');
   const [entriesPerPage, setEntriesPerPage] = useState('10');
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [sortField, setSortField] = useState<SortField | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+
+  // Sync status state when query parameter changes
+  useEffect(() => {
+    const s = searchParams.get('status');
+    if (s) {
+      setStatus(s);
+    } else {
+      setStatus('All Status');
+    }
+  }, [searchParams]);
 
   // Fetch orders from API
   useEffect(() => {
@@ -284,7 +295,7 @@ export default function SellerOrders() {
                     setCurrentPage(1);
                   }}
                   className="flex-1 w-full sm:w-auto px-3 py-2 border border-neutral-300 rounded text-xs sm:text-sm text-neutral-900 bg-white focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
-                  placeholder="Search by Order ID, Status, or Amount"
+                  placeholder="Search by Order ID"
                 />
               </div>
 
@@ -353,146 +364,41 @@ export default function SellerOrders() {
                     <th className="px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">
                       <button
                         onClick={() => handleSort('orderId')}
-                        className="flex items-center gap-2 hover:text-neutral-900 transition-colors"
+                        className="hover:text-neutral-900 transition-colors"
                       >
                         O. Id
-                        <svg
-                          width="12"
-                          height="12"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          xmlns="http://www.w3.org/2000/svg"
-                          className={`cursor-pointer ${sortField === 'orderId' ? 'text-primary-dark' : 'text-neutral-400'
-                            }`}
-                        >
-                          <path
-                            d={sortField === 'orderId' && sortDirection === 'asc'
-                              ? "M7 14L12 9L17 14"
-                              : sortField === 'orderId' && sortDirection === 'desc'
-                                ? "M7 10L12 15L17 10"
-                                : "M7 10L12 5L17 10M7 14L12 19L17 14"}
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                        </svg>
                       </button>
                     </th>
                     <th className="px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">
                       <button
                         onClick={() => handleSort('deliveryDate')}
-                        className="flex items-center gap-2 hover:text-neutral-900 transition-colors"
+                        className="hover:text-neutral-900 transition-colors"
                       >
                         D. Date
-                        <svg
-                          width="12"
-                          height="12"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          xmlns="http://www.w3.org/2000/svg"
-                          className={`cursor-pointer ${sortField === 'deliveryDate' ? 'text-primary-dark' : 'text-neutral-400'
-                            }`}
-                        >
-                          <path
-                            d={sortField === 'deliveryDate' && sortDirection === 'asc'
-                              ? "M7 14L12 9L17 14"
-                              : sortField === 'deliveryDate' && sortDirection === 'desc'
-                                ? "M7 10L12 15L17 10"
-                                : "M7 10L12 5L17 10M7 14L12 19L17 14"}
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                        </svg>
                       </button>
                     </th>
                     <th className="px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">
                       <button
                         onClick={() => handleSort('orderDate')}
-                        className="flex items-center gap-2 hover:text-neutral-900 transition-colors"
+                        className="hover:text-neutral-900 transition-colors"
                       >
                         O. Date
-                        <svg
-                          width="12"
-                          height="12"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          xmlns="http://www.w3.org/2000/svg"
-                          className={`cursor-pointer ${sortField === 'orderDate' ? 'text-primary-dark' : 'text-neutral-400'
-                            }`}
-                        >
-                          <path
-                            d={sortField === 'orderDate' && sortDirection === 'asc'
-                              ? "M7 14L12 9L17 14"
-                              : sortField === 'orderDate' && sortDirection === 'desc'
-                                ? "M7 10L12 15L17 10"
-                                : "M7 10L12 5L17 10M7 14L12 19L17 14"}
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                        </svg>
                       </button>
                     </th>
                     <th className="px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">
                       <button
                         onClick={() => handleSort('status')}
-                        className="flex items-center gap-2 hover:text-neutral-900 transition-colors"
+                        className="hover:text-neutral-900 transition-colors"
                       >
                         Status
-                        <svg
-                          width="12"
-                          height="12"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          xmlns="http://www.w3.org/2000/svg"
-                          className={`cursor-pointer ${sortField === 'status' ? 'text-primary-dark' : 'text-neutral-400'
-                            }`}
-                        >
-                          <path
-                            d={sortField === 'status' && sortDirection === 'asc'
-                              ? "M7 14L12 9L17 14"
-                              : sortField === 'status' && sortDirection === 'desc'
-                                ? "M7 10L12 15L17 10"
-                                : "M7 10L12 5L17 10M7 14L12 19L17 14"}
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                        </svg>
                       </button>
                     </th>
                     <th className="px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">
                       <button
                         onClick={() => handleSort('amount')}
-                        className="flex items-center gap-2 hover:text-neutral-900 transition-colors"
+                        className="hover:text-neutral-900 transition-colors"
                       >
                         Amount
-                        <svg
-                          width="12"
-                          height="12"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          xmlns="http://www.w3.org/2000/svg"
-                          className={`cursor-pointer ${sortField === 'amount' ? 'text-primary-dark' : 'text-neutral-400'
-                            }`}
-                        >
-                          <path
-                            d={sortField === 'amount' && sortDirection === 'asc'
-                              ? "M7 14L12 9L17 14"
-                              : sortField === 'amount' && sortDirection === 'desc'
-                                ? "M7 10L12 15L17 10"
-                                : "M7 10L12 5L17 10M7 14L12 19L17 14"}
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                        </svg>
                       </button>
                     </th>
                     <th className="px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">

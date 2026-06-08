@@ -25,6 +25,8 @@ export const createDeliveryBoy = asyncHandler(
       accountNumber,
       ifscCode,
       bonusType,
+      vehicleType,
+      vehicleNumber,
     } = req.body;
 
     if (!name || !mobile || !email || !password || !address || !city) {
@@ -51,6 +53,8 @@ export const createDeliveryBoy = asyncHandler(
       accountNumber,
       ifscCode,
       bonusType,
+      vehicleType,
+      vehicleNumber,
       status: "Inactive", // New delivery boys start as inactive
     });
 

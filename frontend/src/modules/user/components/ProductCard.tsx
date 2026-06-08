@@ -192,7 +192,7 @@ export default function ProductCard({
               {(product.name || product.productName || '?').charAt(0).toUpperCase()}
             </div>
           )}
-          
+
           {/* Subtle Image Overlay for Depth */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/[0.08] via-transparent to-transparent opacity-60 pointer-events-none"></div>
 
@@ -234,7 +234,7 @@ export default function ProductCard({
               </span>
             </div>
           )}
-          
+
           {showVegetarianIcon && (
             <div className="absolute top-2 left-2 z-10 w-5 h-5 bg-white/95 backdrop-blur-sm border border-black/[0.04] rounded-md flex items-center justify-center shadow-sm">
               <div className="w-3 h-3 border border-green-600 flex items-center justify-center">

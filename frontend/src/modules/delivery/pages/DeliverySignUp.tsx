@@ -36,9 +36,11 @@ export default function DeliverySignUp() {
     accountNumber: "",
     ifscCode: "",
     bonusType: "",
+    vehicleType: "",
+    vehicleNumber: "",
   };
 
-  const [formData, setFormData] = useState(() => {
+  const [formData, setFormData] = useState<typeof defaultFormData>(() => {
     try {
       const saved = localStorage.getItem("deliverySignUpFormData");
       return saved
@@ -108,6 +110,11 @@ export default function DeliverySignUp() {
       setFormData((prev) => ({
         ...prev,
         [name]: value.replace(/[^a-zA-Z\s]/g, ""),
+      }));
+    } else if (name === "vehicleNumber") {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value.toUpperCase().replace(/\s+/g, '').replace(/[^A-Z0-9]/g, '').slice(0, 10),
       }));
     } else {
       setFormData((prev) => ({
@@ -202,7 +209,9 @@ export default function DeliverySignUp() {
       !formData.dateOfBirth ||
       !formData.password ||
       !formData.address ||
-      !formData.city
+      !formData.city ||
+      !formData.vehicleType ||
+      !formData.vehicleNumber
     ) {
       setError("Please fill all required fields");
       return;
@@ -230,6 +239,11 @@ export default function DeliverySignUp() {
 
     if (formData.mobile.length !== 10) {
       setError("Please enter a valid 10-digit mobile number");
+      return;
+    }
+
+    if (!/^[A-Z]{2}[0-9]{1,2}[A-Z]{1,3}[0-9]{4}$/.test(formData.vehicleNumber)) {
+      setError("Invalid Vehicle Number format. Example: UP32AB1234");
       return;
     }
 
@@ -305,6 +319,8 @@ export default function DeliverySignUp() {
         accountNumber: formData.accountNumber || undefined,
         ifscCode: formData.ifscCode || undefined,
         bonusType: formData.bonusType || undefined,
+        vehicleType: formData.vehicleType,
+        vehicleNumber: formData.vehicleNumber,
       });
 
       if (response.success) {
@@ -480,6 +496,11 @@ export default function DeliverySignUp() {
                     name="dateOfBirth"
                     value={formData.dateOfBirth}
                     onChange={handleInputChange}
+                    onFocus={() => {
+                      if (!formData.dateOfBirth) {
+                        setFormData({ ...formData, dateOfBirth: maxDate });
+                      }
+                    }}
                     max={maxDate}
                     required
                     className="w-full px-4 py-2.5 text-sm font-semibold text-neutral-800 bg-white border border-neutral-200 rounded-2xl focus:outline-none focus:border-[#c5a059] focus:ring-2 focus:ring-[#c5a059]/20 shadow-sm transition-all"
@@ -606,8 +627,9 @@ export default function DeliverySignUp() {
                     type="text"
                     name="accountNumber"
                     inputMode="numeric"
-                    pattern="[0-9]*"
+                    pattern="[0-9]{9,18}"
                     maxLength={18}
+                    title="Account number must be between 9 and 18 digits"
                     value={formData.accountNumber}
                     onChange={handleInputChange}
                     placeholder="Account number"
@@ -632,6 +654,50 @@ export default function DeliverySignUp() {
                 </div>
               </div>
 
+              {/* Vehicle Information */}
+              <div className="space-y-5 pt-4 border-t border-neutral-200/50">
+                <h3 className="text-sm font-bold text-[#0a193b]/80 border-b pb-2 uppercase tracking-wider">
+                  Vehicle Information
+                </h3>
+
+                <div>
+                  <label className="block text-xs font-bold text-[#0a193b]/70 uppercase tracking-widest mb-2">
+                    Vehicle Type <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    name="vehicleType"
+                    value={formData.vehicleType}
+                    onChange={handleInputChange}
+                    required
+                    className="w-full px-4 py-2.5 text-sm font-semibold text-neutral-800 bg-white border border-neutral-200 rounded-2xl focus:outline-none focus:border-[#c5a059] focus:ring-2 focus:ring-[#c5a059]/20 shadow-sm transition-all cursor-pointer"
+                    disabled={loading}
+                  >
+                    <option value="">Select vehicle type</option>
+                    <option value="Bike">Bike</option>
+                    <option value="Scooter">Scooter</option>
+                    <option value="Car">Car</option>
+                    <option value="Cycle">Cycle</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-[#0a193b]/70 uppercase tracking-widest mb-2">
+                    Vehicle Number <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    name="vehicleNumber"
+                    value={formData.vehicleNumber}
+                    onChange={handleInputChange}
+                    placeholder="e.g. UP32AB1234"
+                    maxLength={10}
+                    required
+                    className="w-full px-4 py-2.5 text-sm font-semibold text-neutral-800 bg-white border border-neutral-200 rounded-2xl focus:outline-none focus:border-[#c5a059] focus:ring-2 focus:ring-[#c5a059]/20 shadow-sm transition-all"
+                    disabled={loading}
+                  />
+                </div>
+              </div>
+
               {/* Documents Section */}
               <div className="space-y-5 pt-4 border-t border-neutral-200/50">
                 <h3 className="text-sm font-bold text-[#0a193b]/80 border-b pb-2 uppercase tracking-wider">
@@ -647,7 +713,7 @@ export default function DeliverySignUp() {
                       type="file"
                       name="drivingLicense"
                       onChange={handleFileChange}
-                      accept="image/*,.pdf"                    capture="filesystem"                      required
+                      accept="image/*,.pdf"                                          required
                       className="w-full px-4 py-2.5 text-sm font-semibold text-neutral-800 bg-white border border-neutral-200 rounded-2xl focus:outline-none focus:border-[#c5a059] focus:ring-2 focus:ring-[#c5a059]/20 shadow-sm transition-all"
                       disabled={loading || uploadingDocs}
                     />
@@ -668,7 +734,7 @@ export default function DeliverySignUp() {
                       type="file"
                       name="nationalIdentityCard"
                       onChange={handleFileChange}
-                      accept="image/*,.pdf"                    capture="filesystem"                      required
+                      accept="image/*,.pdf"                                          required
                       className="w-full px-4 py-2.5 text-sm font-semibold text-neutral-800 bg-white border border-neutral-200 rounded-2xl focus:outline-none focus:border-[#c5a059] focus:ring-2 focus:ring-[#c5a059]/20 shadow-sm transition-all"
                       disabled={loading || uploadingDocs}
                     />

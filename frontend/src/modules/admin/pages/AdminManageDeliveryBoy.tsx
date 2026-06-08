@@ -786,6 +786,31 @@ export default function AdminManageDeliveryBoy() {
                                 </div>
                             </div>
 
+                            {/* Vehicle Details */}
+                            <div className="bg-neutral-50/50 p-5 rounded-xl border border-neutral-200/60">
+                                <h4 className="text-sm font-bold text-teal-800 uppercase tracking-wider mb-4 flex items-center gap-2">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <rect x="1" y="3" width="15" height="13"></rect>
+                                        <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon>
+                                        <circle cx="5.5" cy="18.5" r="2.5"></circle>
+                                        <circle cx="18.5" cy="18.5" r="2.5"></circle>
+                                    </svg>
+                                    Vehicle Details
+                                </h4>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 text-sm">
+                                    <div>
+                                        <span className="block text-xs font-semibold text-neutral-400 uppercase">Vehicle Type</span>
+                                        <span className="font-semibold text-neutral-800">{selectedDeliveryBoy.vehicleType || 'N/A'}</span>
+                                    </div>
+                                    <div>
+                                        <span className="block text-xs font-semibold text-neutral-400 uppercase">Vehicle Number</span>
+                                        <span className="font-mono font-bold text-neutral-800 tracking-wider">
+                                            {selectedDeliveryBoy.vehicleNumber || 'N/A'}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
                             {/* Bank Account Details */}
                             <div className="bg-neutral-50/50 p-5 rounded-xl border border-neutral-200/60">
                                 <h4 className="text-sm font-bold text-teal-800 uppercase tracking-wider mb-4 flex items-center gap-2">

@@ -14,4 +14,5 @@ export * from "./adminPaymentService";
 export * from "./adminRoleService";
 export * from "./adminContentService";
 export * from "./adminMiscService";
+export * from "./adminShiftService";
 

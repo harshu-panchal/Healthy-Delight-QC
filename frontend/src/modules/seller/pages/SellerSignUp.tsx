@@ -147,6 +147,11 @@ export default function SellerSignUp() {
       setError("IFSC Code must be exactly 11 characters");
       return;
     }
+    const ifscRegex = /^[A-Z]{4}[0-9]{7}$/;
+    if (!ifscRegex.test(formData.ifsc.toUpperCase())) {
+      setError("Invalid IFSC Code format. Must be 4 letters followed by 7 digits (e.g., ABCD1234567)");
+      return;
+    }
     if (!formData.address && !formData.searchLocation) {
       setError("Store Location cannot be empty");
       return;
@@ -701,6 +706,8 @@ export default function SellerSignUp() {
                       placeholder="IFSC Code"
                       required
                       maxLength={11}
+                      pattern="[A-Za-z]{4}[0-9]{7}"
+                      title="IFSC Code must be 4 letters followed by 7 digits (e.g., ABCD1234567)"
                       className="w-full px-4 py-2.5 text-sm font-semibold text-neutral-800 bg-white border border-neutral-200 rounded-2xl focus:outline-none focus:border-[#c5a059] focus:ring-2 focus:ring-[#c5a059]/20 shadow-sm transition-all"
                       disabled={loading}
                     />

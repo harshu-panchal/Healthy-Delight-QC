@@ -33,6 +33,7 @@ export default function SellerDashboard() {
   const [currentPage, setCurrentPage] = useState(1);
   const [isShopOpen, setIsShopOpen] = useState(true);
   const [statusLoading, setStatusLoading] = useState(false);
+  const [walletBalance, setWalletBalance] = useState<number>(0);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -55,6 +56,7 @@ export default function SellerDashboard() {
           const shopStatus = profileResponse.data.isShopOpen ?? true;
           console.log('Initial shop status from profile:', shopStatus, 'Raw value:', profileResponse.data.isShopOpen);
           setIsShopOpen(shopStatus);
+          setWalletBalance(profileResponse.data.balance ?? 0);
         }
       } catch (err: any) {
         setError(err.response?.data?.message || 'Error loading dashboard data');
@@ -115,10 +117,11 @@ export default function SellerDashboard() {
   const displayedOrders = newOrders.slice(startIndex, endIndex);
 
   // Icons for KPI cards
-  const userIcon = (
+  const walletIcon = (
     <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="12" cy="8" r="4" stroke="currentColor" strokeWidth="2" fill="none" />
-      <path d="M4 20c0-4 3.5-7 8-7s8 3 8 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" fill="none" />
+      <rect x="3" y="6" width="18" height="12" rx="2" stroke="currentColor" strokeWidth="2" fill="none" />
+      <path d="M16 12h2a2 2 0 0 1 2 2v0a2 2 0 0 1-2 2h-2V12z" stroke="currentColor" strokeWidth="2" fill="none" />
+      <circle cx="17.5" cy="14" r="1" fill="currentColor" />
     </svg>
   );
 
@@ -295,14 +298,14 @@ export default function SellerDashboard() {
       </div>
       {/* KPI Cards Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-        <DashboardCard icon={userIcon} title="Total User" value={stats.totalUser} accentColor="#FFC94A" />
-        <DashboardCard icon={categoryIcon} title="Total Category" value={stats.totalCategory} accentColor="#eab308" />
-        <DashboardCard icon={subcategoryIcon} title="Total Subcategory" value={stats.totalSubcategory} accentColor="#ec4899" />
-        <DashboardCard icon={productIcon} title="Total Product" value={stats.totalProduct} accentColor="#f97316" />
-        <DashboardCard icon={ordersIcon} title="Total Orders" value={stats.totalOrders} accentColor="#FFC94A" />
-        <DashboardCard icon={completedOrdersIcon} title="Completed Orders" value={stats.completedOrders} accentColor="#FFC94A" />
-        <DashboardCard icon={pendingOrdersIcon} title="Pending Orders" value={stats.pendingOrders} accentColor="#a855f7" />
-        <DashboardCard icon={cancelledOrdersIcon} title="Cancelled Orders" value={stats.cancelledOrders} accentColor="#ef4444" />
+        <DashboardCard icon={walletIcon} title="Wallet Balance" value={`₹${walletBalance.toFixed(2)}`} accentColor="#FFC94A" onClick={() => navigate('/seller/wallet')} />
+        <DashboardCard icon={categoryIcon} title="Total Category" value={stats.totalCategory} accentColor="#eab308" onClick={() => navigate('/seller/category')} />
+        <DashboardCard icon={subcategoryIcon} title="Total Subcategory" value={stats.totalSubcategory} accentColor="#ec4899" onClick={() => navigate('/seller/category')} />
+        <DashboardCard icon={productIcon} title="Total Product" value={stats.totalProduct} accentColor="#f97316" onClick={() => navigate('/seller/product/list')} />
+        <DashboardCard icon={ordersIcon} title="Total Orders" value={stats.totalOrders} accentColor="#FFC94A" onClick={() => navigate('/seller/orders')} />
+        <DashboardCard icon={completedOrdersIcon} title="Completed Orders" value={stats.completedOrders} accentColor="#FFC94A" onClick={() => navigate('/seller/orders?status=Delivered')} />
+        <DashboardCard icon={pendingOrdersIcon} title="Pending Orders" value={stats.pendingOrders} accentColor="#a855f7" onClick={() => navigate('/seller/orders?status=Pending')} />
+        <DashboardCard icon={cancelledOrdersIcon} title="Cancelled Orders" value={stats.cancelledOrders} accentColor="#ef4444" onClick={() => navigate('/seller/orders?status=Cancelled')} />
       </div>
 
       {/* Charts Row */}
@@ -314,8 +317,8 @@ export default function SellerDashboard() {
       {/* Alerts and Button Row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {/* Alert Cards - Side by Side */}
-        <AlertCard icon={soldOutIcon} title="Product Sold Out" value={stats.soldOutProducts} accentColor="#ec4899" />
-        <AlertCard icon={lowStockIcon} title="Product low on Stock" value={stats.lowStockProducts} accentColor="#eab308" />
+        <AlertCard icon={soldOutIcon} title="Product Sold Out" value={stats.soldOutProducts} accentColor="#ec4899" onClick={() => navigate('/seller/product/stock')} />
+        <AlertCard icon={lowStockIcon} title="Product low on Stock" value={stats.lowStockProducts} accentColor="#eab308" onClick={() => navigate('/seller/product/stock')} />
       </div>
 
       {/* View New Orders Table Section */}
@@ -330,20 +333,14 @@ export default function SellerDashboard() {
         {/* Show Entries Control */}
         <div className="px-4 sm:px-6 py-3 border-b border-neutral-200">
           <div className="flex items-center gap-2">
-            <span className="text-sm text-neutral-700">Show</span>
+            <span className="text-sm text-neutral-700 font-medium">Show</span>
             <input
-              type="number"
-              value={entriesPerPage}
-              onChange={(e) => {
-                const value = parseInt(e.target.value) || 10;
-                setEntriesPerPage(Math.max(1, Math.min(100, value)));
-                setCurrentPage(1);
-              }}
-              className="w-16 px-2 py-1 border border-neutral-300 rounded text-sm text-neutral-900 bg-white focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
-              min="1"
-              max="100"
+              type="text"
+              value="10"
+              readOnly
+              className="w-12 text-center px-2 py-0.5 border border-neutral-300 rounded text-sm text-neutral-900 bg-white focus:outline-none cursor-default select-none"
             />
-            <span className="text-sm text-neutral-700">entries</span>
+            <span className="text-sm text-neutral-700 font-medium">entries</span>
           </div>
         </div>
 
@@ -356,88 +353,16 @@ export default function SellerDashboard() {
                   ID
                 </th>
                 <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">
-                  <div className="flex items-center gap-2">
-                    O. Date
-                    <svg
-                      width="12"
-                      height="12"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="text-neutral-400 cursor-pointer"
-                    >
-                      <path
-                        d="M7 10L12 5L17 10M7 14L12 19L17 14"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </div>
+                  O. Date
                 </th>
                 <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">
-                  <div className="flex items-center gap-2">
-                    Status
-                    <svg
-                      width="12"
-                      height="12"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="text-neutral-400 cursor-pointer"
-                    >
-                      <path
-                        d="M7 10L12 5L17 10M7 14L12 19L17 14"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </div>
+                  Status
                 </th>
                 <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">
-                  <div className="flex items-center gap-2">
-                    Amount
-                    <svg
-                      width="12"
-                      height="12"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="text-neutral-400 cursor-pointer"
-                    >
-                      <path
-                        d="M7 10L12 5L17 10M7 14L12 19L17 14"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </div>
+                  Amount
                 </th>
                 <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">
-                  <div className="flex items-center gap-2">
-                    Action
-                    <svg
-                      width="12"
-                      height="12"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="text-neutral-400 cursor-pointer"
-                    >
-                      <path
-                        d="M7 10L12 5L17 10M7 14L12 19L17 14"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </div>
+                  Action
                 </th>
               </tr>
             </thead>

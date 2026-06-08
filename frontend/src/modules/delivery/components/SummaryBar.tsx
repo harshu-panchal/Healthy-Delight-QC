@@ -8,6 +8,7 @@ interface SummaryBarProps {
   rightLabel: string;
   rightValue: string;
   accentColor: string;
+  onClick?: () => void;
 }
 
 export default function SummaryBar({
@@ -18,9 +19,15 @@ export default function SummaryBar({
   rightLabel,
   rightValue,
   accentColor,
+  onClick,
 }: SummaryBarProps) {
   return (
-    <div className="bg-white rounded-xl p-4 shadow-sm flex items-center justify-between border border-neutral-200 hover:shadow-md transition-shadow">
+    <div 
+      onClick={onClick}
+      className={`bg-white rounded-xl p-4 shadow-sm flex items-center justify-between border border-neutral-200 hover:shadow-md transition-all ${
+        onClick ? 'cursor-pointer active:scale-[0.99]' : ''
+      }`}
+    >
       {/* Left Section */}
       <div className="flex items-center gap-3 flex-1">
         <div style={{ color: accentColor }}>

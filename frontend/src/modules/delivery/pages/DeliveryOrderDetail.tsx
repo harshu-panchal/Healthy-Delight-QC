@@ -1024,6 +1024,40 @@ export default function DeliveryOrderDetail() {
                     )}
                 </div>
 
+                {/* Rider Earnings Breakdown */}
+                <motion.div 
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-gradient-to-br from-emerald-50 to-teal-50/50 rounded-2xl p-5 shadow-sm border border-emerald-100/80"
+                >
+                    <h3 className="font-bold text-emerald-900 flex items-center gap-2 mb-4">
+                        <div className="p-1.5 bg-emerald-100 text-emerald-700 rounded-lg flex items-center justify-center">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M6 3h12M6 8h11M6 3a5 5 0 0 1 5 5H6M9 8l8 10" />
+                            </svg>
+                        </div>
+                        Your Earnings Breakdown
+                    </h3>
+                    <div className="space-y-3 text-sm">
+                        <div className="flex justify-between items-center text-neutral-600 font-semibold">
+                            <span>Delivery Fee</span>
+                            <span className="text-neutral-900 font-bold">₹{(order.shipping ?? 0).toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between items-center text-neutral-600 font-semibold">
+                            <span>Customer Tip</span>
+                            <span className="text-emerald-600 font-bold">
+                                {order.tipAmount && order.tipAmount > 0 ? `₹${order.tipAmount.toFixed(2)}` : '₹0.00'}
+                            </span>
+                        </div>
+                        <div className="pt-3 border-t border-dashed border-emerald-200 flex justify-between items-center">
+                            <span className="font-bold text-emerald-900">Total Earning</span>
+                            <span className="text-lg font-black text-emerald-700">
+                                ₹{((order.shipping ?? 0) + (order.tipAmount ?? 0)).toFixed(2)}
+                            </span>
+                        </div>
+                    </div>
+                </motion.div>
+
                 {/* Order Info */}
                 <div className="bg-white rounded-2xl p-5 shadow-sm border border-neutral-100 mb-20">
                     <div className="grid grid-cols-2 gap-4">
@@ -1037,18 +1071,20 @@ export default function DeliveryOrderDetail() {
                                 {new Date(order.createdAt).toLocaleDateString()}
                             </p>
                         </div>
+                        {/* Always show delivery shift / time slot details */}
+                        <div className="p-3 bg-neutral-50 rounded-lg col-span-2">
+                            <p className="text-xs text-neutral-500 mb-1 font-medium">Delivery Shift / Time Slot</p>
+                            <p className="text-sm font-bold text-neutral-900 flex items-center gap-1.5">
+                                <Icons.Clock size={16} className="text-neutral-500" />
+                                {order.scheduledTimeSlot || order.timeSlot || 'N/A'}
+                            </p>
+                        </div>
                         {order.orderType === 'Scheduled' && (
                             <>
                                 <div className="p-3 bg-blue-50/50 rounded-lg col-span-2">
                                     <p className="text-xs text-neutral-500 mb-1 font-medium">Scheduled Delivery Date</p>
                                     <p className="text-sm font-black text-blue-600">
                                         {order.scheduledDate ? new Date(order.scheduledDate).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A'}
-                                    </p>
-                                </div>
-                                <div className="p-3 bg-blue-50/50 rounded-lg col-span-2">
-                                    <p className="text-xs text-neutral-500 mb-1 font-medium">Scheduled Time Slot</p>
-                                    <p className="text-sm font-black text-blue-600">
-                                        {order.scheduledTimeSlot || order.timeSlot || 'N/A'}
                                     </p>
                                 </div>
                             </>
@@ -1115,23 +1151,61 @@ export default function DeliveryOrderDetail() {
                 </div>
             )}
 
-            {/* Targeted Assignment Action Buttons */}
+            {/* Targeted Assignment Action Buttons / Modal Overlay */}
             {order.deliveryBoyStatus === 'Pending' && (
-                <div className="fixed bottom-24 left-6 right-6 z-30 flex gap-4">
-                    <button
-                        onClick={handleRejectAssignment}
-                        disabled={loading}
-                        className="flex-1 py-4 rounded-2xl bg-white border-2 border-red-500 text-red-600 font-bold text-lg shadow-lg active:scale-[0.98] transition-all disabled:opacity-50"
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-6">
+                    <motion.div 
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl border border-neutral-100"
                     >
-                        {loading ? '...' : 'Reject'}
-                    </button>
-                    <button
-                        onClick={handleAcceptAssignment}
-                        disabled={loading}
-                        className="flex-1 py-4 rounded-2xl bg-teal-600 text-white font-bold text-lg shadow-lg active:scale-[0.98] transition-all disabled:opacity-50"
-                    >
-                        {loading ? '...' : 'Accept'}
-                    </button>
+                        <div className="w-12 h-12 rounded-full bg-teal-50 text-teal-600 flex items-center justify-center mb-4">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <rect x="1" y="3" width="15" height="13" />
+                                <polygon points="16 8 20 8 23 11 23 16 16 16 16 8" />
+                                <circle cx="5.5" cy="18.5" r="2.5" />
+                                <circle cx="18.5" cy="18.5" r="2.5" />
+                            </svg>
+                        </div>
+                        <h3 className="text-xl font-extrabold text-neutral-900 mb-2">New Delivery Assigned</h3>
+                        <p className="text-sm text-neutral-600 mb-4 leading-relaxed">
+                            You have a new delivery assignment. Please review and accept to proceed.
+                        </p>
+                        
+                        <div className="bg-neutral-50 rounded-2xl p-4 mb-6 space-y-3">
+                            <div className="flex justify-between items-center text-xs">
+                                <span className="text-neutral-500 font-medium">Order ID</span>
+                                <span className="text-neutral-900 font-bold">{formatOrderFriendly(order.orderId)}</span>
+                            </div>
+                            <div className="flex justify-between items-start text-xs gap-2">
+                                <span className="text-neutral-500 font-medium flex-shrink-0">Delivery Address</span>
+                                <span className="text-neutral-900 font-semibold text-right line-clamp-2">{order.address}</span>
+                            </div>
+                            <div className="pt-2.5 border-t border-dashed border-neutral-200 flex justify-between items-center">
+                                <span className="text-sm font-bold text-neutral-800">Your Earnings</span>
+                                <span className="text-base font-black text-emerald-600">
+                                    ₹{((order.shipping ?? 0) + (order.tipAmount ?? 0)).toFixed(2)}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div className="flex gap-3">
+                            <button
+                                onClick={handleRejectAssignment}
+                                disabled={loading}
+                                className="flex-1 py-3.5 rounded-xl bg-white border border-red-200 hover:bg-red-50/50 text-red-600 font-bold text-sm transition-colors active:scale-[0.98] disabled:opacity-50"
+                            >
+                                {loading ? '...' : 'Reject'}
+                            </button>
+                            <button
+                                onClick={handleAcceptAssignment}
+                                disabled={loading}
+                                className="flex-1 py-3.5 rounded-xl bg-teal-600 text-white hover:bg-teal-700 font-bold text-sm shadow-md active:scale-[0.98] transition-colors disabled:opacity-50"
+                            >
+                                {loading ? '...' : 'Accept'}
+                            </button>
+                        </div>
+                    </motion.div>
                 </div>
             )}
 

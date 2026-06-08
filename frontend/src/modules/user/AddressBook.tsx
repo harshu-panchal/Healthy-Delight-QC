@@ -187,7 +187,7 @@ export default function AddressBook() {
         </div>
         <div className="ml-auto">
           <button
-            onClick={() => navigate("/checkout/address", { state: { fromAddressBook: true } })}
+            onClick={() => navigate("/checkout/address", { state: { fromAddressBook: true, from: "/address-book" } })}
             className="px-3 py-1.5 text-sm font-semibold text-white bg-teal-600 rounded-full hover:bg-teal-700"
           >
             Add new
@@ -213,7 +213,7 @@ export default function AddressBook() {
               Save an address to checkout faster next time.
             </p>
             <button
-              onClick={() => navigate("/checkout/address", { state: { fromAddressBook: true } })}
+              onClick={() => navigate("/checkout/address", { state: { fromAddressBook: true, from: "/address-book" } })}
               className="px-4 py-2 text-sm font-semibold text-white bg-teal-600 rounded-full hover:bg-teal-700"
             >
               Add address
@@ -279,6 +279,25 @@ export default function AddressBook() {
                             <path d="m15.41 6.51-6.82 3.98" />
                           </svg>
                           Share
+                        </button>
+                        <button
+                          onClick={() => navigate("/checkout/address", { state: { editAddress: { ...addr, name: addr.fullName, id: addr._id }, from: "/address-book" } })}
+                          className="flex items-center gap-1 text-sm font-semibold hover:text-teal-800"
+                          disabled={isBusy}
+                        >
+                          <svg
+                            viewBox="0 0 24 24"
+                            className="w-4.5 h-4.5"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          >
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                            <path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                          </svg>
+                          Edit
                         </button>
                         <button
                           onClick={() => handleMakeDefault(addr._id)}

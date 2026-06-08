@@ -128,6 +128,8 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
     accountNumber,
     ifscCode,
     bonusType,
+    vehicleType,
+    vehicleNumber,
   } = req.body;
 
   // Validation
@@ -174,6 +176,8 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
     accountNumber,
     ifscCode,
     bonusType,
+    vehicleType,
+    vehicleNumber,
     status: "Inactive", // New delivery partners start as Inactive
     balance: 0,
     cashCollected: 0,

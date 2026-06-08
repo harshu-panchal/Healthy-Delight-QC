@@ -2,6 +2,23 @@ import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { getSalesReport, SalesReport } from '../../../services/api/reportService';
 
+const formatOrderFriendly = (orderNumber?: string, orderId?: string) => {
+    if (orderNumber && orderNumber !== 'N/A') {
+        if (orderNumber.startsWith('ORD')) {
+            const numericPart = orderNumber.replace('ORD', '');
+            if (numericPart.length > 6) {
+                return `ORD-${numericPart.slice(-6)}`;
+            }
+            return orderNumber;
+        }
+        return orderNumber.length > 10 ? orderNumber.slice(0, 8) : orderNumber;
+    }
+    if (orderId) {
+        return `ORD-${orderId.substring(0, 6).toUpperCase()}`;
+    }
+    return 'Unknown';
+};
+
 export default function SellerSalesReport() {
     const [reports, setReports] = useState<SalesReport[]>([]);
     const [loading, setLoading] = useState(true);
@@ -87,6 +104,7 @@ export default function SellerSalesReport() {
     const handleClearDates = () => {
         setFromDate('');
         setToDate('');
+        setCurrentPage(1);
     };
 
     return (
@@ -118,37 +136,35 @@ export default function SellerSalesReport() {
                         {/* Left Side: Date Range Filter */}
                         <div className="flex items-center gap-2">
                             <label className="text-sm text-neutral-600 whitespace-nowrap">From - To Date:</label>
-                            <div className="relative">
+                            <div className="flex items-center gap-2">
                                 <input
-                                    type="text"
-                                    value={fromDate && toDate ? `${fromDate} - ${toDate}` : ''}
-                                    placeholder="Select date range"
-                                    className="pl-10 pr-3 py-2 bg-white border border-neutral-300 rounded text-sm focus:ring-1 focus:ring-primary focus:outline-none w-full sm:w-64"
-                                    readOnly
+                                    type="date"
+                                    value={fromDate}
+                                    onChange={(e) => {
+                                        setFromDate(e.target.value);
+                                        setCurrentPage(1);
+                                    }}
+                                    className="px-3 py-2 bg-white border border-neutral-300 rounded text-sm focus:ring-1 focus:ring-primary focus:outline-none w-full sm:w-36 text-neutral-900"
                                 />
-                                <svg
-                                    width="16"
-                                    height="16"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    strokeWidth="2"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400"
-                                >
-                                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                                    <line x1="16" y1="2" x2="16" y2="6"></line>
-                                    <line x1="8" y1="2" x2="8" y2="6"></line>
-                                    <line x1="3" y1="10" x2="21" y2="10"></line>
-                                </svg>
+                                <span className="text-neutral-500 text-sm">to</span>
+                                <input
+                                    type="date"
+                                    value={toDate}
+                                    onChange={(e) => {
+                                        setToDate(e.target.value);
+                                        setCurrentPage(1);
+                                    }}
+                                    className="px-3 py-2 bg-white border border-neutral-300 rounded text-sm focus:ring-1 focus:ring-primary focus:outline-none w-full sm:w-36 text-neutral-900"
+                                />
                             </div>
-                            <button
-                                onClick={handleClearDates}
-                                className="px-3 py-2 bg-neutral-700 hover:bg-neutral-800 text-white text-sm rounded transition-colors"
-                            >
-                                Clear
-                            </button>
+                            {(fromDate || toDate) && (
+                                <button
+                                    onClick={handleClearDates}
+                                    className="px-3 py-2 bg-neutral-700 hover:bg-neutral-800 text-white text-sm rounded transition-colors"
+                                >
+                                    Clear
+                                </button>
+                            )}
                         </div>
 
                         {/* Right Side: Per Page, Export, Search */}
@@ -210,17 +226,17 @@ export default function SellerSalesReport() {
                             </button>
 
                             {/* Search */}
-                            <div className="relative">
-                                <span className="absolute left-2 top-1/2 -translate-y-1/2 text-neutral-400 text-xs">Search:</span>
+                            <div className="flex items-center gap-2 w-full sm:w-auto">
+                                <label className="text-sm font-medium text-neutral-700">Search:</label>
                                 <input
                                     type="text"
-                                    className="pl-14 pr-3 py-1.5 bg-neutral-100 border-none rounded text-sm focus:ring-1 focus:ring-primary w-full sm:w-48"
+                                    className="px-3 py-1.5 bg-neutral-100 border-none rounded text-sm focus:ring-1 focus:ring-primary w-full sm:w-48"
                                     value={searchTerm}
                                     onChange={(e) => {
                                         setSearchTerm(e.target.value);
                                         setCurrentPage(1);
                                     }}
-                                    placeholder=""
+                                    placeholder="Search report..."
                                 />
                             </div>
                         </div>
@@ -306,7 +322,7 @@ export default function SellerSalesReport() {
                                             <tr key={index} className="hover:bg-neutral-50">
                                                 <td className="p-4 border border-neutral-200 text-sm">
                                                     <span className="text-primary-dark hover:text-primary-dark font-medium">
-                                                        {report.orderId}
+                                                        {formatOrderFriendly(report.orderId)}
                                                     </span>
                                                 </td>
                                                 <td className="p-4 border border-neutral-200 text-sm text-neutral-900">{report.orderItemId}</td>

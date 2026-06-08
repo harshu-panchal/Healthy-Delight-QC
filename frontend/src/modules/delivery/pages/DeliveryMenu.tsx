@@ -3,17 +3,22 @@ import { useNavigate } from 'react-router-dom';
 import DeliveryHeader from '../components/DeliveryHeader';
 import DeliveryBottomNav from '../components/DeliveryBottomNav';
 import { useAuth } from '../../../context/AuthContext';
+import { deleteAccount } from '../../../services/api/delivery/deliveryService';
 
 export default function DeliveryMenu() {
   const navigate = useNavigate();
   const { logout } = useAuth();
   const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const menuItems = [
     { id: 'menu-1', title: 'Profile', route: '/delivery/profile' },
     { id: 'menu-wallet', title: 'Wallet & Payouts', route: '/delivery/wallet' },
     { id: 'menu-3', title: 'Settings', route: '/delivery/settings' },
     { id: 'menu-4', title: 'Help & Support', route: '/delivery/help' },
+    { id: 'menu-delete', title: 'Delete Account', route: 'delete' },
     { id: 'menu-6', title: 'Logout', route: '/delivery/login' },
   ];
 
@@ -64,6 +69,20 @@ export default function DeliveryMenu() {
           </svg>
         );
 
+      case 'menu-delete': // Delete Account
+        return (
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path
+              d="M19 7L18.1327 19.1425C18.0579 20.1891 17.187 21 16.1378 21H7.86224C6.81296 21 5.94208 20.1891 5.86723 19.1425L5 7M10 11V17M14 11V17M15 7V4C15 3.44772 14.5523 3 14 3H10C9.44772 3 9 3.44772 9 4V7M4 7H20"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              fill="none"
+            />
+          </svg>
+        );
+
       case 'menu-6': // Logout
         return (
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -101,6 +120,8 @@ export default function DeliveryMenu() {
   const handleMenuClick = (route: string) => {
     if (route === '/delivery/login') {
       setLogoutConfirmOpen(true);
+    } else if (route === 'delete') {
+      setDeleteConfirmOpen(true);
     } else {
       navigate(route);
     }
@@ -116,6 +137,28 @@ export default function DeliveryMenu() {
     setLogoutConfirmOpen(false);
   };
 
+  const confirmDelete = async () => {
+    setIsDeleting(true);
+    setDeleteError(null);
+    try {
+      await deleteAccount();
+      setDeleteConfirmOpen(false);
+      logout();
+      navigate('/delivery/login');
+    } catch (err: any) {
+      setDeleteError(err.message || 'Failed to delete account. Please try again.');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const cancelDelete = () => {
+    if (!isDeleting) {
+      setDeleteConfirmOpen(false);
+      setDeleteError(null);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-neutral-100 pb-20">
       <DeliveryHeader />
@@ -127,15 +170,17 @@ export default function DeliveryMenu() {
               <button
                 key={item.id}
                 onClick={() => handleMenuClick(item.route)}
-                className={`w-full bg-white rounded-xl p-4 shadow-sm border border-neutral-200 flex items-center gap-3 hover:shadow-md transition-shadow ${item.id === 'menu-6' ? 'text-red-600 hover:bg-red-50' : 'hover:bg-neutral-50'
-                  }`}
+                className={`w-full bg-white rounded-xl p-4 shadow-sm border border-neutral-200 flex items-center gap-3 hover:shadow-md transition-shadow ${
+                  (item.id === 'menu-6' || item.id === 'menu-delete') ? 'text-red-600 hover:bg-red-50' : 'hover:bg-neutral-50'
+                }`}
               >
-                <span className={`flex-shrink-0 ${item.id === 'menu-6' ? 'text-red-600' : 'text-neutral-600'}`}>
+                <span className={`flex-shrink-0 ${(item.id === 'menu-6' || item.id === 'menu-delete') ? 'text-red-600' : 'text-neutral-600'}`}>
                   {getMenuIcon(item.id)}
                 </span>
                 <span
-                  className={`text-sm font-medium flex-1 text-left ${item.id === 'menu-6' ? 'text-red-600' : 'text-neutral-900'
-                    }`}
+                  className={`text-sm font-medium flex-1 text-left ${
+                    (item.id === 'menu-6' || item.id === 'menu-delete') ? 'text-red-600' : 'text-neutral-900'
+                  }`}
                 >
                   {item.title}
                 </span>
@@ -145,7 +190,7 @@ export default function DeliveryMenu() {
                   viewBox="0 0 24 24"
                   fill="none"
                   xmlns="http://www.w3.org/2000/svg"
-                  className={item.id === 'menu-6' ? 'text-red-600' : 'text-neutral-400'}
+                  className={(item.id === 'menu-6' || item.id === 'menu-delete') ? 'text-red-600' : 'text-neutral-400'}
                 >
                   <path
                     d="M9 18L15 12L9 6"
@@ -198,6 +243,63 @@ export default function DeliveryMenu() {
                 className="w-full rounded-2xl bg-[#c5a059] px-4 py-3 text-sm font-semibold text-[#0a193b] transition hover:bg-[#d4b76b] sm:w-auto"
               >
                 Yes, Logout
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {deleteConfirmOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-md rounded-[28px] border border-[#c5a059]/20 bg-[#0a193b] text-white shadow-2xl p-6">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <h3 className="text-xl font-semibold text-red-400">Delete Account?</h3>
+                <p className="mt-2 text-sm text-[#d8d8d8] leading-6">
+                  Are you absolutely sure you want to delete your account? This action is permanent and cannot be undone. All your personal data and profile information will be permanently deleted.
+                </p>
+                {deleteError && (
+                  <div className="mt-3 bg-red-950/50 border border-red-500/30 text-red-200 text-xs p-3 rounded-xl">
+                    {deleteError}
+                  </div>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={cancelDelete}
+                disabled={isDeleting}
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/15 disabled:opacity-50"
+              >
+                <span className="text-lg">×</span>
+              </button>
+            </div>
+
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
+              <button
+                type="button"
+                onClick={cancelDelete}
+                disabled={isDeleting}
+                className="w-full rounded-2xl border border-white/20 bg-white/10 px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/15 sm:w-auto disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmDelete}
+                disabled={isDeleting}
+                className="w-full rounded-2xl bg-red-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-red-700 sm:w-auto flex items-center justify-center gap-2 disabled:opacity-50"
+              >
+                {isDeleting ? (
+                  <>
+                    <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    </svg>
+                    Deleting...
+                  </>
+                ) : (
+                  'Yes, Delete'
+                )}
               </button>
             </div>
           </div>

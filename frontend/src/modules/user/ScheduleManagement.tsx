@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { format, addMonths, startOfMonth, endOfMonth, eachDayOfInterval, isBefore, startOfTomorrow, isSameDay } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
 import { getMyOrders } from "../../services/api/customerOrderService";
+import { getActiveShifts, type CustomerShift } from "../../services/api/customerShiftService";
 
 const formatOrderFriendly = (orderNumber?: string, orderId?: string) => {
   if (orderNumber && orderNumber !== 'N/A') {
@@ -34,9 +35,60 @@ export default function ScheduleManagement() {
     return saved ? new Date(saved) : null;
   });
   
-  const [timeSlot, setTimeSlot] = useState<"Morning" | "Evening" | null>(() => {
-    return sessionStorage.getItem("scheduledTimeSlot") as "Morning" | "Evening" | null;
+  const [timeSlot, setTimeSlot] = useState<string | null>(() => {
+    return sessionStorage.getItem("scheduledTimeSlot");
   });
+
+  const [activeShifts, setActiveShifts] = useState<CustomerShift[]>([]);
+
+  useEffect(() => {
+    const fetchShifts = async () => {
+      try {
+        const response = await getActiveShifts("Scheduled");
+        if (response.success && response.data.length > 0) {
+          setActiveShifts(response.data);
+          // If no timeSlot is selected yet, or if current timeSlot is not in the new active shifts, set to first active
+          const savedSlot = sessionStorage.getItem("scheduledTimeSlot");
+          const isValidSaved = response.data.some(s => s.name === savedSlot);
+          if (!savedSlot || !isValidSaved) {
+            const defaultSlot = response.data[0].name;
+            setTimeSlot(defaultSlot);
+            if (selectedDate) {
+              sessionStorage.setItem("scheduledTimeSlot", defaultSlot);
+            }
+          }
+        } else {
+          useFallbackShifts();
+        }
+      } catch (err) {
+        console.error("Failed to fetch active scheduled shifts:", err);
+        useFallbackShifts();
+      }
+    };
+
+    const useFallbackShifts = () => {
+      const fallback: CustomerShift[] = [
+        { _id: "morning", name: "Morning", startTime: "06:00 AM", endTime: "09:00 AM", type: "Both", isActive: true },
+        { _id: "evening", name: "Evening", startTime: "06:00 PM", endTime: "09:00 PM", type: "Both", isActive: true },
+      ];
+      setActiveShifts(fallback);
+      const savedSlot = sessionStorage.getItem("scheduledTimeSlot");
+      if (!savedSlot) {
+        setTimeSlot("Morning");
+      }
+    };
+
+    fetchShifts();
+  }, [selectedDate]);
+
+  const formatScheduledSlot = (slotName: string | undefined) => {
+    if (!slotName) return "N/A";
+    const matched = activeShifts.find(s => s.name.toLowerCase() === slotName.toLowerCase());
+    if (matched) {
+      return `${matched.name} (${matched.startTime} - ${matched.endTime})`;
+    }
+    return slotName === "Morning" ? "Morning (6 AM - 9 AM)" : slotName === "Evening" ? "Evening (6 PM - 9 PM)" : slotName;
+  };
   
   const days = eachDayOfInterval({
     start: startOfMonth(currentMonth),
@@ -156,10 +208,11 @@ export default function ScheduleManagement() {
                   onClick={() => {
                     setSelectedDate(day);
                     sessionStorage.setItem("scheduledDeliveryDate", day.toISOString());
-                    if (!timeSlot) {
-                      setTimeSlot("Morning");
-                      sessionStorage.setItem("scheduledTimeSlot", "Morning");
-                    }
+                     if (!timeSlot && activeShifts.length > 0) {
+                       const defaultSlot = activeShifts[0].name;
+                       setTimeSlot(defaultSlot);
+                       sessionStorage.setItem("scheduledTimeSlot", defaultSlot);
+                     }
                   }}
                   className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold transition-all ${
                     isInactive 
@@ -178,38 +231,29 @@ export default function ScheduleManagement() {
       </div>
 
       {/* Time Slot Selection */}
-      {selectedDate && (
+      {selectedDate && activeShifts.length > 0 && (
         <div className="bg-white rounded-[24px] p-5 shadow-[0_10px_30px_rgba(0,0,0,0.02)] border border-neutral-100 mb-6 animate-fadeIn">
           <h3 className="text-sm font-black text-[#0a193b] mb-4">Choose Delivery Time Slot</h3>
           <div className="grid grid-cols-2 gap-4">
-            <button
-              onClick={() => {
-                setTimeSlot("Morning");
-                sessionStorage.setItem("scheduledTimeSlot", "Morning");
-              }}
-              className={`p-4 rounded-2xl flex flex-col items-center justify-center border-2 transition-all ${
-                timeSlot === "Morning"
-                  ? "border-[#3b82f6] bg-[#3b82f6]/5 text-[#3b82f6]"
-                  : "border-neutral-100 hover:border-neutral-200 text-neutral-600"
-              }`}
-            >
-              <span className="text-sm font-bold">Morning</span>
-              <span className="text-[10px] text-neutral-400 font-medium mt-1">6:00 AM - 9:00 AM</span>
-            </button>
-            <button
-              onClick={() => {
-                setTimeSlot("Evening");
-                sessionStorage.setItem("scheduledTimeSlot", "Evening");
-              }}
-              className={`p-4 rounded-2xl flex flex-col items-center justify-center border-2 transition-all ${
-                timeSlot === "Evening"
-                  ? "border-[#3b82f6] bg-[#3b82f6]/5 text-[#3b82f6]"
-                  : "border-neutral-100 hover:border-neutral-200 text-neutral-600"
-              }`}
-            >
-              <span className="text-sm font-bold">Evening</span>
-              <span className="text-[10px] text-neutral-400 font-medium mt-1">5:00 PM - 8:00 PM</span>
-            </button>
+            {activeShifts.map((shift) => (
+              <button
+                key={shift._id}
+                onClick={() => {
+                  setTimeSlot(shift.name);
+                  sessionStorage.setItem("scheduledTimeSlot", shift.name);
+                }}
+                className={`p-4 rounded-2xl flex flex-col items-center justify-center border-2 transition-all ${
+                  timeSlot === shift.name
+                    ? "border-[#3b82f6] bg-[#3b82f6]/5 text-[#3b82f6]"
+                    : "border-neutral-100 hover:border-neutral-200 text-neutral-600"
+                }`}
+              >
+                <span className="text-sm font-bold">{shift.name}</span>
+                <span className="text-[10px] text-neutral-400 font-medium mt-1">
+                  {shift.startTime} - {shift.endTime}
+                </span>
+              </button>
+            ))}
           </div>
         </div>
       )}
@@ -290,7 +334,7 @@ export default function ScheduleManagement() {
                         <div className="flex flex-col">
                           <span className="text-[10px] text-neutral-400 font-bold uppercase tracking-wider">Time Slot</span>
                           <span className="text-xs font-medium text-neutral-600">
-                            {order.scheduledTimeSlot === "Morning" ? "Morning (6 AM - 9 AM)" : "Evening (5 PM - 8 PM)"}
+                            {formatScheduledSlot(order.scheduledTimeSlot)}
                           </span>
                         </div>
                       </div>

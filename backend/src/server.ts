@@ -14,6 +14,7 @@ import { errorHandler } from "./middleware/errorHandler";
 import { notFound } from "./middleware/notFound";
 import { ensureDefaultAdmin } from "./utils/ensureDefaultAdmin";
 import { seedHeaderCategories } from "./utils/seedHeaderCategories";
+import { seedDefaultShifts } from "./utils/seedDefaultShifts";
 import { initializeSocket } from "./socket/socketService";
 import mongoose from "mongoose";
 import { startScheduledOrderPromotionJob } from "./jobs/scheduledOrderPromotion";
@@ -132,6 +133,7 @@ async function startServer() {
     await connectDB();
     await ensureDefaultAdmin();
     await seedHeaderCategories();
+    await seedDefaultShifts();
   } catch (err) {
     console.warn(
       "\n\x1b[33m!\x1b[0m Starting server without DB connection (degraded mode)."

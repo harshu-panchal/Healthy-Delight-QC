@@ -124,6 +124,13 @@ const SellerSchema = new Schema<ISeller>(
     panCard: {
       type: String,
       trim: true,
+      validate: {
+        validator: function (v: string) {
+          if (!v) return true;
+          return /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(v);
+        },
+        message: 'Invalid PAN Card format. Must be 5 letters, 4 numbers, followed by 1 letter',
+      },
     },
     category: {
       type: String,
@@ -153,6 +160,12 @@ const SellerSchema = new Schema<ISeller>(
     fssaiLicNo: {
       type: String,
       trim: true,
+      validate: {
+        validator: function (v: string) {
+          return !v || /^\d{14}$/.test(v);
+        },
+        message: "FSSAI License Number must be exactly 14 digits",
+      },
     },
     workingHours: {
       open: { type: String },
@@ -210,10 +223,24 @@ const SellerSchema = new Schema<ISeller>(
     accountName: {
       type: String,
       trim: true,
+      validate: {
+        validator: function (v: string) {
+          if (!v) return true;
+          return /^[a-zA-Z\s]+$/.test(v);
+        },
+        message: 'Account name must only contain letters and spaces',
+      },
     },
     bankName: {
       type: String,
       trim: true,
+      validate: {
+        validator: function (v: string) {
+          if (!v) return true;
+          return /^[a-zA-Z\s]+$/.test(v);
+        },
+        message: 'Bank name must only contain letters and spaces',
+      },
     },
     branch: {
       type: String,
@@ -222,6 +249,13 @@ const SellerSchema = new Schema<ISeller>(
     accountNumber: {
       type: String,
       trim: true,
+      validate: {
+        validator: function (v: string) {
+          if (!v) return true;
+          return /^\d{9,18}$/.test(v);
+        },
+        message: 'Account number must be between 9 and 18 digits',
+      },
     },
     ifsc: {
       type: String,

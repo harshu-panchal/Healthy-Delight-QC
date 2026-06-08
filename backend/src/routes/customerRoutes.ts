@@ -11,6 +11,9 @@ router.get("/profile", authenticate, customerController.getProfile);
 // Update customer profile (protected route)
 router.put("/profile", authenticate, customerController.updateProfile);
 
+// Delete customer profile/account (protected route)
+router.delete("/profile", authenticate, customerController.deleteAccount);
+
 // Update customer location (protected route)
 router.post("/location", authenticate, customerController.updateLocation);
 
@@ -22,5 +25,9 @@ router.get("/wallet/transactions", authenticate, customerController.getWalletTra
 
 // Get FAQs for customer app (protected route)
 router.get("/faqs", authenticate, customerFAQController.getFAQs);
+
+// Get active shifts (protected route)
+import * as customerShiftController from "../modules/customer/controllers/customerShiftController";
+router.get("/shifts", authenticate, customerShiftController.getActiveShifts);
 
 export default router;

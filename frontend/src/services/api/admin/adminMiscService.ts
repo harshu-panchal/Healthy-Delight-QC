@@ -128,7 +128,7 @@ export interface UpdateHomeSectionData {
 
 export interface GetMiscParams {
   page?: number;
-  limit?: number;
+  limit?: number | string;
   search?: string;
   status?: string;
   type?: string;

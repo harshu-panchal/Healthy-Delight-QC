@@ -79,6 +79,12 @@ export default function AddToCartAnimation({
       );
 
       if (removed) {
+        if (shouldHidePill || !linkRef.current) {
+          setRemovedProduct(null);
+          prevItemsRef.current = cart.items;
+          return;
+        }
+
         setRemovedProduct(removed.product);
 
         // Animate the removed thumbnail bouncing out
@@ -132,7 +138,7 @@ export default function AddToCartAnimation({
 
     // Update previous items
     prevItemsRef.current = cart.items;
-  }, [cart.items]);
+  }, [cart.items, shouldHidePill]);
 
   // Handle fly-to-cart animation when product is added
   useEffect(() => {

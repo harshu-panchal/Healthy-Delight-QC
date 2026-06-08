@@ -283,6 +283,18 @@ export default function AdminManageSellerList() {
     const handleSaveChanges = async () => {
         if (!editingSeller || !editForm) return;
 
+        if (editForm.accountNumber && (editForm.accountNumber.length < 9 || editForm.accountNumber.length > 18 || !/^\d+$/.test(editForm.accountNumber))) {
+            setError('Account Number must be between 9 and 18 digits');
+            setTimeout(() => setError(''), 3000);
+            return;
+        }
+
+        if (editForm.panCard && !/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(editForm.panCard.toUpperCase())) {
+            setError('Invalid PAN Card format. Must be 5 letters, 4 numbers, followed by 1 letter (e.g., ABCDE1234F)');
+            setTimeout(() => setError(''), 3000);
+            return;
+        }
+
         try {
             setIsUpdatingRadius(true);
             const updatePayload: Partial<SellerType> = {
@@ -1081,8 +1093,11 @@ export default function AdminManageSellerList() {
                                             <label className="text-xs font-semibold text-neutral-500 block mb-1">PAN Card</label>
                                             <input
                                                 type="text"
+                                                pattern="[A-Za-z]{5}[0-9]{4}[A-Za-z]{1}"
+                                                maxLength={10}
+                                                title="PAN Card number must be in the format: 5 letters, 4 numbers, and 1 letter (e.g., ABCDE1234F)"
                                                 value={editForm.panCard || ''}
-                                                onChange={(e) => setEditForm({ ...editForm, panCard: e.target.value })}
+                                                onChange={(e) => setEditForm({ ...editForm, panCard: e.target.value.replace(/[^a-zA-Z0-9]/g, "").toUpperCase().slice(0, 10) })}
                                                 className="w-full px-3 py-2 border border-neutral-300 rounded text-sm focus:ring-1 focus:ring-primary focus:border-primary focus:outline-none"
                                             />
                                         </div>
@@ -1142,8 +1157,11 @@ export default function AdminManageSellerList() {
                                             <label className="text-xs font-semibold text-neutral-500 block mb-1">Account Number</label>
                                             <input
                                                 type="text"
+                                                pattern="[0-9]{9,18}"
+                                                maxLength={18}
+                                                title="Account number must be between 9 and 18 digits"
                                                 value={editForm.accountNumber || ''}
-                                                onChange={(e) => setEditForm({ ...editForm, accountNumber: e.target.value })}
+                                                onChange={(e) => setEditForm({ ...editForm, accountNumber: e.target.value.replace(/\D/g, "").slice(0, 18) })}
                                                 className="w-full px-3 py-2 border border-neutral-300 rounded text-sm focus:ring-1 focus:ring-primary focus:border-primary focus:outline-none"
                                             />
                                         </div>

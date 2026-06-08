@@ -7,6 +7,7 @@ import Customer from "../../../models/Customer";
 import CustomerWalletTransaction from "../../../models/CustomerWalletTransaction";
 import Seller from "../../../models/Seller";
 import AppSettings from "../../../models/AppSettings";
+import Shift from "../../../models/Shift";
 import mongoose from "mongoose";
 import { isWholesaleEligible, getVariationPrice } from "../../../utils/wholesaleHelper";
 import { calculateDistance } from "../../../utils/locationHelper";
@@ -91,6 +92,7 @@ export const createOrder = async (req: Request, res: Response) => {
             });
         }
 
+        let activeScheduledShifts: any[] = [];
         if (isScheduled) {
             if (!scheduledDate) {
                 if (session) await session.abortTransaction();
@@ -99,11 +101,21 @@ export const createOrder = async (req: Request, res: Response) => {
                     message: "Scheduled date is required for scheduled orders",
                 });
             }
-            if (!scheduledTimeSlot || !["Morning", "Evening"].includes(scheduledTimeSlot)) {
+            // Fetch active scheduled/both shifts from DB
+            activeScheduledShifts = await Shift.find({
+                isActive: true,
+                type: { $in: ["Scheduled", "Both"] }
+            }).select("name startTime endTime").lean();
+            
+            const validSlots = activeScheduledShifts.length > 0 
+                ? activeScheduledShifts.map(s => s.name)
+                : ["Morning", "Evening"];
+
+            if (!scheduledTimeSlot || !validSlots.includes(scheduledTimeSlot)) {
                 if (session) await session.abortTransaction();
                 return res.status(400).json({
                     success: false,
-                    message: "Valid scheduled time slot (Morning or Evening) is required",
+                    message: `Valid scheduled time slot (${validSlots.join(" or ")}) is required`,
                 });
             }
 
@@ -225,7 +237,16 @@ export const createOrder = async (req: Request, res: Response) => {
             orderType: orderType || 'Instant',
             scheduledDate: isScheduled ? new Date(scheduledDate) : undefined,
             scheduledTimeSlot: isScheduled ? scheduledTimeSlot : undefined,
-            timeSlot: isScheduled ? (scheduledTimeSlot === 'Morning' ? 'Morning (6-9 AM)' : 'Evening (5-8 PM)') : (typeof timeSlot === 'string' ? timeSlot.trim() : timeSlot),
+            timeSlot: isScheduled 
+                ? (() => {
+                    const matchedShift = activeScheduledShifts.find(s => s.name === scheduledTimeSlot);
+                    if (matchedShift) {
+                        const formatTime = (t: string) => t.replace(/^0/, '');
+                        return `${matchedShift.name} (${formatTime(matchedShift.startTime)} - ${formatTime(matchedShift.endTime)})`;
+                    }
+                    return scheduledTimeSlot === 'Morning' ? 'Morning (6-9 AM)' : 'Evening (6-9 PM)';
+                  })()
+                : (typeof timeSlot === 'string' ? timeSlot.trim() : timeSlot),
             subtotal: 0,
             tax: 0,
             shipping: fees?.deliveryFee || 0,
@@ -430,6 +451,11 @@ export const createOrder = async (req: Request, res: Response) => {
 
             const commissionRate = await getOrderItemCommissionRate(product._id.toString(), product.seller.toString());
 
+            // Extract variation title/value
+            const variantTitleStr = selectedVariation
+                ? (selectedVariation.title || selectedVariation.value || selectedVariation.pack || selectedVariation.name)
+                : undefined;
+
             // Create OrderItem
             const newOrderItemData = {
                 order: newOrder._id,
@@ -442,6 +468,7 @@ export const createOrder = async (req: Request, res: Response) => {
                 quantity: qty,
                 total: itemTotal,
                 variation: variationValue,
+                variantTitle: variantTitleStr,
                 status: 'Pending',
                 pricingType,
                 appliedMinWholesaleQty,
@@ -1364,6 +1391,11 @@ export const updateScheduledOrderItems = async (req: Request, res: Response) => 
             const itemTotal = itemPrice * qty;
             calculatedSubtotal += itemTotal;
 
+            // Extract variation title/value
+            const variantTitleStr = selectedVariation
+                ? (selectedVariation.title || selectedVariation.value || selectedVariation.pack || selectedVariation.name)
+                : undefined;
+
             const newOrderItemData = {
                 order: order._id,
                 product: product._id,
@@ -1375,6 +1407,7 @@ export const updateScheduledOrderItems = async (req: Request, res: Response) => 
                 quantity: qty,
                 total: itemTotal,
                 variation: variationValue,
+                variantTitle: variantTitleStr,
                 status: 'Pending'
             };
 
@@ -1423,7 +1456,17 @@ export const updateScheduledOrderItems = async (req: Request, res: Response) => 
         }
         if (scheduledTimeSlot) {
             order.scheduledTimeSlot = scheduledTimeSlot;
-            order.timeSlot = scheduledTimeSlot === 'Morning' ? 'Morning (6-9 AM)' : 'Evening (5-8 PM)';
+            const activeScheduledShifts = await Shift.find({
+                isActive: true,
+                type: { $in: ["Scheduled", "Both"] }
+            }).select("name startTime endTime").lean();
+            const matchedShift = activeScheduledShifts.find(s => s.name === scheduledTimeSlot);
+            if (matchedShift) {
+                const formatTime = (t: string) => t.replace(/^0/, '');
+                order.timeSlot = `${matchedShift.name} (${formatTime(matchedShift.startTime)} - ${formatTime(matchedShift.endTime)})`;
+            } else {
+                order.timeSlot = scheduledTimeSlot === 'Morning' ? 'Morning (6-9 AM)' : 'Evening (6-9 PM)';
+            }
         }
 
         if (session) {

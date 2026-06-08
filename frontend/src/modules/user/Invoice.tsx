@@ -155,7 +155,10 @@ export default function Invoice() {
   const subtotal = order.subtotal || 0;
   const deliveryFee = order.fees?.deliveryFee || 0;
   const platformFee = order.fees?.platformFee || 0;
-  const totalAmount = order.totalAmount || subtotal + deliveryFee + platformFee;
+  const tax = order.tax || 0;
+  const tipAmount = order.tipAmount || 0;
+  const discount = order.discount || 0;
+  const totalAmount = order.totalAmount || (subtotal + deliveryFee + platformFee + tax + tipAmount - discount);
 
   return (
     <div className="min-h-screen bg-neutral-50/50 pb-20 print:bg-white print:pb-0">
@@ -401,6 +404,27 @@ export default function Invoice() {
                 <div className="flex justify-between text-xs text-neutral-600 font-medium">
                   <span>Platform Fee</span>
                   <span className="font-bold text-neutral-900">{formatCurrency(platformFee)}</span>
+                </div>
+              )}
+
+              {tax > 0 && (
+                <div className="flex justify-between text-xs text-neutral-600 font-medium">
+                  <span>Taxes</span>
+                  <span className="font-bold text-neutral-900">{formatCurrency(tax)}</span>
+                </div>
+              )}
+
+              {tipAmount > 0 && (
+                <div className="flex justify-between text-xs text-neutral-600 font-medium">
+                  <span>Tip</span>
+                  <span className="font-bold text-neutral-900">{formatCurrency(tipAmount)}</span>
+                </div>
+              )}
+
+              {discount > 0 && (
+                <div className="flex justify-between text-xs text-red-600 font-medium">
+                  <span>Discount</span>
+                  <span className="font-bold text-red-600">-{formatCurrency(discount)}</span>
                 </div>
               )}
 

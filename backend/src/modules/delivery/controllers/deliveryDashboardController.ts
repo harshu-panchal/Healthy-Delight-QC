@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { asyncHandler } from "../../../utils/asyncHandler";
 import Delivery from "../../../models/Delivery";
 import Order from "../../../models/Order";
+import Commission from "../../../models/Commission";
 import mongoose from "mongoose";
 
 /**
@@ -159,11 +160,25 @@ export const getDashboardStats = asyncHandler(async (req: Request, res: Response
         totalDeliveredCount: 0
     };
 
-    // Calculate Earnings (Mock logic: 40 per delivery)
-    // You should replace this with real commission logic stored in DB
-    const COMMISSION_PER_ORDER = 40;
-    const todayEarning = result.todayDeliveredCount * COMMISSION_PER_ORDER;
-    const totalEarning = result.totalDeliveredCount * COMMISSION_PER_ORDER;
+    // Calculate actual earnings from the Commission collection
+    const commissions = await Commission.find({
+        deliveryBoy: deliveryId,
+        type: "DELIVERY_BOY",
+        status: { $ne: "Cancelled" }
+    });
+
+    let totalEarning = 0;
+    let todayEarning = 0;
+
+    commissions.forEach(comm => {
+        totalEarning += comm.commissionAmount;
+        if (comm.createdAt >= todayStart && comm.createdAt <= todayEnd) {
+            todayEarning += comm.commissionAmount;
+        }
+    });
+
+    totalEarning = Math.round(totalEarning * 100) / 100;
+    todayEarning = Math.round(todayEarning * 100) / 100;
 
     // Fetch list of Pending Orders for the "Today's Pending Order" section
     const pendingOrdersList = await Order.find({

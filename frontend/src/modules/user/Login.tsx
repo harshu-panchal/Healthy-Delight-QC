@@ -28,11 +28,16 @@ export default function Login() {
   // Load Lottie animation dynamically on mount
   useEffect(() => {
     let active = true;
-    import('../../../assets/login/login_screen_animation.json').then((module) => {
-      if (active) {
-        setAnimationData(module.default);
-      }
-    });
+    fetch('/assets/login/login_screen_animation.json')
+      .then((res) => res.json())
+      .then((data) => {
+        if (active) {
+          setAnimationData(data);
+        }
+      })
+      .catch((err) => {
+        console.error('Failed to load login animation', err);
+      });
     return () => {
       active = false;
     };

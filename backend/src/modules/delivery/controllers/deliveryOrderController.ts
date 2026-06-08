@@ -194,6 +194,8 @@ export const getOrderDetails = asyncHandler(async (req: Request, res: Response) 
         deliveryBoyStatus: order.deliveryBoyStatus,
         items: mapOrderItems(order.items), // Real populated items
         totalAmount: order.total,
+        shipping: order.shipping,
+        tipAmount: order.tipAmount,
         createdAt: order.createdAt,
         orderType: order.orderType,
         scheduledDate: order.scheduledDate,

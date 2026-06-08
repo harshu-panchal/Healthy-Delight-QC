@@ -323,6 +323,11 @@ export default function SellerWallet() {
                     type="number"
                     value={withdrawAmount}
                     onChange={(e) => setWithdrawAmount(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === '-' || e.key === '+') {
+                        e.preventDefault();
+                      }
+                    }}
                     className="w-full border border-gray-300 rounded-lg pl-8 pr-4 py-2.5 focus:ring-2 focus:ring-primary focus:border-primary"
                     placeholder="Enter amount"
                     min="0"

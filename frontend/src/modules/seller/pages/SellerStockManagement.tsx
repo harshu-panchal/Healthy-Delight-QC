@@ -307,14 +307,14 @@ export default function SellerStockManagement() {
                                 <polyline points="6 9 12 15 18 9"></polyline>
                             </svg>
                         </button>
-                        <div className="relative">
-                            <span className="absolute left-2 top-1/2 -translate-y-1/2 text-neutral-400 text-xs">Search:</span>
+                        <div className="flex items-center gap-2">
+                            <label className="text-sm font-medium text-neutral-700">Search:</label>
                             <input
                                 type="text"
-                                className="pl-14 pr-3 py-1.5 bg-neutral-100 border-none rounded text-sm focus:ring-1 focus:ring-primary w-48"
+                                className="px-3 py-1.5 bg-neutral-100 border-none rounded text-sm focus:ring-1 focus:ring-primary w-48"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                placeholder=""
+                                placeholder="Search stock..."
                             />
                         </div>
                     </div>

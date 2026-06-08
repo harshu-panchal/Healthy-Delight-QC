@@ -189,6 +189,9 @@ const AdminManageSellerList = lazy(
   () => import("./modules/admin/pages/AdminManageSellerList"),
 );
 const AdminCoupon = lazy(() => import("./modules/admin/pages/AdminCoupon"));
+const AdminManageShifts = lazy(
+  () => import("./modules/admin/pages/AdminManageShifts"),
+);
 const AdminNotification = lazy(
   () => import("./modules/admin/pages/AdminNotification"),
 );
@@ -637,18 +640,22 @@ function AppContent() {
                                       path="delivery-boy/cash-collection"
                                       element={<AdminCashCollection />}
                                     />
-                                    <Route
-                                      path="manage-location/seller-location"
-                                      element={<AdminSellerLocation />}
-                                    />
-                                    <Route
-                                      path="wallet"
-                                      element={<AdminWallet />}
-                                    />
-                                    <Route
-                                      path="coupon"
-                                      element={<AdminCoupon />}
-                                    />
+                                     <Route
+                                       path="manage-location/seller-location"
+                                       element={<AdminSellerLocation />}
+                                     />
+                                     <Route
+                                       path="wallet"
+                                       element={<AdminWallet />}
+                                     />
+                                     <Route
+                                       path="shifts"
+                                       element={<AdminManageShifts />}
+                                     />
+                                     <Route
+                                       path="coupon"
+                                       element={<AdminCoupon />}
+                                     />
                                     <Route
                                       path="return"
                                       element={<AdminReturnRequest />}

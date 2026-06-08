@@ -5,6 +5,7 @@ import {
   getProfile,
   updateProfile,
   CustomerProfile,
+  deleteAccount,
 } from "../../services/api/customerService";
 import { uploadImage } from "../../services/api/uploadService";
 import logo from "../../../assets/logo.png";
@@ -28,6 +29,11 @@ export default function Account() {
   const [editError, setEditError] = useState("");
   const [editProfileImage, setEditProfileImage] = useState("");
   const [uploadingImage, setUploadingImage] = useState(false);
+
+  // Delete Account States
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteSubmitting, setDeleteSubmitting] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
 
   // Scroll Listener for Dynamic Header
   useEffect(() => {
@@ -91,6 +97,24 @@ export default function Account() {
   const handleLogout = () => {
     authLogout();
     navigate("/login");
+  };
+
+  const handleDeleteAccount = async () => {
+    setDeleteSubmitting(true);
+    setDeleteError("");
+    try {
+      const response = await deleteAccount();
+      if (response.success) {
+        authLogout();
+        navigate("/");
+      } else {
+        setDeleteError(response.message || "Failed to delete account");
+      }
+    } catch (err: any) {
+      setDeleteError(err.response?.data?.message || "Failed to delete account");
+    } finally {
+      setDeleteSubmitting(false);
+    }
   };
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -473,7 +497,7 @@ export default function Account() {
             </button>
             <button
               onClick={handleLogout}
-              className="w-full flex items-center justify-between px-5 py-5 hover:bg-red-50/30 transition-colors"
+              className="w-full flex items-center justify-between px-5 py-5 hover:bg-red-50/30 transition-colors border-b border-neutral-50"
             >
               <div className="flex items-center gap-4">
                 <div className="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center text-red-500">
@@ -484,6 +508,28 @@ export default function Account() {
                 <span className="text-[14px] font-bold text-red-600">Sign Out</span>
               </div>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="text-neutral-300">
+                <path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+            <button
+              onClick={() => {
+                setDeleteError("");
+                setShowDeleteModal(true);
+              }}
+              className="w-full flex items-center justify-between px-5 py-5 hover:bg-red-50/30 transition-colors"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-8 h-8 rounded-lg bg-red-100 flex items-center justify-center text-red-600">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <polyline points="3 6 5 6 21 6" />
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                    <line x1="10" y1="11" x2="10" y2="17" />
+                    <line x1="14" y1="11" x2="14" y2="17" />
+                  </svg>
+                </div>
+                <span className="text-[14px] font-bold text-red-600">Delete Account</span>
+              </div>
+              <svg width="20" height="24" viewBox="0 0 24 24" fill="none" className="text-neutral-300">
                 <path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </button>
@@ -653,6 +699,63 @@ export default function Account() {
                     {editSubmitting ? "Saving Updates..." : "Save Changes"}
                   </button>
                 </form>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {showDeleteModal && (
+        <>
+          <div
+            className="fixed inset-0 z-[60] bg-[#0a193b]/40 backdrop-blur-sm animate-in fade-in duration-300"
+            onClick={() => setShowDeleteModal(false)}
+          />
+          <div className="fixed inset-x-0 bottom-0 z-[70] animate-in slide-in-from-bottom duration-500 ease-out">
+            <div className="bg-white rounded-t-[32px] shadow-2xl max-w-lg mx-auto p-6 pt-10 relative">
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                className="absolute -top-12 right-4 w-10 h-10 rounded-full bg-neutral-900 flex items-center justify-center text-white"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                  <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+              <div className="text-center">
+                <div className="mx-auto mb-6 w-20 h-20 rounded-2xl bg-red-50 border border-red-100 flex items-center justify-center text-red-600">
+                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                    <line x1="12" y1="9" x2="12" y2="13" />
+                    <line x1="12" y1="17" x2="12.01" y2="17" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-black text-[#0a193b] mb-2 tracking-tight">
+                  Delete Account
+                </h3>
+                <p className="text-[13px] text-neutral-500 font-medium mb-8 px-4 leading-relaxed">
+                  Are you sure you want to delete your account? This action is permanent and completely erases your profile, stored addresses, cart items, wishlist, and wallet history.
+                </p>
+                {deleteError && (
+                  <p className="text-xs font-bold text-red-500 mb-4 bg-red-50 py-2 rounded-xl border border-red-100">
+                    {deleteError}
+                  </p>
+                )}
+                <div className="flex flex-col gap-3">
+                  <button
+                    onClick={handleDeleteAccount}
+                    disabled={deleteSubmitting}
+                    className="w-full rounded-2xl bg-red-600 text-white font-black py-4 hover:bg-red-700 disabled:opacity-50 transition-all shadow-xl shadow-red-600/10 uppercase tracking-widest text-sm active:scale-[0.98]"
+                  >
+                    {deleteSubmitting ? "Deleting Account..." : "Yes, Delete My Account"}
+                  </button>
+                  <button
+                    onClick={() => setShowDeleteModal(false)}
+                    disabled={deleteSubmitting}
+                    className="w-full rounded-2xl bg-neutral-100 text-neutral-700 font-black py-4 hover:bg-neutral-200 disabled:opacity-50 transition-all uppercase tracking-widest text-sm active:scale-[0.98]"
+                  >
+                    Cancel
+                  </button>
+                </div>
               </div>
             </div>
           </div>

@@ -223,7 +223,7 @@ const SellerNotificationAlert: React.FC<SellerNotificationAlertProps> = ({ notif
                 </p>
                 {notification.scheduledTimeSlot && (
                   <p className="text-[10px] text-neutral-500 font-semibold mt-0.5">
-                    Slot: {notification.scheduledTimeSlot === 'Morning' ? 'Morning (6:00 AM - 9:00 AM)' : 'Evening (5:00 PM - 8:00 PM)'}
+                    Slot: {notification.timeSlot || (notification.scheduledTimeSlot === 'Morning' ? 'Morning (6:00 AM - 9:00 AM)' : 'Evening (6:00 PM - 9:00 PM)')}
                   </p>
                 )}
               </div>

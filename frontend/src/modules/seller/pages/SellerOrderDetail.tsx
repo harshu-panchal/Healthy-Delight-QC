@@ -597,7 +597,7 @@ export default function SellerOrderDetail() {
                     className="flex-1 bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white px-6 py-2 rounded-lg transition-all active:scale-95 font-medium shadow-sm">
                     Accept Order
                   </button>
-                  {orderStatus === "Received" && (
+                  {(orderStatus === "Received" || orderStatus === "Scheduled") && (
                     <button
                       onClick={() => {
                         if (

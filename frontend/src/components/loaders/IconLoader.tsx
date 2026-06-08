@@ -31,11 +31,14 @@ const IconLoader: React.FC<IconLoaderProps> = ({ forceShow = false }) => {
       try {
         let data: any = null;
         if (loadingVariant === 'milk_delivery') {
-          data = (await import('../../../assets/animation/milk_delivery.json')).default;
+          const res = await fetch('/assets/animation/milk_delivery.json');
+          data = await res.json();
         } else if (loadingVariant === 'milk_pouring' || loadingVariant === 'first') {
-          data = (await import('../../../assets/animation/milk_pouring.json')).default;
+          const res = await fetch('/assets/animation/milk_pouring.json');
+          data = await res.json();
         } else if (loadingVariant === 'cow_grazing') {
-          data = (await import('../../../assets/animation/cow_grazing.json')).default;
+          const res = await fetch('/assets/animation/cow_grazing.json');
+          data = await res.json();
         }
         if (active) {
           setAnimationData(data);

@@ -5,11 +5,17 @@ interface AlertCardProps {
   title: string;
   value: number;
   accentColor: string;
+  onClick?: () => void;
 }
 
-export default function AlertCard({ icon, title, value, accentColor }: AlertCardProps) {
+export default function AlertCard({ icon, title, value, accentColor, onClick }: AlertCardProps) {
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-neutral-200 p-3 sm:p-4 md:p-5">
+    <div 
+      onClick={onClick}
+      className={`bg-white rounded-lg shadow-sm border border-neutral-200 p-3 sm:p-4 md:p-5 ${
+        onClick ? 'cursor-pointer hover:shadow-md hover:border-primary/45 transition-all duration-200 hover:-translate-y-0.5' : ''
+      }`}
+    >
       <div className="flex items-center gap-3 sm:gap-4">
         <div className="p-2 sm:p-3 rounded-lg flex-shrink-0" style={{ backgroundColor: `${accentColor}20` }}>
           <div style={{ color: accentColor }} className="w-6 h-6 sm:w-8 sm:h-8">{icon}</div>
@@ -24,4 +30,3 @@ export default function AlertCard({ icon, title, value, accentColor }: AlertCard
     </div>
   );
 }
-

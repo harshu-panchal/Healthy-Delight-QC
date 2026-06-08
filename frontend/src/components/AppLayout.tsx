@@ -683,9 +683,9 @@ export default function AppLayout({ children }: AppLayoutProps) {
         <main 
           id="app-main-scroll" 
           ref={mainRef} 
-          className={`flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide pb-24 md:pb-0 bg-transparent ${showFooter || showHeader ? 'md:pt-24' : 'md:pt-0'}`}
+          className={`flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide ${showFooter ? 'pb-24' : 'pb-0'} md:pb-0 bg-transparent ${showFooter || showHeader ? 'md:pt-24' : 'md:pt-0'}`}
         >
-          <div className={`w-full max-w-[1240px] mx-auto px-0 md:px-10 pt-0 pb-6 ${showFooter || showHeader ? 'md:py-10' : 'md:py-0'}`}>
+          <div className={`w-full max-w-[1240px] mx-auto px-0 md:px-10 pt-0 ${showFooter ? 'pb-6' : 'pb-0'} ${showFooter || showHeader ? 'md:py-10' : 'md:py-0'}`}>
             <motion.div
               key={location.pathname}
               initial={{ opacity: 0, y: 8 }}

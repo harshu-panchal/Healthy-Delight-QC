@@ -33,6 +33,8 @@ export interface DeliveryBoy {
     latitude: number;
     longitude: number;
   };
+  vehicleType?: string;
+  vehicleNumber?: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -57,6 +59,8 @@ export interface CreateDeliveryBoyData {
   commission?: number;
   minAmount?: number;
   maxAmount?: number;
+  vehicleType?: string;
+  vehicleNumber?: string;
 }
 
 export interface UpdateDeliveryBoyData {
@@ -80,6 +84,8 @@ export interface UpdateDeliveryBoyData {
   maxAmount?: number;
   status?: "Active" | "Inactive";
   available?: "Available" | "Not Available";
+  vehicleType?: string;
+  vehicleNumber?: string;
 }
 
 export interface CashCollection {

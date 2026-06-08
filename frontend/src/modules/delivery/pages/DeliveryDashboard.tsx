@@ -34,9 +34,24 @@ const formatOrderFriendly = (orderNumber?: string, orderId?: string) => {
 
 export default function DeliveryDashboard() {
   const navigate = useNavigate();
-  const { isOnline, sellersInRangeCount, locationError } = useDeliveryStatus();
+  const { isOnline, sellersInRangeCount, locationError, riderStatus } = useDeliveryStatus();
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [isApprovedBannerDismissed, setIsApprovedBannerDismissed] = useState(() => {
+    return localStorage.getItem('delivery_approved_banner_dismissed') === 'true';
+  });
+
+  const dismissApprovedBanner = () => {
+    setIsApprovedBannerDismissed(true);
+    localStorage.setItem('delivery_approved_banner_dismissed', 'true');
+  };
+
+  useEffect(() => {
+    if (riderStatus === 'Inactive') {
+      localStorage.removeItem('delivery_approved_banner_dismissed');
+      setIsApprovedBannerDismissed(false);
+    }
+  }, [riderStatus]);
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -172,6 +187,51 @@ export default function DeliveryDashboard() {
       <DeliveryHeader />
 
       <div className="px-4 py-4 space-y-4">
+        {/* Application Status Banner */}
+        {riderStatus === 'Inactive' && (
+          <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-start gap-3 shadow-sm">
+            <div className="p-2 bg-amber-100 text-amber-700 rounded-xl">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <polyline points="12 6 12 12 16 14" />
+              </svg>
+            </div>
+            <div>
+              <h4 className="text-sm font-bold text-amber-900">Application Under Review</h4>
+              <p className="text-xs text-amber-700 mt-0.5 leading-relaxed font-semibold">
+                Your application is under review. You cannot go online or receive orders until approved.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {riderStatus === 'Active' && !isApprovedBannerDismissed && (
+          <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 flex items-start justify-between gap-3 shadow-sm transition-all animate-fade-in">
+            <div className="flex items-start gap-3">
+              <div className="p-2 bg-emerald-100 text-emerald-700 rounded-xl animate-bounce" style={{ animationDuration: '2.3s' }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                  <polyline points="22 4 12 14.01 9 11.01" />
+                </svg>
+              </div>
+              <div>
+                <h4 className="text-sm font-bold text-emerald-900">Application Approved!</h4>
+                <p className="text-xs text-emerald-700 mt-0.5 leading-relaxed font-semibold">
+                  Congratulations! You've been approved. Set the tab above to online to start receiving orders.
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={dismissApprovedBanner}
+              className="text-emerald-500 hover:text-emerald-800 p-1 hover:bg-emerald-100/50 rounded-lg transition-colors font-bold text-lg leading-none"
+              type="button"
+              title="Dismiss"
+            >
+              ×
+            </button>
+          </div>
+        )}
+
         {/* Daily Collection & Cash Balance Bar */}
         <SummaryBar
           leftIcon={dailyCollectionIcon}
@@ -181,6 +241,7 @@ export default function DeliveryDashboard() {
           rightLabel="Cash Balance"
           rightValue={`₹ ${stats?.cashBalance?.toFixed(2) || '0.00'}`}
           accentColor="#FFC94A"
+          onClick={() => navigate('/delivery/wallet')}
         />
 
         {/* Real-time Seller Radius Indicator */}
@@ -286,6 +347,7 @@ export default function DeliveryDashboard() {
           rightLabel="Total Earning"
           rightValue={`₹ ${stats?.totalEarning?.toFixed(2) || '0.00'}`}
           accentColor="#16a34a"
+          onClick={() => navigate('/delivery/wallet')}
         />
 
         {/* Today's Pending Order Section */}
@@ -306,10 +368,10 @@ export default function DeliveryDashboard() {
                     </div>
                     <span
                       className={`px-2 py-1 rounded-full text-xs font-medium ${order.deliveryBoyStatus === 'Pending'
-                          ? 'bg-amber-100 text-amber-800'
-                          : order.status === 'Ready for pickup'
-                            ? 'bg-yellow-100 text-yellow-700'
-                            : 'bg-blue-100 text-blue-700'
+                        ? 'bg-amber-100 text-amber-800'
+                        : order.status === 'Ready for pickup'
+                          ? 'bg-yellow-100 text-yellow-700'
+                          : 'bg-blue-100 text-blue-700'
                         }`}
                     >
                       {order.deliveryBoyStatus === 'Pending' ? 'Assigned' : order.status}
