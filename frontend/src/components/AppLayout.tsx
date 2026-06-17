@@ -45,8 +45,24 @@ export default function AppLayout({ children }: AppLayoutProps) {
 
   // Check if location is required for current route
   const requiresLocation = () => {
-    const publicRoutes = ['/login', '/signup', '/seller/login', '/seller/signup', '/delivery/login', '/delivery/signup', '/admin/login'];
-    // Don't require location on login/signup pages
+    const publicRoutes = [
+      '/login',
+      '/signup',
+      '/seller/login',
+      '/seller/signup',
+      '/delivery/login',
+      '/delivery/signup',
+      '/admin/login',
+      '/privacy-policy',
+      '/terms-of-service',
+      '/help-support',
+      '/about-us',
+      '/faq',
+      '/refund-policy',
+      '/return-policy',
+      '/shipping-policy'
+    ];
+    // Don't require location on login/signup/info pages
     if (publicRoutes.includes(location.pathname)) {
       return false;
     }
@@ -316,11 +332,12 @@ export default function AppLayout({ children }: AppLayoutProps) {
   const isWishlistPage = location.pathname === '/wishlist';
   const isPrivacyPolicyPage = location.pathname === '/privacy-policy';
   const isTermsOfServicePage = location.pathname === '/terms-of-service';
+  const isHelpSupportPage = location.pathname === '/help-support';
   
   // Header visibility logic
   const showHeader = isSearchPage && !isCheckoutPage && !isCartPage;
   const showSearchBar = isSearchPage && !isCheckoutPage && !isCartPage;
-  const showFooter = !isCheckoutPage && !isProductDetailPage && !isPrivacyPolicyPage && !isTermsOfServicePage;
+  const showFooter = !isCheckoutPage && !isProductDetailPage && !isPrivacyPolicyPage && !isTermsOfServicePage && !isHelpSupportPage;
   
   // Determine dynamic search placeholder
   const getSearchPlaceholder = () => {
