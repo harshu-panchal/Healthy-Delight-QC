@@ -18,6 +18,8 @@ export default function DeliveryMenu() {
     { id: 'menu-wallet', title: 'Wallet & Payouts', route: '/delivery/wallet' },
     { id: 'menu-3', title: 'Settings', route: '/delivery/settings' },
     { id: 'menu-4', title: 'Help & Support', route: '/delivery/help' },
+    { id: 'menu-terms', title: 'Terms of Service', route: '/delivery/terms' },
+    { id: 'menu-privacy', title: 'Privacy Policy', route: '/delivery/privacy' },
     { id: 'menu-delete', title: 'Delete Account', route: 'delete' },
     { id: 'menu-6', title: 'Logout', route: '/delivery/login' },
   ];
@@ -110,6 +112,16 @@ export default function DeliveryMenu() {
               strokeLinejoin="round"
               fill="none"
             />
+          </svg>
+        );
+      case 'menu-terms':
+      case 'menu-privacy':
+        return (
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M14 2H6C4.9 2 4 2.9 4 4V20C4 21.1 4.9 22 6 22H18C19.1 22 20 21.1 20 20V8L14 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M14 2V8H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M16 13H8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M16 17H8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         );
       default:

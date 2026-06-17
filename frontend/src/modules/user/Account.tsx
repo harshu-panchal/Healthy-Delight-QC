@@ -497,6 +497,24 @@ export default function Account() {
               </svg>
             </button>
             <button
+              onClick={() => navigate("/help-support")}
+              className="w-full flex items-center justify-between px-5 py-4 hover:bg-neutral-50 transition-colors border-b border-neutral-50"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-8 h-8 rounded-lg bg-neutral-100 flex items-center justify-center text-neutral-400">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10" />
+                    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+                    <line x1="12" y1="17" x2="12.01" y2="17" />
+                  </svg>
+                </div>
+                <span className="text-[14px] font-bold text-[#0a193b]">Help & Support</span>
+              </div>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="text-neutral-300">
+                <path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+            <button
               onClick={() => navigate("/about-us")}
               className="w-full flex items-center justify-between px-5 py-4 hover:bg-neutral-50 transition-colors border-b border-neutral-50"
             >

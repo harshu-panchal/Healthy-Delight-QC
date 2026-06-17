@@ -253,6 +253,14 @@ export default function Login() {
             New to Healthy Delight?{' '}
             <button onClick={handleGoToSignup} className="hd-signup-link text-[#c5a059]">Sign Up</button>
           </p>
+
+          <div className="flex items-center justify-center gap-4 text-xs font-bold text-[#64748b] mt-4">
+            <button onClick={() => navigate('/help-support')} className="hover:text-[#0a193b] transition-colors">Help & Support</button>
+            <span>•</span>
+            <button onClick={() => navigate('/terms-of-service')} className="hover:text-[#0a193b] transition-colors">Terms of Service</button>
+            <span>•</span>
+            <button onClick={() => navigate('/privacy-policy')} className="hover:text-[#0a193b] transition-colors">Privacy Policy</button>
+          </div>
         </div>
       </div>
 

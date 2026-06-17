@@ -836,27 +836,14 @@ export default function DeliverySignUp() {
         </div>
       </div>
 
-      {/* Footer Text */}
-      <p className="mt-6 text-xs font-semibold text-neutral-400 text-center max-w-md relative z-10">
-        By continuing, you agree to Healthy Delight's{" "}
-        <a
-          href="/delivery/terms"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-[#c5a059] hover:text-[#b48d48] font-bold transition-colors"
-        >
-          Terms of Service
-        </a>{" "}
-        and{" "}
-        <a
-          href="/delivery/privacy"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-[#c5a059] hover:text-[#b48d48] font-bold transition-colors"
-        >
-          Privacy Policy
-        </a>
-      </p>
+      {/* Footer Links */}
+      <div className="flex items-center justify-center gap-4 text-xs font-bold text-neutral-400 mt-6 relative z-10">
+        <button onClick={() => navigate('/delivery/help')} className="hover:text-[#c5a059] transition-colors">Help & Support</button>
+        <span>•</span>
+        <button onClick={() => navigate('/delivery/terms')} className="hover:text-[#c5a059] transition-colors">Terms of Service</button>
+        <span>•</span>
+        <button onClick={() => navigate('/delivery/privacy')} className="hover:text-[#c5a059] transition-colors">Privacy Policy</button>
+      </div>
     </div>
   );
 }

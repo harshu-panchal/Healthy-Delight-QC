@@ -48,6 +48,10 @@ const AboutUs = lazy(() => import("./modules/user/AboutUs"));
 const FAQ = lazy(() => import("./modules/user/FAQ"));
 const PrivacyPolicy = lazy(() => import("./modules/user/PrivacyPolicy"));
 const TermsOfService = lazy(() => import("./modules/user/TermsOfService"));
+const HelpSupport = lazy(() => import("./modules/user/HelpSupport"));
+const RefundPolicy = lazy(() => import("./modules/user/RefundPolicy"));
+const ReturnPolicy = lazy(() => import("./modules/user/ReturnPolicy"));
+const ShippingPolicy = lazy(() => import("./modules/user/ShippingPolicy"));
 const Wishlist = lazy(() => import("./modules/user/Wishlist"));
 const Addresses = lazy(() => import("./modules/user/Addresses"));
 const AddressBook = lazy(() => import("./modules/user/AddressBook"));
@@ -401,21 +405,25 @@ function AppContent() {
                         <Route
                           path="/delivery/terms"
                           element={
-                            <PublicRoute>
-                              <Suspense fallback={<LoadingSpinner size="lg" className="min-h-screen" />}>
-                                <DeliveryTerms />
-                              </Suspense>
-                            </PublicRoute>
+                            <Suspense fallback={<LoadingSpinner size="lg" className="min-h-screen" />}>
+                              <DeliveryTerms />
+                            </Suspense>
                           }
                         />
                         <Route
                           path="/delivery/privacy"
                           element={
-                            <PublicRoute>
-                              <Suspense fallback={<LoadingSpinner size="lg" className="min-h-screen" />}>
-                                <DeliveryPrivacy />
-                              </Suspense>
-                            </PublicRoute>
+                            <Suspense fallback={<LoadingSpinner size="lg" className="min-h-screen" />}>
+                              <DeliveryPrivacy />
+                            </Suspense>
+                          }
+                        />
+                        <Route
+                          path="/delivery/help"
+                          element={
+                            <Suspense fallback={<LoadingSpinner size="lg" className="min-h-screen" />}>
+                              <DeliveryHelp />
+                            </Suspense>
                           }
                         /><Route
                           path="/admin/login"
@@ -838,6 +846,22 @@ function AppContent() {
                                   <Route
                                     path="/terms-of-service"
                                     element={<TermsOfService />}
+                                  />
+                                  <Route
+                                    path="/help-support"
+                                    element={<HelpSupport />}
+                                  />
+                                  <Route
+                                    path="/refund-policy"
+                                    element={<RefundPolicy />}
+                                  />
+                                  <Route
+                                    path="/return-policy"
+                                    element={<ReturnPolicy />}
+                                  />
+                                  <Route
+                                    path="/shipping-policy"
+                                    element={<ShippingPolicy />}
                                   />
                                   <Route
                                     path="/wishlist"

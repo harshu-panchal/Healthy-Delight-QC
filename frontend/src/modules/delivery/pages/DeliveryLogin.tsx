@@ -238,6 +238,15 @@ export default function DeliveryLogin() {
           </div>
         </div>
       </div>
+
+      {/* Footer Links */}
+      <div className="flex items-center justify-center gap-4 text-xs font-bold text-neutral-400 mt-6 relative z-10">
+        <button onClick={() => navigate('/delivery/help')} className="hover:text-[#c5a059] transition-colors">Help & Support</button>
+        <span>•</span>
+        <button onClick={() => navigate('/delivery/terms')} className="hover:text-[#c5a059] transition-colors">Terms of Service</button>
+        <span>•</span>
+        <button onClick={() => navigate('/delivery/privacy')} className="hover:text-[#c5a059] transition-colors">Privacy Policy</button>
+      </div>
     </div>
   );
 }
