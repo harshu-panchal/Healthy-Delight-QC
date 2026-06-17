@@ -22,6 +22,13 @@ const mapOrderItems = (items: any[]) => {
 };
 
 /**
+ * Helper to map status for frontend response
+ */
+const mapStatus = (status: string) => {
+    return status === 'Processed' ? 'Pending' : status;
+};
+
+/**
  * Get All Orders History
  * Returns all past orders with pagination
  */
@@ -45,7 +52,7 @@ export const getAllOrdersHistory = asyncHandler(async (req: Request, res: Respon
         orderId: order.orderNumber,
         customerName: order.customerName,
         customerPhone: order.customerPhone,
-        status: order.status,
+        status: mapStatus(order.status),
 
         address: `${order.deliveryAddress.address}, ${order.deliveryAddress.city}`,
         deliveryAddress: order.deliveryAddress,
@@ -91,7 +98,8 @@ export const getTodayOrders = asyncHandler(async (req: Request, res: Response) =
             {
                 orderType: "Scheduled",
                 scheduledDate: { $gte: todayStart, $lte: todayEnd },
-                deliveryBoyStatus: { $in: ["Accepted", "Assigned"] }
+                deliveryBoyStatus: { $in: ["Pending", "Accepted", "Assigned", "Picked Up", "In Transit"] },
+                status: { $nin: ["Delivered", "Cancelled", "Returned", "Rejected"] }
             }
         ]
     })
@@ -103,7 +111,7 @@ export const getTodayOrders = asyncHandler(async (req: Request, res: Response) =
         orderId: order.orderNumber,
         customerName: order.customerName,
         customerPhone: order.customerPhone,
-        status: order.status,
+        status: mapStatus(order.status),
 
         address: `${order.deliveryAddress?.address || ''}, ${order.deliveryAddress?.city || ''}`,
         deliveryAddress: order.deliveryAddress,
@@ -142,8 +150,8 @@ export const getPendingOrders = asyncHandler(async (req: Request, res: Response)
             {
                 orderType: "Scheduled",
                 scheduledDate: { $lte: todayEnd },
-                deliveryBoyStatus: { $in: ["Accepted", "Assigned"] },
-                status: { $in: ["Rider Assigned", "Ready for pickup", "Out for Delivery", "Picked Up", "In Transit"] }
+                deliveryBoyStatus: { $in: ["Pending", "Accepted", "Assigned", "Picked Up", "In Transit"] },
+                status: { $nin: ["Delivered", "Cancelled", "Returned", "Rejected"] }
             }
         ]
     })
@@ -155,7 +163,7 @@ export const getPendingOrders = asyncHandler(async (req: Request, res: Response)
         orderId: order.orderNumber,
         customerName: order.customerName,
         customerPhone: order.customerPhone,
-        status: order.status,
+        status: mapStatus(order.status),
         deliveryBoyStatus: order.deliveryBoyStatus,
         address: `${order.deliveryAddress?.address || ''}, ${order.deliveryAddress?.city || ''}`,
         items: mapOrderItems(order.items),
@@ -190,7 +198,7 @@ export const getOrderDetails = asyncHandler(async (req: Request, res: Response) 
         customerPhone: order.customerPhone,
         address: `${order.deliveryAddress?.address || ''}, ${order.deliveryAddress?.city || ''}`,
         deliveryAddress: order.deliveryAddress,
-        status: order.status,
+        status: mapStatus(order.status),
         deliveryBoyStatus: order.deliveryBoyStatus,
         items: mapOrderItems(order.items), // Real populated items
         totalAmount: order.total,
@@ -311,7 +319,7 @@ export const getReturnOrders = asyncHandler(async (req: Request, res: Response) 
         orderId: order.orderNumber,
         customerName: order.customerName,
         customerPhone: order.customerPhone,
-        status: order.status,
+        status: mapStatus(order.status),
         address: `${order.deliveryAddress?.address || ''}, ${order.deliveryAddress?.city || ''}`,
         items: mapOrderItems(order.items),
         totalAmount: order.total,
@@ -880,7 +888,7 @@ export const getScheduledOrders = asyncHandler(async (req: Request, res: Respons
         orderId: order.orderNumber,
         customerName: order.customerName,
         customerPhone: order.customerPhone,
-        status: order.status,
+        status: mapStatus(order.status),
         deliveryBoyStatus: order.deliveryBoyStatus,
         scheduledDate: order.scheduledDate,
         scheduledTimeSlot: order.scheduledTimeSlot,

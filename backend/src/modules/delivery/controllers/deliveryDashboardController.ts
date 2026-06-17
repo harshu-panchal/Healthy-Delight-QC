@@ -68,18 +68,12 @@ export const getDashboardStats = asyncHandler(async (req: Request, res: Response
                                     {
                                         $and: [
                                             { $eq: ["$orderType", "Scheduled"] },
-                                            {
-                                                $or: [
-                                                    { $eq: ["$deliveryBoyStatus", "Pending"] },
-                                                    {
-                                                        $and: [
-                                                            { $lte: ["$scheduledDate", todayEnd] },
-                                                            { $in: ["$deliveryBoyStatus", ["Accepted", "Assigned"]] },
-                                                            { $in: ["$status", ["Rider Assigned", "Ready for pickup", "Out for Delivery", "Picked Up", "In Transit"]] }
-                                                        ]
-                                                    }
-                                                ]
-                                            }
+                                            { $lte: ["$scheduledDate", todayEnd] },
+                                            { $in: ["$deliveryBoyStatus", ["Pending", "Accepted", "Assigned", "Picked Up", "In Transit"]] },
+                                            { $ne: ["$status", "Delivered"] },
+                                            { $ne: ["$status", "Cancelled"] },
+                                            { $ne: ["$status", "Returned"] },
+                                            { $ne: ["$status", "Rejected"] }
                                         ]
                                     }
                                 ]
@@ -193,14 +187,9 @@ export const getDashboardStats = asyncHandler(async (req: Request, res: Response
             },
             {
                 orderType: "Scheduled",
-                $or: [
-                    { deliveryBoyStatus: "Pending" },
-                    {
-                        scheduledDate: { $lte: todayEnd },
-                        deliveryBoyStatus: { $in: ["Accepted", "Assigned"] },
-                        status: { $in: ["Rider Assigned", "Ready for pickup", "Out for Delivery", "Picked Up", "In Transit"] }
-                    }
-                ]
+                scheduledDate: { $lte: todayEnd },
+                deliveryBoyStatus: { $in: ["Pending", "Accepted", "Assigned", "Picked Up", "In Transit"] },
+                status: { $nin: ["Delivered", "Cancelled", "Returned", "Rejected"] }
             }
         ]
     })
@@ -213,7 +202,7 @@ export const getDashboardStats = asyncHandler(async (req: Request, res: Response
         id: order._id,
         orderId: order.orderNumber,
         customerName: order.customerName,
-        status: order.status, // Map backend status to frontend status if needed
+        status: order.status === 'Processed' ? 'Pending' : order.status, // Map backend status to frontend status if needed
         deliveryBoyStatus: order.deliveryBoyStatus,
         address: `${order.deliveryAddress?.address || ''}, ${order.deliveryAddress?.city || ''}`, // Simplify address
         totalAmount: order.total,
