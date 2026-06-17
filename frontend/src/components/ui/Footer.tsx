@@ -85,7 +85,7 @@ const Footer: React.FC = () => {
               {[
                 { label: 'Home', path: '/', action: 'all' },
                 { label: 'Wishlist', path: '/wishlist' },
-                { label: 'Subscription Plans', path: '/subscription' },
+                // { label: 'Subscription Plans', path: '/subscription' },
                 { label: 'About Healthy Delight', path: '/about-us' },
                 { label: 'Customer Portal', path: '/account' }
               ].map((link) => (

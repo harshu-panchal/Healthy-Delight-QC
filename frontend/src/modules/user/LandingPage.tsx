@@ -390,7 +390,7 @@ export default function LandingPage() {
     if (isAuthenticated) {
       navigate("/user");
     } else {
-      navigate("/user/login");
+      navigate("/user/login", { state: { playBranding: true } });
     }
   };
 
@@ -435,6 +435,7 @@ export default function LandingPage() {
             <a href="#story" className="text-white/70 hover:text-white text-[14px] font-medium transition-colors">Our Story</a>
             <Link
               to="/user/login"
+              state={{ playBranding: true }}
               className="text-white/80 hover:text-white text-[14px] font-semibold transition-colors border border-white/20 rounded-xl px-4 py-2 hover:border-white/40"
             >
               Sign In
@@ -482,7 +483,7 @@ export default function LandingPage() {
                 {label}
               </a>
             ))}
-            <Link to="/user/login" onClick={() => setMobileMenuOpen(false)} className="text-white/80 text-[15px] font-semibold py-2.5 border-b border-white/10">Sign In</Link>
+            <Link to="/user/login" state={{ playBranding: true }} onClick={() => setMobileMenuOpen(false)} className="text-white/80 text-[15px] font-semibold py-2.5 border-b border-white/10">Sign In</Link>
             <button
               onClick={(e) => { setMobileMenuOpen(false); handleGetStarted(e); }}
               className="mt-1 py-3 rounded-xl font-bold text-[15px] w-full"
@@ -873,6 +874,7 @@ export default function LandingPage() {
                   </button>
                   <Link
                     to="/login"
+                    state={{ playBranding: true }}
                     className="flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl font-semibold text-[15px] text-white border border-white/20 hover:border-white/40 transition-all"
                   >
                     Sign In
@@ -1043,6 +1045,7 @@ export default function LandingPage() {
               </button>
               <Link
                 to="/login"
+                state={{ playBranding: true }}
                 className="px-9 py-4 rounded-2xl font-semibold text-[17px] text-white/75 hover:text-white border border-white/20 hover:border-white/40 transition-all"
               >
                 Sign In
@@ -1110,7 +1113,7 @@ export default function LandingPage() {
                   <button onClick={() => handleGetStarted()} className="text-white/45 hover:text-white/75 text-[13px] transition-colors text-left w-full">Subscribe</button>
                 </li>
                 <li>
-                  <Link to="/user/login" className="text-white/45 hover:text-white/75 text-[13px] transition-colors">Sign In</Link>
+                  <Link to="/user/login" state={{ playBranding: true }} className="text-white/45 hover:text-white/75 text-[13px] transition-colors">Sign In</Link>
                 </li>
                 <li>
                   <Link to="/seller/login" className="text-white/45 hover:text-white/75 text-[13px] transition-colors">Seller Portal</Link>

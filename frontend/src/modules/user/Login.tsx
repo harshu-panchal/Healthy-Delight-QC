@@ -21,7 +21,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const [showBranding, setShowBranding] = useState(() => !location.state?.skipBranding);
+  const [showBranding, setShowBranding] = useState(() => !!location.state?.playBranding);
   const [phase, setPhase] = useState(0);
   const [animationData, setAnimationData] = useState<any>(null);
 

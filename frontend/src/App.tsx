@@ -871,10 +871,10 @@ function AppContent() {
                                     path="/categories"
                                     element={<Categories />}
                                   />
-                                  <Route
+                                  {/* <Route
                                     path="/subscription"
                                     element={<Subscription />}
-                                  />
+                                  /> */}
                                   <Route
                                     path="/category/:id"
                                     element={<Category />}

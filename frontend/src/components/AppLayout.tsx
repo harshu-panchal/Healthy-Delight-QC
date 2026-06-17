@@ -69,6 +69,12 @@ export default function AppLayout({ children }: AppLayoutProps) {
       return;
     }
 
+    // If user has cancelled the modal in this session, do not auto-show it
+    if (sessionStorage.getItem('location_request_cancelled_session') === 'true') {
+      setShowLocationRequest(false);
+      return;
+    }
+
     // If location is NOT enabled and route requires location, ALWAYS show modal
     // This will trigger on every app open until user explicitly confirms location
     if (!isLocationEnabled && requiresLocation()) {
@@ -77,6 +83,24 @@ export default function AppLayout({ children }: AppLayoutProps) {
       setShowLocationRequest(false);
     }
   }, [isLocationLoading, isLocationEnabled, location.pathname]);
+
+  // Reset cancellation status when location is enabled
+  useEffect(() => {
+    if (isLocationEnabled) {
+      sessionStorage.removeItem('location_request_cancelled_session');
+    }
+  }, [isLocationEnabled]);
+
+  // Listen for custom event to trigger location modal from child components
+  useEffect(() => {
+    const handleOpenLocationModal = () => {
+      setShowLocationChangeModal(true);
+    };
+    window.addEventListener('open-location-modal', handleOpenLocationModal);
+    return () => {
+      window.removeEventListener('open-location-modal', handleOpenLocationModal);
+    };
+  }, []);
 
   // Demo Trigger for Coming Soon Modal
   useEffect(() => {
@@ -389,7 +413,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
                 <span className="font-bold text-[16px]">Categories</span>
               </Link>
 
-              <Link
+              {/* <Link
                 to="/subscription"
                 className={`flex items-center gap-3 px-4 py-4 rounded-xl transition-all duration-200 group ${isActive('/subscription') ? 'bg-[#0a193b] text-white shadow-lg shadow-primary-500/20' : 'text-neutral-500 hover:bg-neutral-50'}`}
               >
@@ -398,7 +422,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
                   <path d="M12 2v2M7 10h10M12 4v4" />
                 </svg>
                 <span className="font-bold text-[16px]">Subscription</span>
-              </Link>
+              </Link> */}
             </div>
 
             {/* Footer of Sidebar */}
@@ -457,7 +481,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
               </Link>
 
               {/* Delivery Location integrated into Header */}
-              {userLocation && (userLocation.address || userLocation.city) && (
+              {userLocation && (userLocation.address || userLocation.city) ? (
                 <div 
                   onClick={() => navigate('/address-book')}
                   className="hidden lg:flex items-center gap-3 pl-6 ml-2 border-l border-white/10 h-10 cursor-pointer hover:opacity-80 transition-opacity"
@@ -483,6 +507,26 @@ export default function AppLayout({ children }: AppLayoutProps) {
                       >
                         Change
                       </button>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div 
+                  onClick={() => setShowLocationChangeModal(true)}
+                  className="hidden lg:flex items-center gap-3 pl-6 ml-2 border-l border-white/10 h-10 cursor-pointer hover:opacity-80 transition-opacity"
+                >
+                  <div className="flex flex-col items-start leading-tight">
+                    <div className="flex items-center gap-1.5 text-white opacity-60">
+                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" strokeLinecap="round" strokeLinejoin="round" />
+                        <circle cx="12" cy="10" r="3" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                      <span className="text-[10px] font-black uppercase tracking-[0.2em]">Location</span>
+                    </div>
+                    <div className="flex items-center gap-2 max-w-[200px]">
+                      <span className="text-[13px] text-white font-black truncate">
+                        Select Location
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -619,7 +663,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
             }}
           >
             {/* Same location line for mobile */}
-            {userLocation && (userLocation.address || userLocation.city) && (
+            {userLocation && (userLocation.address || userLocation.city) ? (
                <div 
                  onClick={() => navigate('/address-book')}
                  className="px-5 py-2.5 flex items-center justify-between gap-4 border-b border-white/10 shadow-inner cursor-pointer hover:bg-white/5 transition-colors"
@@ -642,6 +686,21 @@ export default function AppLayout({ children }: AppLayoutProps) {
                   >
                     Change
                   </button>
+               </div>
+            ) : (
+               <div 
+                 onClick={() => setShowLocationChangeModal(true)}
+                 className="px-5 py-2.5 flex items-center justify-between gap-4 border-b border-white/10 shadow-inner cursor-pointer hover:bg-white/5 transition-colors"
+               >
+                 <div className="flex items-center gap-2 min-w-0">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="text-white/60 flex-shrink-0">
+                      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                      <circle cx="12" cy="10" r="3" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                    <span className="text-white/80 text-[13px] font-bold truncate">
+                      Select Location
+                    </span>
+                  </div>
                </div>
             )}
 
@@ -711,6 +770,10 @@ export default function AppLayout({ children }: AppLayoutProps) {
         {showLocationRequest && (
           <LocationPermissionRequest
             onLocationGranted={() => setShowLocationRequest(false)}
+            onCancel={() => {
+              sessionStorage.setItem('location_request_cancelled_session', 'true');
+              setShowLocationRequest(false);
+            }}
             skipable={false}
           />
         )}
@@ -718,6 +781,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
         {showLocationChangeModal && (
           <LocationPermissionRequest
             onLocationGranted={() => setShowLocationChangeModal(false)}
+            onCancel={() => setShowLocationChangeModal(false)}
             skipable={true}
           />
         )}
@@ -757,13 +821,13 @@ export default function AppLayout({ children }: AppLayoutProps) {
                 </div>
                 <span className="text-[11px] font-black tracking-tight">Categories</span>
               </Link>
-              <Link to="/subscription" className={`flex flex-col items-center justify-center gap-1 rounded-xl py-1.5 ${isActive('/subscription') ? 'text-[#0a193b]' : 'text-[#64748b]'}`}>
-                <div className={`rounded-[10px] p-1.5 ${isActive('/subscription') ? 'bg-[rgba(10,25,59,0.08)]' : ''}`}>
+              <Link to="/account" className={`flex flex-col items-center justify-center gap-1 rounded-xl py-1.5 ${isActive('/account') ? 'text-[#0a193b]' : 'text-[#64748b]'}`}>
+                <div className={`rounded-[10px] p-1.5 ${isActive('/account') ? 'bg-[rgba(10,25,59,0.08)]' : ''}`}>
                   <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="3.5" y="6.5" width="17" height="13.5" rx="2.5" /><path d="M8.5 4v5" /><path d="M15.5 4v5" /><path d="M3.5 10.5h17" />
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
                   </svg>
                 </div>
-                <span className="text-[11px] font-black tracking-tight">Subscription</span>
+                <span className="text-[11px] font-black tracking-tight">Profile</span>
               </Link>
             </div>
           </nav>

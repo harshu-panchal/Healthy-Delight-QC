@@ -4,6 +4,7 @@ import GoogleMapsAutocomplete from "./GoogleMapsAutocomplete";
 
 interface LocationPermissionRequestProps {
   onLocationGranted: () => void;
+  onCancel?: () => void;
   skipable?: boolean;
   title?: string;
   description?: string;
@@ -11,6 +12,7 @@ interface LocationPermissionRequestProps {
 
 export default function LocationPermissionRequest({
   onLocationGranted,
+  onCancel,
   skipable = false,
   title = "Location Access Required",
   description = "We need your location to show you products available near you and enable delivery services.",
@@ -98,6 +100,18 @@ export default function LocationPermissionRequest({
         {/* Subtle Decorative Gradient */}
         <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#c5a059]/30 to-transparent" />
 
+        {onCancel && (
+          <button
+            onClick={onCancel}
+            className="absolute top-6 right-6 w-8 h-8 rounded-full bg-neutral-50 flex items-center justify-center text-neutral-400 hover:text-neutral-900 transition-colors z-10"
+            aria-label="Close"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <path d="M18 6L6 18M6 6l12 12" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
+        )}
+
         <div className="text-center mb-8">
           <div className="w-20 h-20 bg-[#fcfaf7] rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm ring-1 ring-black/[0.03]">
             <svg
@@ -181,13 +195,6 @@ export default function LocationPermissionRequest({
                 Enter Location Manually
               </button>
 
-              {skipable && (
-                <button
-                  onClick={onLocationGranted}
-                  className="w-full pt-2 pb-0 text-sm font-semibold text-neutral-400 hover:text-[#0a193b] transition-colors">
-                  Skip for now
-                </button>
-              )}
 
               {locationPermissionStatus === "session_granted" &&
                 !isLocationEnabled && (
