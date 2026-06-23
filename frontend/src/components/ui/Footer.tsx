@@ -54,7 +54,7 @@ const Footer: React.FC = () => {
             <p className="text-white/80 text-[15px] leading-relaxed mb-8 font-medium italic">
               "Purity in every drop, freshness in every bite. Bridging the gap between the organic farm and your urban home."
             </p>
-            <div className="flex items-center gap-4">
+            {/* <div className="flex items-center gap-4">
               {[
                 { name: 'Facebook', icon: 'M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z' },
                 { name: 'Instagram', icon: 'M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z M17.5 6.5h.01' },
@@ -75,7 +75,7 @@ const Footer: React.FC = () => {
                   </svg>
                 </a>
               ))}
-            </div>
+            </div> */}
           </div>
 
           {/* Column 2: Platform Links */}
@@ -155,7 +155,7 @@ const Footer: React.FC = () => {
                 </div>
               </div>
 
-              <div className="pt-6 flex flex-col gap-4">
+              {/* <div className="pt-6 flex flex-col gap-4">
                  <div className="px-5 py-3 rounded-2xl bg-white/5 border border-white/10 flex items-center gap-3 hover:bg-white/10 hover:border-[#c5a059]/30 transition-all cursor-pointer group">
                     <div className="w-8 h-8 rounded-full bg-white text-[#0a193b] flex items-center justify-center group-hover:scale-110 transition-transform">
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
@@ -179,7 +179,7 @@ const Footer: React.FC = () => {
                       <p className="text-[14px] font-bold text-white">Google Play</p>
                     </div>
                  </div>
-              </div>
+              </div> */}
             </div>
           </div>
         </div>
@@ -196,7 +196,6 @@ const Footer: React.FC = () => {
           <div className="flex items-center gap-10 text-white/60 text-[13px] font-black uppercase tracking-widest">
             <Link to="/privacy-policy" className="hover:text-[#c5a059] transition-all">Privacy</Link>
             <Link to="/terms-of-service" className="hover:text-[#c5a059] transition-all">Terms</Link>
-            <a href="#" className="hover:text-[#c5a059] transition-all">Cookies</a>
           </div>
         </div>
       </div>

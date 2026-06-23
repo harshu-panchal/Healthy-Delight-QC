@@ -13,6 +13,7 @@ import {
 } from '../services/api/customerCartService';
 import { calculateProductPrice } from '../utils/priceUtils';
 import { getAppConfig } from '../services/configService';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const CART_STORAGE_KEY = 'saved_cart';
 
@@ -56,6 +57,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   });
   const [lastAddEvent, setLastAddEvent] = useState<AddToCartEvent | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const pendingOperationsRef = useRef<Set<string>>(new Set());
 
   const { isAuthenticated, user } = useAuth();
@@ -188,6 +190,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, [items, estimatedFee, platformFee, freeDeliveryThreshold, user?.customerType]);
 
   const addToCart = async (product: Product, sourceElement?: HTMLElement | null) => {
+    if (!isAuthenticated) {
+      setShowLoginPrompt(true);
+      return;
+    }
     // Get consistent product ID - MongoDB returns _id, frontend expects id
     const productId = product._id || product.id;
 
@@ -439,6 +445,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
   };
 
   const updateQuantity = async (productId: string, quantity: number, variantId?: string, variantTitle?: string) => {
+    if (!isAuthenticated) {
+      setShowLoginPrompt(true);
+      return;
+    }
     // Create a unique operation key for this product/variant combination
     const operationKey = variantId ? `${productId}-${variantId}` : (variantTitle ? `${productId}-${variantTitle}` : productId);
 
@@ -589,7 +599,84 @@ export function CartProvider({ children }: { children: ReactNode }) {
       value={{ cart, addToCart, removeFromCart, updateQuantity, clearCart, refreshCart, lastAddEvent, loading }}
     >
       {children}
+      <AnimatePresence>
+        {showLoginPrompt && <LoginPromptModal onClose={() => setShowLoginPrompt(false)} />}
+      </AnimatePresence>
     </CartContext.Provider>
+  );
+}
+
+function LoginPromptModal({ onClose }: { onClose: () => void }) {
+  return (
+    <div className="fixed inset-0 z-[999] flex items-center justify-center p-5">
+      {/* Backdrop overlay */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={onClose}
+        className="absolute inset-0 bg-[#0a193b]/60 backdrop-blur-[6px]"
+      />
+
+      {/* Modal Card */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.9, y: 20 }}
+        transition={{ type: "spring", damping: 25, stiffness: 350 }}
+        className="relative bg-[#f8f6f2] rounded-[32px] p-8 max-w-sm w-full shadow-[0_24px_64px_rgba(10,25,59,0.3)] border border-black/[0.04] text-center flex flex-col items-center gap-6 overflow-hidden z-10"
+      >
+        {/* Design pattern overlay */}
+        <div className="absolute inset-0 opacity-[0.03] pointer-events-none"
+          style={{
+            backgroundImage: 'url("https://www.transparenttextures.com/patterns/natural-paper.png")',
+          }}
+        />
+
+        {/* Close button */}
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 w-9 h-9 rounded-full bg-white/80 flex items-center justify-center text-neutral-400 hover:text-neutral-700 transition-colors shadow-sm"
+          aria-label="Close modal"
+        >
+          <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+            <path d="M18 6L6 18M6 6l12 12" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+
+        {/* Golden Pulse Icon */}
+        <div className="w-16 h-16 rounded-[22px] bg-white border border-[#c5a059]/20 flex items-center justify-center text-3xl shadow-[0_8px_20px_rgba(197,160,89,0.15)] relative">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-[22px] bg-[#c5a059]/10 opacity-75" />
+          🥛
+        </div>
+
+        <div>
+          <h3 className="text-xl font-bold text-[#0a193b] font-outfit leading-tight mb-2">
+            Login Required
+          </h3>
+          <p className="text-[13px] text-[#64748b] leading-relaxed font-medium">
+            Join Healthy Delight to start adding fresh organic dairy and delicious items to your cart!
+          </p>
+        </div>
+
+        <div className="w-full flex flex-col gap-3">
+          <button
+            onClick={() => {
+              window.location.href = '/user/login';
+            }}
+            className="w-full h-12 rounded-xl bg-[#0a193b] text-white font-bold text-[14px] shadow-[0_8px_20px_rgba(10,25,59,0.2)] hover:bg-[#c5a059] hover:shadow-[0_8px_20px_rgba(197,160,89,0.25)] transition-all duration-300 transform active:scale-95"
+          >
+            Continue to Login
+          </button>
+          <button
+            onClick={onClose}
+            className="w-full h-12 rounded-xl bg-transparent text-[#0a193b]/70 hover:text-[#0a193b] font-bold text-[14px] transition-colors"
+          >
+            Keep Browsing
+          </button>
+        </div>
+      </motion.div>
+    </div>
   );
 }
 

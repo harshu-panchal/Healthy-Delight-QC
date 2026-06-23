@@ -784,7 +784,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
         {/* Floating elements & Modals */}
         <FloatingCartPill />
 
-        {showLocationRequest && (
+        {/* {showLocationRequest && (
           <LocationPermissionRequest
             onLocationGranted={() => setShowLocationRequest(false)}
             onCancel={() => {
@@ -793,7 +793,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
             }}
             skipable={false}
           />
-        )}
+        )} */}
 
         {showLocationChangeModal && (
           <LocationPermissionRequest

@@ -220,6 +220,13 @@ export default function Login() {
                     </span>
                   ) : 'Continue'}
                 </button>
+                <button
+                  type="button"
+                  onClick={() => navigate('/user')}
+                  className="hd-skip-btn"
+                >
+                  Skip for now
+                </button>
               </div>
             ) : (
               <div className="hd-otp-group">
@@ -253,6 +260,8 @@ export default function Login() {
             New to Healthy Delight?{' '}
             <button onClick={handleGoToSignup} className="hd-signup-link text-[#c5a059]">Sign Up</button>
           </p>
+
+
 
           <div className="flex items-center justify-center gap-4 text-xs font-bold text-[#64748b] mt-4">
             <button onClick={() => navigate('/help-support')} className="hover:text-[#0a193b] transition-colors">Help & Support</button>
@@ -378,6 +387,29 @@ export default function Login() {
 
         .hd-signup-line { text-align: center; font-weight: 500; margin-top: 8px; }
         .hd-signup-link { font-weight: 600; background: none; border: none; cursor: pointer; }
+        .hd-skip-btn {
+          width: 100%;
+          height: 52px;
+          border-radius: 14px;
+          font-weight: 700;
+          font-size: 15px;
+          letter-spacing: 0.3px;
+          background: transparent;
+          border: 2px solid #0a193b;
+          color: #0a193b;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .hd-skip-btn:hover {
+          background: rgba(10, 25, 59, 0.05);
+          border-color: #c5a059;
+          color: #c5a059;
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(10, 25, 59, 0.05);
+        }
 
         .hd-spinner { width: 20px; height: 20px; border: 2.5px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.8s linear infinite; }
 
