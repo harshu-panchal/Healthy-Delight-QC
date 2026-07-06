@@ -526,6 +526,15 @@ export default function AppLayout({ children }: AppLayoutProps) {
                       </button>
                     </div>
                   </div>
+                  
+                  {/* Delivery Speed Badge */}
+                  <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-amber-500/30 bg-amber-500/10 text-amber-400 text-[10px] font-black tracking-wider uppercase select-none shadow-sm shadow-amber-500/10 transition-transform hover:scale-105">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+                    </svg>
+                    <span>10-12 min</span>
+                  </div>
                 </div>
               ) : (
                 <div 
@@ -690,9 +699,19 @@ export default function AppLayout({ children }: AppLayoutProps) {
                       <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
                       <circle cx="12" cy="10" r="3" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
-                    <span className="text-white/80 text-[13px] font-bold truncate" title={userLocation?.address || ''}>
-                      {userLocation?.address || `${userLocation.city}, ${userLocation.state}`}
-                    </span>
+                    <div className="flex flex-col items-start gap-0.5 min-w-0">
+                      <span className="text-white/80 text-[13px] font-bold truncate" title={userLocation?.address || ''}>
+                        {userLocation?.address || `${userLocation.city}, ${userLocation.state}`}
+                      </span>
+                      {/* Mobile Delivery Speed Badge */}
+                      <div className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-full border border-amber-500/30 bg-amber-500/10 text-amber-400 text-[8px] font-black tracking-wider uppercase select-none flex-shrink-0">
+                        <span className="w-1 h-1 rounded-full bg-amber-400 animate-pulse" />
+                        <svg width="8" height="8" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+                        </svg>
+                        <span>10-12 min</span>
+                      </div>
+                    </div>
                   </div>
                   <button
                     onClick={(e) => {
@@ -813,7 +832,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
               boxShadow: '0 -4px 12px rgba(0,0,0,0.06)',
             }}
           >
-            <div className="grid grid-cols-4 items-center px-1.5 py-2">
+            <div className="grid grid-cols-5 items-center px-1.5 py-2">
               <Link to="/user" className={`flex flex-col items-center justify-center gap-1 rounded-xl py-1.5 ${isActive('/user') ? 'text-[#0a193b]' : 'text-[#64748b]'}`}>
                 <div className={`rounded-[10px] p-1.5 ${isActive('/user') ? 'bg-[rgba(10,25,59,0.08)]' : ''}`}>
                   <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
@@ -837,6 +856,17 @@ export default function AppLayout({ children }: AppLayoutProps) {
                   </svg>
                 </div>
                 <span className="text-[11px] font-black tracking-tight">Categories</span>
+              </Link>
+              <Link to="/manage-schedule" className={`flex flex-col items-center justify-center gap-1 rounded-xl py-1.5 ${isActive('/manage-schedule') ? 'text-[#0a193b]' : 'text-[#64748b]'}`}>
+                <div className={`rounded-[10px] p-1.5 ${isActive('/manage-schedule') ? 'bg-[rgba(10,25,59,0.08)]' : ''}`}>
+                  <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                    <line x1="16" y1="2" x2="16" y2="6" />
+                    <line x1="8" y1="2" x2="8" y2="6" />
+                    <line x1="3" y1="10" x2="21" y2="10" />
+                  </svg>
+                </div>
+                <span className="text-[11px] font-black tracking-tight">Schedule</span>
               </Link>
               <Link to="/account" className={`flex flex-col items-center justify-center gap-1 rounded-xl py-1.5 ${isActive('/account') ? 'text-[#0a193b]' : 'text-[#64748b]'}`}>
                 <div className={`rounded-[10px] p-1.5 ${isActive('/account') ? 'bg-[rgba(10,25,59,0.08)]' : ''}`}>

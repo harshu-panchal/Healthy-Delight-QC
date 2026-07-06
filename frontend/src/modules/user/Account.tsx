@@ -6,8 +6,11 @@ import {
   updateProfile,
   CustomerProfile,
   deleteAccount,
+  createWalletAddOrder,
+  verifyWalletAddPayment,
 } from "../../services/api/customerService";
 import { uploadImage } from "../../services/api/uploadService";
+import { useToast } from "../../context/ToastContext";
 import logo from "../../../assets/logo.png";
 
 export default function Account() {
@@ -34,6 +37,13 @@ export default function Account() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteSubmitting, setDeleteSubmitting] = useState(false);
   const [deleteError, setDeleteError] = useState("");
+
+  // Add Money States
+  const [showAddMoneyModal, setShowAddMoneyModal] = useState(false);
+  const [addMoneyAmount, setAddMoneyAmount] = useState("");
+  const [addMoneySubmitting, setAddMoneySubmitting] = useState(false);
+  const [addMoneyError, setAddMoneyError] = useState("");
+  const { showToast } = useToast();
 
   // Scroll Listener for Dynamic Header
   useEffect(() => {
@@ -154,6 +164,113 @@ export default function Account() {
       setEditError(err.response?.data?.message || "Failed to update profile");
     } finally {
       setEditSubmitting(false);
+    }
+  };
+
+  const handleAddMoneySubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const amount = parseFloat(addMoneyAmount);
+    if (isNaN(amount) || amount <= 0) {
+      setAddMoneyError("Please enter a valid amount");
+      return;
+    }
+    setAddMoneySubmitting(true);
+    setAddMoneyError("");
+    try {
+      // 1. Create Wallet Add Razorpay Order
+      const orderRes = await createWalletAddOrder(amount);
+      if (!orderRes.success) {
+        setAddMoneyError(orderRes.message || "Failed to initiate payment");
+        setAddMoneySubmitting(false);
+        return;
+      }
+
+      const { razorpayOrderId, razorpayKey, amount: orderAmount } = orderRes.data;
+
+      // 2. Load Razorpay SDK
+      const loadScript = () => {
+        return new Promise((resolve) => {
+          if ((window as any).Razorpay) {
+            resolve(true);
+            return;
+          }
+          const script = document.createElement('script');
+          script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+          script.onload = () => resolve(true);
+          script.onerror = () => resolve(false);
+          document.body.appendChild(script);
+        });
+      };
+
+      const scriptLoaded = await loadScript();
+      if (!scriptLoaded) {
+        setAddMoneyError("Failed to load Razorpay SDK");
+        setAddMoneySubmitting(false);
+        return;
+      }
+
+      // 3. Open Razorpay Checkout Modal
+      const options = {
+        key: razorpayKey,
+        amount: orderAmount,
+        currency: 'INR',
+        name: 'Healthy Delight',
+        description: 'Wallet Top-up',
+        order_id: razorpayOrderId,
+        prefill: {
+          name: profile?.name || '',
+          email: profile?.email || '',
+          contact: profile?.phone || '',
+        },
+        theme: {
+          color: '#16a34a',
+        },
+        handler: async function (response: any) {
+          try {
+            setAddMoneySubmitting(true);
+            // 4. Verify Payment with backend
+            const verifyRes = await verifyWalletAddPayment({
+              razorpayOrderId: response.razorpay_order_id,
+              razorpayPaymentId: response.razorpay_payment_id,
+              razorpaySignature: response.razorpay_signature,
+              amount,
+            });
+
+            if (verifyRes.success) {
+              if (profile) {
+                setProfile({
+                  ...profile,
+                  walletAmount: verifyRes.data.walletAmount,
+                });
+              }
+              setShowAddMoneyModal(false);
+              setAddMoneyAmount("");
+              showToast("Wallet balance updated successfully", "success");
+            } else {
+              showToast(verifyRes.message || "Payment verification failed", "error");
+            }
+          } catch (verifyErr: any) {
+            console.error(verifyErr);
+            showToast(verifyErr.response?.data?.message || "Payment verification failed", "error");
+          } finally {
+            setAddMoneySubmitting(false);
+          }
+        },
+        modal: {
+          ondismiss: function () {
+            setAddMoneySubmitting(false);
+            showToast("Payment cancelled by user", "error");
+          },
+        },
+      };
+
+      const rzp = new (window as any).Razorpay(options);
+      rzp.open();
+
+    } catch (err: any) {
+      console.error(err);
+      setAddMoneyError(err.response?.data?.message || "Failed to initiate payment");
+      setAddMoneySubmitting(false);
     }
   };
 
@@ -376,15 +493,27 @@ export default function Account() {
                 </div>
               </div>
               
-              <button
-                onClick={() => navigate("/wallet/history")}
-                className="px-4 py-2 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/20 transition-all font-bold text-[10px] uppercase tracking-wider text-white shadow-sm hover:scale-105 active:scale-95 flex items-center gap-1.5"
-              >
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 5v14M5 12h14" />
-                </svg>
-                View Ledger
-              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => {
+                    setAddMoneyError("");
+                    setAddMoneyAmount("");
+                    setShowAddMoneyModal(true);
+                  }}
+                  className="px-4 py-2 rounded-2xl bg-white text-[#0b2447] hover:bg-blue-50 transition-all font-extrabold text-[10px] uppercase tracking-wider shadow-sm hover:scale-105 active:scale-95 flex items-center gap-1.5"
+                >
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 5v14M5 12h14" />
+                  </svg>
+                  Add Money
+                </button>
+                <button
+                  onClick={() => navigate("/wallet/history")}
+                  className="px-4 py-2 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/20 transition-all font-bold text-[10px] uppercase tracking-wider text-white shadow-sm hover:scale-105 active:scale-95 flex items-center gap-1.5"
+                >
+                  View Ledger
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -826,6 +955,82 @@ export default function Account() {
                     Cancel
                   </button>
                 </div>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {showAddMoneyModal && (
+        <>
+          <div
+            className="fixed inset-0 z-[60] bg-[#0a193b]/40 backdrop-blur-sm animate-in fade-in duration-300"
+            onClick={() => setShowAddMoneyModal(false)}
+          />
+          <div className="fixed inset-x-0 bottom-0 z-[70] animate-in slide-in-from-bottom duration-500 ease-out">
+            <div className="bg-white rounded-t-[32px] shadow-2xl max-w-lg mx-auto p-6 pt-10 relative">
+              <button
+                onClick={() => setShowAddMoneyModal(false)}
+                className="absolute -top-12 right-4 w-10 h-10 rounded-full bg-neutral-900 flex items-center justify-center text-white">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                  <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+              <div className="text-center">
+                <div className="mx-auto mb-6 w-20 h-20 rounded-2xl bg-[#0a193b]/5 border border-[#0a193b]/10 flex items-center justify-center">
+                  <svg viewBox="0 0 24 24" className="w-10 h-10 text-[#0a193b]" fill="none" stroke="currentColor" strokeWidth="1.5">
+                    <rect x="2" y="4" width="20" height="16" rx="2" />
+                    <line x1="12" y1="10" x2="12" y2="10" />
+                    <path d="M16 14h2" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-black text-[#0a193b] mb-2 tracking-tight">
+                  Add Money to Wallet
+                </h3>
+                <p className="text-[13px] text-neutral-500 font-medium mb-6 px-4 leading-relaxed">
+                  Enter the amount you want to top up.
+                </p>
+                {addMoneyError && (
+                  <p className="text-xs font-bold text-red-500 mb-4 bg-red-50 py-2 rounded-xl border border-red-100">
+                    {addMoneyError}
+                  </p>
+                )}
+                <form onSubmit={handleAddMoneySubmit} className="space-y-4 text-left">
+                  <div className="relative">
+                    <span className="absolute left-5 top-1/2 -translate-y-1/2 text-2xl font-black text-[#0a193b]">₹</span>
+                    <input
+                      type="number"
+                      required
+                      min="1"
+                      value={addMoneyAmount}
+                      onChange={(e) => setAddMoneyAmount(e.target.value)}
+                      placeholder="Enter Amount"
+                      className="w-full rounded-2xl border border-neutral-100 bg-neutral-50 pl-12 pr-5 py-4 text-[20px] font-black text-[#0a193b] placeholder-neutral-400 focus:outline-none focus:ring-4 focus:ring-[#0a193b]/5 focus:bg-white transition-all"
+                    />
+                  </div>
+                  
+                  {/* Preset Quick Add Buttons */}
+                  <div className="grid grid-cols-4 gap-2">
+                    {[100, 200, 500, 1000].map((preset) => (
+                      <button
+                        key={preset}
+                        type="button"
+                        onClick={() => setAddMoneyAmount(preset.toString())}
+                        className="py-2.5 rounded-xl border border-neutral-200 text-xs font-bold text-[#0a193b] hover:bg-[#0a193b]/5 hover:border-[#0a193b] transition-all"
+                      >
+                        +₹{preset}
+                      </button>
+                    ))}
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={addMoneySubmitting || !addMoneyAmount || parseFloat(addMoneyAmount) <= 0}
+                    className="w-full rounded-2xl bg-[#0a193b] text-white font-black py-4 hover:bg-[#07122b] disabled:opacity-50 transition-all shadow-xl shadow-[#0a193b]/10 uppercase tracking-widest text-sm active:scale-[0.98]"
+                  >
+                    {addMoneySubmitting ? "Adding Balance..." : "Add Balance"}
+                  </button>
+                </form>
               </div>
             </div>
           </div>

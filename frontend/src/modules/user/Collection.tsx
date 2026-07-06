@@ -5,6 +5,7 @@ import { getHomeContent } from "../../services/api/customerHomeService";
 import ProductCard from "./components/ProductCard";
 import { useLocation } from "../../hooks/useLocation";
 import logo from "../../../assets/logo.png";
+import SectionHeading from "../../components/SectionHeading";
 
 export default function Collection() {
   const { id } = useParams();
@@ -61,9 +62,13 @@ export default function Collection() {
         <div className="w-24 h-24 bg-[#0a193b]/5 rounded-full flex items-center justify-center mb-8 shadow-sm">
           <span className="text-4xl">📦</span>
         </div>
-        <h1 className="text-2xl md:text-3xl font-bold text-[#0a193b] mb-4 tracking-tight">
+        <SectionHeading
+          as="h1"
+          className="text-2xl md:text-3xl font-bold text-[#0a193b] mb-4 tracking-tight"
+          colorSeed="collection-not-found"
+        >
           Collection not found
-        </h1>
+        </SectionHeading>
         <button
           onClick={() => navigate("/")}
           className="px-8 py-3.5 bg-[#0a193b] text-white rounded-2xl font-bold hover:bg-[#0a193b]/90 transition-all shadow-lg active:scale-95"
@@ -169,9 +174,13 @@ export default function Collection() {
             </svg>
           </button>
           <div className="flex flex-col">
-            <h1 className="text-2xl md:text-[36px] font-bold text-[#0a193b] tracking-tighter leading-tight">
+            <SectionHeading
+              as="h1"
+              className="text-2xl md:text-[36px] font-bold text-[#0a193b] tracking-tighter leading-tight"
+              colorSeed={section?.title || initialTitle}
+            >
               {section?.title || initialTitle}
-            </h1>
+            </SectionHeading>
             <p className="text-[11px] md:text-sm text-neutral-400 font-medium mt-0.5">
               {items.length} {displayType === 'products' ? 'items' : 'categories'} found
             </p>

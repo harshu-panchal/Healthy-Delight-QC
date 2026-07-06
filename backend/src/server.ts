@@ -2,7 +2,7 @@ import dotenv from "dotenv";
 // Load environment variables as early as possible
 dotenv.config();
 
-console.log('--- SERVER STARTING ---');
+console.log('--- SERVER STARTING (RELOADED) ---');
 console.log('RAZORPAY_KEY_ID exists:', !!process.env.RAZORPAY_KEY_ID);
 
 import express, { Application, Request, Response } from "express";

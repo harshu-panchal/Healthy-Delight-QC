@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { getStoreProducts } from '../../services/api/customerHomeService';
 import { useLocation } from '../../hooks/useLocation';
 import ProductCard from './components/ProductCard';
+import SectionHeading from '../../components/SectionHeading';
 
 export default function StorePage() {
     const { slug } = useParams<{ slug: string }>();
@@ -158,7 +159,9 @@ export default function StorePage() {
                     {/* Centered Curated Header */}
                     <div className="flex flex-col items-center mb-10">
                         <div className="w-12 h-1 bg-[#c5a059]/30 rounded-full mb-4 md:mb-6"></div>
-                        <h2 className="text-2xl md:text-3xl font-bold text-[#0a193b] tracking-tight">Top picks</h2>
+                        <SectionHeading className="text-2xl md:text-3xl font-bold text-[#0a193b] tracking-tight" colorSeed="top-picks">
+                          Top picks
+                        </SectionHeading>
                     </div>
 
                     {loading ? (

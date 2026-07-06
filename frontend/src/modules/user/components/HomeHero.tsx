@@ -476,19 +476,30 @@ export default function HomeHero({
 
           {/* Delivery on Left */}
           {locationDisplayText ? (
-            <div
-              onClick={() => navigate('/address-book')}
-              className="flex items-center gap-2 cursor-pointer max-w-[35%] group"
-            >
-              <div className="text-white/80 group-hover:text-white transition-all">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" strokeLinecap="round" strokeLinejoin="round" />
-                  <circle cx="12" cy="10" r="3" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
+            <div className="flex flex-col items-start gap-0.5 max-w-[32%] min-w-0">
+              <div
+                onClick={() => navigate('/address-book')}
+                className="flex items-center gap-1 cursor-pointer w-full min-w-0 group"
+              >
+                <div className="text-white/80 group-hover:text-white transition-all flex-shrink-0">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" strokeLinecap="round" strokeLinejoin="round" />
+                    <circle cx="12" cy="10" r="3" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </div>
+                <span className="text-[12px] font-bold text-white/90 truncate group-hover:text-white transition-colors">
+                  {locationDisplayText}
+                </span>
               </div>
-              <span className="text-[12px] font-bold text-white/90 truncate group-hover:text-white transition-colors">
-                {locationDisplayText}
-              </span>
+              
+              {/* Delivery Speed Badge */}
+              <div className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-full border border-amber-500/30 bg-amber-500/10 text-amber-400 text-[8px] font-black tracking-wider uppercase select-none flex-shrink-0">
+                <span className="w-1 h-1 rounded-full bg-amber-400 animate-pulse" />
+                <svg width="8" height="8" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+                </svg>
+                <span>10-12 min</span>
+              </div>
             </div>
           ) : (
             <div 

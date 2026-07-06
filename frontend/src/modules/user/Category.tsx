@@ -10,6 +10,7 @@ import {
 import { useLocation as useLocationContext } from "../../hooks/useLocation";
 import { useAuth } from "../../context/AuthContext";
 import { calculateProductPrice } from "../../utils/priceUtils";
+import SectionHeading from "../../components/SectionHeading";
 
 export default function CategoryPage() {
   const { id } = useParams<{ id: string }>();
@@ -181,9 +182,13 @@ export default function CategoryPage() {
         <div className="w-24 h-24 bg-[#0a193b]/5 rounded-full flex items-center justify-center mb-8 shadow-sm">
           <span className="text-4xl text-[#0a193b]">📦</span>
         </div>
-        <h1 className="text-2xl md:text-3xl font-bold text-[#0a193b] mb-4 tracking-tight">
+        <SectionHeading
+          as="h1"
+          className="text-2xl md:text-3xl font-bold text-[#0a193b] mb-4 tracking-tight"
+          colorSeed="category-not-found"
+        >
           Category not found
-        </h1>
+        </SectionHeading>
         <p className="text-neutral-500 md:text-lg max-w-sm mx-auto mb-10 leading-relaxed">
           The collection you're looking for doesn't exist or may have been moved.
         </p>
@@ -223,9 +228,13 @@ export default function CategoryPage() {
           </button>
           
           <div className="flex flex-col">
-            <h1 className="text-xl md:text-2xl font-bold text-[#0a193b] tracking-tight">
+            <SectionHeading
+              as="h1"
+              className="text-xl md:text-2xl font-bold text-[#0a193b] tracking-tight"
+              colorSeed={category?.name || "category"}
+            >
               {category?.name || "Category"}
-            </h1>
+            </SectionHeading>
             <span className="text-[11px] md:text-xs font-medium text-[#c5a059] uppercase tracking-widest mt-0.5">
               Fresh & organic selection
             </span>

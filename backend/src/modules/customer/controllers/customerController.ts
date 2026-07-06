@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import Customer from "../../../models/Customer";
 import CustomerWalletTransaction from "../../../models/CustomerWalletTransaction";
 import { asyncHandler } from "../../../utils/asyncHandler";
+import { createRazorpayOrder, verifyPaymentSignature } from "../../../services/paymentService";
 import Address from "../../../models/Address";
 import Cart from "../../../models/Cart";
 import CartItem from "../../../models/CartItem";
@@ -325,3 +326,114 @@ export const deleteAccount = asyncHandler(
     });
   }
 );
+
+/**
+ * Create Razorpay Order for adding customer wallet balance
+ */
+export const createWalletAddOrder = asyncHandler(async (req: Request, res: Response) => {
+  const userId = req.user?.userId;
+  const { amount } = req.body;
+
+  if (!userId || (req as any).user?.userType !== "Customer") {
+    return res.status(401).json({
+      success: false,
+      message: "Unauthorized or not a customer",
+    });
+  }
+
+  const parsedAmount = parseFloat(amount);
+  if (isNaN(parsedAmount) || parsedAmount <= 0) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid amount",
+    });
+  }
+
+  const customer = await Customer.findById(userId);
+  if (!customer) {
+    return res.status(404).json({
+      success: false,
+      message: "Customer not found",
+    });
+  }
+
+  const receipt = `W-ADD-${Date.now()}`;
+  const result = await createRazorpayOrder(receipt, parsedAmount);
+
+  if (!result.success) {
+    return res.status(400).json(result);
+  }
+
+  return res.status(200).json(result);
+});
+
+/**
+ * Verify Razorpay payment and credit customer wallet balance
+ */
+export const verifyWalletAddPayment = asyncHandler(async (req: Request, res: Response) => {
+  const userId = req.user?.userId;
+  const {
+    razorpayOrderId,
+    razorpayPaymentId,
+    razorpaySignature,
+    amount
+  } = req.body;
+
+  if (!userId || (req as any).user?.userType !== "Customer") {
+    return res.status(401).json({
+      success: false,
+      message: "Unauthorized or not a customer",
+    });
+  }
+
+  // 1. Verify Payment Signature
+  const isValid = verifyPaymentSignature(razorpayOrderId, razorpayPaymentId, razorpaySignature);
+  if (!isValid) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid payment signature",
+    });
+  }
+
+  const parsedAmount = parseFloat(amount);
+  if (isNaN(parsedAmount) || parsedAmount <= 0) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid amount",
+    });
+  }
+
+  const customer = await Customer.findById(userId);
+  if (!customer) {
+    return res.status(404).json({
+      success: false,
+      message: "Customer not found",
+    });
+  }
+
+  const balanceBefore = customer.walletAmount;
+  const balanceAfter = balanceBefore + parsedAmount;
+
+  // Update customer balance
+  customer.walletAmount = balanceAfter;
+  await customer.save();
+
+  // Create wallet transaction
+  await CustomerWalletTransaction.create({
+    customerId: customer._id,
+    type: "Credit",
+    source: "Manual",
+    amount: parsedAmount,
+    balanceBefore,
+    balanceAfter,
+    remark: `Added money to wallet via Razorpay (${razorpayPaymentId})`,
+  });
+
+  return res.status(200).json({
+    success: true,
+    message: "Wallet balance added successfully",
+    data: {
+      walletAmount: customer.walletAmount,
+    },
+  });
+});

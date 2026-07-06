@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
+import SectionHeading from "../../../components/SectionHeading";
 
 interface CategoryTile {
   id: string;
@@ -88,9 +89,9 @@ export default function CategoryTileSection({
     <div className="mb-8 mt-6 overflow-visible px-4 md:px-6 lg:px-8">
       {/* Modern Clean Header */}
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-[17px] md:text-xl font-semibold text-[#0a193b] tracking-tight">
+        <SectionHeading className="text-[17px] md:text-xl font-semibold text-[#0a193b] tracking-tight" colorSeed={title}>
           {title}
-        </h2>
+        </SectionHeading>
         {/* Optional 'See all' for shared sections if link exists in parent, but here we keep it clean */}
       </div>
 

@@ -5,6 +5,7 @@ import { useOrders } from '../../hooks/useOrders';
 import { useCart } from '../../context/CartContext';
 import { useLocation } from '../../hooks/useLocation';
 import logo from '../../../assets/logo.png';
+import SectionHeading from '../../components/SectionHeading';
 
 const formatOrderFriendly = (orderNumber?: string, orderId?: string) => {
   if (orderNumber && orderNumber !== 'N/A') {
@@ -198,7 +199,9 @@ export default function OrderAgain() {
         {hasOrders && (
           <div className="px-5 mt-8 md:mt-0 mb-12">
             <div className="flex items-center gap-2 mb-6">
-              <h2 className="text-[18px] md:text-[20px] font-bold text-[#0a193b] tracking-tight">Your Previous Orders</h2>
+              <SectionHeading className="text-[18px] md:text-[20px] font-bold text-[#0a193b] tracking-tight" colorSeed="your-previous-orders">
+                Your Previous Orders
+              </SectionHeading>
             </div>
             <div className="flex flex-col gap-4">
               {orders.map((order) => {

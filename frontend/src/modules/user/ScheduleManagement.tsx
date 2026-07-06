@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { format, addMonths, startOfMonth, endOfMonth, eachDayOfInterval, isBefore, startOfTomorrow, isSameDay } from "date-fns";
+import { format, addMonths, startOfMonth, endOfMonth, eachDayOfInterval, isBefore, startOfTomorrow, isSameDay, startOfToday } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
 import { getMyOrders } from "../../services/api/customerOrderService";
 import { getActiveShifts, type CustomerShift } from "../../services/api/customerShiftService";
@@ -26,6 +26,36 @@ const formatOrderFriendly = (orderNumber?: string, orderId?: string) => {
   return 'Unknown';
 };
 
+const isShiftTimePassed = (endTimeStr: string): boolean => {
+  if (!endTimeStr) return false;
+  try {
+    const match = endTimeStr.trim().match(/(\d+):?(\d*)\s*(AM|PM)/i);
+    if (!match) return false;
+
+    let hours = parseInt(match[1], 10);
+    const minutes = match[2] ? parseInt(match[2], 10) : 0;
+    const modifier = match[3].toUpperCase();
+
+    if (modifier === "PM" && hours < 12) {
+      hours += 12;
+    }
+    if (modifier === "AM" && hours === 12) {
+      hours = 0;
+    }
+
+    const now = new Date();
+    const currentHours = now.getHours();
+    const currentMinutes = now.getMinutes();
+
+    if (currentHours > hours) return true;
+    if (currentHours === hours && currentMinutes >= minutes) return true;
+    return false;
+  } catch (error) {
+    console.error("Error parsing shift time:", error);
+    return false;
+  }
+};
+
 export default function ScheduleManagement() {
   const navigate = useNavigate();
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -47,11 +77,17 @@ export default function ScheduleManagement() {
         const response = await getActiveShifts("Scheduled");
         if (response.success && response.data.length > 0) {
           setActiveShifts(response.data);
-          // If no timeSlot is selected yet, or if current timeSlot is not in the new active shifts, set to first active
+          
+          const isTodaySelected = selectedDate ? isSameDay(selectedDate, new Date()) : false;
+          const availableShifts = isTodaySelected 
+            ? response.data.filter(s => !isShiftTimePassed(s.endTime))
+            : response.data;
+            
+          const defaultSlot = availableShifts.length > 0 ? availableShifts[0].name : response.data[0].name;
           const savedSlot = sessionStorage.getItem("scheduledTimeSlot");
-          const isValidSaved = response.data.some(s => s.name === savedSlot);
-          if (!savedSlot || !isValidSaved) {
-            const defaultSlot = response.data[0].name;
+          const isSavedAvailable = availableShifts.some(s => s.name === savedSlot);
+          
+          if (!savedSlot || !isSavedAvailable) {
             setTimeSlot(defaultSlot);
             if (selectedDate) {
               sessionStorage.setItem("scheduledTimeSlot", defaultSlot);
@@ -72,9 +108,21 @@ export default function ScheduleManagement() {
         { _id: "evening", name: "Evening", startTime: "06:00 PM", endTime: "09:00 PM", type: "Both", isActive: true },
       ];
       setActiveShifts(fallback);
+      
+      const isTodaySelected = selectedDate ? isSameDay(selectedDate, new Date()) : false;
+      const available = isTodaySelected
+        ? fallback.filter(s => !isShiftTimePassed(s.endTime))
+        : fallback;
+        
+      const defaultSlot = available.length > 0 ? available[0].name : "Morning";
       const savedSlot = sessionStorage.getItem("scheduledTimeSlot");
-      if (!savedSlot) {
-        setTimeSlot("Morning");
+      const isSavedAvailable = available.some(s => s.name === savedSlot);
+      
+      if (!savedSlot || !isSavedAvailable) {
+        setTimeSlot(defaultSlot);
+        if (selectedDate) {
+          sessionStorage.setItem("scheduledTimeSlot", defaultSlot);
+        }
       }
     };
 
@@ -118,6 +166,14 @@ export default function ScheduleManagement() {
       isMounted = false;
     };
   }, []);
+
+  const filteredOrders = React.useMemo(() => {
+    if (!selectedDate) return [];
+    return scheduledOrders.filter((order) => {
+      if (!order.scheduledDate) return false;
+      return isSameDay(new Date(order.scheduledDate), selectedDate);
+    });
+  }, [scheduledOrders, selectedDate]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -199,7 +255,13 @@ export default function ScheduleManagement() {
             <span key={d} className="text-[10px] font-black text-neutral-300 uppercase">{d}</span>
           ))}
           {days.map(day => {
-            const isInactive = isBefore(day, startOfTomorrow());
+            const now = new Date();
+            const isToday = isSameDay(day, now);
+            const hasAvailableShifts = activeShifts.length > 0
+              ? activeShifts.some(shift => !isShiftTimePassed(shift.endTime))
+              : !isShiftTimePassed("09:00 PM");
+            
+            const isInactive = isBefore(day, startOfToday()) || (isToday && !hasAvailableShifts);
             const isSelected = selectedDate ? isSameDay(day, selectedDate) : false;
             return (
               <div key={day.toString()} className="flex items-center justify-center py-2">
@@ -208,11 +270,15 @@ export default function ScheduleManagement() {
                   onClick={() => {
                     setSelectedDate(day);
                     sessionStorage.setItem("scheduledDeliveryDate", day.toISOString());
-                     if (!timeSlot && activeShifts.length > 0) {
-                       const defaultSlot = activeShifts[0].name;
-                       setTimeSlot(defaultSlot);
-                       sessionStorage.setItem("scheduledTimeSlot", defaultSlot);
-                     }
+                    
+                    const isTodaySelected = isSameDay(day, now);
+                    const available = activeShifts.filter(s => !isTodaySelected || !isShiftTimePassed(s.endTime));
+                    
+                    if (available.length > 0) {
+                      const defaultSlot = available[0].name;
+                      setTimeSlot(defaultSlot);
+                      sessionStorage.setItem("scheduledTimeSlot", defaultSlot);
+                    }
                   }}
                   className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold transition-all ${
                     isInactive 
@@ -235,25 +301,30 @@ export default function ScheduleManagement() {
         <div className="bg-white rounded-[24px] p-5 shadow-[0_10px_30px_rgba(0,0,0,0.02)] border border-neutral-100 mb-6 animate-fadeIn">
           <h3 className="text-sm font-black text-[#0a193b] mb-4">Choose Delivery Time Slot</h3>
           <div className="grid grid-cols-2 gap-4">
-            {activeShifts.map((shift) => (
-              <button
-                key={shift._id}
-                onClick={() => {
-                  setTimeSlot(shift.name);
-                  sessionStorage.setItem("scheduledTimeSlot", shift.name);
-                }}
-                className={`p-4 rounded-2xl flex flex-col items-center justify-center border-2 transition-all ${
-                  timeSlot === shift.name
-                    ? "border-[#3b82f6] bg-[#3b82f6]/5 text-[#3b82f6]"
-                    : "border-neutral-100 hover:border-neutral-200 text-neutral-600"
-                }`}
-              >
-                <span className="text-sm font-bold">{shift.name}</span>
-                <span className="text-[10px] text-neutral-400 font-medium mt-1">
-                  {shift.startTime} - {shift.endTime}
-                </span>
-              </button>
-            ))}
+            {activeShifts.map((shift) => {
+              const isPassed = isSameDay(selectedDate, new Date()) && isShiftTimePassed(shift.endTime);
+              if (isPassed) return null;
+              
+              return (
+                <button
+                  key={shift._id}
+                  onClick={() => {
+                    setTimeSlot(shift.name);
+                    sessionStorage.setItem("scheduledTimeSlot", shift.name);
+                  }}
+                  className={`p-4 rounded-2xl flex flex-col items-center justify-center border-2 transition-all ${
+                    timeSlot === shift.name
+                      ? "border-[#3b82f6] bg-[#3b82f6]/5 text-[#3b82f6]"
+                      : "border-neutral-100 hover:border-neutral-200 text-neutral-600"
+                  }`}
+                >
+                  <span className="text-sm font-bold">{shift.name}</span>
+                  <span className="text-[10px] text-neutral-400 font-medium mt-1">
+                    {shift.startTime} - {shift.endTime}
+                  </span>
+                </button>
+              );
+            })}
           </div>
         </div>
       )}
@@ -285,7 +356,7 @@ export default function ScheduleManagement() {
           <div className="flex justify-center py-8">
             <div className="w-8 h-8 border-4 border-[#0a193b]/20 border-t-[#0a193b] rounded-full animate-spin"></div>
           </div>
-        ) : scheduledOrders.length === 0 ? (
+        ) : filteredOrders.length === 0 ? (
           <div className="bg-white rounded-[24px] p-8 text-center border border-neutral-100 shadow-sm">
             <div className="w-16 h-16 bg-[#0a193b]/5 rounded-full flex items-center justify-center mx-auto mb-4 text-[#0a193b]/60">
               <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -302,7 +373,7 @@ export default function ScheduleManagement() {
           </div>
         ) : (
           <div className="space-y-4">
-            {scheduledOrders.map((order) => {
+            {filteredOrders.map((order) => {
               const previewItems = order.items.slice(0, 4);
               
               return (

@@ -7,6 +7,7 @@ import { useLocation as useLocationContext } from "../../hooks/useLocation";
 import { useToast } from "../../context/ToastContext";
 import { useAuth } from "../../context/AuthContext";
 import RazorpayCheckout from "../../components/RazorpayCheckout";
+import { useWishlistContext } from "../../context/WishlistContext";
 
 // import { products } from '../../data/products'; // Removed
 import { OrderAddress, Order } from "../../types/order";
@@ -117,6 +118,7 @@ export default function Checkout() {
   const { location: userLocation } = useLocationContext();
   const { showToast: showGlobalToast } = useToast();
   const { user, updateUser } = useAuth();
+  const { fetchWishlist: fetchGlobalWishlist } = useWishlistContext();
   const navigate = useNavigate();
   const [tipAmount, setTipAmount] = useState<number | null>(null);
   const [customTipAmount, setCustomTipAmount] = useState<number>(0);
@@ -765,6 +767,7 @@ export default function Checkout() {
 
       // Refresh wishlist items to show them in the checkout empty state instantly!
       fetchWishlist();
+      fetchGlobalWishlist();
     } catch (error: any) {
       setIsMovingLastToWishlist(false);
       console.error("Failed to move to wishlist:", error);
@@ -1719,7 +1722,7 @@ export default function Checkout() {
                           handleMoveToWishlist(item.product, variantId, variantTitle);
                         }}
                         className="text-[10px] font-medium text-neutral-400 hover:text-[#0a193b] font-bold transition-colors">
-                        Move to wishlist
+                        Add to wishlist
                       </button>
                     </div>
 

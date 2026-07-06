@@ -18,15 +18,18 @@ export default function OTPInput({ length = 4, onComplete, disabled = false }: O
   const handleChange = (index: number, value: string) => {
     if (disabled) return;
 
+    // Get the last character of the input to allow overwriting
+    const lastChar = value.slice(-1);
+
     // Only allow digits
-    if (value && !/^\d$/.test(value)) return;
+    if (lastChar && !/^\d$/.test(lastChar)) return;
 
     const newOtp = [...otp];
-    newOtp[index] = value;
+    newOtp[index] = lastChar;
     setOtp(newOtp);
 
     // Move to next input if value is entered
-    if (value && index < length - 1) {
+    if (lastChar && index < length - 1) {
       inputRefs.current[index + 1]?.focus();
     }
 
@@ -38,8 +41,20 @@ export default function OTPInput({ length = 4, onComplete, disabled = false }: O
 
   const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Backspace' && !otp[index] && index > 0) {
-      // Move to previous input on backspace
+      // Clear the previous input value and focus it
+      const newOtp = [...otp];
+      newOtp[index - 1] = '';
+      setOtp(newOtp);
       inputRefs.current[index - 1]?.focus();
+      inputRefs.current[index - 1]?.select();
+    } else if (e.key === 'ArrowLeft' && index > 0) {
+      e.preventDefault();
+      inputRefs.current[index - 1]?.focus();
+      inputRefs.current[index - 1]?.select();
+    } else if (e.key === 'ArrowRight' && index < length - 1) {
+      e.preventDefault();
+      inputRefs.current[index + 1]?.focus();
+      inputRefs.current[index + 1]?.select();
     }
   };
 
@@ -78,6 +93,7 @@ export default function OTPInput({ length = 4, onComplete, disabled = false }: O
           onChange={(e) => handleChange(index, e.target.value)}
           onKeyDown={(e) => handleKeyDown(index, e)}
           onPaste={handlePaste}
+          onFocus={(e) => e.target.select()}
           disabled={disabled}
           className="w-[52px] h-[52px] text-center text-[22px] font-bold border-[1.5px] border-[#e2e8f0] rounded-[14px] bg-white text-[#0a193b] focus:border-[#c5a059] focus:ring-4 focus:ring-[#c5a059]/10 outline-none transition-all disabled:bg-neutral-50 disabled:cursor-not-allowed"
         />

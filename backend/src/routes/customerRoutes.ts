@@ -24,6 +24,10 @@ router.get("/location", authenticate, customerController.getLocation);
 // Get customer wallet transactions (protected route)
 router.get("/wallet/transactions", authenticate, customerController.getWalletTransactions);
 
+// Add customer wallet balance via Razorpay (protected routes)
+router.post("/wallet/add/order", authenticate, customerController.createWalletAddOrder);
+router.post("/wallet/add/verify", authenticate, customerController.verifyWalletAddPayment);
+
 // Get FAQs for customer app (protected route)
 router.get("/faqs", authenticate, customerFAQController.getFAQs);
 

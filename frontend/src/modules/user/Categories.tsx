@@ -7,6 +7,7 @@ import {
 import { useNavigate, useLocation as useRouterLocation } from "react-router-dom";
 import { useLocation } from "../../hooks/useLocation";
 import logo from "../../../assets/logo.png";
+import SectionHeading from "../../components/SectionHeading";
 
 export default function Categories() {
   const location = useLocation();
@@ -175,9 +176,13 @@ export default function Categories() {
 
       {/* Header Section - Better alignment for Desktop */}
       <div className="px-5 pt-4 pb-4 md:px-10 md:pt-0 md:pb-6 mt-4 md:mt-0">
-        <h1 className="text-[20px] md:text-[32px] font-bold text-[#0a193b] tracking-tight">
+        <SectionHeading
+          as="h1"
+          className="text-[20px] md:text-[32px] font-bold text-[#0a193b] tracking-tight"
+          colorSeed="categories"
+        >
           Categories
-        </h1>
+        </SectionHeading>
         <p className="text-[12px] md:text-[16px] text-neutral-500 mt-1 md:mt-2 font-medium">
           Choose from our curated fresh selections
         </p>

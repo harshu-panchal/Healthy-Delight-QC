@@ -82,3 +82,46 @@ export const deleteAccount = async (): Promise<{ success: boolean; message: stri
   return response.data;
 };
 
+export interface WalletAddOrderResponse {
+  success: boolean;
+  message?: string;
+  data: {
+    razorpayOrderId: string;
+    razorpayKey: string;
+    amount: number;
+    currency: string;
+    receipt: string;
+  };
+}
+
+export interface WalletAddVerifyData {
+  razorpayOrderId: string;
+  razorpayPaymentId: string;
+  razorpaySignature: string;
+  amount: number;
+}
+
+export interface WalletAddVerifyResponse {
+  success: boolean;
+  message: string;
+  data: {
+    walletAmount: number;
+  };
+}
+
+/**
+ * Create Razorpay order for adding balance to customer wallet
+ */
+export const createWalletAddOrder = async (amount: number): Promise<WalletAddOrderResponse> => {
+  const response = await api.post<WalletAddOrderResponse>('/customer/wallet/add/order', { amount });
+  return response.data;
+};
+
+/**
+ * Verify Razorpay payment and credit customer wallet
+ */
+export const verifyWalletAddPayment = async (data: WalletAddVerifyData): Promise<WalletAddVerifyResponse> => {
+  const response = await api.post<WalletAddVerifyResponse>('/customer/wallet/add/verify', data);
+  return response.data;
+};
+

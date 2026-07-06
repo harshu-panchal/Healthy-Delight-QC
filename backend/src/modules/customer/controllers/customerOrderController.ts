@@ -977,10 +977,11 @@ export const cancelOrder = async (req: Request, res: Response) => {
             const deliveryStartTime = new Date(order.scheduledDate);
             deliveryStartTime.setHours(startHour, 0, 0, 0);
 
-            const oneHourBefore = new Date(deliveryStartTime.getTime() - 60 * 60 * 1000);
             const now = new Date();
+            const diffMinutes = (deliveryStartTime.getTime() - now.getTime()) / (60 * 1000);
 
-            if (now > oneHourBefore) {
+            // Enforce 1-hour limit (with 5 minutes grace buffer, e.g. cancellation at 5:00 PM for 6:00 PM delivery succeeds)
+            if (diffMinutes < 55) {
                 if (session) await session.abortTransaction();
                 return res.status(400).json({
                     success: false,

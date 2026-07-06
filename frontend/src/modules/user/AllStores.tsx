@@ -4,6 +4,7 @@ import { getHomeContent } from "../../services/api/customerHomeService";
 import { useLocation } from "../../hooks/useLocation";
 import { motion } from "framer-motion";
 import logo from "../../../assets/logo.png";
+import SectionHeading from "../../components/SectionHeading";
 
 export default function AllStores() {
     const navigate = useNavigate();
@@ -127,9 +128,13 @@ export default function AllStores() {
                         </svg>
                     </button>
                     <div className="flex flex-col">
-                        <h1 className="text-2xl md:text-[36px] font-bold text-[#0a193b] tracking-tighter leading-tight">
-                            All Stores
-                        </h1>
+                        <SectionHeading
+                          as="h1"
+                          className="text-2xl md:text-[36px] font-bold text-[#0a193b] tracking-tighter leading-tight"
+                          colorSeed="all-stores"
+                        >
+                          All Stores
+                        </SectionHeading>
                         <p className="text-[11px] md:text-sm text-neutral-400 font-medium mt-0.5">
                             {shops.length} marketplace stores available
                         </p>

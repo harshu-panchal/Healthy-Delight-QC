@@ -19,6 +19,7 @@ import { useThemeContext } from "../../context/ThemeContext";
 import { useAuth } from "../../context/AuthContext";
 import { useOrders } from "../../hooks/useOrders";
 import DeliveryCalendarStrip from "./components/DeliveryCalendarStrip";
+import SectionHeading from "../../components/SectionHeading";
 
 const formatTimeSlotForHome = (timeSlotStr: string, scheduledSlot?: string): string => {
   const slotLower = (timeSlotStr || "").toLowerCase();
@@ -57,6 +58,36 @@ const formatTimeSlotForHome = (timeSlotStr: string, scheduledSlot?: string): str
   }
   
   return timeRange;
+};
+
+const isShiftTimePassed = (endTimeStr: string): boolean => {
+  if (!endTimeStr) return false;
+  try {
+    const match = endTimeStr.trim().match(/(\d+):?(\d*)\s*(AM|PM)/i);
+    if (!match) return false;
+
+    let hours = parseInt(match[1], 10);
+    const minutes = match[2] ? parseInt(match[2], 10) : 0;
+    const modifier = match[3].toUpperCase();
+
+    if (modifier === "PM" && hours < 12) {
+      hours += 12;
+    }
+    if (modifier === "AM" && hours === 12) {
+      hours = 0;
+    }
+
+    const now = new Date();
+    const currentHours = now.getHours();
+    const currentMinutes = now.getMinutes();
+
+    if (currentHours > hours) return true;
+    if (currentHours === hours && currentMinutes >= minutes) return true;
+    return false;
+  } catch (error) {
+    console.error("Error parsing shift time:", error);
+    return false;
+  }
 };
 
 export default function Home() {
@@ -125,8 +156,16 @@ export default function Home() {
   // Sync selected calendar date on Home with sessionStorage
   useEffect(() => {
     if (isToday(selectedDate)) {
-      sessionStorage.removeItem("scheduledDeliveryDate");
-      sessionStorage.removeItem("scheduledTimeSlot");
+      const isEveningPassed = isShiftTimePassed("09:00 PM");
+      if (!isEveningPassed) {
+        sessionStorage.setItem("scheduledDeliveryDate", selectedDate.toISOString());
+        const isMorningPassed = isShiftTimePassed("09:00 AM");
+        const defaultSlot = isMorningPassed ? "Evening" : "Morning";
+        sessionStorage.setItem("scheduledTimeSlot", defaultSlot);
+      } else {
+        sessionStorage.removeItem("scheduledDeliveryDate");
+        sessionStorage.removeItem("scheduledTimeSlot");
+      }
     } else {
       sessionStorage.setItem("scheduledDeliveryDate", selectedDate.toISOString());
       if (!sessionStorage.getItem("scheduledTimeSlot")) {
@@ -417,7 +456,7 @@ export default function Home() {
                     {deliveryStatusText}
                   </p>
                 </div>
-                {(deliveryData[format(selectedDate, "yyyy-MM-dd")] || !isToday(selectedDate)) && (
+                {(deliveryData[format(selectedDate, "yyyy-MM-dd")] || !isToday(selectedDate) || !isShiftTimePassed("09:00 PM")) && (
                   <button
                     onClick={() => navigate(deliveryData[format(selectedDate, "yyyy-MM-dd")] ? '/manage-schedule' : '/categories')}
                     className="bg-[#0a193b] text-white px-4 py-2.5 rounded-xl text-xs font-bold shadow-md whitespace-nowrap"
@@ -444,9 +483,9 @@ export default function Home() {
         <div className="w-full mt-8 mb-12 px-5 py-8 md:px-10 lg:px-12 bg-[#f8f6f2] md:rounded-[48px] md:mx-auto md:max-w-[1240px] border-y md:border border-black/[0.02] shadow-[0_4px_12px_rgba(0,0,0,0.03),0_20px_50px_rgba(0,0,0,0.06)]">
           {/* Section Header */}
           <div className="flex items-center justify-between mb-8 px-1">
-            <h2 className="text-[18px] md:text-2xl font-bold text-[#0a193b] tracking-tight">
+            <SectionHeading className="text-[18px] md:text-2xl font-bold text-[#0a193b] tracking-tight" colorSeed="categories">
               Categories
-            </h2>
+            </SectionHeading>
             <button
               type="button"
               onClick={handleGoToCategories}
@@ -642,9 +681,12 @@ export default function Home() {
                       <div key={section.id} className="mt-8 mb-8 md:mt-12 md:mb-12 px-4 md:px-6 lg:px-8">
                         {section.title && (
                           <div className="flex items-center justify-between mb-10">
-                            <h2 className="text-[18px] md:text-2xl font-bold text-[#0a193b] tracking-tight">
+                            <SectionHeading
+                              className="text-[18px] md:text-2xl font-bold text-[#0a193b] tracking-tight"
+                              colorSeed={section.title}
+                            >
                               {section.title}
-                            </h2>
+                            </SectionHeading>
                             <button
                               onClick={() => {
                                 if (section.id) {
@@ -712,9 +754,9 @@ export default function Home() {
                 <div className="px-5 mb-10 md:px-10">
                   {/* Modern Clean Header */}
                   <div className="flex items-center justify-between mb-8">
-                    <h2 className="text-[18px] md:text-[22px] font-semibold text-[#0a193b] tracking-tight">
+                    <SectionHeading className="text-[18px] md:text-[22px] font-semibold text-[#0a193b] tracking-tight" colorSeed="shop-by-store">
                       Shop by Store
-                    </h2>
+                    </SectionHeading>
                     <button
                       onClick={() => navigate('/stores')}
                       className="section-see-all group flex items-center gap-1.5 transition-all hover:translate-x-1"
