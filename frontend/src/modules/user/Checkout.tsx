@@ -1721,7 +1721,10 @@ export default function Checkout() {
                           e.stopPropagation();
                           handleMoveToWishlist(item.product, variantId, variantTitle);
                         }}
-                        className="text-[10px] font-medium text-neutral-400 hover:text-[#0a193b] font-bold transition-colors">
+                        className="flex items-center gap-1 whitespace-nowrap px-2 py-1 text-[10px] font-bold text-neutral-700 bg-white border border-neutral-300 rounded-md shadow-sm hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-all active:scale-95 group w-fit">
+                        <svg className="w-3 h-3 transition-colors group-hover:fill-current" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                        </svg>
                         Add to wishlist
                       </button>
                     </div>

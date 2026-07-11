@@ -417,7 +417,7 @@ export default function CheckoutAddress() {
         } else if ((location.state as any)?.fromAddressBook) {
           navigate('/address-book', { replace: true });
         } else {
-          navigate('/address-book', { replace: true });
+          navigate('/checkout', { replace: true });
         }
       }, 500);
     } catch (error) {

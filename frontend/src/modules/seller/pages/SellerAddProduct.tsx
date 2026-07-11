@@ -1100,11 +1100,16 @@ export default function SellerAddProduct({ isAdmin = false }: SellerAddProductPr
                         }`}>
                         <div className="flex-1">
                           <span className="font-medium">{variation.title}</span>{" "}
-                          - Retail: ₹{variation.price}
-                          {variation.discPrice > 0 && (
-                            <span className="text-neutral-500 ml-2 line-through">
-                              (₹{variation.discPrice})
-                            </span>
+                          - Retail:{" "}
+                          {variation.discPrice > 0 ? (
+                            <>
+                              ₹{variation.discPrice}
+                              <span className="text-neutral-500 ml-2 line-through">
+                                (₹{variation.price})
+                              </span>
+                            </>
+                          ) : (
+                            `₹${variation.price}`
                           )}
                           {variation.wholesalePrice && variation.wholesalePrice > 0 && (
                             <span className="ml-3 text-xs bg-[#c5a059]/10 text-[#c5a059] px-2 py-0.5 rounded-full font-bold">

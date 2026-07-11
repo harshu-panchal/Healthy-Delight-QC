@@ -8,10 +8,12 @@ import OTPInput from "../../../components/OTPInput";
 import { useAuth } from "../../../context/AuthContext";
 import { removeAuthToken } from "../../../services/api/config";
 
+let savedMobileNumber = "";
+
 export default function DeliveryLogin() {
   const navigate = useNavigate();
   const { login } = useAuth();
-  const [mobileNumber, setMobileNumber] = useState("");
+  const [mobileNumber, setMobileNumber] = useState(savedMobileNumber);
   const [sessionId, setSessionId] = useState("");
   const [showOTP, setShowOTP] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -71,8 +73,8 @@ export default function DeliveryLogin() {
           userType: "Delivery",
         });
 
-        // FCM token registration is handled globally by App.tsx when auth state changes
         // No need to call registerFCMToken here - it would cause duplicate notifications
+        savedMobileNumber = "";
 
         navigate("/delivery");
       }
@@ -148,11 +150,11 @@ export default function DeliveryLogin() {
                   <input
                     type="tel"
                     value={mobileNumber}
-                    onChange={(e) =>
-                      setMobileNumber(
-                        e.target.value.replace(/\D/g, "").slice(0, 10)
-                      )
-                    }
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/\D/g, "").slice(0, 10);
+                      setMobileNumber(val);
+                      savedMobileNumber = val;
+                    }}
                     placeholder="Enter mobile number"
                     className="flex-1 px-4 py-2 text-sm font-semibold text-neutral-800 placeholder:text-neutral-400 focus:outline-none bg-white"
                     maxLength={10}

@@ -21,6 +21,10 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  const [isSignupMode, setIsSignupMode] = useState(false);
+  const [signupName, setSignupName] = useState('');
+  const [signupCustomerType, setSignupCustomerType] = useState<"retailer" | "wholesaler">('retailer');
+
   const [showBranding, setShowBranding] = useState(() => !!location.state?.playBranding);
   const [phase, setPhase] = useState(0);
   const [animationData, setAnimationData] = useState<any>(null);
@@ -55,14 +59,28 @@ export default function Login() {
 
   const handleContinue = async () => {
     if (mobileNumber.length !== 10) return;
+    
+    if (isSignupMode) {
+      if (!signupName.trim()) {
+        setError("Please enter your name");
+        return;
+      }
+    }
+
     setLoading(true);
     setError('');
     try {
-      const response = await sendOTP(mobileNumber, 'login');
+      const action = isSignupMode ? 'signup' : 'login';
+      const response = await sendOTP(mobileNumber, action);
       if (response.sessionId) setSessionId(response.sessionId);
       setShowOTP(true);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to initiate login. Please try again.');
+      const errorMessage = err.response?.data?.message;
+      if (!isSignupMode && errorMessage === 'This mobile number is not registered. Please sign up first.') {
+        setIsSignupMode(true);
+      } else {
+        setError(errorMessage || `Failed to initiate ${isSignupMode ? 'signup' : 'login'}. Please try again.`);
+      }
     } finally {
       setLoading(false);
     }
@@ -75,17 +93,25 @@ export default function Login() {
     setLoading(true);
     setError('');
     try {
-      const response = await verifyOTP(mobileNumber, otpValue, sessionId, undefined, undefined, 'login');
+      const action = isSignupMode ? 'signup' : 'login';
+      const response = await verifyOTP(
+        mobileNumber, 
+        otpValue, 
+        sessionId, 
+        isSignupMode ? signupName : undefined, 
+        isSignupMode ? signupCustomerType : undefined, 
+        action
+      );
       if (response.success && response.data) {
         login(response.data.token, {
           id: response.data.user.id,
-          name: response.data.user.name,
+          name: response.data.user.name || (isSignupMode ? signupName : undefined),
           phone: response.data.user.phone,
           email: response.data.user.email,
           walletAmount: response.data.user.walletAmount,
           refCode: response.data.user.refCode,
           status: response.data.user.status,
-          customerType: response.data.user.customerType,
+          customerType: response.data.user.customerType || (isSignupMode ? signupCustomerType : undefined),
           userType: 'Customer'
         });
         navigate('/');
@@ -95,7 +121,7 @@ export default function Login() {
     } finally {
       setLoading(false);
     }
-  }, [mobileNumber, sessionId, login, navigate, enteredOTP]);
+  }, [mobileNumber, sessionId, login, navigate, enteredOTP, isSignupMode, signupName, signupCustomerType]);
 
   const handleOTPComplete = useCallback((otp: string) => {
     setEnteredOTP(otp);
@@ -103,22 +129,13 @@ export default function Login() {
   }, [handleVerifyOTP]);
 
   const handleGoToSignup = () => {
-    navigate('/login', {
-      replace: true,
-      state: {
-        skipBranding: true,
-        showOTP,
-        mobileNumber,
-        sessionId
-      }
-    });
-    navigate('/signup', {
-      state: {
-        fromShowOTP: showOTP,
-        fromMobileNumber: mobileNumber,
-        fromSessionId: sessionId
-      }
-    });
+    setIsSignupMode(true);
+    setError('');
+  };
+
+  const handleGoToLogin = () => {
+    setIsSignupMode(false);
+    setError('');
   };
 
   if (showBranding) {
@@ -133,6 +150,9 @@ export default function Login() {
         onClick={() => {
           if (showOTP) {
             setShowOTP(false);
+            setError('');
+          } else if (isSignupMode) {
+            setIsSignupMode(false);
             setError('');
           } else {
             navigate(-1);
@@ -171,13 +191,24 @@ export default function Login() {
 
       <div className={`hd-bottom-panel ${phase >= 3 ? 'hd-bottom-in' : ''}`}>
         <div className="hd-form-card">
-          {!showOTP && (
+          {!showOTP && !isSignupMode && (
             <div className="hd-tagline">
               <h1 className="text-[18px] sm:text-[20px] font-semibold text-[#0a193b] leading-tight font-outfit">
                 Welcome to Healthy Delight
               </h1>
               <p className="text-[12px] sm:text-[13px] text-[#64748b] mt-1 font-medium">
                 Sign in to continue
+              </p>
+            </div>
+          )}
+
+          {!showOTP && isSignupMode && (
+            <div className="hd-tagline">
+              <h1 className="text-[18px] sm:text-[20px] font-semibold text-[#0a193b] leading-tight font-outfit">
+                Create your account
+              </h1>
+              <p className="text-[12px] sm:text-[13px] text-[#64748b] mt-1 font-medium">
+                Join Healthy Delight for fresh deliveries!
               </p>
             </div>
           )}
@@ -196,36 +227,93 @@ export default function Login() {
           <div className="hd-input-section">
             {!showOTP ? (
               <div className="hd-input-group">
-                <div className="hd-phone-row">
-                  <div className="hd-prefix">+91</div>
-                  <input
-                    type="tel"
-                    value={mobileNumber}
-                    onChange={(e) => setMobileNumber(e.target.value.replace(/\D/g, '').slice(0, 10))}
-                    placeholder="Enter mobile number"
-                    className="hd-phone-input"
-                    maxLength={10}
-                    disabled={loading}
-                  />
-                </div>
+                {isSignupMode && (
+                  <>
+                    <div className="hd-field-group">
+                      <label className="hd-field-label">Full Name</label>
+                      <div className="hd-input-row">
+                        <input
+                          type="text"
+                          value={signupName}
+                          onChange={(e) => setSignupName(e.target.value.replace(/[^a-zA-Z\s]/g, ""))}
+                          placeholder="Enter your name"
+                          className="hd-text-input"
+                          disabled={loading}
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="hd-field-group">
+                      <label className="hd-field-label">I want to shop as a:</label>
+                      <div className="flex gap-3 mt-1">
+                        <button
+                          type="button"
+                          onClick={() => setSignupCustomerType("retailer")}
+                          className={`flex-1 p-3 rounded-xl border-2 transition-all flex flex-col items-center justify-center gap-1 ${signupCustomerType === "retailer"
+                            ? "border-[#c5a059] bg-[#c5a059]/5 text-[#0a193b]"
+                            : "border-neutral-200 bg-white text-neutral-500 hover:border-neutral-300"
+                            }`}
+                        >
+                          <span className="text-[13px] font-bold">Retailer</span>
+                          <span className="text-[9px] opacity-70">Standard Shopping</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setSignupCustomerType("wholesaler")}
+                          className={`flex-1 p-3 rounded-xl border-2 transition-all flex flex-col items-center justify-center gap-1 ${signupCustomerType === "wholesaler"
+                            ? "border-[#c5a059] bg-[#c5a059]/5 text-[#0a193b]"
+                            : "border-neutral-200 bg-white text-neutral-500 hover:border-neutral-300"
+                            }`}
+                        >
+                          <span className="text-[13px] font-bold">Wholesaler</span>
+                          <span className="text-[9px] opacity-70">Bulk & B2B Prices</span>
+                        </button>
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {isSignupMode ? (
+                  <div className="hd-field-group">
+                    <label className="hd-field-label">Mobile Number</label>
+                    <div className="hd-phone-row">
+                      <div className="hd-prefix">+91</div>
+                      <input
+                        type="tel"
+                        value={mobileNumber}
+                        onChange={(e) => setMobileNumber(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                        placeholder="Enter mobile number"
+                        className="hd-phone-input"
+                        maxLength={10}
+                        disabled={loading}
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="hd-phone-row">
+                    <div className="hd-prefix">+91</div>
+                    <input
+                      type="tel"
+                      value={mobileNumber}
+                      onChange={(e) => setMobileNumber(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                      placeholder="Enter mobile number"
+                      className="hd-phone-input"
+                      maxLength={10}
+                      disabled={loading}
+                    />
+                  </div>
+                )}
                 {error && <div className="hd-error-msg">{error}</div>}
                 <button
                   onClick={handleContinue}
-                  disabled={mobileNumber.length !== 10 || loading}
-                  className={`hd-cta-btn ${mobileNumber.length === 10 && !loading ? 'hd-cta-active' : 'hd-cta-disabled'}`}
+                  disabled={mobileNumber.length !== 10 || (isSignupMode && !signupName.trim()) || loading}
+                  className={`hd-cta-btn ${mobileNumber.length === 10 && (!isSignupMode || signupName.trim()) && !loading ? 'hd-cta-active' : 'hd-cta-disabled'}`}
                 >
                   {loading ? (
                     <span className="hd-spinner-row">
                       <span className="hd-spinner" />Processing...
                     </span>
                   ) : 'Continue'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => navigate('/user')}
-                  className="hd-skip-btn"
-                >
-                  Skip for now
                 </button>
               </div>
             ) : (
@@ -246,7 +334,7 @@ export default function Login() {
 
                 <div className="hd-otp-actions">
                   <button onClick={() => { setShowOTP(false); setError(''); }} disabled={loading} className="hd-action-btn">
-                    Change number
+                    {isSignupMode ? 'Change details' : 'Change number'}
                   </button>
                   <button onClick={handleContinue} disabled={loading} className="hd-action-btn hd-action-resend">
                     {loading ? 'Sending...' : 'Resend OTP'}
@@ -256,10 +344,6 @@ export default function Login() {
             )}
           </div>
 
-          <p className="hd-signup-line text-[#94a3b8]">
-            New to Healthy Delight?{' '}
-            <button onClick={handleGoToSignup} className="hd-signup-link text-[#c5a059]">Sign Up</button>
-          </p>
 
 
 
@@ -355,6 +439,18 @@ export default function Login() {
           transition: border-color 0.2s;
         }
         .hd-phone-row:focus-within { border-color: #c5a059; }
+
+        .hd-field-group { display: flex; flex-direction: column; gap: 8px; }
+        .hd-field-label { font-size: 13px; font-weight: 600; color: #475569; padding-left: 4px; }
+        
+        .hd-input-row {
+            display: flex; height: 50px; background: #fff; border-radius: 14px; border: 1.5px solid #e2e8f0; overflow: hidden;
+            transition: border-color 0.2s;
+        }
+        .hd-input-row:focus-within { border-color: #c5a059; }
+        
+        .hd-text-input { width: 100%; border: none; outline: none; padding: 0 16px; font-weight: 600; font-size: 15px; }
+
         .hd-prefix {
           width: auto;
           min-width: 64px;
@@ -383,6 +479,17 @@ export default function Login() {
         .hd-cta-active:hover { transform: translateY(-1px); box-shadow: 0 10px 25px rgba(10,25,59,0.25); }
         .hd-cta-disabled {
           background: #e2e8f0; color: #94a3b8; cursor: not-allowed;
+        }
+
+        .hd-error-msg {
+          color: #ef4444;
+          font-size: 13px;
+          font-weight: 500;
+          margin-top: -10px;
+          background: #fef2f2;
+          padding: 8px 12px;
+          border-radius: 8px;
+          border: 1px solid #fecaca;
         }
 
         .hd-signup-line { text-align: center; font-weight: 500; margin-top: 8px; }

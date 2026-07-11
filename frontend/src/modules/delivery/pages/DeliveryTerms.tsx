@@ -105,7 +105,7 @@ Last Updated: May 2026`;
         {/* Brand Header */}
         <div className="bg-teal-600 px-6 py-8 text-white relative">
           <button
-            onClick={() => navigate('/delivery/signup')}
+            onClick={() => navigate(-1)}
             className="absolute left-6 top-8 text-white hover:text-neutral-200 transition-colors p-1 bg-teal-700/50 hover:bg-teal-700/80 rounded-full"
             aria-label="Go Back"
           >
@@ -137,10 +137,10 @@ Last Updated: May 2026`;
 
           <div className="mt-8 pt-6 border-t border-neutral-200 flex justify-center">
             <button
-              onClick={() => navigate('/delivery/signup')}
+              onClick={() => navigate(-1)}
               className="px-6 py-2.5 bg-teal-600 hover:bg-teal-700 text-white font-semibold text-sm rounded-lg shadow-sm transition-all hover:shadow active:scale-95"
             >
-              Back to Sign Up
+              Go Back
             </button>
           </div>
         </div>

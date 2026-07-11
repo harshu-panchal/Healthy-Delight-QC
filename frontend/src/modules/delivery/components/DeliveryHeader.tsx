@@ -30,7 +30,7 @@ export default function DeliveryHeader({ userName }: DeliveryHeaderProps) {
 
         {/* Middle: App Logo */}
         <div className="flex-1 flex justify-center">
-          <img src={logo} alt="Healthy Delight" className="h-8 sm:h-9 w-auto object-contain" />
+          <img src={logo} alt="Healthy Delight" className="h-[52px] sm:h-[55px] w-auto object-contain" />
         </div>
         
         {/* Right Side: Toggle Switch */}

@@ -23,6 +23,8 @@ export function validateImageFile(file: File): {
     "image/png",
     "image/webp",
     "image/gif",
+    "image/heic",
+    "image/heif",
   ];
 
   if (!allowedTypes.includes(file.type)) {
@@ -60,6 +62,8 @@ export function validateDocumentFile(file: File): {
     "image/png",
     "image/webp",
     "application/pdf",
+    "image/heic",
+    "image/heif",
   ];
 
   if (!allowedTypes.includes(file.type)) {

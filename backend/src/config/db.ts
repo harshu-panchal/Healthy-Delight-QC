@@ -5,6 +5,10 @@ dotenv.config();
 
 const connectDB = async (): Promise<void> => {
   try {
+    // Set DNS servers to Google DNS to fix potential MongoDB SRV resolution issues
+    const dns = require('dns');
+    dns.setServers(['8.8.8.8', '8.8.4.4']);
+
     if (!process.env.MONGODB_URI) {
       throw new Error('MONGODB_URI is not defined in environment variables');
     }

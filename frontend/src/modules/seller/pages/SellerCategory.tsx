@@ -126,20 +126,20 @@ export default function SellerCategory() {
                 {/* Table */}
                 {!loading && !error && (
                     <div className="overflow-x-auto">
-                        <table className="w-full text-left border-collapse border border-neutral-200">
+                        <table className="w-full text-center border-collapse border border-neutral-200">
                             <thead>
                                 <tr className="bg-neutral-50 text-xs font-bold text-neutral-800">
                                     <th className="p-4 w-16 border border-neutral-200">
-                                        <div className="flex items-center justify-between cursor-pointer">ID <span className="text-neutral-300 text-[10px]">⇅</span></div>
+                                        <div className="flex items-center justify-center gap-2 cursor-pointer">ID <span className="text-neutral-300 text-[10px]">⇅</span></div>
                                     </th>
                                     <th className="p-4 border border-neutral-200">
-                                        <div className="flex items-center justify-between cursor-pointer">Category Name <span className="text-neutral-300 text-[10px]">⇅</span></div>
+                                        <div className="flex items-center justify-center gap-2 cursor-pointer">Category Name <span className="text-neutral-300 text-[10px]">⇅</span></div>
                                     </th>
                                     <th className="p-4 border border-neutral-200">
-                                        <div className="flex items-center justify-between cursor-pointer">Category Image <span className="text-neutral-300 text-[10px]">⇅</span></div>
+                                        <div className="flex items-center justify-center gap-2 cursor-pointer">Category Image <span className="text-neutral-300 text-[10px]">⇅</span></div>
                                     </th>
                                     <th className="p-4 border border-neutral-200">
-                                        <div className="flex items-center justify-between cursor-pointer">Total Subcategory <span className="text-neutral-300 text-[10px]">⇅</span></div>
+                                        <div className="flex items-center justify-center gap-2 cursor-pointer">Total Subcategory <span className="text-neutral-300 text-[10px]">⇅</span></div>
                                     </th>
                                 </tr>
                             </thead>
@@ -149,7 +149,7 @@ export default function SellerCategory() {
                                         ? `CAT-${category._id.slice(-6).toUpperCase()}`
                                         : 'N/A';
                                     return (
-                                        <tr key={category._id} className="hover:bg-neutral-50 transition-colors text-sm text-neutral-700">
+                                        <tr key={category._id} className="hover:bg-neutral-50 transition-colors text-sm text-neutral-700 text-center">
                                             <td className="p-4 align-middle border border-neutral-200 font-mono font-semibold text-neutral-800" title={`Full ID: ${category._id}`}>
                                                 {friendlyId}
                                             </td>
