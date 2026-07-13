@@ -131,7 +131,7 @@ export default function OrderNotificationCard({
 
     // Play audio on user interaction with better error handling
     const handleUserInteraction = async (e?: React.SyntheticEvent) => {
-        if (isProcessing) return;
+        if (isStoppedRef.current || isProcessing) return;
         if (e?.target && (e.target as HTMLElement).closest('button')) {
             return;
         }
@@ -254,21 +254,17 @@ export default function OrderNotificationCard({
     };
 
     return (
-        <motion.div
-            initial={{ opacity: 0, y: -50, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -50, scale: 0.9 }}
-            transition={{ duration: 0.3 }}
-            className="fixed top-4 left-4 right-4 sm:top-4 sm:left-auto sm:right-4 sm:w-auto sm:max-w-md z-50"
-            onClick={handleUserInteraction}
-            onMouseEnter={handleUserInteraction}
-            onTouchStart={handleUserInteraction}
-            style={{
-                // Support for safe area insets (iOS notches, etc.)
-                paddingTop: 'env(safe-area-inset-top, 0)',
-            }}
-        >
-            <div className="bg-white rounded-xl shadow-2xl border-2 border-primary p-4 sm:p-6">
+        <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+            <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                transition={{ duration: 0.3 }}
+                className="bg-white rounded-2xl shadow-2xl border-2 border-primary p-4 sm:p-6 w-full max-w-md"
+                onClick={handleUserInteraction}
+                onMouseEnter={handleUserInteraction}
+                onTouchStart={handleUserInteraction}
+            >
                 {/* Header with pulsing indicator */}
                 <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
                     <div className="flex items-center gap-3">
@@ -373,8 +369,8 @@ export default function OrderNotificationCard({
                         {isProcessing ? 'Processing...' : 'Accept'}
                     </button>
                 </div>
-            </div>
-        </motion.div>
+            </motion.div>
+        </div>
     );
 }
 

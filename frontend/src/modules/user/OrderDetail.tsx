@@ -315,6 +315,7 @@ export default function OrderDetail() {
   // Modal states
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [showItemsModal, setShowItemsModal] = useState(false);
+  const [showBillDetails, setShowBillDetails] = useState(false);
   const [showShareSheet, setShowShareSheet] = useState(false);
   const [copied, setCopied] = useState(false);
 
@@ -340,6 +341,18 @@ export default function OrderDetail() {
   // Seller locations for the order
   const [sellerLocations, setSellerLocations] = useState<any[]>([]);
   const [loadingSellerLocations, setLoadingSellerLocations] = useState(false);
+
+  // Prevent background scrolling when popups/modals are open
+  useEffect(() => {
+    if (showItemsModal || showCancelModal || showShareSheet || showConfirmation) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [showItemsModal, showCancelModal, showShareSheet, showConfirmation]);
 
   // Fetch order if not in context
   useEffect(() => {
@@ -768,7 +781,7 @@ export default function OrderDetail() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-white flex flex-col items-center justify-center">
+            className="fixed inset-0 z-[100] bg-white flex flex-col items-center justify-center">
             <motion.div
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
@@ -1211,7 +1224,7 @@ export default function OrderDetail() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+            className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
             onClick={() => setShowCancelModal(false)}>
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
@@ -1259,14 +1272,14 @@ export default function OrderDetail() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+            className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
             onClick={() => setShowItemsModal(false)}>
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-white rounded-3xl p-6 max-w-sm w-full max-h-[75vh] overflow-y-auto shadow-2xl border border-slate-100">
+              className="bg-white rounded-3xl p-6 max-w-sm w-full max-h-[92vh] overflow-y-auto shadow-2xl border border-slate-100">
               <h2 className="text-xl font-extrabold text-slate-800 tracking-tight mb-4">
                 Order Items
               </h2>
@@ -1307,6 +1320,84 @@ export default function OrderDetail() {
                   </div>
                 ))}
               </div>
+
+              {/* Bill Details inside items popup */}
+              <div className="mt-6 pt-4 border-t border-slate-100 space-y-2.5">
+                {/* Subtotal is always visible */}
+                <div className="flex justify-between text-xs font-medium text-slate-600">
+                  <span>Subtotal</span>
+                  <span>₹{(order.subtotal || 0).toFixed(0)}</span>
+                </div>
+
+                {!showBillDetails && (
+                  <div 
+                    className="flex justify-between items-center text-xs font-bold text-[#0a193b] cursor-pointer select-none hover:text-[#122b5e] pt-1"
+                    onClick={() => setShowBillDetails(true)}
+                  >
+                    <span className="flex items-center gap-1">
+                      Other Charges
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                      </svg>
+                    </span>
+                  </div>
+                )}
+
+                <AnimatePresence>
+                  {showBillDetails && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="overflow-hidden space-y-2.5"
+                    >
+                      <div className="flex justify-between text-xs font-medium text-red-600">
+                        <span>Discount</span>
+                        <span>-₹{(order.discount || 0).toFixed(0)}</span>
+                      </div>
+                      <div className="flex justify-between text-xs font-medium text-slate-600">
+                        <span>Delivery Charge</span>
+                        <span>₹{(order.shipping || 0).toFixed(0)}</span>
+                      </div>
+                      <div className="flex justify-between text-xs font-medium text-slate-600">
+                        <span>Platform Fee</span>
+                        <span>₹{(order.platformFee || 0).toFixed(0)}</span>
+                      </div>
+                      <div className="flex justify-between text-xs font-medium text-slate-600">
+                        <span>Taxes</span>
+                        <span>₹{(order.tax || 0).toFixed(0)}</span>
+                      </div>
+                      <div className="flex justify-between text-xs font-medium text-slate-600">
+                        <span>Driver Tip</span>
+                        <span>₹{(order.tipAmount || 0).toFixed(0)}</span>
+                      </div>
+                      <div className="flex justify-between text-xs font-medium text-slate-600">
+                        <span>Wallet Amount Used</span>
+                        <span>-₹{(order.walletAmountUsed || 0).toFixed(0)}</span>
+                      </div>
+                      <div className="flex justify-between text-sm font-black text-slate-800 pt-2.5 border-t border-slate-100">
+                        <span>Total Amount Paid</span>
+                        <span>₹{(order.total || 0).toFixed(0)}</span>
+                      </div>
+                      
+                      {/* Show Less button at the very bottom */}
+                      <div 
+                        className="flex justify-between items-center text-xs font-bold text-[#0a193b] cursor-pointer select-none hover:text-[#122b5e] pt-1.5"
+                        onClick={() => setShowBillDetails(false)}
+                      >
+                        <span className="flex items-center gap-1">
+                          Show Less
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="18 15 12 9 6 15"></polyline>
+                          </svg>
+                        </span>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
               <Button
                 className="w-full mt-5 bg-[#0a193b] hover:bg-[#122b5e] text-white font-bold py-2.5 rounded-xl cursor-pointer transition-colors shadow-lg shadow-[#0a193b]/10"
                 onClick={() => setShowItemsModal(false)}>
@@ -1320,7 +1411,7 @@ export default function OrderDetail() {
       {/* Custom Bottom Share Sheet Fallback */}
       <AnimatePresence>
         {showShareSheet && (
-          <div className="fixed inset-0 z-50 flex items-end justify-center">
+          <div className="fixed inset-0 z-[100] flex items-end justify-center">
             {/* Backdrop */}
             <motion.div
               initial={{ opacity: 0 }}

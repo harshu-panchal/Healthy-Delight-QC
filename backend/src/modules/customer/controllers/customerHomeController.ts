@@ -3,6 +3,7 @@ import Product from "../../../models/Product";
 import Category from "../../../models/Category";
 import SubCategory from "../../../models/SubCategory";
 import Shop from "../../../models/Shop";
+import Seller from "../../../models/Seller";
 import HeaderCategory from "../../../models/HeaderCategory";
 import HomeSection from "../../../models/HomeSection";
 import BestsellerCard from "../../../models/BestsellerCard";
@@ -121,6 +122,7 @@ async function fetchSectionData(
       const query: any = {
         status: "Active",
         publish: true,
+        stock: { $gt: 0 }, // Exclude out of stock
         // Exclude shop-by-store-only products from home sections
         $or: [
           { isShopByStoreOnly: { $ne: true } },
@@ -254,6 +256,18 @@ export const getHomeContent = async (req: Request, res: Response) => {
   const { headerCategorySlug, latitude, longitude } = req.query; // Get header category slug and location from query params
 
   try {
+    try {
+      const fs = require('fs');
+      const path = require('path');
+      const debugPath = path.join(__dirname, "../../../../../debug_shops.json");
+      const Seller = mongoose.model("Seller");
+      const dbSellers = await Seller.find({}).lean();
+      fs.writeFileSync(debugPath, JSON.stringify(dbSellers, null, 2));
+      console.log("DEBUG SELLERS WRITE SUCCESSFUL");
+    } catch (e: any) {
+      console.error("DEBUG SELLERS WRITE FAILED:", e.message);
+    }
+
     // If DB is not connected (e.g. Atlas blocked / offline), return a safe empty payload
     // so the frontend can load without showing a full-screen network error.
     if (mongoose.connection.readyState !== 1) {
@@ -311,6 +325,7 @@ export const getHomeContent = async (req: Request, res: Response) => {
           category: categoryId,
           status: "Active",
           publish: true,
+          stock: { $gt: 0 }, // Exclude out of stock
         };
 
         // Fetch 4 active products from the category for preview images
@@ -369,10 +384,11 @@ export const getHomeContent = async (req: Request, res: Response) => {
       .populate({
         path: "product",
         select:
-          "productName mainImage price discPrice compareAtPrice discount status publish category subcategory seller variations",
+          "productName mainImage price discPrice compareAtPrice discount status publish category subcategory seller variations stock",
         match: {
           status: "Active",
           publish: true,
+          stock: { $gt: 0 }, // Exclude out of stock
           // Removed location filter to show preview images irrespective of radius
         },
       })
@@ -443,48 +459,47 @@ export const getHomeContent = async (req: Request, res: Response) => {
 
     const categories = rawCategories.filter((c: any) => fullyActiveIds.has(c._id.toString()));
 
-    // 4. Shop By Store - Fetch from database
-    const shopDocuments = await Shop.find({ isActive: true })
-      .populate("category", "name slug")
-      .sort({ order: 1, createdAt: -1 })
+    // 4. Shop By Store - Fetch from database (approved sellers as stores)
+    const sellerDocuments = await Seller.find({ status: "Approved" })
+      .sort({ createdAt: -1 })
       .lean();
 
-    // Transform shop data to match frontend expected format and include preview images
+    // Transform seller data to match frontend expected format and include preview images
     const shops = await Promise.all(
-      shopDocuments.map(async (shop: any) => {
-        let productImages: string[] = [];
+      sellerDocuments.map(async (seller: any) => {
+        // Fetch up to 4 active products for this seller for preview images
+        const sellerProducts = await Product.find({
+          seller: seller._id,
+          status: "Active",
+          publish: true,
+          stock: { $gt: 0 },
+        })
+          .select("mainImage category subcategory")
+          .limit(4)
+          .lean();
 
-        if (shop.products && shop.products.length > 0) {
-          const shopProducts = await Product.find({
-            _id: { $in: shop.products.slice(0, 4) },
-            status: "Active",
-            publish: true,
-          })
-            .select("mainImage category subcategory")
-            .lean();
+        const activeSellerProducts = sellerProducts.filter((p: any) => {
+          const catId = p.category?.toString();
+          const subId = p.subcategory?.toString();
+          if (catId && !fullyActiveIds.has(catId)) return false;
+          if (subId && !fullyActiveIds.has(subId)) return false;
+          return true;
+        });
 
-          const activeShopProducts = shopProducts.filter((p: any) => {
-            const catId = p.category?.toString();
-            const subId = p.subcategory?.toString();
-            if (catId && !fullyActiveIds.has(catId)) return false;
-            if (subId && !fullyActiveIds.has(subId)) return false;
-            return true;
-          });
-
-          productImages = activeShopProducts
-            .map((p: any) => p.mainImage)
-            .filter(Boolean);
-        }
+        const productImages = activeSellerProducts
+          .map((p: any) => p.mainImage)
+          .filter(Boolean);
 
         return {
-          id: shop.storeId || shop._id.toString(),
-          name: shop.name,
-          image: shop.image,
-          productImages, // Include preview images irrespective of location
-          slug: shop.storeId || shop._id.toString(),
-          category: shop.category,
-          productIds: shop.products?.map((p: any) => p.toString()) || [],
-          bgColor: shop.bgColor || "bg-neutral-50",
+          id: seller._id.toString(),
+          name: seller.storeName,
+          image: seller.logo || seller.storeBanner || "", // Logo or banner image
+          productImages, // Include preview images
+          slug: seller._id.toString(),
+          category: seller.category || "",
+          productIds: activeSellerProducts.map((p: any) => p._id.toString()),
+          bgColor: "bg-neutral-50",
+          isShopOpen: seller.isShopOpen !== false,
         };
       }),
     );
@@ -513,6 +528,7 @@ export const getHomeContent = async (req: Request, res: Response) => {
     const foodProductsQuery: any = {
       status: "Active",
       publish: true,
+      stock: { $gt: 0 }, // Exclude out of stock
     };
 
     const foodProducts = await Product.find(foodProductsQuery)
@@ -706,10 +722,15 @@ export const getHomeContent = async (req: Request, res: Response) => {
         endDate: { $gte: now },
       })
         .populate("categoryCards.categoryId", "name slug image")
-        .populate(
-          "featuredProducts",
-          "productName mainImage mainImageUrl galleryImageUrls galleryImages price discPrice compareAtPrice mrp discount rating reviewsCount seller variations",
-        )
+        .populate({
+          path: "featuredProducts",
+          select: "productName mainImage mainImageUrl galleryImageUrls galleryImages price discPrice compareAtPrice mrp discount rating reviewsCount seller variations stock",
+          match: {
+            status: "Active",
+            publish: true,
+            stock: { $gt: 0 } // Exclude out of stock
+          }
+        })
         .sort({ order: 1 })
         .lean();
 
@@ -719,7 +740,9 @@ export const getHomeContent = async (req: Request, res: Response) => {
       if (promoStrip && (promoStrip as any).featuredProducts) {
         (promoStrip as any).featuredProducts = (
           promoStrip as any
-        ).featuredProducts.map((p: any) => {
+        ).featuredProducts
+          .filter((p: any) => p !== null && p !== undefined)
+          .map((p: any) => {
           const isAvailable =
             nearbySellerIds && nearbySellerIds.length > 0 && p.seller
               ? nearbySellerIds.some(
@@ -796,102 +819,115 @@ export const getStoreProducts = async (req: Request, res: Response) => {
       publish: true,
     };
 
-    console.log(`[getStoreProducts] Looking for shop with storeId: ${storeId}`);
-
-    // Build shop query - only include _id if storeId is a valid ObjectId
-    const shopQuery: any = { isActive: true };
-    if (mongoose.Types.ObjectId.isValid(storeId)) {
-      shopQuery.$or = [
-        { storeId: storeId.toLowerCase() },
-        { _id: new mongoose.Types.ObjectId(storeId) },
-      ];
-    } else {
-      shopQuery.storeId = storeId.toLowerCase();
-    }
-
-    // Find the shop by storeId or _id
-    const shop = await Shop.findOne(shopQuery)
-      .populate("category", "_id name slug image")
-      .populate("subCategory", "_id name")
-      .lean();
-
     let shopData: any = null;
 
-    if (shop) {
-      shopData = {
-        name: shop.name,
-        image: shop.image,
-        description: shop.description || "",
-        category: shop.category,
-      };
+    // Check if storeId corresponds to a Seller first
+    if (mongoose.Types.ObjectId.isValid(storeId)) {
+      const seller = await Seller.findById(storeId).lean();
+      if (seller) {
+        console.log(`[getStoreProducts] Found seller: ${seller.storeName}`);
+        shopData = {
+          name: seller.storeName,
+          image: seller.logo || seller.storeBanner || "",
+          description: seller.storeDescription || "",
+        };
+        query.seller = new mongoose.Types.ObjectId(storeId);
+      }
+    }
 
-      // Convert products array to ObjectIds if needed
-      let productIds: mongoose.Types.ObjectId[] = [];
-      if (shop.products && shop.products.length > 0) {
-        productIds = shop.products
-          .map((p: any) => {
-            const id = p._id || p;
-            return mongoose.Types.ObjectId.isValid(id) ? new mongoose.Types.ObjectId(id) : null;
-          })
-          .filter(Boolean) as mongoose.Types.ObjectId[];
+    if (!shopData) {
+      console.log(`[getStoreProducts] Looking for shop with storeId: ${storeId}`);
+
+      // Build shop query - only include _id if storeId is a valid ObjectId
+      const shopQuery: any = { isActive: true };
+      if (mongoose.Types.ObjectId.isValid(storeId)) {
+        shopQuery.$or = [
+          { storeId: storeId.toLowerCase() },
+          { _id: new mongoose.Types.ObjectId(storeId) },
+        ];
+      } else {
+        shopQuery.storeId = storeId.toLowerCase();
       }
 
-      // 1. If shop has specific products assigned, use those IDs
-      if (productIds.length > 0) {
-        query._id = { $in: productIds };
-      }
-      // 2. Otherwise use category/subcategory filters
-      else {
-        const orConditions: any[] = [];
+      // Find the shop by storeId or _id
+      const shop = await Shop.findOne(shopQuery)
+        .populate("category", "_id name slug image")
+        .populate("subCategory", "_id name")
+        .lean();
 
-        // Handle categories (single or array)
-        if (shop.category) {
-          const categoryIds = Array.isArray(shop.category)
-            ? shop.category.map((c: any) => c._id || c)
-            : [shop.category._id || shop.category];
-          orConditions.push({ category: { $in: categoryIds } });
+      if (shop) {
+        shopData = {
+          name: shop.name,
+          image: shop.image,
+          description: shop.description || "",
+          category: shop.category,
+        };
+
+        // Convert products array to ObjectIds if needed
+        let productIds: mongoose.Types.ObjectId[] = [];
+        if (shop.products && shop.products.length > 0) {
+          productIds = shop.products
+            .map((p: any) => {
+              const id = p._id || p;
+              return mongoose.Types.ObjectId.isValid(id) ? new mongoose.Types.ObjectId(id) : null;
+            })
+            .filter(Boolean) as mongoose.Types.ObjectId[];
         }
 
-        // Handle subcategories (single or array)
-        if (shop.subCategory) {
-          const subCategoryIds = Array.isArray(shop.subCategory)
-            ? shop.subCategory.map((s: any) => s._id || s)
-            : [shop.subCategory._id || shop.subCategory];
-          orConditions.push({ subcategory: { $in: subCategoryIds } });
+        // 1. If shop has specific products assigned, use those IDs
+        if (productIds.length > 0) {
+          query._id = { $in: productIds };
         }
+        // 2. Otherwise use category/subcategory filters
+        else {
+          const orConditions: any[] = [];
 
-        if (orConditions.length > 0) {
-          query.$or = orConditions;
-        }
+          // Handle categories (single or array)
+          if (shop.category) {
+            const categoryIds = Array.isArray(shop.category)
+              ? shop.category.map((c: any) => c._id || c)
+              : [shop.category._id || shop.category];
+            orConditions.push({ category: { $in: categoryIds } });
+          }
 
-        // If it's a shop, we should show "isShopByStoreOnly" products that match
-        // but NOT restrict it ONLY to those. The base query already allows both.
-      }
-    } else {
-      // Fallback: try to match by category name (legacy support)
-      const categoryId = await getCategoryIdByName(storeId);
-      if (categoryId) {
-        query.category = categoryId;
-        // Try to get category details for shop data
-        const category = await Category.findById(categoryId)
-          .select("name slug image")
-          .lean();
-        if (category) {
-          shopData = {
-            name: category.name,
-            image: category.image || "",
-            description: "",
-            category: category,
-          };
+          // Handle subcategories (single or array)
+          if (shop.subCategory) {
+            const subCategoryIds = Array.isArray(shop.subCategory)
+              ? shop.subCategory.map((s: any) => s._id || s)
+              : [shop.subCategory._id || shop.subCategory];
+            orConditions.push({ subcategory: { $in: subCategoryIds } });
+          }
+
+          if (orConditions.length > 0) {
+            query.$or = orConditions;
+          }
         }
       } else {
-        // No matching shop or category found
-        return res.status(200).json({
-          success: true,
-          data: [],
-          shop: null,
-          message: "Store not found",
-        });
+        // Fallback: try to match by category name (legacy support)
+        const categoryId = await getCategoryIdByName(storeId);
+        if (categoryId) {
+          query.category = categoryId;
+          // Try to get category details for shop data
+          const category = await Category.findById(categoryId)
+            .select("name slug image")
+            .lean();
+          if (category) {
+            shopData = {
+              name: category.name,
+              image: category.image || "",
+              description: "",
+              category: category,
+            };
+          }
+        } else {
+          // No matching shop or category found
+          return res.status(200).json({
+            success: true,
+            data: [],
+            shop: null,
+            message: "Store not found",
+          });
+        }
       }
     }
 
@@ -930,7 +966,28 @@ export const getStoreProducts = async (req: Request, res: Response) => {
       }
 
       // Filter products by sellers within range
-      query.seller = { $in: nearbySellerIds };
+      if (query.seller) {
+        // Intersect or check if the requested seller is in nearbySellerIds
+        const sellerIdStr = query.seller.toString();
+        const isNearby = nearbySellerIds.some(id => id.toString() === sellerIdStr);
+        if (!isNearby) {
+          console.log(`[getStoreProducts] Requested seller ${sellerIdStr} is not nearby`);
+          return res.status(200).json({
+            success: true,
+            data: [],
+            shop: shopData,
+            pagination: {
+              page: 1,
+              limit: 50,
+              total: 0,
+              pages: 0,
+            },
+            message: "This seller is not serviceable in your area.",
+          });
+        }
+      } else {
+        query.seller = { $in: nearbySellerIds };
+      }
       console.log(`[getStoreProducts] Added seller filter to query`);
     } else {
       // If no location provided, return empty (require location for marketplace)

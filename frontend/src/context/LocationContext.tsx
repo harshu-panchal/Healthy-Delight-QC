@@ -72,52 +72,7 @@ export function LocationProvider({ children }: { children: ReactNode }) {
   const abortControllerRef = useRef<AbortController | null>(null);
   const isRequestingRef = useRef(false);
 
-  // Initialize location state and check session permission
-  useEffect(() => {
-    const checkInitialPermission = async () => {
-      console.log('[LocationContext] Checking initial permission status...');
 
-      try {
-        // 1. Check sessionStorage for session-level permission
-        const sessionGranted = sessionStorage.getItem(SESSION_PERMISSION_KEY);
-
-        if (sessionGranted === 'true') {
-          console.log('[LocationContext] Permission already granted in this session.');
-
-          // 2. Check for cached location in localStorage
-          const cachedLocation = localStorage.getItem(LOCATION_STORAGE_KEY);
-          if (cachedLocation) {
-            try {
-              const parsedLocation = JSON.parse(cachedLocation);
-              console.log('[LocationContext] Using cached location from this session:', parsedLocation.address);
-              setLocation(parsedLocation);
-              setIsLocationEnabled(true);
-              setLocationPermissionStatus('session_granted');
-            } catch (e) {
-              console.error('[LocationContext] Failed to parse cached location:', e);
-            }
-          } else {
-            // Permission granted but no location? Prompt to refresh it
-            console.log('[LocationContext] Session permission exists but no cached location.');
-            setLocationPermissionStatus('session_granted');
-          }
-        } else {
-          console.log('[LocationContext] No session-level permission found. User will be prompted.');
-          setLocation(null);
-          setIsLocationEnabled(false);
-          setLocationPermissionStatus('prompt');
-        }
-      } catch (error) {
-        console.error('[LocationContext] Error checking session storage:', error);
-        // Fallback to prompt if storage is unavailable
-        setLocationPermissionStatus('prompt');
-      } finally {
-        setIsLocationLoading(false);
-      }
-    };
-
-    checkInitialPermission();
-  }, []);
 
   // Request user's current location - OPTIMIZED for speed and accuracy
   const requestLocation = useCallback(async (): Promise<void> => {
@@ -592,6 +547,86 @@ export function LocationProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem(LOCATION_STORAGE_KEY);
     sessionStorage.removeItem(SESSION_PERMISSION_KEY);
   }, [SESSION_PERMISSION_KEY, LOCATION_STORAGE_KEY]);
+
+  // Initialize location state and check session permission on app load
+  useEffect(() => {
+    const checkInitialPermission = async () => {
+      console.log('[LocationContext] Checking initial permission status...');
+      setIsLocationLoading(true);
+
+      let hasCachedLocation = false;
+      // 1. Try to load cached location first for instant UI response
+      try {
+        const cachedLocation = localStorage.getItem(LOCATION_STORAGE_KEY);
+        if (cachedLocation) {
+          const parsedLocation = JSON.parse(cachedLocation);
+          console.log('[LocationContext] Loaded cached location from localStorage:', parsedLocation.address);
+          setLocation(parsedLocation);
+          setIsLocationEnabled(true);
+          setLocationPermissionStatus('session_granted');
+          hasCachedLocation = true;
+        }
+      } catch (e) {
+        console.error('[LocationContext] Failed to parse cached location:', e);
+      }
+
+      // 2. Check browser geolocation permission and trigger autofetch
+      try {
+        if (navigator.permissions && navigator.permissions.query) {
+          const result = await navigator.permissions.query({ name: 'geolocation' });
+          console.log('[LocationContext] Browser geolocation permission state:', result.state);
+
+          if (result.state === 'granted') {
+            setLocationPermissionStatus('granted');
+            // Auto-fetch since permission is already granted
+            await requestLocation().catch(err => {
+              console.warn('[LocationContext] Autofetch failed even though permission is granted:', err);
+            });
+          } else if (result.state === 'prompt') {
+            setLocationPermissionStatus('prompt');
+            // If they haven't set permission yet, trigger requestLocation to prompt them
+            await requestLocation().catch(err => {
+              console.warn('[LocationContext] Auto-prompt/fetch dismissed or failed:', err);
+            });
+          } else {
+            setLocationPermissionStatus('denied');
+            if (!hasCachedLocation) {
+              setLocation(null);
+              setIsLocationEnabled(false);
+            }
+          }
+
+          // Listen for permission changes
+          result.onchange = () => {
+            console.log('[LocationContext] Permission changed to:', result.state);
+            if (result.state === 'granted') {
+              requestLocation().catch(() => {});
+            } else if (result.state === 'denied') {
+              setLocationPermissionStatus('denied');
+            }
+          };
+        } else {
+          // Fallback if permissions query API not supported: try to request location
+          console.log('[LocationContext] navigator.permissions.query not supported, trying to request location');
+          await requestLocation().catch(err => {
+            console.warn('[LocationContext] Fallback requestLocation failed:', err);
+          });
+        }
+      } catch (error) {
+        console.error('[LocationContext] Error checking geolocation permissions:', error);
+        // Fallback: try to request if we don't have a cached location
+        if (!hasCachedLocation) {
+          await requestLocation().catch(err => {
+            console.warn('[LocationContext] Fallback requestLocation on error failed:', err);
+          });
+        }
+      } finally {
+        setIsLocationLoading(false);
+      }
+    };
+
+    checkInitialPermission();
+  }, [requestLocation, LOCATION_STORAGE_KEY]);
 
   // Cleanup on unmount
   useEffect(() => {

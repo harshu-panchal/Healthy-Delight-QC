@@ -140,6 +140,11 @@ export default function SellerOrderDetail() {
       if (response.success) {
         setOrderStatus(newStatus);
         setOrderDetail({ ...orderDetail, status: newStatus as any });
+        
+        // Dispatch a custom event to notify layout to stop alerts/sounds
+        window.dispatchEvent(new CustomEvent('seller-order-status-updated', {
+          detail: { orderId: orderDetail.id, status: newStatus }
+        }));
       } else {
         alert("Failed to update order status");
       }
@@ -638,7 +643,7 @@ export default function SellerOrderDetail() {
                 <select
                   value={selectedRiderId}
                   onChange={(e) => setSelectedRiderId(e.target.value)}
-                  className="flex-1 min-w-[200px] px-3 py-2 border border-neutral-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary">
+                  className="w-full sm:w-auto sm:flex-1 sm:min-w-[200px] px-3 py-2 border border-neutral-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary">
                   <option value="">Select Delivery Rider</option>
                   {deliveryBoys.map((boy) => (
                     <option key={boy._id} value={boy._id}>

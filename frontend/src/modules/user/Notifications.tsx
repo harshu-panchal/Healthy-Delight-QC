@@ -242,7 +242,12 @@ export default function Notifications() {
               {notifications.map((n) => (
                 <div
                   key={n._id}
-                  onClick={() => handleMarkAsRead(n._id, n.isRead)}
+                  onClick={() => {
+                    handleMarkAsRead(n._id, n.isRead);
+                    if (n.link) {
+                      navigate(n.link);
+                    }
+                  }}
                   className={`bg-white rounded-3xl p-5 shadow-sm border border-neutral-100 hover:shadow-md transition-all active:scale-[0.99] cursor-pointer flex gap-4 relative overflow-hidden ${
                     !n.isRead ? "ring-2 ring-[#0a193b]/10 bg-gradient-to-r from-white to-[#0a193b]/[0.02]" : ""
                   }`}

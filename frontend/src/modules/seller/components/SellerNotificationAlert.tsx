@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { SellerNotification } from '../hooks/useSellerSocket';
 import { updateOrderStatus } from '../../../services/api/orderService';
 import { useNavigate } from 'react-router-dom';
@@ -33,23 +33,40 @@ const formatOrderFriendly = (orderNumber?: string, orderId?: string) => {
 const SellerNotificationAlert: React.FC<SellerNotificationAlertProps> = ({ notification, onClose }) => {
   const [volume, setVolume] = useState(0.8);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const playPromiseRef = useRef<Promise<void> | null>(null);
+  const isStoppedRef = useRef(false);
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [hasUserInteracted, setHasUserInteracted] = useState(false);
   const [audioError, setAudioError] = useState<string | null>(null);
 
+  const stopAudio = useCallback(() => {
+    isStoppedRef.current = true;
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    const performPause = () => {
+      try {
+        audio.pause();
+        audio.currentTime = 0;
+      } catch (err) {
+        console.error('Error pausing audio:', err);
+      }
+    };
+
+    if (playPromiseRef.current) {
+      playPromiseRef.current.then(performPause).catch(performPause);
+      playPromiseRef.current = null;
+    } else {
+      performPause();
+    }
+  }, []);
+
   const handleStatusUpdate = async (status: string) => {
     if (!notification) return;
     
     // Stop sound immediately
-    if (audioRef.current) {
-      try {
-        audioRef.current.pause();
-        audioRef.current.currentTime = 0;
-      } catch (err) {
-        console.error('Error pausing sound:', err);
-      }
-    }
+    stopAudio();
 
     setLoading(true);
     try {
@@ -68,9 +85,12 @@ const SellerNotificationAlert: React.FC<SellerNotificationAlertProps> = ({ notif
   };
 
   const handleUserInteraction = async () => {
+    if (isStoppedRef.current) return;
     if (!hasUserInteracted && audioRef.current) {
       try {
-        await audioRef.current.play();
+        const promise = audioRef.current.play();
+        playPromiseRef.current = promise;
+        await promise;
         setHasUserInteracted(true);
         setAudioError(null);
       } catch (err) {
@@ -83,6 +103,7 @@ const SellerNotificationAlert: React.FC<SellerNotificationAlertProps> = ({ notif
     if (notification) {
       setHasUserInteracted(false);
       setAudioError(null);
+      isStoppedRef.current = false;
       
       console.log('🔊 Initializing programmatic audio for seller alert');
       const audio = new Audio(sellerAlertMp3);
@@ -91,11 +112,19 @@ const SellerNotificationAlert: React.FC<SellerNotificationAlertProps> = ({ notif
       audioRef.current = audio;
 
       const playAudio = async () => {
+        if (isStoppedRef.current) return;
         try {
-          await audio.play();
-          console.log('▶️ Alert sound started automatically');
-          setHasUserInteracted(true);
-          setAudioError(null);
+          const promise = audio.play();
+          playPromiseRef.current = promise;
+          await promise;
+          if (isStoppedRef.current) {
+            audio.pause();
+            audio.currentTime = 0;
+          } else {
+            console.log('▶️ Alert sound started automatically');
+            setHasUserInteracted(true);
+            setAudioError(null);
+          }
         } catch (err: any) {
           console.error('⚠️ Autoplay blocked by browser:', err);
           if (err.name === 'NotAllowedError') {
@@ -111,18 +140,13 @@ const SellerNotificationAlert: React.FC<SellerNotificationAlertProps> = ({ notif
 
       return () => {
         console.log('⏸️ Cleaning up and pausing alert sound');
-        try {
-          audio.pause();
-          audio.currentTime = 0;
-        } catch (err) {
-          console.error('Error pausing audio in cleanup:', err);
-        }
+        stopAudio();
         if (audioRef.current === audio) {
           audioRef.current = null;
         }
       };
     }
-  }, [notification]);
+  }, [notification, stopAudio]);
 
   useEffect(() => {
     if (audioRef.current) {
@@ -174,7 +198,7 @@ const SellerNotificationAlert: React.FC<SellerNotificationAlertProps> = ({ notif
             </div>
           </div>
           <button
-            onClick={onClose}
+            onClick={(e) => { e.stopPropagation(); onClose(); }}
             className="text-white/60 hover:text-white hover:bg-white/10 p-2 rounded-xl transition-all relative z-10"
           >
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -347,14 +371,15 @@ const SellerNotificationAlert: React.FC<SellerNotificationAlertProps> = ({ notif
           {notification.type === 'NEW_ORDER' || notification.type === 'NEW_SCHEDULED_ORDER' ? (
             <div className="flex gap-4">
               <button
-                onClick={() => handleStatusUpdate('Accepted')}
+                onClick={(e) => { e.stopPropagation(); handleStatusUpdate('Accepted'); }}
                 disabled={loading}
                 className="flex-1 py-4 bg-primary hover:bg-neutral-900 border-2 border-primary hover:border-neutral-900 text-white rounded-2xl font-black text-sm uppercase tracking-widest shadow-[0_8px_20px_-6px_rgba(10,25,59,0.3)] hover:shadow-lg transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? 'Processing...' : 'Accept Order'}
               </button>
               <button
-                onClick={() => {
+                onClick={(e) => {
+                  e.stopPropagation();
                   if (window.confirm('Are you sure you want to reject this order?')) {
                     handleStatusUpdate('Rejected');
                   }
@@ -367,7 +392,7 @@ const SellerNotificationAlert: React.FC<SellerNotificationAlertProps> = ({ notif
             </div>
           ) : (
             <button
-              onClick={onClose}
+              onClick={(e) => { e.stopPropagation(); onClose(); }}
               className="w-full py-4 bg-primary hover:bg-neutral-900 text-white rounded-2xl font-black text-sm uppercase tracking-widest shadow-lg transition-all active:scale-95"
             >
               Acknowledge & Dismiss

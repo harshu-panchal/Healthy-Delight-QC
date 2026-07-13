@@ -204,7 +204,16 @@ export function setupForegroundNotificationHandler(handler?: (payload: any) => v
 
             // Use the Notification API to show it immediately
             try {
-                new Notification(notificationTitle, notificationOptions);
+                const foregroundNotification = new Notification(notificationTitle, notificationOptions);
+                foregroundNotification.onclick = (e) => {
+                    e.preventDefault();
+                    window.focus();
+                    const link = payload.data?.link;
+                    if (link) {
+                        window.location.href = link;
+                    }
+                    foregroundNotification.close();
+                };
             } catch (err) {
                 console.warn('Failed to show foreground notification via new Notification(), trying ServiceWorker:', err);
                 navigator.serviceWorker.ready.then(registration => {

@@ -76,20 +76,20 @@ export default function DeliverySellersInRange() {
                 key={seller._id}
                 className="bg-white rounded-2xl p-4 shadow-sm border border-neutral-100 hover:border-teal-200 transition-all group"
               >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h3 className="text-neutral-900 font-bold text-base">{seller.storeName}</h3>
-                      <span className="px-2 py-0.5 bg-teal-50 text-teal-600 text-[10px] font-bold rounded-full border border-teal-100">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center flex-wrap gap-2 mb-1">
+                      <h3 className="text-neutral-900 font-bold text-base break-words">{seller.storeName}</h3>
+                      <span className="px-2 py-0.5 bg-teal-50 text-teal-600 text-[10px] font-bold rounded-full border border-teal-100 flex-shrink-0">
                         IN RANGE
                       </span>
                     </div>
-                    <div className="flex items-center gap-1.5 text-neutral-500 text-xs mb-2">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <div className="flex items-start gap-1.5 text-neutral-500 text-xs mb-2">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="mt-0.5 flex-shrink-0">
                         <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
                         <circle cx="12" cy="10" r="3" />
                       </svg>
-                      <span className="truncate">{seller.address || 'Address not available'}</span>
+                      <span className="break-words leading-relaxed">{seller.address || 'Address not available'}</span>
                     </div>
 
                     <div className="flex items-center gap-4 mt-3 pt-3 border-t border-neutral-50">

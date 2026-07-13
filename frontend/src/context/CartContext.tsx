@@ -102,6 +102,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
           categoryId: item.product.category || '',
           description: item.product.description,
           tax: item.product.tax,
+          stock: item.product.stock,
           variantId: item.variation // Preserving variation ID/value
         },
         quantity: item.quantity,

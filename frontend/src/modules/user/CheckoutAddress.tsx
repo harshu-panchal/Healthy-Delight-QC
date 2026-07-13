@@ -7,6 +7,7 @@ import { OrderAddress } from '../../types/order';
 import { getAddresses, addAddress, updateAddress, Address } from '../../services/api/customerAddressService';
 import GoogleMapsLocationPicker from '../../components/GoogleMapsLocationPicker';
 import LocationPickerMap from '../../components/LocationPickerMap';
+import { useLocation as useLocationContext } from '../../hooks/useLocation';
 
 type Libraries = ("places" | "drawing" | "geometry" | "visualization")[];
 const googleLibraries: Libraries = ['places'];
@@ -16,6 +17,7 @@ export default function CheckoutAddress() {
   const { showToast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
+  const { location: userLocation } = useLocationContext();
 
   // Get address from navigation state if editing or cloning for someone else
   const editAddress = (location.state as any)?.editAddress as OrderAddress | undefined;
@@ -52,6 +54,9 @@ export default function CheckoutAddress() {
       const parts = (sourceAddress as any).address.split(',');
       flatVal = parts[0]?.trim() || '';
       streetVal = parts.slice(1).join(',')?.trim() || '';
+    } else if (!flatVal && !streetVal && userLocation?.address) {
+      // Prepopulate from globally autofetched location
+      streetVal = userLocation.address;
     }
 
     return {
@@ -59,9 +64,9 @@ export default function CheckoutAddress() {
       phone: isOrderingForSomeoneElse ? '' : (sourceAddress?.phone || user?.phone || ''),
       flat: flatVal,
       street: streetVal,
-      city: sourceAddress?.city || '',
-      pincode: sourceAddress?.pincode || '',
-      state: sourceAddress?.state || '',
+      city: sourceAddress?.city || userLocation?.city || '',
+      pincode: sourceAddress?.pincode || userLocation?.pincode || '',
+      state: sourceAddress?.state || userLocation?.state || '',
       landmark: sourceAddress?.landmark || '',
     };
   });
@@ -91,12 +96,12 @@ export default function CheckoutAddress() {
   const [selectedLatitude, setSelectedLatitude] = useState<number>(() => {
     if (draft?.selectedLatitude) return draft.selectedLatitude;
     const sourceAddress = editAddress || cloneAddress;
-    return sourceAddress?.latitude || 0;
+    return sourceAddress?.latitude || userLocation?.latitude || 0;
   });
   const [selectedLongitude, setSelectedLongitude] = useState<number>(() => {
     if (draft?.selectedLongitude) return draft.selectedLongitude;
     const sourceAddress = editAddress || cloneAddress;
-    return sourceAddress?.longitude || 0;
+    return sourceAddress?.longitude || userLocation?.longitude || 0;
   });
 
   // Save draft to sessionStorage on state changes
@@ -121,8 +126,12 @@ export default function CheckoutAddress() {
   // Get user's current location on mount
   useEffect(() => {
     const sourceAddress = editAddress || cloneAddress;
-    if ((draft?.selectedLatitude && draft?.selectedLongitude) || (sourceAddress?.latitude && sourceAddress?.longitude)) {
-      return; // Skip geolocation if we already have a loaded draft location
+    if (
+      (draft?.selectedLatitude && draft?.selectedLongitude) || 
+      (sourceAddress?.latitude && sourceAddress?.longitude) ||
+      (userLocation?.latitude && userLocation?.longitude)
+    ) {
+      return; // Skip geolocation if we already have a loaded draft, source or global location
     }
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -140,7 +149,7 @@ export default function CheckoutAddress() {
       setSelectedLatitude(22.7196);
       setSelectedLongitude(75.8577);
     }
-  }, []);
+  }, [userLocation]);
 
   const handleLocationSelect = useCallback(async (lat: number, lng: number) => {
     setSelectedLatitude(lat);

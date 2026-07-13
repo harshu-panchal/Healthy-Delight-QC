@@ -40,6 +40,21 @@ export default function SellerProductList() {
   const [allCategories, setAllCategories] = useState<apiCategory[]>([]);
   const { user } = useAuth();
 
+  // Helper to get custom short readable IDs (e.g. VAR-9901, PRD-8821)
+  const getShortId = (id: string, prefix: 'PRD' | 'VAR') => {
+    if (!id) return '';
+    if (id.includes('-') && !id.startsWith('60') && !id.startsWith('5')) {
+      return id;
+    }
+    let hash = 0;
+    for (let i = 0; i < id.length; i++) {
+      hash = id.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const numericValue = Math.abs(hash) % 10000;
+    const padded = String(numericValue).padStart(4, '0');
+    return `${prefix}-${padded}`;
+  };
+
   // Fetch categories
   useEffect(() => {
     const fetchCats = async () => {
@@ -60,14 +75,15 @@ export default function SellerProductList() {
     setLoading(true);
     setError("");
     try {
+      const isIdSearch = /^(prd|var)-\d{4}$/i.test(searchTerm.trim());
       const params: any = {
-        page: currentPage,
-        limit: rowsPerPage,
+        page: isIdSearch ? 1 : currentPage,
+        limit: isIdSearch ? 1000 : rowsPerPage,
         sortBy: sortColumn || "createdAt",
         sortOrder: sortDirection,
       };
 
-      if (searchTerm) {
+      if (searchTerm && !isIdSearch) {
         params.search = searchTerm;
       }
       if (categoryFilter !== "All Category") {
@@ -199,10 +215,16 @@ export default function SellerProductList() {
 
   // Filter variations
   let filteredVariations = allVariations.filter((variation) => {
+    const shortProdId = getShortId(variation.productId, 'PRD').toLowerCase();
+    const shortVarId = getShortId(variation.variationId, 'VAR').toLowerCase();
     const matchesSearch =
       variation.productName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       variation.sellerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      variation.brandName.toLowerCase().includes(searchTerm.toLowerCase());
+      variation.brandName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      shortProdId.includes(searchTerm.toLowerCase()) ||
+      shortVarId.includes(searchTerm.toLowerCase()) ||
+      (variation.productId && variation.productId.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (variation.variationId && variation.variationId.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesCategory =
       categoryFilter === "All Category" ||
       variation.category === categoryFilter;
@@ -376,9 +398,9 @@ export default function SellerProductList() {
                 const csvContent = [
                   headers.join(","),
                   ...filteredVariations.map((v) => {
-                    const friendlyProdId = v.productId ? `PRD-${v.productId.slice(-6).toUpperCase()}` : "N/A";
+                    const friendlyProdId = v.productId ? getShortId(v.productId, 'PRD') : "N/A";
                     const friendlyVarId = v.variationId
-                      ? (v.variationId.endsWith("-default") ? "VAR-DEFAULT" : `VAR-${v.variationId.slice(-6).toUpperCase()}`)
+                      ? (v.variationId.endsWith("-default") ? "VAR-DEFAULT" : getShortId(v.variationId, 'VAR'))
                       : "N/A";
                     return [
                       friendlyProdId,
@@ -477,7 +499,7 @@ export default function SellerProductList() {
           <table className="w-full text-left border-collapse border border-neutral-200">
             <thead>
               <tr className="bg-neutral-50 text-xs font-bold text-neutral-800">
-                <th className="p-4 w-16 border border-neutral-200">
+                <th className="p-4 border border-neutral-200">
                   <div className="flex items-center justify-between">
                     Product Id
                   </div>
@@ -569,14 +591,18 @@ export default function SellerProductList() {
                   product && product.variations.length > 1;
                 const isExpanded = expandedProducts.has(variation.productId);
 
+                if (!isFirstVariation && !isExpanded) {
+                  return null;
+                }
+
                 const friendlyProductId = variation.productId
-                  ? `PRD-${variation.productId.slice(-6).toUpperCase()}`
+                  ? getShortId(variation.productId, 'PRD')
                   : 'N/A';
 
                 const friendlyVariationId = variation.variationId
                   ? (variation.variationId.endsWith('-default')
                     ? 'VAR-DEFAULT'
-                    : `VAR-${variation.variationId.slice(-6).toUpperCase()}`)
+                    : getShortId(variation.variationId, 'VAR'))
                   : 'N/A';
 
                 return (

@@ -1,0 +1,296 @@
+[
+  {
+    "_id": "69b27851a4b056fd071f1c02",
+    "sellerName": "Harsh",
+    "email": "harsh@appzeto.com",
+    "mobile": "6264715409",
+    "storeName": "harsh's hub",
+    "panCard": "GMRPP3221F",
+    "taxName": "Harsh",
+    "address": "170, Jhabua Tower Rd, South Tukoganj, Indore, Madhya Pradesh 452001, India",
+    "taxNumber": "27AAAAA1111A1Z1",
+    "workingHours": {
+      "offDays": []
+    },
+    "city": "Indore",
+    "searchLocation": "170, Jhabua Tower Rd, South Tukoganj, Indore, Madhya Pradesh 452001, India",
+    "latitude": "22.717515",
+    "longitude": "75.872331",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        75.872331,
+        22.717515
+      ]
+    },
+    "serviceRadiusKm": 20,
+    "ifsc": "ABC12345",
+    "requireProductApproval": false,
+    "viewCustomerDetails": false,
+    "commission": 0,
+    "status": "Approved",
+    "balance": 7509.3,
+    "categories": [],
+    "isShopOpen": true,
+    "fcmTokens": [],
+    "fcmTokenMobile": [],
+    "createdAt": "2026-03-12T08:24:49.922Z",
+    "updatedAt": "2026-06-09T11:09:05.812Z",
+    "__v": 0,
+    "accountName": "Test",
+    "accountNumber": "123456789025",
+    "bankName": "Test"
+  },
+  {
+    "_id": "6a1986b368122c914f89e37b",
+    "sellerName": "Rahul",
+    "email": "testingdata475@gmail.com",
+    "mobile": "9179815763",
+    "storeName": "Test Factory",
+    "panCard": "ABCE1234",
+    "taxName": "Rahul",
+    "address": "Central Mall, 411, Allen indore dwk, Flim Colony, South Tukoganj, Indore, Madhya Pradesh 452001, India",
+    "taxNumber": "23AAKCB5843K1ZH",
+    "workingHours": {
+      "offDays": []
+    },
+    "city": "Indore",
+    "searchLocation": "Central Mall, 411, Allen indore dwk, Flim Colony, South Tukoganj, Indore, Madhya Pradesh 452001, India",
+    "latitude": "22.71825",
+    "longitude": "75.87131",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        75.87131,
+        22.71825
+      ]
+    },
+    "serviceRadiusKm": 20,
+    "ifsc": "SBI00001234",
+    "requireProductApproval": false,
+    "viewCustomerDetails": false,
+    "commission": 0,
+    "status": "Approved",
+    "balance": 691,
+    "categories": [],
+    "isShopOpen": true,
+    "fcmTokens": [],
+    "fcmTokenMobile": [],
+    "createdAt": "2026-05-29T12:29:39.848Z",
+    "updatedAt": "2026-06-03T10:09:42.247Z",
+    "__v": 0,
+    "accountName": "Rahul",
+    "accountNumber": "456233246543",
+    "bankName": "SBI"
+  },
+  {
+    "_id": "6a1a7282b10e1fbf0e02354d",
+    "sellerName": "xyz",
+    "email": "testing@gmail.com",
+    "mobile": "7458947838",
+    "storeName": "nexus",
+    "panCard": "ABCDE1234F",
+    "taxName": "Testing Data",
+    "address": "Corporate House, HO-406, RNT Marg, Near D.A.V.V, Flim Colony, Chhoti Gwaltoli, Indore, Madhya Pradesh 452001, India",
+    "taxNumber": "22ABCDE1234F1Z1",
+    "workingHours": {
+      "offDays": []
+    },
+    "city": "Indore",
+    "searchLocation": "Corporate House, HO-406, RNT Marg, Near D.A.V.V, Flim Colony, Chhoti Gwaltoli, Indore, Madhya Pradesh 452001, India",
+    "latitude": "22.717592",
+    "longitude": "75.871968",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        75.871968,
+        22.717592
+      ]
+    },
+    "serviceRadiusKm": 15,
+    "ifsc": "SBINEDJNSCI",
+    "requireProductApproval": false,
+    "viewCustomerDetails": false,
+    "commission": 0,
+    "status": "Approved",
+    "balance": 0,
+    "categories": [],
+    "isShopOpen": true,
+    "fcmTokens": [],
+    "fcmTokenMobile": [],
+    "createdAt": "2026-05-30T05:15:46.851Z",
+    "updatedAt": "2026-06-01T07:42:56.914Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a3cc8595cb09d25fce86769",
+    "sellerName": "test",
+    "email": "jiyajn1127@gmail.com",
+    "mobile": "7348419775",
+    "storeName": "test store",
+    "panCard": "ABCDE1234F",
+    "taxName": "Testing Data",
+    "address": "35, Chhoti Gwaltoli, Indore, Madhya Pradesh 452001, India",
+    "taxNumber": "23JGDUY1234FUZU",
+    "workingHours": {
+      "offDays": []
+    },
+    "city": "Indore",
+    "searchLocation": "35, Chhoti Gwaltoli, Indore, Madhya Pradesh 452001, India",
+    "latitude": "22.714946",
+    "longitude": "75.87202",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        75.87202,
+        22.714946
+      ]
+    },
+    "serviceRadiusKm": 1.8,
+    "ifsc": "SBIN0001234",
+    "requireProductApproval": false,
+    "viewCustomerDetails": false,
+    "commission": 0,
+    "status": "Approved",
+    "balance": 224,
+    "categories": [],
+    "isShopOpen": true,
+    "fcmTokens": [],
+    "fcmTokenMobile": [],
+    "createdAt": "2026-06-25T06:19:05.437Z",
+    "updatedAt": "2026-07-04T06:51:09.967Z",
+    "__v": 0,
+    "category": "Lassi",
+    "logo": "https://res.cloudinary.com/dose2bv0x/image/upload/v1782370602/sellers/logo/zovdxh1x7adptr0o8xyw.png",
+    "profile": "https://res.cloudinary.com/dose2bv0x/image/upload/v1782370445/sellers/profile/rt56rkjwlunpzvsbjvyh.png",
+    "accountName": "test",
+    "accountNumber": "123456789123456789",
+    "bankName": "test bank",
+    "storeBanner": "https://res.cloudinary.com/dose2bv0x/image/upload/v1782370813/sellers/storeBanner/etgdocz4lawqtj9kjfx7.png",
+    "storeDescription": "new store , description",
+    "branch": "",
+    "serviceableArea": ""
+  },
+  {
+    "_id": "6a479cc4a0a06315b87b1be4",
+    "sellerName": "Amit mankar",
+    "email": "mankaramit1052@gmail.com",
+    "mobile": "9111966732",
+    "storeName": "MilkVala",
+    "panCard": "ABCDE1234F",
+    "taxName": "Amit mankar",
+    "address": "Corporate House, 103, Film Colony Rd, Flim Colony, Chhoti Gwaltoli, Indore, Madhya Pradesh 452001, India",
+    "taxNumber": "33AAACI1607G2Z5",
+    "workingHours": {
+      "offDays": []
+    },
+    "city": "Indore",
+    "searchLocation": "Corporate House, 103, Film Colony Rd, Flim Colony, Chhoti Gwaltoli, Indore, Madhya Pradesh 452001, India",
+    "latitude": "22.717607",
+    "longitude": "75.871994",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        75.871994,
+        22.717607
+      ]
+    },
+    "serviceRadiusKm": 50,
+    "ifsc": "INDB0000006",
+    "requireProductApproval": false,
+    "viewCustomerDetails": false,
+    "commission": 0,
+    "status": "Approved",
+    "balance": 0,
+    "categories": [],
+    "isShopOpen": true,
+    "fcmTokens": [],
+    "fcmTokenMobile": [],
+    "createdAt": "2026-07-03T11:28:04.565Z",
+    "updatedAt": "2026-07-04T06:40:19.723Z",
+    "__v": 0,
+    "accountName": "Amit",
+    "accountNumber": "4583973555000",
+    "bankName": "BOI",
+    "branch": "DHAR NAKA",
+    "serviceableArea": ""
+  },
+  {
+    "_id": "6a48aed6efab5af74093d48c",
+    "sellerName": "Aman",
+    "email": "appzeto@gmail.com",
+    "mobile": "9111966730",
+    "storeName": "Appzeto",
+    "panCard": "ABCDE1234F",
+    "taxName": "Aman",
+    "address": "169, 507, Corporate House, RNT Marg, Near Central Mall, Flim Colony, South Tukoganj, Indore, Madhya Pradesh 452001, India",
+    "taxNumber": "33AAACI1607G2Z5",
+    "workingHours": {
+      "offDays": []
+    },
+    "city": "Indore",
+    "searchLocation": "169, 507, Corporate House, RNT Marg, Near Central Mall, Flim Colony, South Tukoganj, Indore, Madhya Pradesh 452001, India",
+    "latitude": "22.717608",
+    "longitude": "75.871973",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        75.871973,
+        22.717608
+      ]
+    },
+    "serviceRadiusKm": 10,
+    "ifsc": "INDB0000006",
+    "requireProductApproval": false,
+    "viewCustomerDetails": false,
+    "commission": 0,
+    "status": "Approved",
+    "balance": 0,
+    "categories": [],
+    "isShopOpen": true,
+    "fcmTokens": [],
+    "fcmTokenMobile": [],
+    "createdAt": "2026-07-04T06:57:26.841Z",
+    "updatedAt": "2026-07-04T06:58:34.546Z",
+    "__v": 0
+  },
+  {
+    "_id": "6a48afe1adde28cd789d3e61",
+    "sellerName": "nitin",
+    "email": "appzeto1@gmail.com",
+    "mobile": "9111966733",
+    "storeName": "Appzeto",
+    "panCard": "ABCDE1234F",
+    "taxName": "Nitin",
+    "address": "206, Corporate House, RNT Marg, South Tukoganj, Indore, Madhya Pradesh 452001, India",
+    "taxNumber": "33AAACI1607G2Z5",
+    "workingHours": {
+      "offDays": []
+    },
+    "city": "Indore",
+    "searchLocation": "206, Corporate House, RNT Marg, South Tukoganj, Indore, Madhya Pradesh 452001, India",
+    "latitude": "22.717221",
+    "longitude": "75.87218",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        75.87218,
+        22.717221
+      ]
+    },
+    "serviceRadiusKm": 10,
+    "ifsc": "INDB0000006",
+    "requireProductApproval": false,
+    "viewCustomerDetails": false,
+    "commission": 0,
+    "status": "Approved",
+    "balance": 0,
+    "categories": [],
+    "isShopOpen": true,
+    "fcmTokens": [],
+    "fcmTokenMobile": [],
+    "createdAt": "2026-07-04T07:01:53.560Z",
+    "updatedAt": "2026-07-04T07:02:10.939Z",
+    "__v": 0
+  }
+]

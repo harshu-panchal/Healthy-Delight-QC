@@ -114,7 +114,7 @@ export default function AdminUsers() {
             ...users.map(user => [
                 user._id.slice(-6),
                 `"${user.name}"`,
-                `"${user.email.endsWith('@kosil.temp') || user.email.endsWith('@healthydelight.temp') ? 'Email Not Provided' : user.email}"`,
+                `"${!user.email || user.email.endsWith('@kosil.temp') || user.email.endsWith('@healthydelight.temp') ? 'Email Not Provided' : user.email}"`,
                 `"${user.phone || ''}"`,
                 `"${new Date(user.registrationDate).toLocaleString('en-GB')}"`,
                 user.status,
@@ -324,7 +324,7 @@ export default function AdminUsers() {
                                             <td className="p-4 align-middle">
                                                 <div className="text-xs">
                                                     <div>
-                                                        {user.email.endsWith('@kosil.temp') || user.email.endsWith('@healthydelight.temp')
+                                                        {!user.email || user.email.endsWith('@kosil.temp') || user.email.endsWith('@healthydelight.temp')
                                                             ? 'Email Not Provided'
                                                             : user.email}
                                                     </div>

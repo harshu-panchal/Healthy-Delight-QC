@@ -34,6 +34,15 @@ export default function DeliveryMenu() {
           </svg>
         );
 
+      case 'menu-wallet': // Wallet & Payouts
+        return (
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="3" y="6" width="18" height="12" rx="2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+            <path d="M21 11H17C16.4477 11 16 11.4477 16 12C16 12.5523 16.4477 13 17 13H21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+            <circle cx="18" cy="12" r="1" fill="currentColor" />
+          </svg>
+        );
+
       case 'menu-3': // Settings
         return (
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

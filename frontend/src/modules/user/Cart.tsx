@@ -10,12 +10,36 @@ export default function Cart() {
   const { user } = useAuth();
   const navigate = useNavigate();
 
+  const getCartItemStock = (item: any): number => {
+    const product = item.product;
+    if (!product) return 0;
+    
+    if (product.variations && product.variations.length > 0) {
+      const variantId = (product as any).variantId || (product as any).selectedVariant?._id || item.variant;
+      const variantTitle = (product as any).variantTitle || product.pack;
+      
+      const selectedVariation = product.variations.find((v: any) =>
+        (v._id && v._id.toString() === (variantId || '').toString()) ||
+        (v.id && v.id === (variantId || '')) ||
+        (variantTitle && (v.value === variantTitle || v.title === variantTitle || v.name === variantTitle))
+      );
+      return selectedVariation ? (selectedVariation.stock ?? 0) : (product.variations[0]?.stock ?? 0);
+    }
+    return product.stock ?? 0;
+  };
+
+  const hasOutOfStockItems = cart.items.some(item => {
+    const stock = getCartItemStock(item);
+    return stock <= 0 || item.quantity > stock;
+  });
+
   const threshold = cart.freeDeliveryThreshold ?? appConfig.freeDeliveryThreshold;
   const deliveryFee = cart.estimatedDeliveryFee ?? (cart.total >= threshold ? 0 : appConfig.deliveryFee);
   const platformFee = cart.platformFee ?? appConfig.platformFee;
   const totalAmount = cart.total + deliveryFee + platformFee;
 
   const handleCheckout = () => {
+    if (hasOutOfStockItems) return;
     navigate('/checkout');
   };
 
@@ -93,6 +117,26 @@ export default function Cart() {
                     )}
                   </div>
 
+                  {/* Stock Status Badge */}
+                  {(() => {
+                    const availableStock = getCartItemStock(item);
+                    if (availableStock <= 0) {
+                      return (
+                        <div className="inline-block bg-red-50 text-red-600 text-xs font-bold px-2.5 py-1 rounded-md mb-2">
+                          Out of Stock
+                        </div>
+                      );
+                    }
+                    if (item.quantity > availableStock) {
+                      return (
+                        <div className="inline-block bg-amber-50 text-amber-600 text-xs font-bold px-2.5 py-1 rounded-md mb-2">
+                          Only {availableStock} units left in stock
+                        </div>
+                      );
+                    }
+                    return null;
+                  })()}
+
                   {/* Quantity Controls */}
                   <div className="flex items-center gap-3 md:gap-4">
                     <Button
@@ -109,8 +153,9 @@ export default function Cart() {
                     <Button
                       variant="outline"
                       size="icon"
+                      disabled={item.quantity >= getCartItemStock(item)}
                       onClick={() => updateQuantity(item.product.id, item.quantity + 1, item.variant)}
-                      className="w-8 h-8 md:w-10 md:h-10 p-0 border-neutral-300 text-neutral-600 hover:border-green-600 hover:text-green-600 md:text-lg"
+                      className="w-8 h-8 md:w-10 md:h-10 p-0 border-neutral-300 text-neutral-600 hover:border-green-600 hover:text-green-600 md:text-lg disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       +
                     </Button>
@@ -174,10 +219,11 @@ export default function Cart() {
             <Button
               variant="default"
               size="lg"
+              disabled={hasOutOfStockItems}
               onClick={handleCheckout}
-              className="w-full md:py-3 md:text-lg"
+              className="w-full md:py-3 md:text-lg disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Proceed to Checkout
+              {hasOutOfStockItems ? 'Remove Out of Stock Items' : 'Proceed to Checkout'}
             </Button>
           </div>
         </div>

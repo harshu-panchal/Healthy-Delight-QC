@@ -38,6 +38,22 @@ export default function SellerLayout({ children }: SellerLayoutProps) {
     };
   }, [socket, showToast]);
 
+  // Listen for order status updates from sub-pages (e.g., SellerOrderDetail) to dismiss sound and alerts
+  useEffect(() => {
+    const handleStatusUpdated = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      const { orderId } = customEvent.detail || {};
+      if (activeNotification && activeNotification.orderId === orderId) {
+        setActiveNotification(null);
+      }
+    };
+
+    window.addEventListener('seller-order-status-updated', handleStatusUpdated);
+    return () => {
+      window.removeEventListener('seller-order-status-updated', handleStatusUpdated);
+    };
+  }, [activeNotification]);
+
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };

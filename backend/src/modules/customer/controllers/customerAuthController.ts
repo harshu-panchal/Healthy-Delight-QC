@@ -103,7 +103,6 @@ export const verifySmsOtp = asyncHandler(async (req: Request, res: Response) => 
       phone: mobile,
       name: name || "User",
       customerType: customerType || "retailer",
-      email: `${mobile}@kosil.temp`,
       status: "Active",
       walletAmount: 0,
       totalOrders: 0,

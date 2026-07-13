@@ -15,6 +15,8 @@ export default function AdminNotification() {
     recipientType: 'All' as 'All' | 'Admin' | 'Seller' | 'Customer' | 'Delivery',
     title: '',
     message: '',
+    type: 'Info' as 'Info' | 'Success' | 'Warning' | 'Error' | 'Order' | 'Payment' | 'System',
+    link: '',
   });
 
   const [notifications, setNotifications] = useState<NotificationType[]>([]);
@@ -102,7 +104,8 @@ export default function AdminNotification() {
         recipientType: formData.recipientType,
         title: formData.title.trim(),
         message: formData.message.trim(),
-        type: 'Info',
+        type: formData.type,
+        link: formData.link.trim() || undefined,
         priority: 'Medium',
       };
 
@@ -115,6 +118,8 @@ export default function AdminNotification() {
           recipientType: 'All',
           title: '',
           message: '',
+          type: 'Info',
+          link: '',
         });
         // Refresh notifications list
         fetchNotifications();
@@ -421,6 +426,42 @@ export default function AdminNotification() {
                     placeholder="Enter Message"
                     rows={6}
                     className="w-full px-3 py-2 border border-neutral-300 rounded focus:ring-2 focus:ring-primary focus:border-primary outline-none resize-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-neutral-700 mb-2">
+                    Notification Type
+                  </label>
+                  <select
+                    name="type"
+                    value={formData.type}
+                    onChange={handleInputChange}
+                    disabled={loading}
+                    className="w-full px-3 py-2 border border-neutral-300 rounded focus:ring-2 focus:ring-primary focus:border-primary outline-none bg-white"
+                  >
+                    <option value="Info">Info</option>
+                    <option value="Success">Success</option>
+                    <option value="Warning">Warning</option>
+                    <option value="Error">Error</option>
+                    <option value="Order">Order</option>
+                    <option value="Payment">Payment</option>
+                    <option value="System">System</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-neutral-700 mb-2">
+                    Redirect Link / Page URL (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    name="link"
+                    value={formData.link}
+                    onChange={handleInputChange}
+                    disabled={loading}
+                    placeholder="e.g., /user/orders or /user/cart"
+                    className="w-full px-3 py-2 border border-neutral-300 rounded focus:ring-2 focus:ring-primary focus:border-primary outline-none"
                   />
                 </div>
 

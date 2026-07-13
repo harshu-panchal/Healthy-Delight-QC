@@ -120,6 +120,29 @@ export default function Checkout() {
   const { user, updateUser } = useAuth();
   const { fetchWishlist: fetchGlobalWishlist } = useWishlistContext();
   const navigate = useNavigate();
+  
+  const getCartItemStock = (item: any): number => {
+    const product = item.product;
+    if (!product) return 0;
+    
+    if (product.variations && product.variations.length > 0) {
+      const variantId = (product as any).variantId || (product as any).selectedVariant?._id || item.variant;
+      const variantTitle = (product as any).variantTitle || product.pack;
+      
+      const selectedVariation = product.variations.find((v: any) =>
+        (v._id && v._id.toString() === (variantId || '').toString()) ||
+        (v.id && v.id === (variantId || '')) ||
+        (variantTitle && (v.value === variantTitle || v.title === variantTitle || v.name === variantTitle))
+      );
+      return selectedVariation ? (selectedVariation.stock ?? 0) : (product.variations[0]?.stock ?? 0);
+    }
+    return product.stock ?? 0;
+  };
+
+  const hasOutOfStockItems = cart.items.some(item => {
+    const stock = getCartItemStock(item);
+    return stock <= 0 || item.quantity > stock;
+  });
   const [tipAmount, setTipAmount] = useState<number | null>(null);
   const [customTipAmount, setCustomTipAmount] = useState<number>(0);
   const [showCustomTipInput, setShowCustomTipInput] = useState(false);
@@ -325,7 +348,11 @@ export default function Checkout() {
 
   // Check if user has placeholder data (needs profile completion)
   const isPlaceholderUser =
-    user?.name === "User" || user?.email?.endsWith("@healthydelight.temp");
+    user?.name === "User" ||
+    !user?.email ||
+    user?.email.trim() === "" ||
+    user?.email?.endsWith("@healthydelight.temp") ||
+    user?.email?.endsWith("@kosil.temp");
 
   // Redirect if empty
   const [initialCheckDone, setInitialCheckDone] = useState(false);
@@ -1696,6 +1723,9 @@ export default function Checkout() {
                 const variantId = (item.product as any).variantId || (item.product as any).selectedVariant?._id || item.variant;
                 const variantTitle = (item.product as any).variantTitle || item.product.pack;
                 const { displayPrice, mrp, hasDiscount } = calculateProductPrice(item.product, item.variant, user?.customerType, item.quantity);
+                const availableStock = getCartItemStock(item);
+                const isOutOfStock = availableStock <= 0;
+                const isInsufficientStock = !isOutOfStock && item.quantity > availableStock;
 
                 return (
                   <div key={item.product?.id || Math.random()} className="p-4 flex items-center gap-4">
@@ -1716,6 +1746,19 @@ export default function Checkout() {
                       <p className="text-[11px] text-neutral-500 font-medium mb-1.5 uppercase">
                         {item.product?.pack}
                       </p>
+                      
+                      {/* Stock Status Badge */}
+                      {isOutOfStock && (
+                        <div className="inline-block bg-red-50 text-red-600 text-[10px] font-bold px-2 py-0.5 rounded-md mb-1.5">
+                          Out of Stock
+                        </div>
+                      )}
+                      {isInsufficientStock && (
+                        <div className="inline-block bg-amber-50 text-amber-600 text-[10px] font-bold px-2 py-0.5 rounded-md mb-1.5">
+                          Only {availableStock} units left
+                        </div>
+                      )}
+
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
@@ -1746,8 +1789,9 @@ export default function Checkout() {
                           {item.quantity}
                         </span>
                         <button
+                          disabled={item.quantity >= availableStock}
                           onClick={() => updateQuantity(item.product?.id, item.quantity + 1, variantId, variantTitle)}
-                          className="w-7 h-7 flex items-center justify-center text-neutral-400 hover:text-[#0a193b] hover:bg-white rounded-lg transition-all font-bold text-lg">
+                          className="w-7 h-7 flex items-center justify-center text-neutral-400 hover:text-[#0a193b] hover:bg-white rounded-lg transition-all font-bold text-lg disabled:opacity-50 disabled:cursor-not-allowed">
                           +
                         </button>
                       </div>
@@ -1769,6 +1813,11 @@ export default function Checkout() {
             const inCartItem = (cart?.items || []).find(item => (item.product?.id || item.product?._id) === productId);
             const inCartQty = inCartItem?.quantity || 0;
 
+            const availableStock = product.variations && product.variations.length > 0 
+              ? (product.variations[0]?.stock ?? 0)
+              : (product.stock ?? 0);
+            const isOutOfStock = availableStock <= 0;
+
             return (
               <div key={productId} className="flex-shrink-0 w-44 bg-white rounded-3xl shadow-[0_4px_15px_rgba(0,0,0,0.03)] border border-neutral-100 p-3 flex flex-col gap-3">
                 <div
@@ -1779,7 +1828,11 @@ export default function Checkout() {
                     alt={product.name}
                     className="w-full h-full object-contain transition-transform group-hover:scale-110"
                   />
-                  {hasDiscount && (
+                  {isOutOfStock ? (
+                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                      <span className="text-[10px] font-black text-white bg-red-600 px-2 py-0.5 rounded-full uppercase tracking-wider">Out of Stock</span>
+                    </div>
+                  ) : hasDiscount && (
                     <div className="absolute top-2 left-2 bg-[#0a193b] text-[8px] font-bold text-white px-1.5 py-0.5 rounded-full uppercase tracking-tighter shadow-sm">
                       {discount}% OFF
                     </div>
@@ -1795,8 +1848,13 @@ export default function Checkout() {
                     </div>
 
                     <button
-                      onClick={() => addToCart(product)}
-                      className="w-8 h-8 rounded-full bg-[#0a193b]/5 text-[#0a193b] flex items-center justify-center hover:bg-[#0a193b] hover:text-white transition-all shadow-sm">
+                      onClick={() => !isOutOfStock && addToCart(product)}
+                      disabled={isOutOfStock}
+                      className={`w-8 h-8 rounded-full flex items-center justify-center transition-all shadow-sm ${
+                        isOutOfStock 
+                          ? "bg-neutral-100 text-neutral-400 cursor-not-allowed" 
+                          : "bg-[#0a193b]/5 text-[#0a193b] hover:bg-[#0a193b] hover:text-white"
+                      }`}>
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14" /></svg>
                     </button>
                   </div>
@@ -2742,12 +2800,12 @@ export default function Checkout() {
             {selectedAddress ? (
               <button
                 onClick={handlePlaceOrder}
-                disabled={cart.items.length === 0 || !timeSlot}
-                className={`w-full py-3.5 rounded-2xl font-bold text-sm tracking-wide shadow-[0_8px_25px_rgba(10,25,59,0.25)] transition-all active:scale-95 ${cart.items.length > 0 && timeSlot
+                disabled={cart.items.length === 0 || !timeSlot || hasOutOfStockItems}
+                className={`w-full py-3.5 rounded-2xl font-bold text-sm tracking-wide shadow-[0_8px_25px_rgba(10,25,59,0.25)] transition-all active:scale-95 ${cart.items.length > 0 && timeSlot && !hasOutOfStockItems
                   ? "bg-[#0a193b] text-white hover:bg-[#0a193b]/90 hover:shadow-[0_12px_30px_rgba(10,25,59,0.3)]"
                   : "bg-neutral-100 text-neutral-400 cursor-not-allowed shadow-none"
                   }`}>
-                Place Order
+                {hasOutOfStockItems ? "Out of Stock Items" : "Place Order"}
               </button>
             ) : (
               <button

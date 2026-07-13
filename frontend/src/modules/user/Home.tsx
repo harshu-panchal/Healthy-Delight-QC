@@ -747,11 +747,11 @@ export default function Home() {
 
               {/* Solid Content Block */}
               <div
-                className="pt-6 pb-0 md:pb-12 shadow-[0_-8px_32px_rgba(0,0,0,0.06)] ring-1 ring-black/5 relative z-10 mb-[-64px] md:mb-12 md:mx-10 md:rounded-[48px]"
+                className="pt-6 pb-0 md:pb-6 shadow-[0_-8px_32px_rgba(0,0,0,0.06)] ring-1 ring-black/5 relative z-10 mb-[-64px] md:mb-12 md:mx-10 md:rounded-[48px]"
                 style={{ backgroundColor: 'rgba(250, 245, 242, 0.94)' }}
               >
                 {/* Shop by Store Section - only on 'all' tab */}
-                <div className="px-5 mb-10 md:px-10">
+                <div className="px-5 mb-0 md:mb-2 md:px-10">
                   {/* Modern Clean Header */}
                   <div className="flex items-center justify-between mb-8">
                     <SectionHeading className="text-[18px] md:text-[22px] font-semibold text-[#0a193b] tracking-tight" colorSeed="shop-by-store">
@@ -768,7 +768,7 @@ export default function Home() {
                     </button>
                   </div>
 
-                  <div className="flex overflow-x-auto pb-8 gap-4 snap-x snap-mandatory scrollbar-hide md:grid md:grid-cols-4 lg:grid-cols-6 md:pb-0 md:overflow-visible">
+                  <div className="flex overflow-x-auto pb-8 md:pb-4 gap-4 snap-x snap-mandatory scrollbar-hide">
                     {(homeData.shops || []).map((tile: any) => {
                       const hasImages =
                         tile.image ||
@@ -778,7 +778,7 @@ export default function Home() {
                       return (
                         <div
                           key={tile.id}
-                          className="hover-lift tap-scale group flex flex-col cursor-pointer bg-white rounded-[20px] border border-black/[0.04] shadow-card transition-all duration-300 flex-shrink-0 w-[32%] sm:w-[24%] md:w-auto snap-start p-3"
+                          className="hover-lift tap-scale group flex flex-col cursor-pointer bg-white rounded-[20px] border border-black/[0.04] shadow-card transition-all duration-300 flex-shrink-0 w-[32%] sm:w-[24%] md:w-[calc((100%-4*1.0rem)/5)] snap-start p-3"
                           onClick={() => {
                             const storeSlug =
                               tile.slug || tile.id.replace("-store", "");

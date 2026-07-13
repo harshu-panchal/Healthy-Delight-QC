@@ -206,7 +206,7 @@ export default function AdminManageCustomer() {
         [
           customer._id.slice(-6),
           customer.name,
-          customer.email,
+          !customer.email || customer.email.endsWith('@kosil.temp') || customer.email.endsWith('@healthydelight.temp') ? 'Email Not Provided' : customer.email,
           customer.phone,
           customer.registrationDate
             ? new Date(customer.registrationDate).toLocaleString('en-GB')
@@ -468,7 +468,9 @@ export default function AdminManageCustomer() {
                         {customer.name}
                       </td>
                       <td className="p-4 border border-neutral-200">
-                        {customer.email}
+                        {!customer.email || customer.email.endsWith('@kosil.temp') || customer.email.endsWith('@healthydelight.temp')
+                          ? 'Email Not Provided'
+                          : customer.email}
                       </td>
                       <td className="p-4 border border-neutral-200">
                         {customer.phone}

@@ -76,17 +76,17 @@ export default function DeliveryWallet() {
 
     useEffect(() => {
         const handleRefresh = () => {
-            fetchWalletData();
+            fetchWalletData(true);
         };
 
         const handleVisibilityChange = () => {
             if (document.visibilityState === "visible") {
-                fetchWalletData();
+                fetchWalletData(true);
             }
         };
 
         const interval = window.setInterval(() => {
-            fetchWalletData();
+            fetchWalletData(true);
         }, 30000);
 
         window.addEventListener("focus", handleRefresh);
@@ -99,9 +99,9 @@ export default function DeliveryWallet() {
         };
     }, []);
 
-    const fetchWalletData = async () => {
+    const fetchWalletData = async (isSilent = false) => {
         try {
-            setLoading(true);
+            if (!isSilent) setLoading(true);
             const [balanceRes, transactionsRes, withdrawalsRes, commissionsRes] =
                 await Promise.all([
                     getDeliveryWalletBalance(),
@@ -125,7 +125,7 @@ export default function DeliveryWallet() {
                 "error",
             );
         } finally {
-            setLoading(false);
+            if (!isSilent) setLoading(false);
         }
     };
 
@@ -253,6 +253,14 @@ export default function DeliveryWallet() {
             setIsSubmitting(false);
         }
     };
+
+    const pendingWithdrawalAmount = withdrawals
+        .filter((w) => w.status === "Pending" || w.status === "Approved")
+        .reduce((sum, w) => sum + w.amount, 0);
+
+    const paidWithdrawalAmount = withdrawals
+        .filter((w) => w.status === "Completed")
+        .reduce((sum, w) => sum + w.amount, 0);
 
     if (loading) {
         return (
@@ -384,7 +392,7 @@ export default function DeliveryWallet() {
                 <div className="bg-white rounded-xl p-4 shadow-sm">
                     <p className="text-xs text-gray-600 mb-1">Pending</p>
                     <p className="text-lg font-bold text-orange-600">
-                        ₹{commissions.pending?.toFixed(2) || "0.00"}
+                        ₹{pendingWithdrawalAmount.toFixed(2)}
                     </p>
                 </div>
             </div>

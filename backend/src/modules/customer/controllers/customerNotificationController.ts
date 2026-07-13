@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import Notification from "../../../models/Notification";
+import Customer from "../../../models/Customer";
 import { asyncHandler } from "../../../utils/asyncHandler";
 
 /**
@@ -8,7 +9,12 @@ import { asyncHandler } from "../../../utils/asyncHandler";
 export const getNotifications = asyncHandler(async (req: Request, res: Response) => {
   const customerId = req.user?.userId;
 
+  // Fetch customer account creation timestamp
+  const customer = await Customer.findById(customerId).select("createdAt");
+  const userCreatedAt = customer?.createdAt || new Date(0);
+
   const notifications = await Notification.find({
+    createdAt: { $gte: userCreatedAt },
     $or: [
       {
         recipientType: "Customer",

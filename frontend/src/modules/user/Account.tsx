@@ -219,7 +219,7 @@ export default function Account() {
         order_id: razorpayOrderId,
         prefill: {
           name: profile?.name || '',
-          email: profile?.email || '',
+          email: (profile?.email?.endsWith('@kosil.temp') || profile?.email?.endsWith('@healthydelight.temp')) ? '' : profile?.email || '',
           contact: profile?.phone || '',
         },
         theme: {
@@ -556,7 +556,8 @@ export default function Account() {
               onClick={() => {
                 if (profile) {
                   setEditName(profile.name || "");
-                  setEditEmail(profile.email || "");
+                  const isTempEmail = profile.email?.endsWith("@kosil.temp") || profile.email?.endsWith("@healthydelight.temp");
+                  setEditEmail(isTempEmail ? "" : profile.email || "");
                   setEditDob(profile.dateOfBirth ? new Date(profile.dateOfBirth).toISOString().split('T')[0] : "");
                 }
                 setEditError("");
@@ -872,7 +873,6 @@ export default function Account() {
                     </label>
                     <input
                       type="email"
-                      required
                       value={editEmail}
                       onChange={(e) => setEditEmail(e.target.value)}
                       placeholder="Enter Email Address"
@@ -892,7 +892,7 @@ export default function Account() {
                   </div>
                   <button
                     type="submit"
-                    disabled={editSubmitting || !editName.trim() || !editEmail.trim()}
+                    disabled={editSubmitting || !editName.trim()}
                     className="w-full rounded-2xl bg-[#0a193b] text-white font-black py-4 hover:bg-[#07122b] disabled:opacity-50 transition-all shadow-xl shadow-[#0a193b]/10 uppercase tracking-widest text-sm active:scale-[0.98]"
                   >
                     {editSubmitting ? "Saving Updates..." : "Save Changes"}

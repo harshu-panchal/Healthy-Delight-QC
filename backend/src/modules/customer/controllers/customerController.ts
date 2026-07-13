@@ -87,21 +87,26 @@ export const updateProfile = asyncHandler(
 
     // Update fields if provided
     if (name) customer.name = name;
-    if (email) {
-      // Check if email is already taken by another customer
-      const existingCustomer = await Customer.findOne({
-        email,
-        _id: { $ne: userId },
-      });
-
-      if (existingCustomer) {
-        return res.status(409).json({
-          success: false,
-          message: "Email already in use by another customer",
+    if (email !== undefined) {
+      const trimmedEmail = email.trim().toLowerCase();
+      if (!trimmedEmail) {
+        customer.email = undefined;
+      } else {
+        // Check if email is already taken by another customer
+        const existingCustomer = await Customer.findOne({
+          email: trimmedEmail,
+          _id: { $ne: userId },
         });
-      }
 
-      customer.email = email;
+        if (existingCustomer) {
+          return res.status(409).json({
+            success: false,
+            message: "Email already in use by another customer",
+          });
+        }
+
+        customer.email = trimmedEmail;
+      }
     }
     if (dateOfBirth) customer.dateOfBirth = new Date(dateOfBirth);
     if (profileImage !== undefined) (customer as any).profileImage = profileImage;

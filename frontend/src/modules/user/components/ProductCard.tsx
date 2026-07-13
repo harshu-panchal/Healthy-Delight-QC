@@ -52,7 +52,11 @@ export default function ProductCard({
   const isOperationPendingRef = useRef(false);
 
 
-  const cartItem = cart.items.find((item) => item?.product && (item.product.id === (product as any).id || item.product._id === (product as any).id || item.product.id === product._id));
+  const cartItem = cart.items.find((item) => {
+    const itemProductId = item?.product?._id || item?.product?.id;
+    const currentProductId = product?._id || product?.id;
+    return itemProductId && currentProductId && itemProductId.toString() === currentProductId.toString();
+  });
   const inCartQty = cartItem?.quantity || 0;
 
   // Determine if user is a wholesaler

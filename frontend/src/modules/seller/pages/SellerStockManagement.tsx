@@ -64,15 +64,28 @@ export default function SellerStockManagement() {
         }
     };
 
+    // Helper to get custom short readable IDs (e.g. VAR-9901, PRD-8821)
+    const getShortId = (id: string, prefix: 'PRD' | 'VAR') => {
+        if (!id) return '';
+        let hash = 0;
+        for (let i = 0; i < id.length; i++) {
+            hash = id.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        const numericValue = Math.abs(hash) % 10000;
+        const padded = String(numericValue).padStart(4, '0');
+        return `${prefix}-${padded}`;
+    };
+
     // Fetch products and convert to stock items
     useEffect(() => {
         const fetchStockItems = async () => {
             setLoading(true);
             setError('');
             try {
+                const isIdSearch = /^(prd|var)-\d{4}$/i.test(searchTerm.trim());
                 const params: any = {
-                    page: currentPage,
-                    limit: rowsPerPage,
+                    page: isIdSearch ? 1 : currentPage,
+                    limit: isIdSearch ? 1000 : rowsPerPage,
                 };
 
                 if (categoryFilter !== 'All Category') {
@@ -123,7 +136,7 @@ export default function SellerStockManagement() {
         const intervalId = setInterval(fetchStockItems, 30000);
 
         return () => clearInterval(intervalId);
-    }, [currentPage, rowsPerPage, categoryFilter, statusFilter, user]);
+    }, [currentPage, rowsPerPage, categoryFilter, statusFilter, user, searchTerm]);
 
     // Handle stock update
     const handleStockUpdate = async (productId: string, variationId: string, newStock: number) => {
@@ -149,8 +162,14 @@ export default function SellerStockManagement() {
 
     // Filter items
     let filteredItems = stockItems.filter(item => {
+        const shortProdId = getShortId(item.productId, 'PRD').toLowerCase();
+        const shortVarId = getShortId(item.variationId, 'VAR').toLowerCase();
         const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            item.seller.toLowerCase().includes(searchTerm.toLowerCase());
+            item.seller.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            shortProdId.includes(searchTerm.toLowerCase()) ||
+            shortVarId.includes(searchTerm.toLowerCase()) ||
+            item.productId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            item.variationId.toLowerCase().includes(searchTerm.toLowerCase());
         const matchesCategory = categoryFilter === 'All Category' || item.category === categoryFilter;
         const matchesStatus = statusFilter === 'All Products' ||
             (statusFilter === 'Published' && item.status === 'Published') ||
@@ -330,7 +349,7 @@ export default function SellerStockManagement() {
                                     onClick={() => handleSort('variationId')}
                                 >
                                     <div className="flex items-center justify-between">
-                                        Variation Id <SortIcon column="variationId" />
+                                        Variation ID <SortIcon column="variationId" />
                                     </div>
                                 </th>
                                 <th
@@ -338,7 +357,7 @@ export default function SellerStockManagement() {
                                     onClick={() => handleSort('productId')}
                                 >
                                     <div className="flex items-center justify-between">
-                                        Product Id <SortIcon column="productId" />
+                                        Product ID <SortIcon column="productId" />
                                     </div>
                                 </th>
                                 <th
@@ -384,8 +403,12 @@ export default function SellerStockManagement() {
                         <tbody>
                             {filteredItems.map((item) => (
                                 <tr key={item.variationId} className="hover:bg-neutral-50 transition-colors text-sm text-neutral-700">
-                                    <td className="p-4 align-middle border border-neutral-200 text-xs font-mono">{item.variationId}</td>
-                                    <td className="p-4 align-middle border border-neutral-200 text-xs font-mono">{item.productId}</td>
+                                    <td className="p-4 align-middle border border-neutral-200 text-xs font-mono font-bold text-neutral-800" title={item.variationId}>
+                                        {getShortId(item.variationId, 'VAR')}
+                                    </td>
+                                    <td className="p-4 align-middle border border-neutral-200 text-xs font-mono font-bold text-neutral-800" title={item.productId}>
+                                        {getShortId(item.productId, 'PRD')}
+                                    </td>
                                     <td className="p-4 align-middle border border-neutral-200 font-medium">{item.name}</td>
                                     <td className="p-4 align-middle border border-neutral-200">{item.seller}</td>
                                     <td className="p-4 border border-neutral-200">
