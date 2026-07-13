@@ -1,19 +1,21 @@
 import api from './config';
 
 export interface Coupon {
-    _id: string;
+    _id?: string;
     code: string;
     title: string;
     description: string;
-    discountType: 'percentage' | 'fixed';
+    discountType: 'percentage' | 'fixed' | 'Percentage' | 'Fixed';
     discountValue: number;
     minOrderValue?: number;
     maxDiscountAmount?: number;
-    validFrom: string;
-    validUntil: string;
+    imageUrl?: string;
+    usageLimitPerUser?: number;
+    validFrom?: string;
+    validUntil?: string;
     usageLimit?: number;
-    usedCount: number;
-    isActive: boolean;
+    usedCount?: number;
+    isActive?: boolean;
 }
 
 export interface ValidateCouponResponse {

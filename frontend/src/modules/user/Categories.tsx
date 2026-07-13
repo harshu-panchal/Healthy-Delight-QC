@@ -95,7 +95,7 @@ export default function Categories() {
 
   return (
     <div className="min-h-screen bg-transparent relative flex flex-col pt-[140px] md:pt-[2px]">
-      {/* Premium Home-Style Fixed Header (MOBILE ONLY) */}
+      {/* Premium Profile-Style Fixed Header (MOBILE ONLY) */}
       <header
         className="md:hidden fixed top-0 left-0 w-full z-50 transition-all duration-300"
         style={{
@@ -103,51 +103,33 @@ export default function Categories() {
             ? '#0a193b'
             : 'linear-gradient(180deg, #0a193b 0%, rgba(10, 25, 59, 0.9) 30%, rgba(10, 25, 59, 0.7) 60%, rgba(10, 25, 59, 0.4) 85%, rgba(252, 250, 247, 0) 100%)',
           boxShadow: isHeaderSolid ? "0 12px 24px rgba(0,0,0,0.12)" : "none",
-          paddingBottom: isHeaderSolid ? '8px' : '20px',
+          paddingBottom: '16px',
           borderBottomLeftRadius: isHeaderSolid ? '20px' : '0px',
           borderBottomRightRadius: isHeaderSolid ? '20px' : '0px',
         }}
       >
-        <div className="px-5 md:px-10 pt-5 pb-3">
-          <div className="flex items-center justify-between gap-3 md:gap-6">
-            <div className="flex items-center gap-3 md:gap-8 flex-1 min-w-0">
-              <div className="flex items-center gap-2.5 flex-shrink-0 cursor-pointer group" onClick={() => navigate('/')}>
-                <img src={logo} alt="Healthy Delight" className="h-8 md:h-9 w-auto object-contain brightness-0 invert drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)] transition-transform group-hover:scale-105" />
-              </div>
-
-              {locationDisplayText && (
-                <div onClick={() => navigate('/address-book')} className="flex items-center gap-2 cursor-pointer flex-1 min-w-0 max-w-[130px] sm:max-w-[240px] md:max-w-md group">
-                  <div className="p-1.5 rounded-full bg-white/10 text-white/90 border border-white/20">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" strokeLinecap="round" strokeLinejoin="round" />
-                      <circle cx="12" cy="10" r="3" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  </div>
-                  <div className="flex flex-col min-w-0">
-                    <span className="text-[10px] uppercase tracking-widest font-bold text-white/50 leading-none mb-0.5">Delivery to</span>
-                    <div className="flex items-center gap-1 min-w-0">
-                      <span className="text-sm font-bold text-white/95 truncate group-hover:text-white transition-colors">{locationDisplayText}</span>
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" className="text-white/40 group-hover:text-white transition-colors flex-shrink-0">
-                        <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-
+        <div className="px-5 md:px-10 pt-5 flex items-center justify-between">
+          <div className="flex items-center gap-3">
             <button
-              onClick={() => navigate('/account')}
-              className="flex-shrink-0 w-10 h-10 rounded-full bg-white/10 text-white flex items-center justify-center border border-white/20"
+              onClick={() => navigate(-1)}
+              className="w-10 h-10 rounded-full bg-white/10 text-white flex items-center justify-center border border-white/20 hover:bg-white/20 transition-all shadow-lg"
+              aria-label="Back"
             >
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M15 18L9 12L15 6" />
               </svg>
             </button>
+            <h1 className="text-xl font-bold text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.2)]">
+              Categories
+            </h1>
+          </div>
+          <div className="cursor-pointer" onClick={() => navigate("/")}>
+            <img src={logo} alt="Healthy Delight" className="h-8 md:h-9 w-auto object-contain brightness-0 invert drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)] transition-transform hover:scale-105" />
           </div>
         </div>
 
-        <div className="px-5 md:px-10 py-3">
+        {/* Search Bar */}
+        <div className="px-5 md:px-10 pt-3">
           <form
             onSubmit={(e) => {
               e.preventDefault();

@@ -7,6 +7,7 @@ import {
 import {
   getCoupons,
   createCoupon,
+  updateCoupon,
   deleteCoupon,
   type Coupon,
 } from "../../../services/api/admin/adminCouponService";
@@ -41,6 +42,16 @@ export default function AdminCoupon() {
   const [couponImagePreview, setCouponImagePreview] = useState<string>("");
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string>("");
+  const [editingCouponId, setEditingCouponId] = useState<string | null>(null);
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    type: "edit" | "delete" | null;
+    coupon: Coupon | null;
+  }>({
+    isOpen: false,
+    type: null,
+    coupon: null,
+  });
 
   const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [loading, setLoading] = useState(true);
@@ -107,6 +118,86 @@ export default function AdminCoupon() {
     }
   };
 
+  const handleEditClick = (coupon: Coupon) => {
+    setConfirmModal({
+      isOpen: true,
+      type: "edit",
+      coupon: coupon,
+    });
+  };
+
+  const handleConfirmAction = async () => {
+    if (!confirmModal.coupon || !confirmModal.type) return;
+    const { type, coupon } = confirmModal;
+    
+    // Close modal first
+    setConfirmModal({ isOpen: false, type: null, coupon: null });
+    
+    if (type === "edit") {
+      try {
+        setEditingCouponId(coupon._id);
+        
+        // Set form fields based on selected coupon
+        setFormData({
+          userType: (coupon.applicableTo || "All") === "All" ? "All Users" : "Specific User",
+          numberOfTimes: coupon.usageLimit === 1 ? "Single Time Valid" : "Multi Time Valid",
+          couponImageUrl: coupon.imageUrl || "",
+          couponExpiryDate: coupon.endDate ? new Date(coupon.endDate).toLocaleDateString('en-CA') : "",
+          couponCode: coupon.code || "",
+          couponTitle: coupon.title || "",
+          couponStatus: coupon.isActive ? "Published" : "Draft",
+          couponMinOrderAmount: String(coupon.minimumPurchase ?? 0),
+          couponValue: String(coupon.discountValue ?? 0),
+          couponType: (coupon.discountType || "Percentage") === "Percentage" ? "Percentage" : "Fixed",
+          couponDescription: coupon.description || "",
+        });
+        
+        if (coupon.imageUrl) {
+          setCouponImagePreview(coupon.imageUrl);
+        } else {
+          setCouponImagePreview("");
+        }
+        setCouponImageFile(null);
+        setUploadError("");
+
+        // Smooth scroll to top where the Edit Form is displayed
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      } catch (err) {
+        console.error("Error populating coupon for edit:", err);
+        alert("Failed to populate coupon details for editing.");
+      }
+    } else if (type === "delete") {
+      try {
+        const response = await deleteCoupon(coupon._id);
+        if (response.success) {
+          setCoupons((prev) => prev.filter((c) => c._id !== coupon._id));
+        }
+      } catch (error: any) {
+        alert(error.response?.data?.message || "Failed to delete coupon");
+      }
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingCouponId(null);
+    setFormData({
+      userType: "",
+      numberOfTimes: "Single Time Valid",
+      couponImageUrl: "",
+      couponExpiryDate: "",
+      couponCode: "",
+      couponTitle: "",
+      couponStatus: "",
+      couponMinOrderAmount: "",
+      couponValue: "",
+      couponType: "Percentage",
+      couponDescription: "",
+    });
+    setCouponImageFile(null);
+    setCouponImagePreview("");
+    setUploadError("");
+  };
+
   const generateCouponCode = () => {
     const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     let code = "";
@@ -136,7 +227,7 @@ export default function AdminCoupon() {
     }
 
     const todayStr = getLocalDateString();
-    if (formData.couponExpiryDate < todayStr) {
+    if (!editingCouponId && formData.couponExpiryDate < todayStr) {
       setUploadError("Coupon expiry date cannot be in the past");
       return;
     }
@@ -144,7 +235,7 @@ export default function AdminCoupon() {
     setUploading(true);
 
     try {
-      let imageUrl = "";
+      let imageUrl = formData.couponImageUrl;
 
       // Upload coupon image if provided
       if (couponImageFile) {
@@ -152,10 +243,12 @@ export default function AdminCoupon() {
         imageUrl = imageResult.secureUrl;
       }
 
-      // Create coupon via API
+      // Create/Update coupon via API
       const today = new Date().toISOString().split("T")[0];
       const couponData = {
         code: formData.couponCode.toUpperCase(),
+        title: formData.couponTitle,
+        imageUrl: imageUrl,
         description: formData.couponDescription,
         discountType:
           formData.couponType === "Percentage"
@@ -171,53 +264,42 @@ export default function AdminCoupon() {
           formData.userType === "All Users"
             ? ("All" as const)
             : ("All" as const),
+        isActive: formData.couponStatus === "Published",
       };
 
-      const response = await createCoupon(couponData);
+      let response;
+      if (editingCouponId) {
+        response = await updateCoupon(editingCouponId, couponData);
+      } else {
+        response = await createCoupon(couponData);
+      }
 
       if (response.success) {
         // Refresh the list
         fetchCoupons();
-
-        // Reset form
-        setFormData({
-          userType: "",
-          numberOfTimes: "Single Time Valid",
-          couponImageUrl: "",
-          couponExpiryDate: "",
-          couponCode: "",
-          couponTitle: "",
-          couponStatus: "",
-          couponMinOrderAmount: "",
-          couponValue: "",
-          couponType: "Percentage",
-          couponDescription: "",
-        });
-        setCouponImageFile(null);
-        setCouponImagePreview("");
+        handleCancelEdit();
       } else {
-        setUploadError("Failed to create coupon");
+        setUploadError(editingCouponId ? "Failed to update coupon" : "Failed to create coupon");
       }
     } catch (error: any) {
       setUploadError(
         error.response?.data?.message ||
           error.message ||
-          "Failed to create coupon. Please try again."
+          `Failed to ${editingCouponId ? "update" : "create"} coupon. Please try again.`
       );
     } finally {
       setUploading(false);
     }
   };
 
-  const handleDelete = async (id: string) => {
-    try {
-      const response = await deleteCoupon(id);
-      if (response.success) {
-        setCoupons(coupons.filter((coupon) => coupon._id !== id));
-      }
-    } catch (error: any) {
-      alert(error.response?.data?.message || "Failed to delete coupon");
-    }
+  const handleDelete = (id: string) => {
+    const couponObj = coupons.find(c => c._id === id);
+    if (!couponObj) return;
+    setConfirmModal({
+      isOpen: true,
+      type: "delete",
+      coupon: couponObj,
+    });
   };
 
   const handleSort = (column: string) => {
@@ -297,7 +379,9 @@ export default function AdminCoupon() {
         {/* Add Coupon Section */}
         <div className="bg-white rounded-lg shadow-sm border border-neutral-200 mb-6">
           <div className="bg-neutral-50 border-b border-neutral-200 px-6 py-4 rounded-t-lg">
-            <h2 className="text-lg font-semibold text-neutral-800">Add Coupon</h2>
+            <h2 className="text-lg font-semibold text-neutral-800">
+              {editingCouponId ? "Edit Coupon" : "Add Coupon"}
+            </h2>
           </div>
 
           <form onSubmit={handleAddCoupon} className="p-6">
@@ -345,17 +429,46 @@ export default function AdminCoupon() {
                 <label className="block text-sm font-medium text-neutral-700 mb-2">
                   Coupon Image
                 </label>
-                <label className="block border-2 border-dashed border-neutral-300 rounded-lg p-4 text-center cursor-pointer hover:border-primary transition-colors">
-                  {couponImagePreview ? (
-                    <div className="space-y-2">
+                <div className="space-y-2">
+                  <label className="block border-2 border-dashed border-neutral-300 rounded-lg overflow-hidden text-center cursor-pointer hover:border-primary transition-colors h-48 flex items-center justify-center bg-neutral-50 relative">
+                    {couponImagePreview ? (
                       <img
                         src={couponImagePreview}
                         alt="Coupon preview"
-                        className="max-h-24 mx-auto rounded-lg object-cover"
+                        className="w-full h-full object-cover"
                       />
-                      <p className="text-xs text-neutral-600">
-                        {couponImageFile?.name}
-                      </p>
+                    ) : (
+                      <div className="p-4">
+                        <svg
+                          width="32"
+                          height="32"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          className="mx-auto mb-2 text-neutral-400">
+                          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                          <polyline points="17 8 12 3 7 8"></polyline>
+                          <line x1="12" y1="3" x2="12" y2="15"></line>
+                        </svg>
+                        <p className="text-xs text-neutral-600">Choose File</p>
+                        <p className="text-xs text-neutral-500 mt-1">Max 5MB</p>
+                      </div>
+                    )}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileChange}
+                      className="hidden"
+                      disabled={uploading}
+                    />
+                  </label>
+
+                  {couponImagePreview && (
+                    <div className="flex items-center justify-between text-xs bg-neutral-50 p-2 rounded-lg border border-neutral-200">
+                      <span className="text-neutral-600 truncate pr-4" title={couponImageFile?.name || "Coupon Image"}>
+                        {couponImageFile?.name || "Uploaded Coupon Image"}
+                      </span>
                       <button
                         type="button"
                         onClick={(e) => {
@@ -363,36 +476,12 @@ export default function AdminCoupon() {
                           setCouponImageFile(null);
                           setCouponImagePreview("");
                         }}
-                        className="text-xs text-red-600 hover:text-red-700">
+                        className="font-semibold text-red-600 hover:text-red-700 transition-colors">
                         Remove
                       </button>
                     </div>
-                  ) : (
-                    <div>
-                      <svg
-                        width="32"
-                        height="32"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        className="mx-auto mb-2 text-neutral-400">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                        <polyline points="17 8 12 3 7 8"></polyline>
-                        <line x1="12" y1="3" x2="12" y2="15"></line>
-                      </svg>
-                      <p className="text-xs text-neutral-600">Choose File</p>
-                      <p className="text-xs text-neutral-500 mt-1">Max 5MB</p>
-                    </div>
                   )}
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileChange}
-                    className="hidden"
-                    disabled={uploading}
-                  />
-                </label>
+                </div>
               </div>
             </div>
 
@@ -552,16 +641,32 @@ export default function AdminCoupon() {
               />
             </div>
 
-            <button
-              type="submit"
-              disabled={uploading}
-              className={`w-full px-6 py-3 rounded font-semibold transition-all active:scale-95 shadow-md ${
-                uploading
-                  ? "bg-neutral-100 text-neutral-400 border border-neutral-200 cursor-not-allowed"
-                  : "bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white"
-              }`}>
-              {uploading ? "Creating Coupon..." : "Add Coupon"}
-            </button>
+            <div className="flex gap-4">
+              <button
+                type="submit"
+                disabled={uploading}
+                className={`flex-1 px-6 py-3 rounded font-semibold transition-all active:scale-95 shadow-md ${
+                  uploading
+                    ? "bg-neutral-100 text-neutral-400 border border-neutral-200 cursor-not-allowed"
+                    : "bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white"
+                }`}>
+                {uploading
+                  ? editingCouponId
+                    ? "Updating Coupon..."
+                    : "Creating Coupon..."
+                  : editingCouponId
+                  ? "Save Changes"
+                  : "Add Coupon"}
+              </button>
+              {editingCouponId && (
+                <button
+                  type="button"
+                  onClick={handleCancelEdit}
+                  className="px-6 py-3 rounded font-semibold bg-gray-100 border border-gray-300 text-gray-700 hover:bg-gray-200 transition-all active:scale-95">
+                  Cancel
+                </button>
+              )}
+            </div>
           </form>
         </div>
 
@@ -599,6 +704,8 @@ export default function AdminCoupon() {
               <thead>
                 <tr className="bg-neutral-50 text-xs font-bold text-neutral-800 border-b border-neutral-200">
                   <th className="p-4">Sr No.</th>
+                  <th className="p-4">Image</th>
+                  <th className="p-4">Title</th>
                   <th
                     className="p-4 cursor-pointer hover:bg-neutral-100 transition-colors"
                     onClick={() => handleSort("code")}>
@@ -642,21 +749,21 @@ export default function AdminCoupon() {
                 {loading ? (
                   <tr>
                     <td
-                      colSpan={8}
+                      colSpan={10}
                       className="p-8 text-center text-neutral-400">
                       Loading coupons...
                     </td>
                   </tr>
                 ) : error ? (
                   <tr>
-                    <td colSpan={8} className="p-8 text-center text-red-600">
+                    <td colSpan={10} className="p-8 text-center text-red-600">
                       {error}
                     </td>
                   </tr>
                 ) : displayedCoupons.length === 0 ? (
                   <tr>
                     <td
-                      colSpan={8}
+                      colSpan={10}
                       className="p-8 text-center text-neutral-400">
                       No coupons found. Add your first coupon above.
                     </td>
@@ -668,6 +775,22 @@ export default function AdminCoupon() {
                       className="hover:bg-neutral-50 transition-colors text-sm text-neutral-700 border-b border-neutral-200">
                       <td className="p-4 align-middle">
                         {startIndex + index + 1}
+                      </td>
+                      <td className="p-4 align-middle">
+                        {coupon.imageUrl ? (
+                          <img
+                            src={coupon.imageUrl}
+                            alt={coupon.title || coupon.code}
+                            className="w-12 h-12 object-cover rounded border border-neutral-200"
+                          />
+                        ) : (
+                          <div className="w-12 h-12 bg-neutral-100 border border-neutral-200 rounded flex items-center justify-center text-xs text-neutral-400">
+                            No Image
+                          </div>
+                        )}
+                      </td>
+                      <td className="p-4 align-middle font-semibold text-neutral-800">
+                        {coupon.title || "N/A"}
                       </td>
                       <td className="p-4 align-middle font-medium">
                         {coupon.code}
@@ -689,33 +812,60 @@ export default function AdminCoupon() {
                         {new Date(coupon.endDate).toLocaleDateString('en-GB')}
                       </td>
                       <td className="p-4 align-middle">
-                        <span
-                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            coupon.isActive
-                              ? "bg-cream text-neutral-800"
-                              : "bg-gray-100 text-gray-800"
-                          }`}>
-                          {coupon.isActive ? "Active" : "Inactive"}
-                        </span>
+                        {(() => {
+                          const couponEndDate = new Date(coupon.endDate);
+                          couponEndDate.setHours(23, 59, 59, 999);
+                          const isExpired = couponEndDate < new Date();
+                          const displayActive = coupon.isActive && !isExpired;
+                          return (
+                            <span
+                              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                displayActive
+                                  ? "bg-emerald-50 text-emerald-700 border border-emerald-100"
+                                  : "bg-red-50 text-red-700 border border-red-100"
+                              }`}>
+                              {displayActive ? "Active" : isExpired ? "Expired" : "Inactive"}
+                            </span>
+                          );
+                        })()}
                       </td>
                       <td className="p-4 align-middle">
-                        <button
-                          onClick={() => handleDelete(coupon._id)}
-                          className="p-2 bg-red-600 hover:bg-red-700 text-white rounded transition-colors"
-                          title="Delete">
-                          <svg
-                            width="16"
-                            height="16"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round">
-                            <line x1="18" y1="6" x2="6" y2="18"></line>
-                            <line x1="6" y1="6" x2="18" y2="18"></line>
-                          </svg>
-                        </button>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => handleEditClick(coupon)}
+                            className="p-2 bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors"
+                            title="Edit">
+                            <svg
+                              width="16"
+                              height="16"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round">
+                              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                              <path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                            </svg>
+                          </button>
+                          <button
+                            onClick={() => handleDelete(coupon._id)}
+                            className="p-2 bg-red-600 hover:bg-red-700 text-white rounded transition-colors"
+                            title="Delete">
+                            <svg
+                              width="16"
+                              height="16"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round">
+                              <line x1="18" y1="6" x2="6" y2="18"></line>
+                              <line x1="6" y1="6" x2="18" y2="18"></line>
+                            </svg>
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))
@@ -789,6 +939,59 @@ export default function AdminCoupon() {
           </div>
         </div>
       </div>
+
+      {/* Custom Confirmation Modal */}
+      {confirmModal.isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-neutral-900/60 backdrop-blur-sm transition-all duration-300">
+          <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-neutral-100 flex flex-col items-center text-center transform scale-100 transition-all duration-300">
+            {confirmModal.type === "delete" ? (
+              <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center text-red-600 mb-4 animate-pulse">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="12" y1="8" x2="12" y2="12"></line>
+                  <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+              </div>
+            ) : (
+              <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 mb-4">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                  <path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                </svg>
+              </div>
+            )}
+
+            <h3 className="text-lg font-bold text-neutral-800 mb-2">
+              {confirmModal.type === "delete" ? "Delete Coupon?" : "Edit Coupon?"}
+            </h3>
+            
+            <p className="text-sm text-neutral-600 mb-6">
+              {confirmModal.type === "delete"
+                ? `Are you sure you want to delete the coupon "${confirmModal.coupon?.code}"? This action cannot be undone.`
+                : `Are you sure you want to load and edit the coupon "${confirmModal.coupon?.code}"?`}
+            </p>
+
+            <div className="flex gap-3 w-full">
+              <button
+                type="button"
+                onClick={() => setConfirmModal({ isOpen: false, type: null, coupon: null })}
+                className="flex-1 px-4 py-2 border border-neutral-300 rounded-lg text-sm font-semibold text-neutral-700 hover:bg-neutral-50 transition-all active:scale-95">
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmAction}
+                className={`flex-1 px-4 py-2 rounded-lg text-sm font-semibold text-white transition-all active:scale-95 ${
+                  confirmModal.type === "delete"
+                    ? "bg-red-600 hover:bg-red-700"
+                    : "bg-blue-600 hover:bg-blue-700"
+                }`}>
+                {confirmModal.type === "delete" ? "Yes, Delete" : "Yes, Edit"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Footer */}
       <footer className="text-center py-4 text-sm text-neutral-600 border-t border-neutral-200 bg-white">

@@ -32,6 +32,31 @@ export default function AppLayout({ children }: AppLayoutProps) {
   const [isHeaderOpaque, setIsHeaderOpaque] = useState(false);
   const [showComingSoon, setShowComingSoon] = useState(false);
   const lastScrollY = useRef(0);
+  const [isInputFocused, setIsInputFocused] = useState(false);
+
+  useEffect(() => {
+    const handleFocusIn = (e: FocusEvent) => {
+      const target = e.target as HTMLElement;
+      if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA')) {
+        setIsInputFocused(true);
+      }
+    };
+
+    const handleFocusOut = (e: FocusEvent) => {
+      const target = e.target as HTMLElement;
+      if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA')) {
+        setIsInputFocused(false);
+      }
+    };
+
+    document.addEventListener('focusin', handleFocusIn);
+    document.addEventListener('focusout', handleFocusOut);
+
+    return () => {
+      document.removeEventListener('focusin', handleFocusIn);
+      document.removeEventListener('focusout', handleFocusOut);
+    };
+  }, []);
 
   const isActive = (path: string) => location.pathname === path;
   const isAppHome = isActive('/user') || isActive('/') && isAuthenticated; // Helper for app home state
@@ -823,7 +848,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
         )}
 
         {/* Fixed Bottom Navigation - Mobile Only */}
-        {showFooter && (
+        {showFooter && !isInputFocused && (
           <nav
             className="fixed bottom-0 left-0 right-0 z-[60] md:hidden transition-all duration-300 ease-in-out"
             style={{

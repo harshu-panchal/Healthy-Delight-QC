@@ -4,6 +4,7 @@ import { format, addMonths, startOfMonth, endOfMonth, eachDayOfInterval, isBefor
 import { motion, AnimatePresence } from "framer-motion";
 import { getMyOrders } from "../../services/api/customerOrderService";
 import { getActiveShifts, type CustomerShift } from "../../services/api/customerShiftService";
+import logo from "../../../assets/logo.png";
 
 const formatOrderFriendly = (orderNumber?: string, orderId?: string) => {
   if (orderNumber && orderNumber !== 'N/A') {
@@ -59,6 +60,18 @@ const isShiftTimePassed = (endTimeStr: string): boolean => {
 export default function ScheduleManagement() {
   const navigate = useNavigate();
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [isHeaderSolid, setIsHeaderSolid] = useState(false);
+
+  // Scroll Listener for Dynamic Header
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollY = window.scrollY || document.documentElement.scrollTop;
+      setIsHeaderSolid(scrollY > 10);
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
   
   const [selectedDate, setSelectedDate] = useState<Date | null>(() => {
     const saved = sessionStorage.getItem("scheduledDeliveryDate");
@@ -214,21 +227,42 @@ export default function ScheduleManagement() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f8f6f2] flex flex-col pt-6 pb-20 px-5">
+    <div className="min-h-screen bg-[#f8f6f2] flex flex-col pb-20">
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <div className="flex items-center gap-4">
-          <button 
-            onClick={() => navigate(-1)}
-            className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-[#0a193b] shadow-sm border border-neutral-100"
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round">
-              <path d="M15 18L9 12L15 6" />
-            </svg>
-          </button>
-          <h1 className="text-xl font-black text-[#0a193b]">Schedule</h1>
+      <header
+        className="sticky top-0 z-40 transition-all duration-300"
+        style={{
+          background: isHeaderSolid
+            ? "#0a193b"
+            : "linear-gradient(180deg, #0a193b 0%, rgba(10, 25, 59, 0.9) 30%, rgba(10, 25, 59, 0.7) 60%, rgba(10, 25, 59, 0.4) 85%, rgba(248, 246, 242, 0) 100%)",
+          boxShadow: isHeaderSolid ? "0 12px 24px rgba(0,0,0,0.12)" : "none",
+          paddingBottom: "16px",
+          borderBottomLeftRadius: isHeaderSolid ? "20px" : "0px",
+          borderBottomRightRadius: isHeaderSolid ? "20px" : "0px",
+        }}
+      >
+        <div className="px-5 md:px-10 pt-5 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => navigate(-1)}
+              className="w-10 h-10 rounded-full bg-white/10 text-white flex items-center justify-center border border-white/20 hover:bg-white/20 transition-all shadow-lg"
+              aria-label="Back"
+            >
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M15 18L9 12L15 6" />
+              </svg>
+            </button>
+            <h1 className="text-xl font-bold text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.2)]">
+              Schedule
+            </h1>
+          </div>
+          <div className="cursor-pointer" onClick={() => navigate("/")}>
+            <img src={logo} alt="Healthy Delight" className="h-8 md:h-9 w-auto object-contain brightness-0 invert drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)] transition-transform hover:scale-105" />
+          </div>
         </div>
-      </div>
+      </header>
+
+      <div className="px-5 mt-6">
 
       {/* Calendar Card */}
       <div className="bg-white rounded-[32px] p-6 shadow-[0_20px_50px_rgba(0,0,0,0.04)] border border-neutral-100 mb-6">
@@ -463,6 +497,7 @@ export default function ScheduleManagement() {
             })}
           </div>
         )}
+      </div>
       </div>
 
     </div>

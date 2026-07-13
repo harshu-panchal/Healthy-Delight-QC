@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   getOrderById,
   updateOrderStatus,
@@ -38,6 +38,21 @@ export default function SellerOrderDetail() {
   const [deliveryBoys, setDeliveryBoys] = useState<DeliveryBoy[]>([]);
   const [assigning, setAssigning] = useState(false);
   const [selectedRiderId, setSelectedRiderId] = useState("");
+  const [isRiderDropdownOpen, setIsRiderDropdownOpen] = useState(false);
+  const riderDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown on click outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (riderDropdownRef.current && !riderDropdownRef.current.contains(event.target as Node)) {
+        setIsRiderDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   // Fetch order detail from API
   useEffect(() => {
@@ -640,17 +655,77 @@ export default function SellerOrderDetail() {
                   </div>
                   <span className="text-sm font-bold text-neutral-800 whitespace-nowrap">Assign Rider:</span>
                 </div>
-                <select
-                  value={selectedRiderId}
-                  onChange={(e) => setSelectedRiderId(e.target.value)}
-                  className="w-full sm:w-auto sm:flex-1 sm:min-w-[200px] px-3 py-2 border border-neutral-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary">
-                  <option value="">Select Delivery Rider</option>
-                  {deliveryBoys.map((boy) => (
-                    <option key={boy._id} value={boy._id}>
-                      {boy.name} ({boy.available === 'Available' ? 'Available' : 'Busy'})
-                    </option>
-                  ))}
-                </select>
+                <div ref={riderDropdownRef} className="relative w-full sm:w-auto sm:flex-1 sm:min-w-[220px]">
+                  {/* Dropdown trigger button */}
+                  <button
+                    type="button"
+                    onClick={() => setIsRiderDropdownOpen(!isRiderDropdownOpen)}
+                    className="w-full flex items-center justify-between gap-2 px-3 py-2 border border-neutral-300 rounded-lg text-sm bg-white text-left focus:outline-none focus:ring-2 focus:ring-primary hover:border-neutral-400 transition-all cursor-pointer font-semibold text-neutral-800 shadow-sm"
+                  >
+                    <span>
+                      {selectedRiderId 
+                        ? (deliveryBoys.find(boy => boy._id === selectedRiderId)?.name || "Select Delivery Rider") 
+                        : "Select Delivery Rider"}
+                    </span>
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className={`text-neutral-500 transition-transform duration-200 ${isRiderDropdownOpen ? 'rotate-180' : ''}`}
+                    >
+                      <polyline points="6 9 12 15 18 9" />
+                    </svg>
+                  </button>
+
+                  {/* Dropdown list popover */}
+                  {isRiderDropdownOpen && (
+                    <div className="absolute z-50 left-0 right-0 mt-1.5 bg-white border border-neutral-200 rounded-xl shadow-xl max-h-60 overflow-y-auto py-1 animate-in fade-in slide-in-from-top-1 duration-150">
+                      <div
+                        onClick={() => {
+                          setSelectedRiderId("");
+                          setIsRiderDropdownOpen(false);
+                        }}
+                        className={`px-3.5 py-2.5 text-sm cursor-pointer hover:bg-neutral-50 transition-colors flex items-center justify-between ${
+                          !selectedRiderId ? 'text-primary font-bold bg-primary/5' : 'text-neutral-500'
+                        }`}
+                      >
+                        Select Delivery Rider
+                      </div>
+                      {deliveryBoys.map((boy) => {
+                        const isSelected = boy._id === selectedRiderId;
+                        const isAvailable = boy.available === 'Available';
+                        return (
+                          <div
+                            key={boy._id}
+                            onClick={() => {
+                              setSelectedRiderId(boy._id);
+                              setIsRiderDropdownOpen(false);
+                            }}
+                            className={`px-3.5 py-2.5 text-sm cursor-pointer hover:bg-neutral-50 transition-colors flex items-center justify-between gap-3 ${
+                              isSelected ? 'bg-primary/5 text-primary font-bold' : 'text-neutral-800'
+                            }`}
+                          >
+                            <span className="truncate">{boy.name}</span>
+                            <span
+                              className={`flex-shrink-0 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider border ${
+                                isAvailable
+                                  ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
+                                  : 'bg-amber-50 text-amber-700 border-amber-100'
+                              }`}
+                            >
+                              {boy.available === 'Available' ? 'Available' : 'Busy'}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
                 <button
                   onClick={handleAssignDeliveryBoy}
                   disabled={assigning || !selectedRiderId}

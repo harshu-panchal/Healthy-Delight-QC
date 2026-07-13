@@ -327,6 +327,8 @@ export async function notifyDeliveryBoysOfNewOrder(
             total: order.total,
             subtotal: order.subtotal,
             shipping: order.shipping,
+            tipAmount: order.tipAmount || 0,
+            deliveryEarning: order.shipping || 0,
             createdAt: order.createdAt,
             paymentMethod: order.paymentMethod,
         };

@@ -1,5 +1,5 @@
 import { useParams, Link, useSearchParams, useNavigate } from "react-router-dom";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Button from "../../components/ui/button";
 import { useOrders } from "../../hooks/useOrders";
@@ -324,6 +324,18 @@ export default function OrderDetail() {
   const [selectedTip, setSelectedTip] = useState<number | "other" | null>(null);
   const [customTip, setCustomTip] = useState("");
 
+  const handleOrderUpdate = useCallback((event: string, data: any) => {
+    console.log(`🔔 Live order update [${event}]:`, data);
+    if (id) {
+      fetchOrderById(id).then((fetchedOrder) => {
+        if (fetchedOrder) {
+          setOrder(fetchedOrder);
+          setOrderStatus(fetchedOrder.status);
+        }
+      });
+    }
+  }, [id, fetchOrderById]);
+
   // Real-time delivery tracking via WebSocket
   const {
     deliveryLocation,
@@ -336,7 +348,7 @@ export default function OrderDetail() {
     error: trackingError,
     reconnectAttempts,
     reconnect,
-  } = useDeliveryTracking(id);
+  } = useDeliveryTracking(id, handleOrderUpdate);
 
   // Seller locations for the order
   const [sellerLocations, setSellerLocations] = useState<any[]>([]);
@@ -773,7 +785,7 @@ export default function OrderDetail() {
   const currentStatus = statusConfig[orderStatus] || statusConfig["Received"];
 
   return (
-    <div className="min-h-screen bg-slate-50/70">
+    <div className="min-h-screen bg-slate-50/70 pt-[164px]">
       {/* Order Confirmed Modal */}
       <AnimatePresence>
         {showConfirmation && (
@@ -819,7 +831,7 @@ export default function OrderDetail() {
 
       {/* Premium Signature Dark Header */}
       <motion.div
-        className={`text-white sticky top-0 z-40 shadow-lg border-b border-white/5 transition-all duration-300 ${orderStatus === 'Cancelled' || orderStatus === 'Rejected'
+        className={`text-white fixed top-0 left-0 right-0 z-40 shadow-lg border-b border-white/5 transition-all duration-300 ${orderStatus === 'Cancelled' || orderStatus === 'Rejected'
             ? 'bg-gradient-to-br from-red-700 via-rose-800 to-red-700 shadow-red-900/10'
             : 'bg-gradient-to-br from-[#0a193b] via-[#11254f] to-[#0a193b] shadow-[#0a193b]/10'
           }`}

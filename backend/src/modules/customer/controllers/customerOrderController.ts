@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import Order from "../../../models/Order";
 import Product from "../../../models/Product";
+import Coupon from "../../../models/Coupon";
 import Category from "../../../models/Category";
 import OrderItem from "../../../models/OrderItem";
 import Customer from "../../../models/Customer";
@@ -50,7 +51,7 @@ export const createOrder = async (req: Request, res: Response) => {
             session = null;
         }
 
-        const { items, address, paymentMethod, fees, timeSlot, orderType, scheduledDate, scheduledTimeSlot, tipAmount, gstin, useWallet } = req.body;
+        const { items, address, paymentMethod, fees, timeSlot, orderType, scheduledDate, scheduledTimeSlot, tipAmount, gstin, useWallet, couponCode } = req.body;
         const userId = req.user!.userId;
 
         // Log incoming request for debugging
@@ -572,8 +573,55 @@ export const createOrder = async (req: Request, res: Response) => {
             }
         }
 
+        let couponDiscount = 0;
+        let couponEntity = null;
+        if (couponCode) {
+            const coupon = await Coupon.findOne({
+                code: couponCode.toUpperCase(),
+                isActive: true
+            });
+            if (coupon) {
+                const now = new Date();
+                const couponEndDate = new Date(coupon.endDate);
+                couponEndDate.setHours(23, 59, 59, 999);
+                const couponStartDate = new Date(coupon.startDate);
+                couponStartDate.setHours(0, 0, 0, 0);
+
+                if (now >= couponStartDate && now <= couponEndDate) {
+                    const isUsageLimitNotReached = !coupon.usageLimit || coupon.usageCount < coupon.usageLimit;
+                    
+                    let isUserLimitNotReached = true;
+                    if (coupon.usageLimitPerUser) {
+                        const userUsedCount = await Order.countDocuments({
+                            customer: userId,
+                            couponCode: coupon.code,
+                            status: { $nin: ["Cancelled", "Rejected"] }
+                        });
+                        if (userUsedCount >= coupon.usageLimitPerUser) {
+                            isUserLimitNotReached = false;
+                        }
+                    }
+
+                    const meetsMinPurchase = !coupon.minimumPurchase || calculatedSubtotal >= coupon.minimumPurchase;
+
+                    if (isUsageLimitNotReached && isUserLimitNotReached && meetsMinPurchase) {
+                        couponEntity = coupon;
+                        if (coupon.discountType === "Percentage") {
+                            couponDiscount = (calculatedSubtotal * coupon.discountValue) / 100;
+                            if (coupon.maximumDiscount && couponDiscount > coupon.maximumDiscount) {
+                                couponDiscount = coupon.maximumDiscount;
+                            }
+                        } else {
+                            couponDiscount = coupon.discountValue;
+                        }
+                        couponDiscount = Number(couponDiscount.toFixed(2));
+                    }
+                }
+            }
+        }
+
         const tipVal = Number(tipAmount) || 0;
-        const finalTotal = Number((calculatedSubtotal + platformFee + deliveryFee + calculatedTax + tipVal).toFixed(2));
+        const finalTotal = Number((calculatedSubtotal + platformFee + deliveryFee + calculatedTax + tipVal - couponDiscount).toFixed(2));
 
         const useWalletBool = !!useWallet;
         let walletUsed = 0;
@@ -623,6 +671,8 @@ export const createOrder = async (req: Request, res: Response) => {
         newOrder.tipAmount = tipVal;
         newOrder.shipping = deliveryFee;
         newOrder.platformFee = platformFee;
+        newOrder.discount = couponDiscount;
+        newOrder.couponCode = couponEntity ? couponEntity.code : undefined;
         newOrder.total = remainingTotal;
         newOrder.items = orderItemIds;
 
@@ -661,6 +711,9 @@ export const createOrder = async (req: Request, res: Response) => {
 
         if (session) {
             await newOrder.save({ session });
+            if (couponEntity) {
+                await Coupon.findByIdAndUpdate(couponEntity._id, { $inc: { usageCount: 1 } }, { session });
+            }
             await session.commitTransaction();
         } else {
             // Validate before saving to catch errors with details
@@ -670,6 +723,9 @@ export const createOrder = async (req: Request, res: Response) => {
                 throw validationError;
             }
             await newOrder.save();
+            if (couponEntity) {
+                await Coupon.findByIdAndUpdate(couponEntity._id, { $inc: { usageCount: 1 } });
+            }
         }
 
 
@@ -765,7 +821,7 @@ export const getMyOrders = async (req: Request, res: Response) => {
         const orders = await Order.find(query)
             .populate({
                 path: 'items',
-                populate: { path: 'product', select: 'productName mainImage price' }
+                populate: { path: 'product', select: 'productName mainImage price stock variations status publish' }
             })
             .sort({ createdAt: -1 })
             .skip(skip)
@@ -821,7 +877,7 @@ export const getOrderById = async (req: Request, res: Response) => {
             .populate({
                 path: 'items',
                 populate: [
-                    { path: 'product', select: 'productName mainImage pack manufacturer price' },
+                    { path: 'product', select: 'productName mainImage pack manufacturer price stock variations status publish' },
                     { path: 'seller', select: 'storeName city phone fssaiLicNo' }
                 ]
             })

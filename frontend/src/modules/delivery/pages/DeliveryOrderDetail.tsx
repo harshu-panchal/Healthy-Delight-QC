@@ -1153,13 +1153,14 @@ export default function DeliveryOrderDetail() {
 
             {/* Targeted Assignment Action Buttons / Modal Overlay */}
             {order.deliveryBoyStatus === 'Pending' && (
-                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-6">
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
                     <motion.div 
-                        initial={{ opacity: 0, scale: 0.95 }}
+                        initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl border border-neutral-100"
+                        className="bg-white rounded-2xl shadow-2xl border-2 border-primary p-4 sm:p-6 w-full max-w-md"
                     >
-                        <div className="w-12 h-12 rounded-full bg-teal-50 text-teal-600 flex items-center justify-center mb-4">
+                        {/* Centered Delivery Icon */}
+                        <div className="w-12 h-12 rounded-full bg-teal-50 text-teal-600 flex items-center justify-center mx-auto mb-4">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                                 <rect x="1" y="3" width="15" height="13" />
                                 <polygon points="16 8 20 8 23 11 23 16 16 16 16 8" />
@@ -1167,42 +1168,86 @@ export default function DeliveryOrderDetail() {
                                 <circle cx="18.5" cy="18.5" r="2.5" />
                             </svg>
                         </div>
-                        <h3 className="text-xl font-extrabold text-neutral-900 mb-2">New Delivery Assigned</h3>
-                        <p className="text-sm text-neutral-600 mb-4 leading-relaxed">
+
+                        <h3 className="text-xl font-extrabold text-neutral-900 text-center mb-1">New Delivery Assigned</h3>
+                        <p className="text-xs sm:text-sm text-neutral-600 text-center mb-4 leading-relaxed">
                             You have a new delivery assignment. Please review and accept to proceed.
                         </p>
                         
-                        <div className="bg-neutral-50 rounded-2xl p-4 mb-6 space-y-3">
-                            <div className="flex justify-between items-center text-xs">
-                                <span className="text-neutral-500 font-medium">Order ID</span>
-                                <span className="text-neutral-900 font-bold">{formatOrderFriendly(order.orderId)}</span>
+                        {/* Order Information Card - Same layout as Notification Pop-up */}
+                        <div className="space-y-3 mb-4 text-left max-h-[300px] overflow-y-auto pr-1">
+                            {order.orderType === 'Scheduled' && (
+                                <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                                    <p className="text-xs font-bold text-blue-700 uppercase tracking-wider mb-1">Scheduled Delivery</p>
+                                    <p className="text-sm font-semibold text-neutral-800">
+                                        {order.scheduledDate ? new Date(order.scheduledDate).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A'}
+                                    </p>
+                                    <p className="text-xs font-medium text-neutral-600 mt-0.5">
+                                        Slot: {order.scheduledTimeSlot || order.timeSlot || 'N/A'}
+                                    </p>
+                                </div>
+                            )}
+
+                            <div>
+                                <p className="text-xs sm:text-sm text-neutral-600">Order Number</p>
+                                <p className="text-base sm:text-lg font-semibold text-neutral-900 break-all">{formatOrderFriendly(undefined, order.orderId)}</p>
                             </div>
-                            <div className="flex justify-between items-start text-xs gap-2">
-                                <span className="text-neutral-500 font-medium flex-shrink-0">Delivery Address</span>
-                                <span className="text-neutral-900 font-semibold text-right line-clamp-2">{order.address}</span>
+
+                            <div>
+                                <p className="text-xs sm:text-sm text-neutral-600">Customer</p>
+                                <p className="text-sm sm:text-base font-semibold text-neutral-900 break-words">{order.customerName}</p>
+                                <p className="text-xs sm:text-sm text-neutral-500 break-all">{order.customerPhone}</p>
                             </div>
-                            <div className="pt-2.5 border-t border-dashed border-neutral-200 flex justify-between items-center">
-                                <span className="text-sm font-bold text-neutral-800">Your Earnings</span>
-                                <span className="text-base font-black text-emerald-600">
-                                    ₹{((order.shipping ?? 0) + (order.tipAmount ?? 0)).toFixed(2)}
-                                </span>
+
+                            <div>
+                                <p className="text-xs sm:text-sm text-neutral-600">Delivery Address</p>
+                                <p className="text-xs sm:text-sm text-neutral-900 break-words leading-relaxed">
+                                    {order.deliveryAddress ? (
+                                        `${order.deliveryAddress.address}${order.deliveryAddress.landmark ? `, Near ${order.deliveryAddress.landmark}` : ''}, ${order.deliveryAddress.city}${order.deliveryAddress.state ? `, ${order.deliveryAddress.state}` : ''} - ${order.deliveryAddress.pincode}`
+                                    ) : order.address}
+                                </p>
+                            </div>
+
+                            <div>
+                                <p className="text-xs sm:text-sm text-neutral-600">Order Amount</p>
+                                <div className="flex items-center gap-2">
+                                    <p className="text-lg sm:text-xl font-bold text-primary">₹{(order.totalAmount ?? 0).toFixed(2)}</p>
+                                    {(order.paymentMethod === 'Online' || order.paymentMethod === 'Wallet') && (
+                                        <span className="px-2 py-0.5 bg-green-100 text-green-800 rounded-md text-xs font-bold uppercase tracking-wider">
+                                            Paid
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Delivery Boy Earning & Tips Breakdown */}
+                            <div className="grid grid-cols-2 gap-3 border-t border-neutral-100 pt-3">
+                                <div className="p-2.5 bg-emerald-50/50 border border-emerald-100 rounded-lg">
+                                    <p className="text-[10px] font-black text-emerald-800 uppercase tracking-wider mb-0.5">Your Earning</p>
+                                    <p className="text-base font-extrabold text-emerald-700">₹{(order.shipping ?? 0).toFixed(2)}</p>
+                                </div>
+                                <div className="p-2.5 bg-amber-50/50 border border-amber-100 rounded-lg">
+                                    <p className="text-[10px] font-black text-amber-800 uppercase tracking-wider mb-0.5">Customer Tip</p>
+                                    <p className="text-base font-extrabold text-amber-700">₹{(order.tipAmount ?? 0).toFixed(2)}</p>
+                                </div>
                             </div>
                         </div>
 
+                        {/* Action Buttons */}
                         <div className="flex gap-3">
                             <button
                                 onClick={handleRejectAssignment}
                                 disabled={loading}
-                                className="flex-1 py-3.5 rounded-xl bg-white border border-red-200 hover:bg-red-50/50 text-red-600 font-bold text-sm transition-colors active:scale-[0.98] disabled:opacity-50"
+                                className="flex-1 px-4 py-3 bg-neutral-100 active:bg-neutral-200 text-neutral-700 font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation text-sm font-bold"
                             >
-                                {loading ? '...' : 'Reject'}
+                                {loading ? 'Processing...' : 'Reject'}
                             </button>
                             <button
                                 onClick={handleAcceptAssignment}
                                 disabled={loading}
-                                className="flex-1 py-3.5 rounded-xl bg-teal-600 text-white hover:bg-teal-700 font-bold text-sm shadow-md active:scale-[0.98] transition-colors disabled:opacity-50"
+                                className="flex-1 px-4 py-3 bg-primary active:bg-primary-600 text-white font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation text-sm font-bold"
                             >
-                                {loading ? '...' : 'Accept'}
+                                {loading ? 'Processing...' : 'Accept'}
                             </button>
                         </div>
                     </motion.div>

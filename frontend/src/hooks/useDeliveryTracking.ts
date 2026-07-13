@@ -31,7 +31,10 @@ interface TrackingData {
 const MAX_RECONNECT_ATTEMPTS = 5
 const INITIAL_RECONNECT_DELAY = 2000
 
-export const useDeliveryTracking = (orderId: string | undefined) => {
+export const useDeliveryTracking = (
+    orderId: string | undefined,
+    onOrderUpdate?: (event: string, data: any) => void
+) => {
     const [trackingData, setTrackingData] = useState<TrackingData>({
         deliveryLocation: null,
         eta: 30,
@@ -46,6 +49,12 @@ export const useDeliveryTracking = (orderId: string | undefined) => {
 
     const socketRef = useRef<Socket | null>(null)
     const reconnectAttemptsRef = useRef(0)
+    const onOrderUpdateRef = useRef(onOrderUpdate)
+
+    // Keep callback ref updated to avoid triggering useEffect when callback reference changes
+    useEffect(() => {
+        onOrderUpdateRef.current = onOrderUpdate
+    }, [onOrderUpdate])
 
     // Manual disconnect helper
     const disconnectSocket = useCallback(() => {
@@ -134,12 +143,52 @@ export const useDeliveryTracking = (orderId: string | undefined) => {
         const onStatusUpdate = (status: string) => (data: any) => {
             console.log(`📦 Status update: ${status}`, data)
             setTrackingData(prev => ({ ...prev, orderStatus: status, lastUpdate: new Date() }))
+            onOrderUpdateRef.current?.(status, data)
         }
 
-        const onTrackingStarted = (data: any) => console.log('📡 Tracking started:', data)
+        const onTrackingStarted = (data: any) => {
+            console.log('📡 Tracking started:', data)
+            onOrderUpdateRef.current?.('tracking-started', data)
+        }
+        
         const onTrackingError = (data: any) => {
             console.error('❌ Tracking error:', data)
             setTrackingData(prev => ({ ...prev, error: data.message || 'Tracking error' }))
+            onOrderUpdateRef.current?.('tracking-error', data)
+        }
+
+        const onDeliveryBoyAccepted = (data: any) => {
+            console.log('🛵 Delivery boy accepted:', data)
+            setTrackingData(prev => ({ ...prev, lastUpdate: new Date() }))
+            onOrderUpdateRef.current?.('delivery-boy-accepted', data)
+        }
+
+        const onDeliveryOtpRefreshed = (data: any) => {
+            console.log('🔑 Delivery OTP refreshed:', data)
+            setTrackingData(prev => ({ ...prev, lastUpdate: new Date() }))
+            onOrderUpdateRef.current?.('delivery-otp-refreshed', data)
+        }
+
+        const onDeliveryStatusUpdate = (data: any) => {
+            console.log('📦 Delivery status update:', data)
+            setTrackingData(prev => ({ 
+                ...prev, 
+                orderStatus: data.status, 
+                lastUpdate: new Date() 
+            }))
+            onOrderUpdateRef.current?.('delivery-status-update', data)
+        }
+
+        const onOrderCancelled = (data: any) => {
+            console.log('❌ Order cancelled:', data)
+            setTrackingData(prev => ({ ...prev, orderStatus: 'Cancelled', lastUpdate: new Date() }))
+            onOrderUpdateRef.current?.('order-cancelled', data)
+        }
+
+        const onOrderRejected = (data: any) => {
+            console.log('❌ Order rejected:', data)
+            setTrackingData(prev => ({ ...prev, orderStatus: 'Rejected', lastUpdate: new Date() }))
+            onOrderUpdateRef.current?.('order-rejected', data)
         }
 
         socket.on('tracking-started', onTrackingStarted)
@@ -150,6 +199,11 @@ export const useDeliveryTracking = (orderId: string | undefined) => {
             if (data.allPickedUp) onStatusUpdate(data.newStatus || 'Picked up')(data)
         })
         socket.on('order-delivered', onStatusUpdate('Delivered'))
+        socket.on('delivery-boy-accepted', onDeliveryBoyAccepted)
+        socket.on('delivery-otp-refreshed', onDeliveryOtpRefreshed)
+        socket.on('delivery-status-update', onDeliveryStatusUpdate)
+        socket.on('order-cancelled', onOrderCancelled)
+        socket.on('order-rejected', onOrderRejected)
 
         return () => {
             console.log('🧹 useDeliveryTracking: Cleaning up listeners')
@@ -159,6 +213,11 @@ export const useDeliveryTracking = (orderId: string | undefined) => {
             socket.off('order-taken')
             socket.off('seller-pickup-confirmed')
             socket.off('order-delivered')
+            socket.off('delivery-boy-accepted', onDeliveryBoyAccepted)
+            socket.off('delivery-otp-refreshed', onDeliveryOtpRefreshed)
+            socket.off('delivery-status-update', onDeliveryStatusUpdate)
+            socket.off('order-cancelled', onOrderCancelled)
+            socket.off('order-rejected', onOrderRejected)
         }
     }, [orderId, connectSocket])
 

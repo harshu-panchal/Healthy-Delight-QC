@@ -56,6 +56,19 @@ export default function Account() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Prevent background scrolling when modals or sheets are open
+  useEffect(() => {
+    const isAnyModalOpen = showEditProfileModal || showGstModal || showDeleteModal || showAddMoneyModal;
+    if (isAnyModalOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [showEditProfileModal, showGstModal, showDeleteModal, showAddMoneyModal]);
+
   useEffect(() => {
     const fetchProfile = async () => {
       try {

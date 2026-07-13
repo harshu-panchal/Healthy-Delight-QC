@@ -72,12 +72,25 @@ export const getDashboardStats = asyncHandler(
             .sort({ createdAt: -1 })
             .limit(10);
 
+        // Find all order items from this seller for these new orders
+        const dashboardSellerItems = await OrderItem.find({
+            order: { $in: newOrders.map(o => o._id) },
+            seller: sellerId
+        });
+
+        // Create a map of orderId -> sum(item.total)
+        const dashboardAmountMap: Record<string, number> = {};
+        dashboardSellerItems.forEach(item => {
+            const orderIdStr = item.order.toString();
+            dashboardAmountMap[orderIdStr] = (dashboardAmountMap[orderIdStr] || 0) + (item.total || 0);
+        });
+
         const formattedNewOrders = newOrders.map(order => ({
             id: order._id.toString(),
             orderId: order.orderNumber || order._id.toString(),
             orderDate: new Date(order.orderDate).toLocaleDateString('en-GB'),
             status: order.status === 'Out for Delivery' ? 'Out For Delivery' : order.status,
-            amount: order.total,
+            amount: dashboardAmountMap[order._id.toString()] || 0,
         }));
 
         // 4. Chart Data (Last 12 months)

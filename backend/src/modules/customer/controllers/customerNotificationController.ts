@@ -13,18 +13,34 @@ export const getNotifications = asyncHandler(async (req: Request, res: Response)
   const customer = await Customer.findById(customerId).select("createdAt");
   const userCreatedAt = customer?.createdAt || new Date(0);
 
+  // Filter to only show notifications from the last 21 days
+  const twentyOneDaysAgo = new Date();
+  twentyOneDaysAgo.setDate(twentyOneDaysAgo.getDate() - 21);
+
+  // Use the later date between user registration and 21 days ago
+  const filterDate = userCreatedAt > twentyOneDaysAgo ? userCreatedAt : twentyOneDaysAgo;
+
   const notifications = await Notification.find({
-    createdAt: { $gte: userCreatedAt },
+    createdAt: { $gte: filterDate },
     $or: [
+      { expiresAt: { $exists: false } },
+      { expiresAt: null },
+      { expiresAt: { $gte: new Date() } }
+    ],
+    $and: [
       {
-        recipientType: "Customer",
         $or: [
-          { recipientId: customerId },
-          { recipientId: null } // Broadcasts to all customers
+          {
+            recipientType: "Customer",
+            $or: [
+              { recipientId: customerId },
+              { recipientId: null } // Broadcasts to all customers
+            ]
+          },
+          {
+            recipientType: "All" // Global broadcasts
+          }
         ]
-      },
-      {
-        recipientType: "All" // Global broadcasts
       }
     ]
   })

@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation as useRouterLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useOrders } from '../../hooks/useOrders';
@@ -6,6 +6,7 @@ import { useCart } from '../../context/CartContext';
 import { useLocation } from '../../hooks/useLocation';
 import logo from '../../../assets/logo.png';
 import SectionHeading from '../../components/SectionHeading';
+import { useToast } from '../../context/ToastContext';
 
 const formatOrderFriendly = (orderNumber?: string, orderId?: string) => {
   if (orderNumber && orderNumber !== 'N/A') {
@@ -60,6 +61,8 @@ export default function OrderAgain() {
   const navigate = useNavigate();
   const [addedOrders, setAddedOrders] = useState<Set<string>>(new Set());
   const [isHeaderSolid, setIsHeaderSolid] = useState(false);
+  const [reorderingId, setReorderingId] = useState<string | null>(null);
+  const { showToast } = useToast();
   const { location: userLocation } = useLocation();
   const locationPath = useRouterLocation();
 
@@ -80,42 +83,91 @@ export default function OrderAgain() {
       (userLocation?.city || ""));
 
   // Handle "Order Again" - Add all items from an order to cart
-  const handleOrderAgain = (order: any, e: React.MouseEvent) => {
+  const handleOrderAgain = async (order: any, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
 
-    // Mark this order as added
-    setAddedOrders(prev => new Set(prev).add(order.id));
+    if (reorderingId) return;
 
-    // Add each item from the order to the cart
-    order.items
-      .filter((item: any) => item?.product) // Filter out items with null/undefined products
-      .forEach((item: any) => {
-        // Check if product is already in cart
-        const existingCartItem = cart.items.find(cartItem => cartItem?.product && cartItem.product.id === item.product.id);
+    // Verify stock and availability of all items in the order
+    const outOfStockItems: string[] = [];
+    const unavailableItems: string[] = [];
 
-        if (existingCartItem) {
-          // If already in cart, add the order quantity to existing quantity
-          updateQuantity(item.product.id, existingCartItem.quantity + item.quantity);
-        } else {
-          // If not in cart, add it first (adds 1)
-          addToCart(item.product);
-          // Then update to the correct quantity if needed
-          if (item.quantity > 1) {
-            // Use setTimeout to ensure the item is added first
-            setTimeout(() => {
-              updateQuantity(item.product.id, item.quantity);
-            }, 10);
-          }
+    order.items.forEach((item: any) => {
+      if (!item.product) return;
+
+      // Check if product is active and published
+      if (item.product.status !== 'Active' || item.product.publish === false) {
+        unavailableItems.push(item.product.productName || item.product.name || 'Product');
+        return;
+      }
+
+      const varName = item.variation || item.variantTitle;
+      let availableStock = 0;
+
+      if (item.product.variations?.length && varName) {
+        const matchedVar = item.product.variations.find((v: any) =>
+          v.value === varName || v.title === varName || v.pack === varName || v.name === varName
+        );
+        availableStock = matchedVar ? (matchedVar.stock ?? 0) : (item.product.stock ?? 0);
+      } else {
+        availableStock = item.product.stock ?? 0;
+      }
+
+      if (availableStock < item.quantity) {
+        outOfStockItems.push(`${item.product.productName || item.product.name}${varName ? ` (${varName})` : ''}`);
+      }
+    });
+
+    if (unavailableItems.length > 0) {
+      showToast(`Sorry, these items are no longer available: ${unavailableItems.join(', ')}`, 'error');
+      return;
+    }
+
+    if (outOfStockItems.length > 0) {
+      showToast(`Sorry, these items are out of stock: ${outOfStockItems.join(', ')}`, 'error');
+      return;
+    }
+
+    setReorderingId(order.id);
+    try {
+      // Add each item from the order to the cart sequentially to avoid race conditions
+      for (const item of order.items) {
+        if (!item.product) continue;
+
+        const varName = item.variation || item.variantTitle;
+        const productWithVariant = {
+          ...item.product,
+          variantTitle: varName,
+          pack: varName,
+        };
+
+        // Add item to cart (adds 1 unit or minWholesaleQty)
+        await addToCart(productWithVariant);
+
+        // If the ordered quantity was greater than 1, update the quantity
+        if (item.quantity > 1) {
+          const productId = item.product.id || item.product._id;
+          await updateQuantity(productId, item.quantity, undefined, varName);
         }
-      });
+      }
+
+      setAddedOrders(prev => new Set(prev).add(order.id));
+      showToast("Order items added to cart successfully!", "success");
+      navigate('/checkout');
+    } catch (error) {
+      console.error("Failed to reorder items:", error);
+      showToast("Failed to reorder some items. Please check your cart.", "error");
+    } finally {
+      setReorderingId(null);
+    }
   };
 
   const hasOrders = orders && orders.length > 0;
 
   return (
     <div className="min-h-screen bg-transparent relative flex flex-col pt-[140px] md:pt-[5px]">
-      {/* Premium Home-Style Fixed Header (MOBILE ONLY) */}
+      {/* Premium Profile-Style Fixed Header (MOBILE ONLY) */}
       <header
         className="md:hidden fixed top-0 left-0 w-full z-50 transition-all duration-300"
         style={{
@@ -123,56 +175,33 @@ export default function OrderAgain() {
             ? '#0a193b'
             : 'linear-gradient(180deg, #0a193b 0%, rgba(10, 25, 59, 0.9) 30%, rgba(10, 25, 59, 0.7) 60%, rgba(10, 25, 59, 0.4) 85%, rgba(252, 250, 247, 0) 100%)',
           boxShadow: isHeaderSolid ? "0 12px 24px rgba(0,0,0,0.12)" : "none",
-          paddingBottom: isHeaderSolid ? '8px' : '20px',
+          paddingBottom: '16px',
           borderBottomLeftRadius: isHeaderSolid ? '20px' : '0px',
           borderBottomRightRadius: isHeaderSolid ? '20px' : '0px',
         }}
       >
-        <div className="px-5 md:px-10 pt-5 pb-3">
-          <div className="flex items-center justify-between gap-3 md:gap-6">
-            {/* Logo & Location Container */}
-            <div className="flex items-center gap-3 md:gap-8 flex-1 min-w-0">
-              {/* Logo */}
-              <div className="flex items-center gap-2.5 flex-shrink-0 cursor-pointer group" onClick={() => navigate('/')}>
-                <img src={logo} alt="Healthy Delight" className="h-8 md:h-9 w-auto object-contain brightness-0 invert drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)] transition-transform group-hover:scale-105" />
-              </div>
-
-              {/* Location (Only if available) */}
-              {locationDisplayText && (
-                <div onClick={() => navigate('/address-book')} className="flex items-center gap-2 cursor-pointer flex-1 min-w-0 max-w-[130px] sm:max-w-[240px] md:max-w-md group">
-                  <div className="p-1.5 rounded-full bg-white/10 text-white/90 group-hover:bg-white/20 transition-all border border-white/20">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" strokeLinecap="round" strokeLinejoin="round" />
-                      <circle cx="12" cy="10" r="3" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  </div>
-                  <div className="flex flex-col min-w-0">
-                    <span className="text-[10px] uppercase tracking-widest font-bold text-white/50 leading-none mb-0.5">Delivery to</span>
-                    <div className="flex items-center gap-1 min-w-0">
-                      <span className="text-sm font-bold text-white/95 truncate group-hover:text-white transition-colors">{locationDisplayText}</span>
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" className="text-white/40 group-hover:text-white transition-colors flex-shrink-0">
-                        <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Profile Button */}
+        <div className="px-5 md:px-10 pt-5 flex items-center justify-between">
+          <div className="flex items-center gap-3">
             <button
-              onClick={() => navigate('/account')}
-              className="flex-shrink-0 w-10 h-10 rounded-full bg-white/10 text-white flex items-center justify-center border border-white/20 hover:bg-white/20 transition-all shadow-lg"
+              onClick={() => navigate(-1)}
+              className="w-10 h-10 rounded-full bg-white/10 text-white flex items-center justify-center border border-white/20 hover:bg-white/20 transition-all shadow-lg"
+              aria-label="Back"
             >
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M15 18L9 12L15 6" />
               </svg>
             </button>
+            <h1 className="text-xl font-bold text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.2)]">
+              Order Again
+            </h1>
+          </div>
+          <div className="cursor-pointer" onClick={() => navigate("/")}>
+            <img src={logo} alt="Healthy Delight" className="h-8 md:h-9 w-auto object-contain brightness-0 invert drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)] transition-transform hover:scale-105" />
           </div>
         </div>
 
         {/* Home-Style Search Bar */}
-        <div className="px-5 md:px-10 py-3">
+        <div className="px-5 md:px-10 pt-3">
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -281,20 +310,30 @@ export default function OrderAgain() {
                       <div className="flex items-center justify-end">
                         <button
                           onClick={(e) => handleOrderAgain(order, e)}
-                          disabled={addedOrders.has(order.id)}
-                          className={`w-full md:w-auto h-10 px-8 rounded-full text-[13px] font-bold transition-all duration-300 shadow-[0_4px_10px_rgba(10,25,59,0.2)] active:scale-95 flex items-center justify-center gap-2 ${addedOrders.has(order.id)
+                          disabled={reorderingId !== null || addedOrders.has(order.id)}
+                          className={`w-full md:w-auto h-10 px-8 rounded-full text-[13px] font-bold transition-all duration-300 active:scale-95 flex items-center justify-center gap-2 ${
+                            addedOrders.has(order.id)
                               ? 'bg-emerald-50 text-emerald-600 shadow-inner cursor-not-allowed border border-emerald-100'
-                              : 'bg-[#0a193b] text-white hover:bg-[#122b5e] hover:shadow-[0_8px_20px_rgba(10,25,59,0.3)]'
-                            }`}
+                              : reorderingId === order.id
+                              ? 'bg-[#0a193b]/70 text-white cursor-not-allowed'
+                              : 'bg-[#0a193b] text-white hover:bg-[#122b5e] hover:shadow-[0_8px_20px_rgba(10,25,59,0.3)] shadow-[0_4px_10px_rgba(10,25,59,0.2)]'
+                          }`}
                         >
-                          {addedOrders.has(order.id) ? (
+                          {reorderingId === order.id ? (
+                            <>
+                              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                              <span>Reordering...</span>
+                            </>
+                          ) : addedOrders.has(order.id) ? (
                             <>
                               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                                 <path d="M20 6L9 17l-5-5" />
                               </svg>
-                              Added to Cart
+                              <span>Added to Cart</span>
                             </>
-                          ) : 'Order Again'}
+                          ) : (
+                            'Order Again'
+                          )}
                         </button>
                       </div>
                     </div>

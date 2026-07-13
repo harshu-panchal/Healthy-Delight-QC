@@ -158,6 +158,12 @@ export default function Checkout() {
     }
   }, [selectedAddress?.id, selectedAddress?.latitude, selectedAddress?.longitude]);
   const [showCouponSheet, setShowCouponSheet] = useState(false);
+
+  useEffect(() => {
+    if (showCouponSheet) {
+      setCouponError(null);
+    }
+  }, [showCouponSheet]);
   const [selectedCoupon, setSelectedCoupon] = useState<ApiCoupon | null>(null);
   const [showPartyPopper, setShowPartyPopper] = useState(false);
   const [hasAppliedCouponBefore, setHasAppliedCouponBefore] = useState(false);
@@ -672,7 +678,7 @@ export default function Checkout() {
     ) {
       // Invalid now
     } else {
-      if (selectedCoupon.discountType === "percentage") {
+      if (selectedCoupon.discountType === "percentage" || selectedCoupon.discountType === "Percentage") {
         currentCouponDiscount = Math.round(
           (subtotalBeforeCoupon * selectedCoupon.discountValue) / 100
         );
@@ -743,7 +749,7 @@ export default function Checkout() {
       if (result.success && result.data?.isValid) {
         const isFirstTime = !hasAppliedCouponBefore;
         const resData = result.data as any;
-        const applied = resData?.coupon || {
+        const applied: ApiCoupon = resData?.coupon || {
           code: code.toUpperCase(),
           title: `Coupon ${code.toUpperCase()}`,
           description: `Saves ₹${resData?.discountAmount}`,
@@ -2694,6 +2700,16 @@ export default function Checkout() {
           </SheetHeader>
 
           <div className="px-4 pb-4 overflow-y-auto max-h-[calc(85vh-80px)]">
+            {couponError && (
+              <div className="my-3 p-3 bg-red-50 border border-red-100 rounded-lg text-xs text-red-600 font-semibold flex items-center gap-1.5 animate-pulse">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="flex-shrink-0">
+                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                  <line x1="12" y1="9" x2="12" y2="13"></line>
+                  <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                </svg>
+                <span>{couponError}</span>
+              </div>
+            )}
             <div className="space-y-2.5 mt-2">
               {availableCoupons.length === 0 ? (
                 <div className="text-center py-8 text-neutral-500">
@@ -2702,7 +2718,7 @@ export default function Checkout() {
               ) : (
                 availableCoupons.map((coupon) => {
                   const subtotalBeforeCoupon =
-                    discountedTotal + handlingCharge + deliveryCharge;
+                    discountedTotal + handlingCharge + deliveryCharge + taxTotal;
                   const meetsMinOrder =
                     !coupon.minOrderValue ||
                     subtotalBeforeCoupon >= coupon.minOrderValue;
@@ -2710,63 +2726,84 @@ export default function Checkout() {
 
                   return (
                     <div
-                      key={coupon._id}
-                      className={`border-2 rounded-lg p-2.5 transition-all ${isSelected
+                      key={coupon._id || coupon.code}
+                      className={`border-2 rounded-lg p-3 transition-all ${isSelected
                         ? "border-[#0a193b] bg-[#0a193b]/5"
                         : meetsMinOrder
-                          ? "border-neutral-200 bg-white"
+                          ? "border-neutral-200 bg-white shadow-sm"
                           : "border-neutral-200 bg-neutral-50 opacity-60"
                         }`}>
-                      <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-start gap-3">
+                        {/* Coupon Image */}
+                        {coupon.imageUrl ? (
+                          <img
+                            src={coupon.imageUrl}
+                            alt={coupon.title || coupon.code}
+                            className="w-12 h-12 object-cover rounded-md border border-neutral-100 flex-shrink-0 bg-white"
+                          />
+                        ) : (
+                          <div className="w-12 h-12 rounded-md bg-[#0a193b]/5 text-[#0a193b] flex items-center justify-center flex-shrink-0">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+                              <line x1="7" y1="7" x2="7.01" y2="7"></line>
+                            </svg>
+                          </div>
+                        )}
+
+                        {/* Coupon Details */}
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="text-xs font-bold text-[#0a193b]">
+                          <div className="flex flex-col items-start mb-1">
+                            <span className="inline-block px-1.5 py-0.5 bg-[#0a193b]/5 text-[#0a193b] rounded font-mono font-bold text-[9px] tracking-wide mb-0.5 uppercase">
                               {coupon.code}
                             </span>
-                            <span className="text-xs font-semibold text-neutral-900">
-                              {coupon.title}
+                            <span className="text-xs font-bold text-neutral-800 leading-tight">
+                              {coupon.title || "Special Coupon"}
                             </span>
                           </div>
-                          <p className="text-[10px] text-neutral-600 mb-1">
+                          <p className="text-[10px] text-neutral-600 mb-1 leading-normal">
                             {coupon.description}
                           </p>
                           {coupon.minOrderValue && (
-                            <p className="text-[10px] text-neutral-500">
+                            <p className="text-[9px] text-neutral-400">
                               Min. order: ₹{coupon.minOrderValue}
                             </p>
                           )}
                         </div>
-                        {isSelected ? (
-                          <div className="flex items-center gap-1 text-[#0a193b]">
-                            <svg
-                              width="16"
-                              height="16"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              xmlns="http://www.w3.org/2000/svg">
-                              <path
-                                d="M20 6L9 17l-5-5"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                            </svg>
-                            <span className="text-xs font-bold">Applied</span>
-                          </div>
-                        ) : (
-                          <button
-                            onClick={() =>
-                              meetsMinOrder && handleApplyCoupon(coupon)
-                            }
-                            disabled={!meetsMinOrder || isValidatingCoupon}
-                            className={`px-3 py-1 rounded text-xs font-bold transition-colors ${meetsMinOrder
-                              ? "bg-[#0a193b] text-white hover:bg-[#0a193b]/90"
-                              : "bg-neutral-300 text-neutral-500 cursor-not-allowed"
-                              }`}>
-                            {isValidatingCoupon ? "..." : "Apply"}
-                          </button>
-                        )}
+
+                        {/* Action Button */}
+                        <div className="flex-shrink-0 self-center">
+                          {isSelected ? (
+                            <div className="flex items-center gap-0.5 text-[#0a193b]">
+                              <svg
+                                width="14"
+                                height="14"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <path
+                                  d="M20 6L9 17l-5-5"
+                                  stroke="currentColor"
+                                  strokeWidth="2.5"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                              </svg>
+                              <span className="text-[10px] font-bold">Applied</span>
+                            </div>
+                          ) : (
+                            <button
+                              onClick={() =>
+                                meetsMinOrder && handleApplyCoupon(coupon)
+                              }
+                              disabled={!meetsMinOrder || isValidatingCoupon}
+                              className={`px-2.5 py-1 rounded text-[11px] font-bold transition-colors ${meetsMinOrder
+                                ? "bg-[#0a193b] text-white hover:bg-[#0a193b]/90"
+                                : "bg-neutral-200 text-neutral-400 cursor-not-allowed"
+                                }`}>
+                              {isValidatingCoupon ? "..." : "Apply"}
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </div>
                   );

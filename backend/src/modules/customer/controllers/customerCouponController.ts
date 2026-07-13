@@ -1,15 +1,20 @@
 import { Request, Response } from "express";
 import Coupon from "../../../models/Coupon";
+import Order from "../../../models/Order";
 
 // Get available coupons
 export const getCoupons = async (_req: Request, res: Response) => {
     try {
-        const currentDate = new Date();
+        const startOfToday = new Date();
+        startOfToday.setHours(0, 0, 0, 0);
+
+        const endOfToday = new Date();
+        endOfToday.setHours(23, 59, 59, 999);
 
         const coupons = await Coupon.find({
             isActive: true,
-            startDate: { $lte: currentDate },
-            endDate: { $gte: currentDate },
+            startDate: { $lte: endOfToday },
+            endDate: { $gte: startOfToday },
         }).sort({ endDate: 1 });
 
         return res.status(200).json({
@@ -51,8 +56,15 @@ export const validateCoupon = async (req: Request, res: Response) => {
         }
 
         // Check dates
-        const currentDate = new Date();
-        if (currentDate < coupon.startDate || currentDate > coupon.endDate) {
+        const now = new Date();
+        
+        const couponEndDate = new Date(coupon.endDate);
+        couponEndDate.setHours(23, 59, 59, 999);
+
+        const couponStartDate = new Date(coupon.startDate);
+        couponStartDate.setHours(0, 0, 0, 0);
+
+        if (now < couponStartDate || now > couponEndDate) {
             return res.status(400).json({
                 success: false,
                 message: "Coupon has expired",
@@ -65,6 +77,22 @@ export const validateCoupon = async (req: Request, res: Response) => {
                 success: false,
                 message: "Coupon usage limit reached",
             });
+        }
+
+        // Check usage limit per user
+        if (coupon.usageLimitPerUser) {
+            const userId = req.user!.userId;
+            const userUsedCount = await Order.countDocuments({
+                customer: userId,
+                couponCode: coupon.code,
+                status: { $nin: ["Cancelled", "Rejected"] }
+            });
+            if (userUsedCount >= coupon.usageLimitPerUser) {
+                return res.status(400).json({
+                    success: false,
+                    message: `You have already used this coupon maximum number of times (${coupon.usageLimitPerUser})`,
+                });
+            }
         }
 
         // Check min order value

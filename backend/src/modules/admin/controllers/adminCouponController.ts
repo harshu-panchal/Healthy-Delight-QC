@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { asyncHandler } from "../../../utils/asyncHandler";
 import Coupon from "../../../models/Coupon";
+import Order from "../../../models/Order";
 
 /**
  * Create a new coupon
@@ -9,6 +10,8 @@ export const createCoupon = asyncHandler(
   async (req: Request, res: Response) => {
     const {
       code,
+      title,
+      imageUrl,
       description,
       discountType,
       discountValue,
@@ -46,6 +49,8 @@ export const createCoupon = asyncHandler(
 
     const coupon = await Coupon.create({
       code: code.toUpperCase(),
+      title,
+      imageUrl,
       description,
       discountType,
       discountValue,
@@ -243,7 +248,13 @@ export const validateCoupon = asyncHandler(
 
     // Check date validity
     const now = new Date();
-    if (now < coupon.startDate || now > coupon.endDate) {
+    const couponEndDate = new Date(coupon.endDate);
+    couponEndDate.setHours(23, 59, 59, 999);
+
+    const couponStartDate = new Date(coupon.startDate);
+    couponStartDate.setHours(0, 0, 0, 0);
+
+    if (now < couponStartDate || now > couponEndDate) {
       return res.status(400).json({
         success: false,
         message: "Coupon is not valid at this time",
@@ -256,6 +267,21 @@ export const validateCoupon = asyncHandler(
         success: false,
         message: "Coupon usage limit exceeded",
       });
+    }
+
+    // Check usage limit per user
+    if (coupon.usageLimitPerUser && _userId) {
+      const userUsedCount = await Order.countDocuments({
+        customer: _userId,
+        couponCode: coupon.code,
+        status: { $nin: ["Cancelled", "Rejected"] }
+      });
+      if (userUsedCount >= coupon.usageLimitPerUser) {
+        return res.status(400).json({
+          success: false,
+          message: "User coupon usage limit exceeded",
+        });
+      }
     }
 
     // Check minimum purchase

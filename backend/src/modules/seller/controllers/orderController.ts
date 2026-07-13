@@ -89,6 +89,19 @@ export const getOrders = asyncHandler(
     // Get total count for pagination
     const total = await Order.countDocuments(query);
 
+    // Find all order items from this seller for these orders
+    const allSellerItems = await OrderItem.find({
+      order: { $in: orders.map(o => o._id) },
+      seller: sellerId
+    });
+
+    // Create a map of orderId -> sum(item.total)
+    const orderAmountMap: Record<string, number> = {};
+    allSellerItems.forEach(item => {
+      const orderIdStr = item.order.toString();
+      orderAmountMap[orderIdStr] = (orderAmountMap[orderIdStr] || 0) + (item.total || 0);
+    });
+
     // Format response for frontend
     const formattedOrders = orders.map(order => ({
       id: order._id,
@@ -100,7 +113,7 @@ export const getOrders = asyncHandler(
             : order.orderDate.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })),
       orderDate: order.orderDate.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }),
       status: order.status === 'On the way' ? 'On the way' : order.status,
-      amount: order.total,
+      amount: orderAmountMap[order._id.toString()] || 0,
       customerName: (order.customer as any)?.name || order.customerName || '',
       customerPhone: (order.customer as any)?.phone || order.customerPhone || '',
       deliveryBoyName: (order.deliveryBoy as any)?.name || '',

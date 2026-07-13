@@ -18,6 +18,8 @@ export interface OrderNotificationData {
     total: number;
     subtotal: number;
     shipping: number;
+    tipAmount?: number;
+    deliveryEarning?: number;
     createdAt: string;
     type?: string;
     orderType?: string;

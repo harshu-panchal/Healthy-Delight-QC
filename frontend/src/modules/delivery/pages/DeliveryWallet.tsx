@@ -7,7 +7,6 @@ import {
     getDeliveryWalletTransactions,
     requestDeliveryWithdrawal,
     getDeliveryWithdrawals,
-    getDeliveryCommissions,
     createAdminPayoutOrder,
     verifyAdminPayout,
 } from "../../../services/api/deliveryWalletService";
@@ -42,7 +41,7 @@ const formatDescriptionFriendly = (desc: string) => {
     return desc;
 };
 
-type Tab = "transactions" | "withdrawals" | "commissions";
+    type Tab = "transactions" | "withdrawals" | "deposits";
 
 export default function DeliveryWallet() {
     const navigate = useNavigate();
@@ -54,12 +53,6 @@ export default function DeliveryWallet() {
     const [cashCollected, setCashCollected] = useState(0);
     const [transactions, setTransactions] = useState<any[]>([]);
     const [withdrawals, setWithdrawals] = useState<any[]>([]);
-    const [commissions, setCommissions] = useState<any>({
-        commissions: [],
-        total: 0,
-        paid: 0,
-        pending: 0,
-    });
     const [loading, setLoading] = useState(true);
     const [showWithdrawModal, setShowWithdrawModal] = useState(false);
     const [showPayoutModal, setShowPayoutModal] = useState(false);
@@ -102,12 +95,11 @@ export default function DeliveryWallet() {
     const fetchWalletData = async (isSilent = false) => {
         try {
             if (!isSilent) setLoading(true);
-            const [balanceRes, transactionsRes, withdrawalsRes, commissionsRes] =
+            const [balanceRes, transactionsRes, withdrawalsRes] =
                 await Promise.all([
                     getDeliveryWalletBalance(),
                     getDeliveryWalletTransactions(),
                     getDeliveryWithdrawals(),
-                    getDeliveryCommissions(),
                 ]);
 
             if (balanceRes.success) {
@@ -118,7 +110,6 @@ export default function DeliveryWallet() {
             if (transactionsRes.success)
                 setTransactions(transactionsRes.data.transactions || []);
             if (withdrawalsRes.success) setWithdrawals(withdrawalsRes.data || []);
-            if (commissionsRes.success) setCommissions(commissionsRes.data);
         } catch (error: any) {
             showToast(
                 error.response?.data?.message || "Failed to load wallet data",
@@ -262,6 +253,18 @@ export default function DeliveryWallet() {
         .filter((w) => w.status === "Completed")
         .reduce((sum, w) => sum + w.amount, 0);
 
+    const totalEarned = transactions
+        .filter((t) => t.type === "Credit")
+        .reduce((sum, t) => sum + t.amount, 0);
+
+    const totalDeposited = transactions
+        .filter((txn) => 
+            txn.description?.toLowerCase().includes("payout to admin") || 
+            txn.description?.toLowerCase().includes("deposit") ||
+            txn.reference?.startsWith("PAYOUT-")
+        )
+        .reduce((sum, t) => sum + t.amount, 0);
+
     if (loading) {
         return (
             <div className="flex items-center justify-center min-h-screen bg-gray-50">
@@ -375,22 +378,22 @@ export default function DeliveryWallet() {
                 </motion.div>
             </div>
 
-            {/* Commission Summary */}
+            {/* Wallet Summary */}
             <div className="mx-4 mb-4 grid grid-cols-3 gap-3">
                 <div className="bg-white rounded-xl p-4 shadow-sm">
                     <p className="text-xs text-gray-600 mb-1">Total Earned</p>
                     <p className="text-lg font-bold text-gray-900">
-                        ₹{commissions.total?.toFixed(2) || "0.00"}
+                        ₹{totalEarned.toFixed(2)}
                     </p>
                 </div>
                 <div className="bg-white rounded-xl p-4 shadow-sm">
-                    <p className="text-xs text-gray-600 mb-1">Paid</p>
+                    <p className="text-xs text-gray-600 mb-1">Deposited</p>
                     <p className="text-lg font-bold text-green-600">
-                        ₹{commissions.paid?.toFixed(2) || "0.00"}
+                        ₹{totalDeposited.toFixed(2)}
                     </p>
                 </div>
                 <div className="bg-white rounded-xl p-4 shadow-sm">
-                    <p className="text-xs text-gray-600 mb-1">Pending</p>
+                    <p className="text-xs text-gray-600 mb-1">Pending Payout</p>
                     <p className="text-lg font-bold text-orange-600">
                         ₹{pendingWithdrawalAmount.toFixed(2)}
                     </p>
@@ -417,12 +420,12 @@ export default function DeliveryWallet() {
                         Withdrawals
                     </button>
                     <button
-                        onClick={() => setActiveTab("commissions")}
-                        className={`flex-1 py-3 text-sm font-semibold transition-colors ${activeTab === "commissions"
+                        onClick={() => setActiveTab("deposits")}
+                        className={`flex-1 py-3 text-sm font-semibold transition-colors ${activeTab === "deposits"
                             ? "text-green-600 border-b-2 border-green-600"
                             : "text-gray-600"
                             }`}>
-                        Commissions
+                        Deposits
                     </button>
                 </div>
 
@@ -518,38 +521,46 @@ export default function DeliveryWallet() {
                         </div>
                     )}
 
-                    {/* Commissions Tab */}
-                    {activeTab === "commissions" && (
+                    {/* Deposits Tab */}
+                    {activeTab === "deposits" && (
                         <div className="space-y-3">
-                            {commissions.commissions?.length === 0 ? (
-                                <p className="text-center text-gray-500 py-8">
-                                    No commissions yet
-                                </p>
-                            ) : (
-                                commissions.commissions?.map((comm: any) => (
-                                    <div key={comm.id} className="p-3 bg-gray-50 rounded-lg">
-                                        <div className="flex justify-between items-start mb-2">
-                                            <div>
-                                                <p className="font-medium text-gray-900">
-                                                    Delivery Commission (#{formatOrderFriendly(comm.orderNumber, comm.orderId)})
-                                                </p>
-                                                <p className="text-xs text-gray-600">
-                                                    Rate: {comm.rate}%
-                                                </p>
-                                            </div>
-                                            <p className="font-bold text-green-600">
-                                                ₹{comm.amount.toFixed(2)}
+                            {(() => {
+                                const depositsList = transactions.filter((txn: any) => 
+                                    txn.description?.toLowerCase().includes("payout to admin") || 
+                                    txn.description?.toLowerCase().includes("deposit") ||
+                                    txn.reference?.startsWith("PAYOUT-")
+                                );
+
+                                if (depositsList.length === 0) {
+                                    return (
+                                        <p className="text-center text-gray-500 py-8">
+                                            No deposits yet
+                                        </p>
+                                    );
+                                }
+
+                                return depositsList.map((txn: any) => (
+                                    <div key={txn._id} className="p-3 bg-gray-50 rounded-lg flex justify-between items-center">
+                                        <div>
+                                            <p className="font-bold text-gray-900">
+                                                ₹{txn.amount.toFixed(2)}
+                                            </p>
+                                            <p className="text-xs text-gray-500 mt-1">
+                                                {new Date(txn.createdAt).toLocaleDateString("en-IN", {
+                                                    day: "numeric",
+                                                    month: "short",
+                                                    year: "numeric",
+                                                    hour: "2-digit",
+                                                    minute: "2-digit",
+                                                })}
                                             </p>
                                         </div>
-                                        <div className="flex justify-between text-xs text-gray-500">
-                                            <span>Order Amount: ₹{comm.orderAmount.toFixed(2)}</span>
-                                            <span>
-                                                {new Date(comm.createdAt).toLocaleDateString("en-IN")}
-                                            </span>
-                                        </div>
+                                        <span className="px-2 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700">
+                                            Deposited
+                                        </span>
                                     </div>
-                                ))
-                            )}
+                                ));
+                            })()}
                         </div>
                     )}
                 </div>

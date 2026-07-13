@@ -154,6 +154,17 @@ const SellerNotificationAlert: React.FC<SellerNotificationAlertProps> = ({ notif
     }
   }, [volume]);
 
+  useEffect(() => {
+    if (notification) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [notification]);
+
   if (!notification) return null;
 
   return (

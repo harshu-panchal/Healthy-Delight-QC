@@ -348,6 +348,18 @@ export default function OrderNotificationCard({
                             )}
                         </div>
                     </div>
+
+                    {/* Delivery Boy Earning & Tips Breakdown */}
+                    <div className="grid grid-cols-2 gap-3 border-t border-neutral-100 pt-3">
+                        <div className="p-2.5 bg-emerald-50/50 border border-emerald-100 rounded-lg">
+                            <p className="text-[10px] font-black text-emerald-800 uppercase tracking-wider mb-0.5">Your Earning</p>
+                            <p className="text-base font-extrabold text-emerald-700">₹{(notification.deliveryEarning ?? notification.shipping ?? 0).toFixed(2)}</p>
+                        </div>
+                        <div className="p-2.5 bg-amber-50/50 border border-amber-100 rounded-lg">
+                            <p className="text-[10px] font-black text-amber-800 uppercase tracking-wider mb-0.5">Customer Tip</p>
+                            <p className="text-base font-extrabold text-amber-700">₹{(notification.tipAmount ?? 0).toFixed(2)}</p>
+                        </div>
+                    </div>
                 </div>
 
                 {/* Action Buttons */}
