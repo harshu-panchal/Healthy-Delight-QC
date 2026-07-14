@@ -38,6 +38,7 @@ export interface RegisterData {
   taxName: string;
   taxNumber: string;
   ifsc: string;
+  upiId?: string;
   serviceableArea?: string;
   searchLocation?: string;
   latitude?: string;

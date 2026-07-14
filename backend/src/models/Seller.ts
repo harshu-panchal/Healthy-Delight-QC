@@ -49,6 +49,7 @@ export interface ISeller extends Document {
   branch?: string;
   accountNumber?: string;
   ifsc?: string;
+  upiId?: string;
 
   // Documents (URLs pointing to cloud storage)
   profile?: string;
@@ -258,6 +259,10 @@ const SellerSchema = new Schema<ISeller>(
       },
     },
     ifsc: {
+      type: String,
+      trim: true,
+    },
+    upiId: {
       type: String,
       trim: true,
     },

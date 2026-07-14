@@ -57,12 +57,29 @@ export default function AddToCartAnimation({
   const flyingThumbnailRef = useRef<HTMLDivElement>(null);
   const prevItemsRef = useRef(cart.items);
 
-  // Hide pill on checkout pages, order pages, invoice pages, and account page (if enabled)
+  // Hide pill on checkout pages, order pages, invoice pages, cart page, and profile/account/info pages (if enabled)
   const isCheckoutPage = location.pathname === '/checkout' || location.pathname.startsWith('/checkout/');
-  const isOrderPage = location.pathname.startsWith('/orders/');
-  const isAccountPage = location.pathname === '/account';
+  const isOrderPage = location.pathname === '/orders' || location.pathname.startsWith('/orders/');
   const isInvoicePage = location.pathname.startsWith('/invoice/');
-  const shouldHidePill = hideOnPages && (isCheckoutPage || isOrderPage || isAccountPage || isInvoicePage);
+  const isCartPage = location.pathname === '/cart';
+  const isProfileOrAccountPage = [
+    '/account',
+    '/profile',
+    '/address-book',
+    '/addresses',
+    '/wallet/history',
+    '/notifications',
+    '/manage-schedule',
+    '/about-us',
+    '/faq',
+    '/privacy-policy',
+    '/terms-of-service',
+    '/help-support',
+    '/refund-policy',
+    '/return-policy',
+    '/shipping-policy',
+  ].includes(location.pathname);
+  const shouldHidePill = hideOnPages && (isCheckoutPage || isOrderPage || isInvoicePage || isCartPage || isProfileOrAccountPage);
 
   const isProductDetailPage = location.pathname.startsWith('/product/');
   const dynamicBottomOffset = isProductDetailPage ? 136 : bottomOffset;

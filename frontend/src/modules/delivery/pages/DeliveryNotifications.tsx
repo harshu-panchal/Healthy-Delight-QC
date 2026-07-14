@@ -78,9 +78,8 @@ export default function DeliveryNotifications() {
 
   return (
     <div className="min-h-screen bg-neutral-100 pb-20">
-      <DeliveryHeader />
+      <DeliveryHeader title="Notifications" />
       <div className="px-4 py-4">
-        <h2 className="text-neutral-900 text-xl font-semibold mb-4">Notifications</h2>
         {loading ? (
           <p className="text-center text-neutral-500">Loading...</p>
         ) : notifications.length > 0 ? (

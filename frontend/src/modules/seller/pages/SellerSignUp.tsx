@@ -35,6 +35,7 @@ export default function SellerSignUp() {
     branch: "",
     accountNumber: "",
     ifsc: "",
+    upiId: "",
   });
   const [showOTP, setShowOTP] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -202,6 +203,7 @@ export default function SellerSignUp() {
         taxName: formData.taxName,
         taxNumber: formData.taxNumber,
         ifsc: formData.ifsc,
+        upiId: formData.upiId,
         searchLocation: formData.searchLocation,
         latitude: formData.latitude,
         longitude: formData.longitude,
@@ -708,6 +710,21 @@ export default function SellerSignUp() {
                       maxLength={11}
                       pattern="[A-Za-z]{4}[0-9]{7}"
                       title="IFSC Code must be 4 letters followed by 7 digits (e.g., ABCD1234567)"
+                      className="w-full px-4 py-2.5 text-sm font-semibold text-neutral-800 bg-white border border-neutral-200 rounded-2xl focus:outline-none focus:border-[#c5a059] focus:ring-2 focus:ring-[#c5a059]/20 shadow-sm transition-all"
+                      disabled={loading}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-[#0a193b]/70 uppercase tracking-widest mb-2">
+                      UPI ID (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      name="upiId"
+                      value={formData.upiId}
+                      onChange={handleInputChange}
+                      placeholder="e.g. username@upi"
                       className="w-full px-4 py-2.5 text-sm font-semibold text-neutral-800 bg-white border border-neutral-200 rounded-2xl focus:outline-none focus:border-[#c5a059] focus:ring-2 focus:ring-[#c5a059]/20 shadow-sm transition-all"
                       disabled={loading}
                     />

@@ -43,6 +43,7 @@ export default function AdminDeliveredOrders() {
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [totalCount, setTotalCount] = useState(0);
 
   // Fetch sellers on component mount
   useEffect(() => {
@@ -95,6 +96,7 @@ export default function AdminDeliveredOrders() {
         const response = await getOrdersByStatus('Delivered', params);
         if (response.success) {
           setOrders(response.data);
+          setTotalCount(response.pagination?.total || response.data?.length || 0);
         }
       } catch (err) {
         console.error('Error fetching orders:', err);
@@ -213,11 +215,11 @@ export default function AdminDeliveredOrders() {
     return filtered;
   }, [orders, sortField, sortDirection]);
 
-  const limitVal = entriesPerPage === "All" ? filteredAndSortedOrders.length || 1 : parseInt(entriesPerPage);
-  const totalPages = Math.ceil(filteredAndSortedOrders.length / limitVal);
+  const limitVal = entriesPerPage === "All" ? totalCount || 1 : parseInt(entriesPerPage);
+  const totalPages = Math.ceil(totalCount / limitVal);
   const startIndex = (currentPage - 1) * limitVal;
   const endIndex = startIndex + limitVal;
-  const paginatedOrders = filteredAndSortedOrders.slice(startIndex, endIndex);
+  const paginatedOrders = filteredAndSortedOrders;
 
   const handlePreviousPage = () => {
     setCurrentPage(prev => Math.max(1, prev - 1));
@@ -689,7 +691,13 @@ export default function AdminDeliveredOrders() {
             <div className="text-xs sm:text-sm text-neutral-700">
               Showing {filteredAndSortedOrders.length === 0 ? 0 : startIndex + 1} to {Math.min(endIndex, filteredAndSortedOrders.length)} of {filteredAndSortedOrders.length} entries
             </div>
-
+            {totalPages > 1 && (
+              <div className="flex items-center gap-1">
+                <button onClick={handlePreviousPage} disabled={currentPage === 1} className="px-3 py-1.5 text-xs font-medium rounded border border-neutral-200 bg-white text-neutral-600 hover:bg-primary hover:text-white hover:border-primary disabled:opacity-40 disabled:cursor-not-allowed transition-all">Previous</button>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).filter(p => p === 1 || p === totalPages || (p >= currentPage - 1 && p <= currentPage + 1)).reduce<(number | string)[]>((acc, p, idx, arr) => { if (idx > 0 && (p as number) - (arr[idx - 1] as number) > 1) acc.push('...'); acc.push(p); return acc; }, []).map((page, idx) => page === '...' ? (<span key={`e-${idx}`} className="px-2 text-xs text-neutral-400">…</span>) : (<button key={page} onClick={() => setCurrentPage(page as number)} className={`px-3 py-1.5 text-xs font-medium rounded border transition-all ${currentPage === page ? 'bg-primary text-white border-primary' : 'bg-white text-neutral-600 border-neutral-200 hover:bg-primary hover:text-white hover:border-primary'}`}>{page}</button>))}
+                <button onClick={handleNextPage} disabled={currentPage === totalPages} className="px-3 py-1.5 text-xs font-medium rounded border border-neutral-200 bg-white text-neutral-600 hover:bg-primary hover:text-white hover:border-primary disabled:opacity-40 disabled:cursor-not-allowed transition-all">Next</button>
+              </div>
+            )}
           </div>
         </div>
       </div>

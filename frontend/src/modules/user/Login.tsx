@@ -14,6 +14,20 @@ export default function Login() {
   const location = useLocation();
   const { login } = useAuth();
 
+  const [isInputFocused, setIsInputFocused] = useState(false);
+
+  const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+    setIsInputFocused(true);
+    const target = e.target;
+    setTimeout(() => {
+      target.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 300);
+  };
+
+  const handleBlur = () => {
+    setIsInputFocused(false);
+  };
+
   const [mobileNumber, setMobileNumber] = useState(() => location.state?.mobileNumber || '');
   const [showOTP, setShowOTP] = useState(() => location.state?.showOTP || false);
   const [enteredOTP, setEnteredOTP] = useState('');
@@ -167,7 +181,7 @@ export default function Login() {
       </button>
 
       {/* ── HERO PANEL : Full-width Animation Strip ── */}
-      <div className={`hd-top-panel ${showOTP ? 'hd-otp-focus' : ''}`}>
+      <div className={`hd-top-panel ${showOTP ? 'hd-otp-focus' : ''} ${isInputFocused ? 'hd-header-shrunk' : ''}`}>
         <div className={`hd-hero-strip ${phase >= 1 ? 'hd-hero-in' : ''}`}>
           {animationData && (
             <Lottie
@@ -239,6 +253,8 @@ export default function Login() {
                           placeholder="Enter your name"
                           className="hd-text-input"
                           disabled={loading}
+                          onFocus={handleFocus}
+                          onBlur={handleBlur}
                         />
                       </div>
                     </div>
@@ -286,6 +302,8 @@ export default function Login() {
                         className="hd-phone-input"
                         maxLength={10}
                         disabled={loading}
+                        onFocus={handleFocus}
+                        onBlur={handleBlur}
                       />
                     </div>
                   </div>
@@ -300,6 +318,8 @@ export default function Login() {
                       className="hd-phone-input"
                       maxLength={10}
                       disabled={loading}
+                      onFocus={handleFocus}
+                      onBlur={handleBlur}
                     />
                   </div>
                 )}
@@ -537,6 +557,25 @@ export default function Login() {
           .hd-logo-badge.hd-logo-otp {
             margin-top: -25px !important;
             transform: scale(0.85);
+          }
+          .hd-top-panel.hd-header-shrunk {
+            min-height: 0px !important;
+            height: 0px !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            overflow: hidden;
+            opacity: 0;
+            pointer-events: none;
+          }
+          .hd-header-shrunk .hd-hero-strip {
+            height: 0px !important;
+            opacity: 0 !important;
+          }
+          .hd-header-shrunk .hd-logo-badge {
+            display: none !important;
+          }
+          .hd-bottom-panel {
+            padding-top: 20px !important;
           }
         }
 

@@ -9,6 +9,7 @@ import Delivery from "../../../models/Delivery";
 import DeliveryAssignment from "../../../models/DeliveryAssignment";
 import Return from "../../../models/Return";
 import { notifySellersOfOrderUpdate } from "../../../services/sellerNotificationService";
+import { processOrderStatusTransition } from "../../../services/orderService";
 import { Server as SocketIOServer } from "socket.io";
 
 /**
@@ -161,59 +162,67 @@ export const updateOrderStatus = asyncHandler(
       });
     }
 
-    order.status = status;
-    if (adminNotes) order.adminNotes = adminNotes;
+    const previousStatus = order.status;
 
     if (status === "Delivered") {
-      order.deliveredAt = new Date();
-    }
-
-    if (status === "Cancelled") {
-      order.cancelledAt = new Date();
-      if (req.user?.userId) {
-        order.cancelledBy = new mongoose.Types.ObjectId(req.user.userId);
+      // Use processOrderStatusTransition to handle commission distribution,
+      // inventory, and all delivery-related logic automatically
+      if (adminNotes) {
+        order.adminNotes = adminNotes;
+        await order.save();
       }
+      await processOrderStatusTransition(id, "Delivered", previousStatus);
+    } else {
+      order.status = status;
+      if (adminNotes) order.adminNotes = adminNotes;
 
-      // Perform secure, duplicate-checked wallet refund on cancellation
-      if (!order.isRefundProcessed && order.refundableAmount > 0) {
-        const cust = await Customer.findById(order.customer);
-        if (cust) {
-          const balanceBefore = cust.walletAmount;
-          const refundAmount = order.refundableAmount;
+      if (status === "Cancelled") {
+        order.cancelledAt = new Date();
+        if (req.user?.userId) {
+          order.cancelledBy = new mongoose.Types.ObjectId(req.user.userId);
+        }
 
-          // Atomically increment customer's wallet balance
-          const updatedCust = await Customer.findOneAndUpdate(
-            { _id: order.customer },
-            { $inc: { walletAmount: refundAmount } },
-            { new: true }
-          );
+        // Perform secure, duplicate-checked wallet refund on cancellation
+        if (!order.isRefundProcessed && order.refundableAmount > 0) {
+          const cust = await Customer.findById(order.customer);
+          if (cust) {
+            const balanceBefore = cust.walletAmount;
+            const refundAmount = order.refundableAmount;
 
-          if (updatedCust) {
-            // Create CustomerWalletTransaction record (Credit)
-            const refundTransaction = new CustomerWalletTransaction({
-              customerId: order.customer,
-              orderId: order._id,
-              type: 'Credit',
-              source: 'Refund',
-              amount: refundAmount,
-              balanceBefore: Number(balanceBefore.toFixed(2)),
-              balanceAfter: Number(updatedCust.walletAmount.toFixed(2)),
-              remark: `Admin Refund for Cancelled Order #${order.orderNumber || order._id}`
-            });
+            // Atomically increment customer's wallet balance
+            const updatedCust = await Customer.findOneAndUpdate(
+              { _id: order.customer },
+              { $inc: { walletAmount: refundAmount } },
+              { new: true }
+            );
 
-            await refundTransaction.save();
+            if (updatedCust) {
+              // Create CustomerWalletTransaction record (Credit)
+              const refundTransaction = new CustomerWalletTransaction({
+                customerId: order.customer,
+                orderId: order._id,
+                type: 'Credit',
+                source: 'Refund',
+                amount: refundAmount,
+                balanceBefore: Number(balanceBefore.toFixed(2)),
+                balanceAfter: Number(updatedCust.walletAmount.toFixed(2)),
+                remark: `Admin Refund for Cancelled Order #${order.orderNumber || order._id}`
+              });
 
-            // Mark order refund status
-            order.isRefundProcessed = true;
-            order.refundedAt = new Date();
-            order.refundTransactionId = refundTransaction._id;
-            order.paymentStatus = 'Refunded';
+              await refundTransaction.save();
+
+              // Mark order refund status
+              order.isRefundProcessed = true;
+              order.refundedAt = new Date();
+              order.refundTransactionId = refundTransaction._id;
+              order.paymentStatus = 'Refunded';
+            }
           }
         }
       }
-    }
 
-    await order.save();
+      await order.save();
+    }
 
     await order.populate([
       { path: "customer", select: "name email phone" },

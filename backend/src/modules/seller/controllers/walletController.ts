@@ -134,19 +134,30 @@ export const getWithdrawalRequests = asyncHandler(async (req: Request, res: Resp
  */
 export const createWithdrawalRequest = asyncHandler(async (req: Request, res: Response) => {
     const sellerId = (req as any).user.userId;
-    const { amount, paymentMethod, accountDetails } = req.body;
+    const { amount, paymentMethod } = req.body;
 
     if (!amount || amount <= 0) {
         return res.status(400).json({ success: false, message: 'Invalid withdrawal amount' });
     }
 
-    if (!accountDetails) {
-        return res.status(400).json({ success: false, message: 'Account details are required' });
-    }
-
     const seller = await Seller.findById(sellerId);
     if (!seller) {
         return res.status(404).json({ success: false, message: 'Seller not found' });
+    }
+
+    let accountDetails = '';
+    if (paymentMethod === 'Bank Transfer') {
+        if (!seller.accountNumber || !seller.ifsc) {
+            return res.status(400).json({ success: false, message: 'Bank details (Account Number, IFSC) are missing in your profile. Please update them in Settings.' });
+        }
+        accountDetails = `Bank: ${seller.bankName || 'N/A'}, A/C: ${seller.accountNumber}, IFSC: ${seller.ifsc}`;
+    } else if (paymentMethod === 'UPI') {
+        if (!seller.upiId) {
+            return res.status(400).json({ success: false, message: 'UPI ID is missing in your profile. Please update it in Settings.' });
+        }
+        accountDetails = `UPI: ${seller.upiId}`;
+    } else {
+        return res.status(400).json({ success: false, message: 'Invalid payment method' });
     }
 
     if (seller.balance < amount) {

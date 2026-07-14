@@ -25,6 +25,11 @@ export default function DeliveryLogin() {
     removeAuthToken();
   }, []);
 
+  // Keep savedMobileNumber in sync so it persists if user navigates away and comes back
+  useEffect(() => {
+    savedMobileNumber = mobileNumber;
+  }, [mobileNumber]);
+
   const handleMobileLogin = async () => {
     if (mobileNumber.length !== 10) return;
 

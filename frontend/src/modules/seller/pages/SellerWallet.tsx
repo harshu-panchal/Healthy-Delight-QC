@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import { useToast } from '../../../context/ToastContext';
 import {
   getSellerWalletBalance,
@@ -338,14 +339,47 @@ export default function SellerWallet() {
               </div>
               <div className="mb-6">
                 <label className="block text-sm font-medium text-gray-700 mb-2">Payment Method</label>
-                <select
-                  value={paymentMethod}
-                  onChange={(e) => setPaymentMethod(e.target.value as any)}
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-primary focus:border-primary"
-                >
-                  <option value="Bank Transfer">Bank Transfer</option>
-                  <option value="UPI">UPI</option>
-                </select>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setPaymentMethod('Bank Transfer')}
+                    className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all ${
+                      paymentMethod === 'Bank Transfer'
+                        ? 'border-primary bg-primary/5 text-primary shadow-sm shadow-primary/10 scale-[1.02]'
+                        : 'border-neutral-200 bg-white hover:border-primary/30 hover:bg-neutral-50 text-neutral-600'
+                    }`}
+                  >
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mb-2">
+                      <rect x="2" y="21" width="20" height="2"></rect>
+                      <polygon points="12 2 2 7 22 7"></polygon>
+                      <rect x="4" y="9" width="4" height="10"></rect>
+                      <rect x="10" y="9" width="4" height="10"></rect>
+                      <rect x="16" y="9" width="4" height="10"></rect>
+                    </svg>
+                    <span className="font-bold text-sm tracking-wide">Bank Transfer</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPaymentMethod('UPI')}
+                    className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all ${
+                      paymentMethod === 'UPI'
+                        ? 'border-primary bg-primary/5 text-primary shadow-sm shadow-primary/10 scale-[1.02]'
+                        : 'border-neutral-200 bg-white hover:border-primary/30 hover:bg-neutral-50 text-neutral-600'
+                    }`}
+                  >
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mb-2">
+                      <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+                      <line x1="12" y1="18" x2="12.01" y2="18"></line>
+                    </svg>
+                    <span className="font-bold text-sm tracking-wide">UPI ID</span>
+                  </button>
+                </div>
+                <p className="text-xs text-gray-500 mt-2">
+                  Need to update your Bank or UPI details?{' '}
+                  <Link to="/seller/account-settings" className="text-primary font-semibold hover:underline">
+                    Go to Account Settings
+                  </Link>
+                </p>
               </div>
               <div className="flex gap-3">
                 <button

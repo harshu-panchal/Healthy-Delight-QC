@@ -12,10 +12,16 @@ interface SellerLayoutProps {
 
 export default function SellerLayout({ children }: SellerLayoutProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [activeNotification, setActiveNotification] = useState<SellerNotification | null>(null);
+  const [notificationQueue, setNotificationQueue] = useState<SellerNotification[]>([]);
+  const activeNotification = notificationQueue[0] || null;
 
   const handleNotificationReceived = useCallback((notification: SellerNotification) => {
-    setActiveNotification(notification);
+    setNotificationQueue((prev) => {
+      if (prev.some((n) => n.orderId === notification.orderId)) {
+        return prev;
+      }
+      return [...prev, notification];
+    });
   }, []);
 
   const { socket } = useSellerSocket(handleNotificationReceived);
@@ -43,23 +49,21 @@ export default function SellerLayout({ children }: SellerLayoutProps) {
     const handleStatusUpdated = (e: Event) => {
       const customEvent = e as CustomEvent;
       const { orderId } = customEvent.detail || {};
-      if (activeNotification && activeNotification.orderId === orderId) {
-        setActiveNotification(null);
-      }
+      setNotificationQueue((prev) => prev.filter((n) => n.orderId !== orderId));
     };
 
     window.addEventListener('seller-order-status-updated', handleStatusUpdated);
     return () => {
       window.removeEventListener('seller-order-status-updated', handleStatusUpdated);
     };
-  }, [activeNotification]);
+  }, []);
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
 
   const closeNotification = () => {
-    setActiveNotification(null);
+    setNotificationQueue((prev) => prev.slice(1));
   };
 
   return (

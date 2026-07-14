@@ -320,651 +320,651 @@ function AppContent() {
                   <CartProvider>
                     <OrdersProvider>
                       <BrowserRouter
-                      future={{
-                        v7_startTransition: true,
-                        v7_relativeSplatPath: true,
-                      }}>
-                      <RouteLoaderTrigger />
-                      <Routes>
-                        {/* ... (rest of the routes) */}
-                        {/* Public Routes */}
-                        <Route
-                          path="/user/login"
-                          element={
-                            <PublicRoute>
+                        future={{
+                          v7_startTransition: true,
+                          v7_relativeSplatPath: true,
+                        }}>
+                        <RouteLoaderTrigger />
+                        <Routes>
+                          {/* ... (rest of the routes) */}
+                          {/* Public Routes */}
+                          <Route
+                            path="/user/login"
+                            element={
+                              <PublicRoute>
+                                <Suspense fallback={<LoadingSpinner size="lg" className="min-h-screen" />}>
+                                  <Login />
+                                </Suspense>
+                              </PublicRoute>
+                            }
+                          />
+
+                          <Route
+                            path="/login"
+                            element={
+                              <PublicRoute>
+                                <Suspense fallback={<LoadingSpinner size="lg" className="min-h-screen" />}>
+                                  <Login />
+                                </Suspense>
+                              </PublicRoute>
+                            }
+                          />
+
+                          <Route
+                            path="/signup"
+                            element={
+                              <PublicRoute>
+                                <Suspense fallback={<LoadingSpinner size="lg" className="min-h-screen" />}>
+                                  <Signup />
+                                </Suspense>
+                              </PublicRoute>
+                            }
+                          />
+
+                          <Route
+                            path="/seller/login"
+                            element={
+                              <PublicRoute>
+                                <Suspense fallback={<LoadingSpinner size="lg" className="min-h-screen" />}>
+                                  <SellerLogin />
+                                </Suspense>
+                              </PublicRoute>
+                            }
+                          />
+                          <Route
+                            path="/seller/signup"
+                            element={
+                              <PublicRoute>
+                                <Suspense fallback={<LoadingSpinner size="lg" className="min-h-screen" />}>
+                                  <SellerSignUp />
+                                </Suspense>
+                              </PublicRoute>
+                            }
+                          />
+                          <Route
+                            path="/delivery/login"
+                            element={
+                              <PublicRoute>
+                                <Suspense fallback={<LoadingSpinner size="lg" className="min-h-screen" />}>
+                                  <DeliveryLogin />
+                                </Suspense>
+                              </PublicRoute>
+                            }
+                          />
+                          <Route
+                            path="/delivery/signup"
+                            element={
+                              <PublicRoute>
+                                <Suspense fallback={<LoadingSpinner size="lg" className="min-h-screen" />}>
+                                  <DeliverySignUp />
+                                </Suspense>
+                              </PublicRoute>
+                            }
+                          />
+
+                          <Route
+                            path="/delivery/terms"
+                            element={
                               <Suspense fallback={<LoadingSpinner size="lg" className="min-h-screen" />}>
-                                <Login />
+                                <DeliveryTerms />
                               </Suspense>
-                            </PublicRoute>
-                          }
-                        />
-
-                        <Route
-                          path="/login"
-                          element={
-                            <PublicRoute>
+                            }
+                          />
+                          <Route
+                            path="/delivery/privacy"
+                            element={
                               <Suspense fallback={<LoadingSpinner size="lg" className="min-h-screen" />}>
-                                <Login />
+                                <DeliveryPrivacy />
                               </Suspense>
-                            </PublicRoute>
-                          }
-                        />
-
-                        <Route
-                          path="/signup"
-                          element={
-                            <PublicRoute>
+                            }
+                          />
+                          <Route
+                            path="/delivery/help"
+                            element={
                               <Suspense fallback={<LoadingSpinner size="lg" className="min-h-screen" />}>
-                                <Signup />
+                                <DeliveryHelp />
                               </Suspense>
-                            </PublicRoute>
-                          }
-                        />
+                            }
+                          /><Route
+                            path="/admin/login"
+                            element={
+                              <PublicRoute>
+                                <Suspense fallback={<LoadingSpinner size="lg" className="min-h-screen" />}>
+                                  <AdminLogin />
+                                </Suspense>
+                              </PublicRoute>
+                            }
+                          />
 
-                        <Route
-                          path="/seller/login"
-                          element={
-                            <PublicRoute>
-                              <Suspense fallback={<LoadingSpinner size="lg" className="min-h-screen" />}>
-                                <SellerLogin />
-                              </Suspense>
-                            </PublicRoute>
-                          }
-                        />
-                        <Route
-                          path="/seller/signup"
-                          element={
-                            <PublicRoute>
-                              <Suspense fallback={<LoadingSpinner size="lg" className="min-h-screen" />}>
-                                <SellerSignUp />
-                              </Suspense>
-                            </PublicRoute>
-                          }
-                        />
-                        <Route
-                          path="/delivery/login"
-                          element={
-                            <PublicRoute>
-                              <Suspense fallback={<LoadingSpinner size="lg" className="min-h-screen" />}>
-                                <DeliveryLogin />
-                              </Suspense>
-                            </PublicRoute>
-                          }
-                        />
-                        <Route
-                          path="/delivery/signup"
-                          element={
-                            <PublicRoute>
-                              <Suspense fallback={<LoadingSpinner size="lg" className="min-h-screen" />}>
-                                <DeliverySignUp />
-                              </Suspense>
-                            </PublicRoute>
-                          }
-                        />
-                        
-                        <Route
-                          path="/delivery/terms"
-                          element={
-                            <Suspense fallback={<LoadingSpinner size="lg" className="min-h-screen" />}>
-                              <DeliveryTerms />
-                            </Suspense>
-                          }
-                        />
-                        <Route
-                          path="/delivery/privacy"
-                          element={
-                            <Suspense fallback={<LoadingSpinner size="lg" className="min-h-screen" />}>
-                              <DeliveryPrivacy />
-                            </Suspense>
-                          }
-                        />
-                        <Route
-                          path="/delivery/help"
-                          element={
-                            <Suspense fallback={<LoadingSpinner size="lg" className="min-h-screen" />}>
-                              <DeliveryHelp />
-                            </Suspense>
-                          }
-                        /><Route
-                          path="/admin/login"
-                          element={
-                            <PublicRoute>
-                              <Suspense fallback={<LoadingSpinner size="lg" className="min-h-screen" />}>
-                                <AdminLogin />
-                              </Suspense>
-                            </PublicRoute>
-                          }
-                        />
+                          {/* Delivery App Routes */}
+                          <Route
+                            path="/delivery/*"
+                            element={
+                              <ProtectedRoute
+                                requiredUserType="Delivery"
+                                redirectTo="/delivery/login">
+                                <Suspense fallback={<LoadingSpinner size="lg" className="min-h-screen" />}>
+                                  <DeliveryLayout>
+                                    <Routes>
+                                      <Route
+                                        path=""
+                                        element={<DeliveryDashboard />}
+                                      />
+                                      <Route
+                                        path="dashboard"
+                                        element={<DeliveryDashboard />}
+                                      />
+                                      <Route
+                                        path="orders"
+                                        element={<DeliveryOrders />}
+                                      />
+                                      <Route
+                                        path="orders/:id"
+                                        element={<DeliveryOrderDetail />}
+                                      />
+                                      <Route
+                                        path="orders/pending"
+                                        element={<DeliveryPendingOrders />}
+                                      />
+                                      <Route
+                                        path="orders/all"
+                                        element={<DeliveryAllOrders />}
+                                      />
+                                      <Route
+                                        path="orders/return"
+                                        element={<DeliveryReturnOrders />}
+                                      />
+                                      <Route
+                                        path="notifications"
+                                        element={<DeliveryNotifications />}
+                                      />
+                                      <Route
+                                        path="menu"
+                                        element={<DeliveryMenu />}
+                                      />
+                                      <Route
+                                        path="profile"
+                                        element={<DeliveryProfile />}
+                                      />
 
-                        {/* Delivery App Routes */}
-                        <Route
-                          path="/delivery/*"
-                          element={
-                            <ProtectedRoute
-                              requiredUserType="Delivery"
-                              redirectTo="/delivery/login">
-                               <Suspense fallback={<LoadingSpinner size="lg" className="min-h-screen" />}>
-                                <DeliveryLayout>
-                                  <Routes>
-                                    <Route
-                                      path=""
-                                      element={<DeliveryDashboard />}
-                                    />
-                                    <Route
-                                      path="dashboard"
-                                      element={<DeliveryDashboard />}
-                                    />
-                                    <Route
-                                      path="orders"
-                                      element={<DeliveryOrders />}
-                                    />
-                                    <Route
-                                      path="orders/:id"
-                                      element={<DeliveryOrderDetail />}
-                                    />
-                                    <Route
-                                      path="orders/pending"
-                                      element={<DeliveryPendingOrders />}
-                                    />
-                                    <Route
-                                      path="orders/all"
-                                      element={<DeliveryAllOrders />}
-                                    />
-                                    <Route
-                                      path="orders/return"
-                                      element={<DeliveryReturnOrders />}
-                                    />
-                                    <Route
-                                      path="notifications"
-                                      element={<DeliveryNotifications />}
-                                    />
-                                    <Route
-                                      path="menu"
-                                      element={<DeliveryMenu />}
-                                    />
-                                    <Route
-                                      path="profile"
-                                      element={<DeliveryProfile />}
-                                    />
+                                      <Route
+                                        path="wallet"
+                                        element={<DeliveryWallet />}
+                                      />
+                                      <Route
+                                        path="settings"
+                                        element={<DeliverySettings />}
+                                      />
+                                      <Route
+                                        path="help"
+                                        element={<DeliveryHelp />}
+                                      />
+                                      <Route
+                                        path="about"
+                                        element={<DeliveryAbout />}
+                                      />
+                                      <Route
+                                        path="sellers-in-range"
+                                        element={<DeliverySellersInRange />}
+                                      />
+                                    </Routes>
+                                  </DeliveryLayout>
+                                </Suspense>
+                              </ProtectedRoute>
+                            }
+                          />
 
-                                    <Route
-                                      path="wallet"
-                                      element={<DeliveryWallet />}
-                                    />
-                                    <Route
-                                      path="settings"
-                                      element={<DeliverySettings />}
-                                    />
-                                    <Route
-                                      path="help"
-                                      element={<DeliveryHelp />}
-                                    />
-                                    <Route
-                                      path="about"
-                                      element={<DeliveryAbout />}
-                                    />
-                                    <Route
-                                      path="sellers-in-range"
-                                      element={<DeliverySellersInRange />}
-                                    />
-                                  </Routes>
-                                </DeliveryLayout>
-                              </Suspense>
-                            </ProtectedRoute>
-                          }
-                        />
+                          {/* Seller App Routes */}
+                          <Route
+                            path="/seller/*"
+                            element={
+                              <ProtectedRoute
+                                requiredUserType="Seller"
+                                redirectTo="/seller/login">
+                                <Suspense fallback={<LoadingSpinner size="lg" className="min-h-screen" />}>
+                                  <SellerLayout>
+                                    <Routes>
+                                      <Route
+                                        path=""
+                                        element={<SellerDashboard />}
+                                      />
+                                      <Route
+                                        path="orders"
+                                        element={<SellerOrders />}
+                                      />
+                                      <Route
+                                        path="orders/:id"
+                                        element={<SellerOrderDetail />}
+                                      />
+                                      <Route
+                                        path="category"
+                                        element={<SellerCategory />}
+                                      />
+                                      <Route
+                                        path="product/add"
+                                        element={<SellerAddProduct />}
+                                      />
+                                      <Route
+                                        path="product/edit/:id"
+                                        element={<SellerAddProduct />}
+                                      />
+                                      <Route
+                                        path="product/taxes"
+                                        element={<SellerTaxes />}
+                                      />
+                                      <Route
+                                        path="product/list"
+                                        element={<SellerProductList />}
+                                      />
+                                      <Route
+                                        path="product/stock"
+                                        element={<SellerStockManagement />}
+                                      />
+                                      <Route
+                                        path="wallet"
+                                        element={<SellerWallet />}
+                                      />
+                                      <Route
+                                        path="reports/sales"
+                                        element={<SellerSalesReport />}
+                                      />
+                                      <Route
+                                        path="account-settings"
+                                        element={<SellerAccountSettings />}
+                                      />
+                                    </Routes>
+                                  </SellerLayout>
+                                </Suspense>
+                              </ProtectedRoute>
+                            }
+                          />
 
-                        {/* Seller App Routes */}
-                        <Route
-                          path="/seller/*"
-                          element={
-                            <ProtectedRoute
-                              requiredUserType="Seller"
-                              redirectTo="/seller/login">
-                               <Suspense fallback={<LoadingSpinner size="lg" className="min-h-screen" />}>
-                                <SellerLayout>
-                                  <Routes>
-                                    <Route
-                                      path=""
-                                      element={<SellerDashboard />}
-                                    />
-                                    <Route
-                                      path="orders"
-                                      element={<SellerOrders />}
-                                    />
-                                    <Route
-                                      path="orders/:id"
-                                      element={<SellerOrderDetail />}
-                                    />
-                                    <Route
-                                      path="category"
-                                      element={<SellerCategory />}
-                                    />
-                                    <Route
-                                      path="product/add"
-                                      element={<SellerAddProduct />}
-                                    />
-                                    <Route
-                                      path="product/edit/:id"
-                                      element={<SellerAddProduct />}
-                                    />
-                                    <Route
-                                      path="product/taxes"
-                                      element={<SellerTaxes />}
-                                    />
-                                    <Route
-                                      path="product/list"
-                                      element={<SellerProductList />}
-                                    />
-                                    <Route
-                                      path="product/stock"
-                                      element={<SellerStockManagement />}
-                                    />
-                                    <Route
-                                      path="wallet"
-                                      element={<SellerWallet />}
-                                    />
-                                    <Route
-                                      path="reports/sales"
-                                      element={<SellerSalesReport />}
-                                    />
-                                    <Route
-                                      path="account-settings"
-                                      element={<SellerAccountSettings />}
-                                    />
-                                  </Routes>
-                                </SellerLayout>
-                              </Suspense>
-                            </ProtectedRoute>
-                          }
-                        />
+                          {/* Admin App Routes */}
+                          <Route
+                            path="/admin/*"
+                            element={
+                              <ProtectedRoute
+                                requiredUserType="Admin"
+                                redirectTo="/admin/login">
+                                <Suspense fallback={<LoadingSpinner size="lg" className="min-h-screen" />}>
+                                  <AdminLayout>
+                                    <Routes>
+                                      <Route
+                                        path=""
+                                        element={<AdminDashboard />}
+                                      />
+                                      <Route
+                                        path="profile"
+                                        element={<AdminProfile />}
+                                      />
+                                      <Route
+                                        path="category"
+                                        element={<AdminCategory />}
+                                      />
+                                      <Route
+                                        path="category/header"
+                                        element={<AdminHeaderCategory />}
+                                      />
+                                      <Route
+                                        path="subcategory"
+                                        element={<AdminSubCategory />}
+                                      />
+                                      <Route
+                                        path="subcategory-order"
+                                        element={<AdminSubcategoryOrder />}
+                                      />
+                                      <Route
+                                        path="brand"
+                                        element={<AdminBrand />}
+                                      />
+                                      <Route
+                                        path="product/taxes"
+                                        element={<AdminTaxes />}
+                                      />
+                                      <Route
+                                        path="product/list"
+                                        element={<AdminStockManagement />}
+                                      />
+                                      <Route
+                                        path="product/edit/:id"
+                                        element={<SellerAddProduct isAdmin={true} />}
+                                      />
+                                      <Route
+                                        path="manage-seller/list"
+                                        element={<AdminManageSellerList />}
+                                      />
+                                      <Route
+                                        path="manage-seller/transaction"
+                                        element={<AdminSellerTransaction />}
+                                      />
+                                      <Route
+                                        path="delivery-boy/manage"
+                                        element={<AdminManageDeliveryBoy />}
+                                      />
+                                      <Route
+                                        path="delivery-boy/fund-transfer"
+                                        element={<AdminFundTransfer />}
+                                      />
+                                      <Route
+                                        path="delivery-boy/cash-collection"
+                                        element={<AdminCashCollection />}
+                                      />
+                                      <Route
+                                        path="manage-location/seller-location"
+                                        element={<AdminSellerLocation />}
+                                      />
+                                      <Route
+                                        path="wallet"
+                                        element={<AdminWallet />}
+                                      />
+                                      <Route
+                                        path="shifts"
+                                        element={<AdminManageShifts />}
+                                      />
+                                      <Route
+                                        path="coupon"
+                                        element={<AdminCoupon />}
+                                      />
+                                      <Route
+                                        path="return"
+                                        element={<AdminReturnRequest />}
+                                      />
+                                      <Route
+                                        path="withdrawals"
+                                        element={<AdminWithdrawals />}
+                                      />
+                                      <Route
+                                        path="notification"
+                                        element={<AdminNotification />}
+                                      />
+                                      <Route
+                                        path="orders"
+                                        element={<AdminOrders />}
+                                      />
+                                      <Route
+                                        path="customers"
+                                        element={<AdminManageCustomer />}
+                                      />
+                                      <Route
+                                        path="collect-cash"
+                                        element={<AdminCashCollection />}
+                                      />
+                                      <Route
+                                        path="payment-list"
+                                        element={<AdminPaymentList />}
+                                      />
+                                      <Route
+                                        path="sms-gateway"
+                                        element={<AdminSmsGateway />}
+                                      />
+                                      <Route
+                                        path="system-user"
+                                        element={<AdminSystemUser />}
+                                      />
+                                      <Route
+                                        path="customer-app-policy"
+                                        element={<AdminCustomerAppPolicy />}
+                                      />
+                                      <Route
+                                        path="delivery-app-policy"
+                                        element={<AdminDeliveryAppPolicy />}
+                                      />
+                                      <Route
+                                        path="delivery-privacy-policy"
+                                        element={<AdminDeliveryPrivacyPolicy />}
+                                      />
+                                      <Route
+                                        path="billing-settings"
+                                        element={<AdminBillingSettings />}
+                                      />
+                                      <Route
+                                        path="users"
+                                        element={<AdminUsers />}
+                                      />
+                                      <Route
+                                        path="faq"
+                                        element={<AdminFAQ />}
+                                      />
+                                      <Route
+                                        path="home-section"
+                                        element={<AdminHomeSection />}
+                                      />
+                                      <Route
+                                        path="shop-by-store"
+                                        element={<AdminShopByStore />}
+                                      />
+                                      <Route
+                                        path="banners"
+                                        element={<AdminBanners />}
+                                      />
+                                      <Route
+                                        path="orders/all"
+                                        element={<AdminAllOrders />}
+                                      />
+                                      <Route
+                                        path="orders/pending"
+                                        element={<AdminPendingOrders />}
+                                      />
+                                      <Route
+                                        path="orders/received"
+                                        element={<AdminReceivedOrders />}
+                                      />
+                                      <Route
+                                        path="orders/processed"
+                                        element={<AdminProcessedOrders />}
+                                      />
+                                      <Route
+                                        path="orders/shipped"
+                                        element={<AdminShippedOrders />}
+                                      />
+                                      <Route
+                                        path="orders/out-for-delivery"
+                                        element={<AdminOutForDeliveryOrders />}
+                                      />
+                                      <Route
+                                        path="orders/delivered"
+                                        element={<AdminDeliveredOrders />}
+                                      />
+                                      <Route
+                                        path="orders/cancelled"
+                                        element={<AdminCancelledOrders />}
+                                      />
+                                      <Route
+                                        path="orders/:id"
+                                        element={<AdminOrderDetail />}
+                                      />
+                                    </Routes>
+                                  </AdminLayout>
+                                </Suspense>
+                              </ProtectedRoute>
+                            }
+                          />
 
-                        {/* Admin App Routes */}
-                        <Route
-                          path="/admin/*"
-                          element={
-                            <ProtectedRoute
-                              requiredUserType="Admin"
-                              redirectTo="/admin/login">
-                               <Suspense fallback={<LoadingSpinner size="lg" className="min-h-screen" />}>
-                                <AdminLayout>
-                                  <Routes>
-                                    <Route
-                                      path=""
-                                      element={<AdminDashboard />}
-                                    />
-                                    <Route
-                                      path="profile"
-                                      element={<AdminProfile />}
-                                    />
-                                    <Route
-                                      path="category"
-                                      element={<AdminCategory />}
-                                    />
-                                    <Route
-                                      path="category/header"
-                                      element={<AdminHeaderCategory />}
-                                    />
-                                    <Route
-                                      path="subcategory"
-                                      element={<AdminSubCategory />}
-                                    />
-                                    <Route
-                                      path="subcategory-order"
-                                      element={<AdminSubcategoryOrder />}
-                                    />
-                                    <Route
-                                      path="brand"
-                                      element={<AdminBrand />}
-                                    />
-                                    <Route
-                                      path="product/taxes"
-                                      element={<AdminTaxes />}
-                                    />
-                                    <Route
-                                      path="product/list"
-                                      element={<AdminStockManagement />}
-                                    />
-                                    <Route
-                                      path="product/edit/:id"
-                                      element={<SellerAddProduct isAdmin={true} />}
-                                    />
-                                    <Route
-                                      path="manage-seller/list"
-                                      element={<AdminManageSellerList />}
-                                    />
-                                    <Route
-                                      path="manage-seller/transaction"
-                                      element={<AdminSellerTransaction />}
-                                    />
-                                    <Route
-                                      path="delivery-boy/manage"
-                                      element={<AdminManageDeliveryBoy />}
-                                    />
-                                    <Route
-                                      path="delivery-boy/fund-transfer"
-                                      element={<AdminFundTransfer />}
-                                    />
-                                    <Route
-                                      path="delivery-boy/cash-collection"
-                                      element={<AdminCashCollection />}
-                                    />
-                                     <Route
-                                       path="manage-location/seller-location"
-                                       element={<AdminSellerLocation />}
-                                     />
-                                     <Route
-                                       path="wallet"
-                                       element={<AdminWallet />}
-                                     />
-                                     <Route
-                                       path="shifts"
-                                       element={<AdminManageShifts />}
-                                     />
-                                     <Route
-                                       path="coupon"
-                                       element={<AdminCoupon />}
-                                     />
-                                    <Route
-                                      path="return"
-                                      element={<AdminReturnRequest />}
-                                    />
-                                    <Route
-                                      path="withdrawals"
-                                      element={<AdminWithdrawals />}
-                                    />
-                                    <Route
-                                      path="notification"
-                                      element={<AdminNotification />}
-                                    />
-                                    <Route
-                                      path="orders"
-                                      element={<AdminOrders />}
-                                    />
-                                    <Route
-                                      path="customers"
-                                      element={<AdminManageCustomer />}
-                                    />
-                                    <Route
-                                      path="collect-cash"
-                                      element={<AdminCashCollection />}
-                                    />
-                                    <Route
-                                      path="payment-list"
-                                      element={<AdminPaymentList />}
-                                    />
-                                    <Route
-                                      path="sms-gateway"
-                                      element={<AdminSmsGateway />}
-                                    />
-                                    <Route
-                                      path="system-user"
-                                      element={<AdminSystemUser />}
-                                    />
-                                    <Route
-                                      path="customer-app-policy"
-                                      element={<AdminCustomerAppPolicy />}
-                                    />
-                                    <Route
-                                      path="delivery-app-policy"
-                                      element={<AdminDeliveryAppPolicy />}
-                                     />
-                                     <Route
-                                       path="delivery-privacy-policy"
-                                       element={<AdminDeliveryPrivacyPolicy />}
-                                    />
-                                    <Route
-                                      path="billing-settings"
-                                      element={<AdminBillingSettings />}
-                                    />
-                                    <Route
-                                      path="users"
-                                      element={<AdminUsers />}
-                                    />
-                                    <Route
-                                      path="faq"
-                                      element={<AdminFAQ />}
-                                    />
-                                    <Route
-                                      path="home-section"
-                                      element={<AdminHomeSection />}
-                                    />
-                                    <Route
-                                      path="shop-by-store"
-                                      element={<AdminShopByStore />}
-                                    />
-                                    <Route
-                                      path="banners"
-                                      element={<AdminBanners />}
-                                    />
-                                    <Route
-                                      path="orders/all"
-                                      element={<AdminAllOrders />}
-                                    />
-                                    <Route
-                                      path="orders/pending"
-                                      element={<AdminPendingOrders />}
-                                    />
-                                    <Route
-                                      path="orders/received"
-                                      element={<AdminReceivedOrders />}
-                                    />
-                                    <Route
-                                      path="orders/processed"
-                                      element={<AdminProcessedOrders />}
-                                    />
-                                    <Route
-                                      path="orders/shipped"
-                                      element={<AdminShippedOrders />}
-                                    />
-                                    <Route
-                                      path="orders/out-for-delivery"
-                                      element={<AdminOutForDeliveryOrders />}
-                                    />
-                                    <Route
-                                      path="orders/delivered"
-                                      element={<AdminDeliveredOrders />}
-                                    />
-                                    <Route
-                                      path="orders/cancelled"
-                                      element={<AdminCancelledOrders />}
-                                    />
-                                    <Route
-                                      path="orders/:id"
-                                      element={<AdminOrderDetail />}
-                                    />
-                                  </Routes>
-                                </AdminLayout>
-                              </Suspense>
-                            </ProtectedRoute>
-                          }
-                        />
-
-                        {/* Public Landing Page Route */}
-                        <Route
-                          path="/"
-                          element={
-                            <Suspense fallback={<IconLoader forceShow />}>
-                              <LandingPage />
-                            </Suspense>
-                          }
-                        />
-
-                        {/* Main App Routes */}
-                        <Route
-                          path="/*"
-                          element={
-                            <AppLayout>
+                          {/* Public Landing Page Route */}
+                          <Route
+                            path="/"
+                            element={
                               <Suspense fallback={<IconLoader forceShow />}>
-                                <Routes>
-                                  <Route path="/user" element={<Home />} />
-                                  <Route
-                                    path="/user/home"
-                                    element={<Home />}
-                                  />
-                                  <Route
-                                    path="/search"
-                                    element={<Search />}
-                                  />
-                                  <Route
-                                    path="/orders"
-                                    element={<Orders />}
-                                  />
-                                  <Route
-                                    path="/orders/:id"
-                                    element={<OrderDetail />}
-                                  />
-                                  <Route
-                                    path="/order-again"
-                                    element={<OrderAgain />}
-                                  />
-                                  <Route
-                                    path="/account"
-                                    element={<Account />}
-                                  />
-                                  <Route
-                                    path="/notifications"
-                                    element={<Notifications />}
-                                  />
-                                  <Route
-                                    path="/profile"
-                                    element={<Account />}
-                                  />
-                                  <Route
-                                    path="/wallet/history"
-                                    element={<WalletHistory />}
-                                  />
-                                  <Route
-                                    path="/about-us"
-                                    element={<AboutUs />}
-                                  />
-                                  <Route path="/faq" element={<FAQ />} />
-                                  <Route
-                                    path="/privacy-policy"
-                                    element={<PrivacyPolicy />}
-                                  />
-                                  <Route
-                                    path="/terms-of-service"
-                                    element={<TermsOfService />}
-                                  />
-                                  <Route
-                                    path="/help-support"
-                                    element={<HelpSupport />}
-                                  />
-                                  <Route
-                                    path="/refund-policy"
-                                    element={<RefundPolicy />}
-                                  />
-                                  <Route
-                                    path="/return-policy"
-                                    element={<ReturnPolicy />}
-                                  />
-                                  <Route
-                                    path="/shipping-policy"
-                                    element={<ShippingPolicy />}
-                                  />
-                                  <Route
-                                    path="/wishlist"
-                                    element={<Wishlist />}
-                                  />
-                                  <Route
-                                    path="/categories"
-                                    element={<Categories />}
-                                  />
-                                  {/* <Route
+                                <LandingPage />
+                              </Suspense>
+                            }
+                          />
+
+                          {/* Main App Routes */}
+                          <Route
+                            path="/*"
+                            element={
+                              <AppLayout>
+                                <Suspense fallback={<IconLoader forceShow />}>
+                                  <Routes>
+                                    <Route path="/user" element={<Home />} />
+                                    <Route
+                                      path="/user/home"
+                                      element={<Home />}
+                                    />
+                                    <Route
+                                      path="/search"
+                                      element={<Search />}
+                                    />
+                                    <Route
+                                      path="/orders"
+                                      element={<Orders />}
+                                    />
+                                    <Route
+                                      path="/orders/:id"
+                                      element={<OrderDetail />}
+                                    />
+                                    <Route
+                                      path="/order-again"
+                                      element={<OrderAgain />}
+                                    />
+                                    <Route
+                                      path="/account"
+                                      element={<Account />}
+                                    />
+                                    <Route
+                                      path="/notifications"
+                                      element={<Notifications />}
+                                    />
+                                    <Route
+                                      path="/profile"
+                                      element={<Account />}
+                                    />
+                                    <Route
+                                      path="/wallet/history"
+                                      element={<WalletHistory />}
+                                    />
+                                    <Route
+                                      path="/about-us"
+                                      element={<AboutUs />}
+                                    />
+                                    <Route path="/faq" element={<FAQ />} />
+                                    <Route
+                                      path="/privacy-policy"
+                                      element={<PrivacyPolicy />}
+                                    />
+                                    <Route
+                                      path="/terms-of-service"
+                                      element={<TermsOfService />}
+                                    />
+                                    <Route
+                                      path="/help-support"
+                                      element={<HelpSupport />}
+                                    />
+                                    <Route
+                                      path="/refund-policy"
+                                      element={<RefundPolicy />}
+                                    />
+                                    <Route
+                                      path="/return-policy"
+                                      element={<ReturnPolicy />}
+                                    />
+                                    <Route
+                                      path="/shipping-policy"
+                                      element={<ShippingPolicy />}
+                                    />
+                                    <Route
+                                      path="/wishlist"
+                                      element={<Wishlist />}
+                                    />
+                                    <Route
+                                      path="/categories"
+                                      element={<Categories />}
+                                    />
+                                    {/* <Route
                                     path="/subscription"
                                     element={<Subscription />}
                                   /> */}
-                                  <Route
-                                    path="/category/:id"
-                                    element={<Category />}
-                                  />
-                                  <Route
-                                    path="/collection/:id"
-                                    element={<Collection />}
-                                  />
-                                  <Route
-                                    path="/address-book"
-                                    element={<AddressBook />}
-                                  />
-                                  <Route
-                                    path="/checkout"
-                                    element={<Checkout />}
-                                  />
-                                  <Route
-                                    path="/checkout/address"
-                                    element={<CheckoutAddress />}
-                                  />
-                                  <Route
-                                    path="/product/:id"
-                                    element={<ProductDetail />}
-                                  />
-                                  <Route
-                                    path="/invoice/:id"
-                                    element={<Invoice />}
-                                  />
-                                  <Route path="/cart" element={<Cart />} />
-                                  <Route
-                                    path="/addresses"
-                                    element={<Addresses />}
-                                  />
-                                  <Route
-                                    path="/manage-schedule"
-                                    element={<ScheduleManagement />}
-                                  />
-                                  <Route
-                                    path="/store/:slug"
-                                    element={<StorePage />}
-                                  />
-                                  <Route
-                                    path="/stores"
-                                    element={<AllStores />}
-                                  />
-                                  <Route
-                                    path="/store/spiritual"
-                                    element={<SpiritualStore />}
-                                  />
-                                  <Route
-                                    path="/store/pharma"
-                                    element={<PharmaStore />}
-                                  />
-                                  <Route
-                                    path="/store/e-gifts"
-                                    element={<EGiftStore />}
-                                  />
-                                  <Route
-                                    path="/store/pet"
-                                    element={<PetStore />}
-                                  />
-                                  <Route
-                                    path="/store/sports"
-                                    element={<SportsStore />}
-                                  />
-                                  <Route
-                                    path="/store/fashion-basics"
-                                    element={<FashionStore />}
-                                  />
-                                  <Route
-                                    path="/store/toy"
-                                    element={<ToyStore />}
-                                  />
-                                  <Route
-                                    path="/store/hobby"
-                                    element={<HobbyStore />}
-                                  />
-                                </Routes>
-                              </Suspense>
-                            </AppLayout>
-                          }
-                        />
-                      </Routes>
-                    </BrowserRouter>
-                  </OrdersProvider>
-                </CartProvider>
-              </WishlistProvider>
-            </ToastProvider>
-          </LocationProvider>
-        </ThemeProvider>
+                                    <Route
+                                      path="/category/:id"
+                                      element={<Category />}
+                                    />
+                                    <Route
+                                      path="/collection/:id"
+                                      element={<Collection />}
+                                    />
+                                    <Route
+                                      path="/address-book"
+                                      element={<AddressBook />}
+                                    />
+                                    <Route
+                                      path="/checkout"
+                                      element={<Checkout />}
+                                    />
+                                    <Route
+                                      path="/checkout/address"
+                                      element={<CheckoutAddress />}
+                                    />
+                                    <Route
+                                      path="/product/:id"
+                                      element={<ProductDetail />}
+                                    />
+                                    <Route
+                                      path="/invoice/:id"
+                                      element={<Invoice />}
+                                    />
+                                    <Route path="/cart" element={<Cart />} />
+                                    <Route
+                                      path="/addresses"
+                                      element={<Addresses />}
+                                    />
+                                    <Route
+                                      path="/manage-schedule"
+                                      element={<ScheduleManagement />}
+                                    />
+                                    <Route
+                                      path="/store/:slug"
+                                      element={<StorePage />}
+                                    />
+                                    <Route
+                                      path="/stores"
+                                      element={<AllStores />}
+                                    />
+                                    <Route
+                                      path="/store/spiritual"
+                                      element={<SpiritualStore />}
+                                    />
+                                    <Route
+                                      path="/store/pharma"
+                                      element={<PharmaStore />}
+                                    />
+                                    <Route
+                                      path="/store/e-gifts"
+                                      element={<EGiftStore />}
+                                    />
+                                    <Route
+                                      path="/store/pet"
+                                      element={<PetStore />}
+                                    />
+                                    <Route
+                                      path="/store/sports"
+                                      element={<SportsStore />}
+                                    />
+                                    <Route
+                                      path="/store/fashion-basics"
+                                      element={<FashionStore />}
+                                    />
+                                    <Route
+                                      path="/store/toy"
+                                      element={<ToyStore />}
+                                    />
+                                    <Route
+                                      path="/store/hobby"
+                                      element={<HobbyStore />}
+                                    />
+                                  </Routes>
+                                </Suspense>
+                              </AppLayout>
+                            }
+                          />
+                        </Routes>
+                      </BrowserRouter>
+                    </OrdersProvider>
+                  </CartProvider>
+                </WishlistProvider>
+              </ToastProvider>
+            </LocationProvider>
+          </ThemeProvider>
         </AxiosLoadingInterceptor>
       </LoadingProvider>
     </ErrorBoundary >

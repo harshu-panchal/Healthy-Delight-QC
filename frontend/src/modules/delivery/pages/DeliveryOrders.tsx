@@ -98,10 +98,8 @@ export default function DeliveryOrders() {
 
   return (
     <div className="min-h-screen bg-neutral-100 pb-20">
-      <DeliveryHeader />
+      <DeliveryHeader title="Orders" />
       <div className="px-4 py-4">
-        {/* Title */}
-        <h2 className="text-neutral-900 text-xl font-semibold mb-4">Orders</h2>
 
         {/* Tab Switcher */}
         <div className="flex bg-neutral-200/50 p-1 rounded-xl mb-4">

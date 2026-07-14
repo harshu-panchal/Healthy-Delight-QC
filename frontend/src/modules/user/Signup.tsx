@@ -16,6 +16,20 @@ export default function Signup() {
     const location = useLocation();
     const { login } = useAuth();
 
+    const [isInputFocused, setIsInputFocused] = useState(false);
+
+    const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+        setIsInputFocused(true);
+        const target = e.target;
+        setTimeout(() => {
+            target.scrollIntoView({ behavior: "smooth", block: "center" });
+        }, 300);
+    };
+
+    const handleBlur = () => {
+        setIsInputFocused(false);
+    };
+
     const handleGoToLogin = () => {
         navigate('/login', {
             state: {
@@ -191,7 +205,7 @@ export default function Signup() {
             </button>
 
             {/* ── HERO PANEL ── */}
-            <div className={`hd-top-panel ${showOTP ? 'hd-otp-focus' : ''}`}>
+            <div className={`hd-top-panel ${showOTP ? 'hd-otp-focus' : ''} ${isInputFocused ? 'hd-header-shrunk' : ''}`}>
                 <div className="hd-hero-strip hd-hero-in">
                     {animationData && (
                         <Lottie
@@ -251,6 +265,8 @@ export default function Signup() {
                                             placeholder="Enter your name"
                                             className="hd-text-input"
                                             disabled={loading}
+                                            onFocus={handleFocus}
+                                            onBlur={handleBlur}
                                         />
                                     </div>
                                 </div>
@@ -297,6 +313,8 @@ export default function Signup() {
                                             className="hd-phone-input"
                                             maxLength={10}
                                             disabled={loading}
+                                            onFocus={handleFocus}
+                                            onBlur={handleBlur}
                                         />
                                     </div>
                                 </div>
@@ -503,6 +521,25 @@ export default function Signup() {
                     .hd-logo-badge.hd-logo-otp {
                         margin-top: -25px !important;
                         transform: scale(0.85);
+                    }
+                    .hd-top-panel.hd-header-shrunk {
+                        min-height: 0px !important;
+                        height: 0px !important;
+                        margin: 0 !important;
+                        padding: 0 !important;
+                        overflow: hidden;
+                        opacity: 0;
+                        pointer-events: none;
+                    }
+                    .hd-header-shrunk .hd-hero-strip {
+                        height: 0px !important;
+                        opacity: 0 !important;
+                    }
+                    .hd-header-shrunk .hd-logo-badge {
+                        display: none !important;
+                    }
+                    .hd-bottom-panel {
+                        padding-top: 20px !important;
                     }
                 }
 

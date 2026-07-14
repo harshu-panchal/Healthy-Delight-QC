@@ -201,9 +201,9 @@ export default function AdminHeader({
         </div>
 
         {/* Action Icons */}
-        <div className="flex items-center gap-2 md:gap-4 relative">
+        <div className="flex items-center gap-2 md:gap-4">
           {/* Search Button */}
-          <div className="relative">
+          <div>
             <button
               onClick={() => setShowSearchModal(!showSearchModal)}
               className="p-2 text-neutral-600 hover:text-neutral-900 transition-colors"
@@ -233,7 +233,7 @@ export default function AdminHeader({
               </svg>
             </button>
             {showSearchModal && (
-              <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-neutral-200 p-4 z-50">
+              <div className="absolute right-3 sm:right-4 md:right-6 mt-2 w-80 max-w-[calc(100vw-24px)] bg-white rounded-lg shadow-lg border border-neutral-200 p-4 z-50">
                 <div className="relative">
                   <input
                     type="text"
@@ -316,7 +316,7 @@ export default function AdminHeader({
           </div>
 
           {/* Notifications Button */}
-          <div className="relative" ref={notificationsRef}>
+          <div ref={notificationsRef}>
             <button
               onClick={handleDropdownOpen}
               className="p-2 text-neutral-600 hover:text-neutral-900 transition-colors relative"
@@ -347,7 +347,7 @@ export default function AdminHeader({
               )}
             </button>
             {showNotificationsDropdown && (
-              <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-neutral-200 py-2 z-50 max-h-96 overflow-y-auto">
+              <div className="absolute right-3 sm:right-4 md:right-6 mt-2 w-80 max-w-[calc(100vw-24px)] bg-white rounded-lg shadow-lg border border-neutral-200 py-2 z-50 max-h-96 overflow-y-auto">
                 <div className="px-4 py-2 border-b border-neutral-200">
                   <h3 className="text-sm font-semibold text-neutral-900">
                     Notifications

@@ -130,7 +130,8 @@ const SellerAccountSettings = () => {
     storeBanner: '',
     storeDescription: '',
     commission: 0,
-    status: ''
+    status: '',
+    upiId: ''
   });
 
   useEffect(() => {
@@ -161,6 +162,7 @@ const SellerAccountSettings = () => {
           longitude: data.longitude || (locationCoords[0]?.toString() || ''),
           searchLocation: data.searchLocation || data.address || '',
           serviceRadiusKm: (data.serviceRadiusKm || 10).toString(),
+          upiId: data.upiId || '',
         });
       } else {
         setError(response.message || 'Failed to fetch profile');
@@ -248,6 +250,7 @@ const SellerAccountSettings = () => {
           longitude: data.longitude || (locationCoords[0]?.toString() || ''),
           searchLocation: data.searchLocation || data.address || '',
           serviceRadiusKm: (data.serviceRadiusKm || 10).toString(),
+          upiId: data.upiId || '',
         });
         if (updateUser) {
           updateUser({
@@ -462,20 +465,6 @@ const SellerAccountSettings = () => {
                           <InputGroup label="Full Name" name="sellerName" value={sellerData.sellerName} onChange={handleInputChange} disabled={!isEditing} autoComplete="name" />
                           <InputGroup label="Email Address" name="email" value={sellerData.email} onChange={handleInputChange} disabled={!isEditing} type="email" autoComplete="email" />
                           <InputGroup label="Mobile Number" name="mobile" value={sellerData.mobile} onChange={handleInputChange} disabled={!isEditing} type="tel" autoComplete="tel" />
-
-                          <div className="space-y-1.5">
-                            <label className="text-sm font-semibold text-gray-700 ml-1">Password</label>
-                            <div className="relative">
-                              <input
-                                type="password"
-                                autoComplete="new-password"
-                                placeholder="••••••••"
-                                disabled={!isEditing}
-                                className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none disabled:bg-gray-50/50 disabled:text-gray-500 transition-all placeholder:text-gray-300"
-                              />
-                            </div>
-                            {isEditing && <p className="text-xs text-gray-400 ml-1">Leave blank to keep current password</p>}
-                          </div>
                         </div>
                       </div>
                     )}
@@ -691,6 +680,7 @@ const SellerAccountSettings = () => {
                             <InputGroup label="Bank Name" name="bankName" value={sellerData.bankName} onChange={handleInputChange} disabled={!isEditing} pattern="[a-zA-Z\s]+" title="Bank Name can only contain letters and spaces" />
                             <InputGroup label="Account Number" name="accountNumber" value={sellerData.accountNumber} onChange={handleInputChange} disabled={!isEditing} pattern="[0-9]{9,18}" maxLength={18} title="Account number must be between 9 and 18 digits" />
                             <InputGroup label="IFSC Code" name="ifsc" value={sellerData.ifsc} onChange={handleInputChange} disabled={!isEditing} />
+                            <InputGroup label="UPI ID" name="upiId" value={sellerData.upiId} onChange={handleInputChange} disabled={!isEditing} placeholder="e.g. username@upi" />
                           </div>
                         </section>
 
