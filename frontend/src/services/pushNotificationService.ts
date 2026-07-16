@@ -198,6 +198,7 @@ export function setupForegroundNotificationHandler(handler?: (payload: any) => v
                 body: body,
                 icon: '/favicon.ico',
                 badge: '/favicon.ico',
+                sound: '/assets/sound/delivery-alert.mp3',
                 tag: payload.data?.type || 'kosil-general',
                 data: payload.data
             };

@@ -36,7 +36,7 @@ import { getProducts } from "../../services/api/customerProductService";
 import { addToWishlist, getWishlist } from "../../services/api/customerWishlistService";
 import { getProfile, updateProfile } from "../../services/api/customerService";
 import { calculateProductPrice } from "../../utils/priceUtils";
-import { updateScheduledOrderItems } from "../../services/api/customerOrderService";
+import { updateScheduledOrderItems, cancelOrder } from "../../services/api/customerOrderService";
 import { verifyPayment } from "../../services/api/paymentService";
 import { getActiveShifts } from "../../services/api/customerShiftService";
 
@@ -2883,9 +2883,20 @@ export default function Checkout() {
               setShowOrderSuccess(true);
               showGlobalToast("Payment successful!", "success");
             }}
-            onFailure={(error) => {
+            onFailure={async (error) => {
               setShowRazorpayCheckout(false);
+              const orderIdToCancel = pendingOrderId;
               setPendingOrderId(null);
+              localStorage.removeItem("pendingOrderId");
+              
+              if (orderIdToCancel) {
+                try {
+                  await cancelOrder(orderIdToCancel, "Payment cancelled or failed");
+                } catch (cancelErr) {
+                  console.error("Failed to cancel unpaid order:", cancelErr);
+                }
+              }
+              
               showGlobalToast(error || "Payment failed. Please try again.", "error");
             }}
           />

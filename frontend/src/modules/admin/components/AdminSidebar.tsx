@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useAuth } from "../../../context/AuthContext";
+import { getDeliveryBoys } from "../../../services/api/admin/adminDeliveryService";
 
 interface SubMenuItem {
   label: string;
@@ -818,8 +820,29 @@ const menuSections: MenuSection[] = [
 export default function AdminSidebar({ onClose }: AdminSidebarProps) {
   const navigate = useNavigate();
   const location = useLocation();
+  const { isAuthenticated, token } = useAuth();
   const [expandedMenus, setExpandedMenus] = useState<Set<string>>(new Set());
   const [searchQuery, setSearchQuery] = useState("");
+  const [pendingApprovalsCount, setPendingApprovalsCount] = useState(0);
+
+  useEffect(() => {
+    if (!isAuthenticated || !token) return;
+
+    const fetchPendingCount = async () => {
+      try {
+        const response = await getDeliveryBoys({ status: "Inactive", limit: 1 });
+        if (response.success && response.pagination) {
+          setPendingApprovalsCount(response.pagination.total);
+        }
+      } catch (err) {
+        console.error("Failed to fetch pending delivery boys count:", err);
+      }
+    };
+
+    fetchPendingCount();
+    const interval = setInterval(fetchPendingCount, 30000);
+    return () => clearInterval(interval);
+  }, [isAuthenticated, token]);
 
   const isActive = (path: string) => {
     if (path === "/admin") {
@@ -1001,6 +1024,9 @@ export default function AdminSidebar({ onClose }: AdminSidebarProps) {
                         <span className="text-sm font-medium truncate">
                           {item.label}
                         </span>
+                        {item.label === "Delivery Boy" && pendingApprovalsCount > 0 && (
+                          <span className="w-2 h-2 bg-red-500 rounded-full flex-shrink-0 animate-pulse"></span>
+                        )}
                       </div>
                       {item.hasSubmenu && (
                         <svg
@@ -1050,6 +1076,9 @@ export default function AdminSidebar({ onClose }: AdminSidebarProps) {
                                     <span className="text-sm font-medium truncate">
                                       {subItem.label}
                                     </span>
+                                    {subItem.label === "Manage Delivery Boy" && pendingApprovalsCount > 0 && (
+                                      <span className="w-2 h-2 bg-red-500 rounded-full flex-shrink-0 animate-pulse"></span>
+                                    )}
                                   </div>
                                 </button>
                               </li>

@@ -1,5 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion'
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
+
 
 interface DeliveryPartner {
     name?: string
@@ -19,6 +20,7 @@ interface DeliveryPartnerCardProps {
     createdAt?: string | Date
     onCall?: () => void
     onMessage?: () => void
+    onResendOtp?: () => void
 }
 
 export default function DeliveryPartnerCard({
@@ -31,9 +33,25 @@ export default function DeliveryPartnerCard({
     deliveredAt,
     createdAt,
     onCall,
-    onMessage
+    onMessage,
+    onResendOtp
 }: DeliveryPartnerCardProps) {
     const [isCopied, setIsCopied] = useState(false)
+    const [resendTimer, setResendTimer] = useState(0)
+
+    const handleResend = useCallback(() => {
+        if (resendTimer > 0) return
+        onResendOtp?.()
+        setResendTimer(30)
+    }, [resendTimer, onResendOtp])
+
+    useEffect(() => {
+        if (resendTimer <= 0) return
+        const interval = setInterval(() => {
+            setResendTimer(prev => prev - 1)
+        }, 1000)
+        return () => clearInterval(interval)
+    }, [resendTimer])
 
     const handleCopyOtp = useCallback(async () => {
         if (!deliveryOtp) return
@@ -225,8 +243,8 @@ export default function DeliveryPartnerCard({
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-3">
-                        <div className="flex-1 bg-white px-4 py-2.5 rounded-lg border border-neutral-100 shadow-sm flex items-center justify-between group">
+                    <div className="flex flex-col gap-2">
+                        <div className="bg-white px-4 py-2.5 rounded-lg border border-neutral-100 shadow-sm flex items-center justify-between group">
                             <span className="text-2xl font-black tracking-[0.25em] text-green-700">{deliveryOtp}</span>
                             <motion.button
                                 onClick={handleCopyOtp}
@@ -268,6 +286,15 @@ export default function DeliveryPartnerCard({
                                     </motion.span>
                                 )}
                             </motion.button>
+                        </div>
+                        <div className="flex justify-end px-1">
+                            <button
+                                onClick={handleResend}
+                                disabled={resendTimer > 0}
+                                className={`text-[11px] font-bold ${resendTimer > 0 ? 'text-neutral-400 cursor-not-allowed' : 'text-[#0a193b] hover:underline active:scale-95 transition-all'} flex items-center gap-1`}
+                            >
+                                {resendTimer > 0 ? `Resend OTP in ${resendTimer}s` : 'Resend OTP via SMS'}
+                            </button>
                         </div>
                     </div>
                 </div>

@@ -6,6 +6,7 @@ import OrderItem from "../../../models/OrderItem";
 import Seller from "../../../models/Seller";
 import DeliveryAssignment from "../../../models/DeliveryAssignment";
 import { generateDeliveryOtp, verifyDeliveryOtp } from "../../../services/deliveryOtpService";
+import { sendOtpToUser } from "../../../services/otpService";
 import { processOrderStatusTransition } from "../../../services/orderService";
 
 /**
@@ -91,15 +92,23 @@ export const getTodayOrders = asyncHandler(async (req: Request, res: Response) =
             {
                 orderType: { $ne: "Scheduled" },
                 $or: [
+                    { status: { $in: ["Ready for pickup", "Out for Delivery", "Picked Up", "Assigned", "In Transit"] } },
+                    { deliveryBoyStatus: "Pending" },
                     { createdAt: { $gte: todayStart, $lte: todayEnd } },
                     { updatedAt: { $gte: todayStart, $lte: todayEnd } }
                 ]
             },
             {
                 orderType: "Scheduled",
-                scheduledDate: { $gte: todayStart, $lte: todayEnd },
-                deliveryBoyStatus: { $in: ["Pending", "Accepted", "Assigned", "Picked Up", "In Transit"] },
-                status: { $nin: ["Delivered", "Cancelled", "Returned", "Rejected"] }
+                $or: [
+                    {
+                        scheduledDate: { $lte: todayEnd },
+                        deliveryBoyStatus: { $in: ["Pending", "Accepted", "Assigned", "Picked Up", "In Transit"] },
+                        status: { $nin: ["Delivered", "Cancelled", "Returned", "Rejected"] }
+                    },
+                    { createdAt: { $gte: todayStart, $lte: todayEnd } },
+                    { updatedAt: { $gte: todayStart, $lte: todayEnd } }
+                ]
             }
         ]
     })
@@ -264,6 +273,12 @@ export const updateOrderStatus = asyncHandler(async (req: Request, res: Response
     // Emit socket events for status changes
     const io = (req.app as any).get("io");
     if (io) {
+        // Emit general delivery status update event to the tracking room
+        io.to(`order-${id}`).emit("delivery-status-update", {
+            status,
+            message: `Order status updated to ${status}`
+        });
+
         if (status === 'Picked up' && previousStatus !== 'Picked up') {
             // Emit order-taken event
             io.to(`order-${id}`).emit('order-taken', {
@@ -386,7 +401,7 @@ export const sendDeliveryOtp = asyncHandler(async (req: Request, res: Response) 
     const { id } = req.params;
     const deliveryId = req.user?.userId;
 
-    const order = await Order.findById(id);
+    const order = await Order.findById(id).populate('customer');
     if (!order) {
         return res.status(404).json({ success: false, message: "Order not found" });
     }
@@ -405,6 +420,18 @@ export const sendDeliveryOtp = asyncHandler(async (req: Request, res: Response) 
 
     try {
         const result = await generateDeliveryOtp(id);
+
+        // Fetch customer's delivery OTP and phone to send real SMS
+        if (order.customer && typeof order.customer === 'object' && 'deliveryOtp' in order.customer) {
+            const customer = order.customer as any;
+            if (customer.phone && customer.deliveryOtp) {
+                try {
+                    await sendOtpToUser(customer.phone, customer.deliveryOtp);
+                } catch (smsError) {
+                    console.error("Failed to send delivery OTP SMS to customer:", smsError);
+                }
+            }
+        }
 
         // Emit otp-sent event to delivery boy
         const io = (req.app as any).get("io");
@@ -648,10 +675,10 @@ export const confirmSellerPickup = asyncHandler(async (req: Request, res: Respon
 
     const allPickedUp = allSellerIds.every(sellerId => pickedUpSellerIds.includes(sellerId));
 
-    // If all sellers picked up, automatically change status to "Out for Delivery"
-    if (allPickedUp && order.status !== 'Out for Delivery' && order.status !== 'Delivered') {
-        order.status = 'Out for Delivery';
-        order.deliveryBoyStatus = 'In Transit';
+    // If all sellers picked up, automatically change status to "Picked up"
+    if (allPickedUp && order.status !== 'Picked up' && order.status !== 'Picked Up' && order.status !== 'Out for Delivery' && order.status !== 'Delivered') {
+        order.status = 'Picked up';
+        order.deliveryBoyStatus = 'Picked Up';
     }
 
     await order.save();
@@ -672,7 +699,7 @@ export const confirmSellerPickup = asyncHandler(async (req: Request, res: Respon
             io.to(`delivery-${deliveryId}`).emit('all-sellers-picked-up', {
                 orderId: id,
                 orderNumber: order.orderNumber,
-                message: 'All items picked up. Order is now Out for Delivery.'
+                message: 'All items picked up. Order is now Picked up.'
             });
         }
     }
@@ -680,7 +707,7 @@ export const confirmSellerPickup = asyncHandler(async (req: Request, res: Respon
     return res.status(200).json({
         success: true,
         message: allPickedUp
-            ? "Order picked up! Order status changed to Out for Delivery."
+            ? "Order picked up!"
             : `Pickup confirmed from ${seller.storeName}`,
         data: {
             order,

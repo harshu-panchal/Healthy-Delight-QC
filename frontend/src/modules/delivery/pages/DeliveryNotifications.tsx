@@ -26,6 +26,8 @@ export default function DeliveryNotifications() {
       await markNotificationRead(id);
       // Update local state to show as read
       setNotifications(prev => prev.map(n => n._id === id ? { ...n, isRead: true } : n));
+      // Trigger event to notify other components (like bottom navigation) to update badge
+      window.dispatchEvent(new CustomEvent('delivery-notifications-updated'));
     } catch (error) {
       console.error("Failed to mark as read", error);
     }

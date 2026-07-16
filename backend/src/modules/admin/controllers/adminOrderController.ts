@@ -9,8 +9,10 @@ import Delivery from "../../../models/Delivery";
 import DeliveryAssignment from "../../../models/DeliveryAssignment";
 import Return from "../../../models/Return";
 import { notifySellersOfOrderUpdate } from "../../../services/sellerNotificationService";
+import { sendNotification } from "../../../services/notificationService";
 import { processOrderStatusTransition } from "../../../services/orderService";
 import { Server as SocketIOServer } from "socket.io";
+
 
 /**
  * Get all orders with filters
@@ -222,6 +224,16 @@ export const updateOrderStatus = asyncHandler(
       }
 
       await order.save();
+
+      // Reverse commissions if they were already paid out (prepaid/wallet orders)
+      if (status === "Cancelled") {
+        try {
+          const { reverseCommissions } = await import("../../../services/commissionService");
+          await reverseCommissions(id);
+        } catch (revError) {
+          console.error("Failed to reverse commissions during admin order cancellation:", revError);
+        }
+      }
     }
 
     await order.populate([
@@ -231,9 +243,29 @@ export const updateOrderStatus = asyncHandler(
     ]);
 
     // Trigger notification if status is "Processed" (Confirmed) or if paymentStatus changed to "Paid"
-    if (status === "Processed" || order.paymentStatus === "Paid") {
-      const io: SocketIOServer = req.app.get("io");
-      if (io) {
+    const io: SocketIOServer = req.app.get("io");
+    if (io) {
+      // Broadcast status change to order room so customer tracking is updated in real-time
+      io.to(`order-${id}`).emit("delivery-status-update", {
+        status,
+        message: `Order status updated to ${status}`
+      });
+
+      if (status === "Cancelled") {
+        io.to(`order-${id}`).emit("order-cancelled", {
+          orderId: id,
+          status: "Cancelled",
+          message: "Order has been cancelled by administrator"
+        });
+      } else if (status === "Rejected") {
+        io.to(`order-${id}`).emit("order-rejected", {
+          orderId: id,
+          status: "Rejected",
+          message: "Order has been rejected by administrator"
+        });
+      }
+
+      if (status === "Processed" || order.paymentStatus === "Paid") {
         notifySellersOfOrderUpdate(io, order, "STATUS_UPDATE");
       }
     }
@@ -303,6 +335,23 @@ export const assignDeliveryBoy = asyncHandler(
       },
       { upsert: true, new: true }
     );
+
+    // Send notification to the delivery boy
+    try {
+      await sendNotification(
+        "Delivery",
+        deliveryBoyId,
+        "New Order Assigned 🛵",
+        `You have been assigned to deliver order #${order.orderNumber}.`,
+        {
+          type: "Order",
+          link: `/delivery/dashboard?orderId=${order._id.toString()}`,
+          priority: "High",
+        }
+      );
+    } catch (notificationError) {
+      console.error("Failed to send assignment notification to delivery boy:", notificationError);
+    }
 
     const updatedOrder = await Order.findById(id)
       .populate("customer", "name email phone")

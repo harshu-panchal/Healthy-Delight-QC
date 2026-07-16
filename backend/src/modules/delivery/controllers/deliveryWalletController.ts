@@ -4,6 +4,8 @@ import Delivery from '../../../models/Delivery';
 import { createRazorpayOrder, verifyPaymentSignature } from '../../../services/paymentService';
 import WalletTransaction from '../../../models/WalletTransaction';
 import PlatformWallet from '../../../models/PlatformWallet';
+import CashCollection from '../../../models/CashCollection';
+import Notification from '../../../models/Notification';
 import mongoose from 'mongoose';
 import {
     getWalletBalance,
@@ -279,3 +281,163 @@ export const verifyAdminPayout = async (req: Request, res: Response) => {
         session.endSession();
     }
 };
+
+/**
+ * Create COD Deposit Order (Razorpay) — Delivery boy deposits COD cash to admin online
+ */
+export const createCODDepositOrder = async (req: Request, res: Response) => {
+    try {
+        const deliveryBoyId = req.user!.userId;
+        const { amount } = req.body;
+
+        if (!amount || amount <= 0) {
+            return res.status(400).json({ success: false, message: "Invalid amount" });
+        }
+
+        const deliveryBoy = await Delivery.findById(deliveryBoyId);
+        if (!deliveryBoy) {
+            return res.status(404).json({ success: false, message: "Delivery boy not found" });
+        }
+
+        const currentCashCollected = Math.round((deliveryBoy.cashCollected || 0) * 100) / 100;
+
+        if (amount > currentCashCollected + 0.01) {
+            return res.status(400).json({
+                success: false,
+                message: `Amount exceeds your COD cash balance of ₹${currentCashCollected}`
+            });
+        }
+
+        const receipt = `COD-DEP-${Date.now()}`;
+        const result = await createRazorpayOrder(receipt, amount);
+
+        if (!result.success) {
+            return res.status(400).json(result);
+        }
+
+        return res.status(200).json(result);
+    } catch (error: any) {
+        console.error("Error creating COD deposit order:", error);
+        return res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+/**
+ * Verify COD Deposit (Razorpay) — Processes the COD cash deposit to admin after payment
+ */
+export const verifyCODDeposit = async (req: Request, res: Response) => {
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
+    try {
+        const deliveryBoyId = req.user!.userId;
+        const {
+            razorpayOrderId,
+            razorpayPaymentId,
+            razorpaySignature,
+            amount
+        } = req.body;
+
+        // 1. Verify Razorpay Signature
+        const isValid = verifyPaymentSignature(razorpayOrderId, razorpayPaymentId, razorpaySignature);
+        if (!isValid) {
+            throw new Error("Invalid payment signature");
+        }
+
+        // 2. Fetch delivery boy
+        const deliveryBoy = await Delivery.findById(deliveryBoyId).session(session);
+        if (!deliveryBoy) {
+            throw new Error("Delivery boy not found");
+        }
+
+        const currentCash = Math.round((deliveryBoy.cashCollected || 0) * 100) / 100;
+
+        if (amount > currentCash + 0.01) {
+            throw new Error(`Payment amount (₹${amount}) exceeds COD cash balance (₹${currentCash})`);
+        }
+
+        // 3. Save WalletTransaction (Debit from delivery boy)
+        const reference = `COD-DEP-${razorpayPaymentId}`;
+        const transaction = new WalletTransaction({
+            userId: deliveryBoyId,
+            userType: "DELIVERY_BOY",
+            amount,
+            type: "Debit",
+            description: "COD Cash Deposit to Admin via Razorpay",
+            status: "Completed",
+            reference,
+        });
+        await transaction.save({ session });
+
+        // 4. Save CashCollection record
+        const cashCollectionRecord = new CashCollection({
+            deliveryBoy: new mongoose.Types.ObjectId(deliveryBoyId),
+            amount,
+            remark: `Online COD deposit via Razorpay — Ref: ${reference}`,
+            collectedAt: new Date(),
+        });
+        await cashCollectionRecord.save({ session });
+
+        // 5. Update PlatformWallet
+        const platformWallet = await PlatformWallet.findOne().session(session);
+        if (platformWallet) {
+            platformWallet.totalPlatformEarning += amount;
+            platformWallet.currentPlatformBalance += amount;
+            platformWallet.pendingFromDeliveryBoy = Math.max(0, platformWallet.pendingFromDeliveryBoy - amount);
+            await platformWallet.save({ session });
+        }
+
+        // 6. Deduct from delivery boy's cashCollected
+        deliveryBoy.cashCollected = Math.max(0, currentCash - amount);
+        await deliveryBoy.save({ session });
+
+        await session.commitTransaction();
+
+        // 7. Create Admin Notification (DB)
+        try {
+            const adminNotification = new Notification({
+                recipientType: "Admin",
+                title: "COD Cash Deposit Received 💰",
+                message: `Delivery boy ${deliveryBoy.name} has deposited ₹${amount.toLocaleString('en-IN')} COD cash online via Razorpay. Ref: ${reference}`,
+                type: "Payment",
+                priority: "High",
+                link: "/admin/delivery",
+                actionLabel: "View Delivery",
+            });
+            await adminNotification.save();
+
+            // 8. Emit real-time socket notification to admin room
+            const io = (req.app as any).get("io");
+            if (io) {
+                io.to("admin-room").emit("cod-deposit-received", {
+                    deliveryBoyId,
+                    deliveryBoyName: deliveryBoy.name,
+                    amount,
+                    reference,
+                    message: `${deliveryBoy.name} deposited ₹${amount} COD cash`,
+                    timestamp: new Date().toISOString(),
+                });
+                console.log(`💰 COD deposit notification sent to admin-room for delivery boy ${deliveryBoy.name}`);
+            }
+        } catch (notifyErr) {
+            console.error("Notification error (non-fatal):", notifyErr);
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "COD cash deposited to admin successfully",
+            data: {
+                amount,
+                reference,
+                newCashCollected: deliveryBoy.cashCollected,
+            }
+        });
+    } catch (error: any) {
+        await session.abortTransaction();
+        console.error("Error verifying COD deposit:", error);
+        return res.status(500).json({ success: false, message: error.message });
+    } finally {
+        session.endSession();
+    }
+};
+

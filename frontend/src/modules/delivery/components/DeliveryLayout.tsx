@@ -37,6 +37,37 @@ function DeliveryLayoutContent({ children }: DeliveryLayoutContentProps) {
     fetchProfile();
   }, [setUserName]);
 
+  // Pre-unlock Audio Context on any user interaction (click/tap)
+  useEffect(() => {
+    const unlock = () => {
+      try {
+        const audio = new Audio('/assets/sound/delivery-alert.mp3');
+        audio.volume = 0.01;
+        audio.play().then(() => {
+          setTimeout(() => {
+            try {
+              audio.pause();
+              audio.currentTime = 0;
+            } catch (e) {}
+          }, 100);
+          document.removeEventListener('click', unlock);
+          document.removeEventListener('touchstart', unlock);
+          console.log('🔊 Audio context pre-unlocked via user gesture');
+        }).catch(err => {
+          console.warn('Failed to pre-unlock audio context:', err);
+        });
+      } catch (err) {
+        console.warn('Audio pre-unlock error:', err);
+      }
+    };
+    document.addEventListener('click', unlock);
+    document.addEventListener('touchstart', unlock);
+    return () => {
+      document.removeEventListener('click', unlock);
+      document.removeEventListener('touchstart', unlock);
+    };
+  }, []);
+
   return (
     <div className={`flex flex-col min-h-screen bg-neutral-100 transition-all duration-300 ${!isOnline ? 'grayscale' : ''}`}>
       <main className="flex-1 overflow-y-auto scrollbar-hide pb-20">

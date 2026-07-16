@@ -699,6 +699,69 @@ export default function OrderDetail() {
       glowColor: "shadow-blue-500/20",
       badgeIcon: "🚴",
     },
+    "Picked up": {
+      title: "Order picked up",
+      subtitle: `Arriving in ${displayETA} mins`,
+      themeColor: "#3b82f6",
+      textColor: "text-blue-600",
+      bgColor: "bg-blue-50",
+      glowColor: "shadow-blue-500/20",
+      badgeIcon: "🚴",
+    },
+    "Picked Up": {
+      title: "Order picked up",
+      subtitle: `Arriving in ${displayETA} mins`,
+      themeColor: "#3b82f6",
+      textColor: "text-blue-600",
+      bgColor: "bg-blue-50",
+      glowColor: "shadow-blue-500/20",
+      badgeIcon: "🚴",
+    },
+    "In Transit": {
+      title: "Order picked up",
+      subtitle: `Arriving in ${displayETA} mins`,
+      themeColor: "#3b82f6",
+      textColor: "text-blue-600",
+      bgColor: "bg-blue-50",
+      glowColor: "shadow-blue-500/20",
+      badgeIcon: "🚴",
+    },
+    "Ready for pickup": {
+      title: "Order prepared",
+      subtitle: "Ready for pickup",
+      themeColor: "#10b981",
+      textColor: "text-emerald-600",
+      bgColor: "bg-emerald-50",
+      glowColor: "shadow-emerald-500/20",
+      badgeIcon: "✓",
+    },
+    "Ready for Pickup": {
+      title: "Order prepared",
+      subtitle: "Ready for pickup",
+      themeColor: "#10b981",
+      textColor: "text-emerald-600",
+      bgColor: "bg-emerald-50",
+      glowColor: "shadow-emerald-500/20",
+      badgeIcon: "✓",
+    },
+    "Rider Assigned": {
+      title: "Rider Assigned",
+      subtitle: "Rider is heading to the store",
+      themeColor: "#3b82f6",
+      textColor: "text-blue-600",
+      bgColor: "bg-blue-50",
+      glowColor: "shadow-blue-500/20",
+      badgeIcon: "🚴",
+    },
+    "Assigned": {
+      title: "Rider Assigned",
+      subtitle: "Rider is heading to the store",
+      themeColor: "#3b82f6",
+      textColor: "text-blue-600",
+      bgColor: "bg-blue-50",
+      glowColor: "shadow-blue-500/20",
+      badgeIcon: "🚴",
+    },
     Delivered: {
       title: "Order delivered",
       subtitle: "Enjoy your order!",
@@ -985,6 +1048,7 @@ export default function OrderDetail() {
             const phone = order?.deliveryPartner?.phone || "1234567890";
             window.location.href = `tel:${phone}`;
           }}
+          onResendOtp={handleRefreshOtp}
         />
       )}
 

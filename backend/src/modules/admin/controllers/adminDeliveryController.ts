@@ -3,6 +3,7 @@ import { asyncHandler } from "../../../utils/asyncHandler";
 import Delivery from "../../../models/Delivery";
 import DeliveryAssignment from "../../../models/DeliveryAssignment";
 import CashCollection from "../../../models/CashCollection";
+import { sendNotification } from "../../../services/notificationService";
 
 /**
  * Create a new delivery boy
@@ -84,7 +85,9 @@ export const getAllDeliveryBoys = asyncHandler(
     const query: any = {};
 
     if (status) query.status = status;
-    if (available) query.available = available;
+    if (available && available !== "All") {
+      query.isOnline = available === "Available";
+    }
     if (search) {
       query.$or = [
         { name: { $regex: search as string, $options: "i" } },
@@ -95,7 +98,17 @@ export const getAllDeliveryBoys = asyncHandler(
     }
 
     const sort: any = {};
-    sort[sortBy as string] = sortOrder === "asc" ? 1 : -1;
+    let dbSortBy = sortBy as string;
+    if (dbSortBy === "available") {
+      dbSortBy = "isOnline";
+    }
+
+    if (dbSortBy === "createdAt") {
+      sort.status = -1; // Inactive first
+      sort.createdAt = sortOrder === "asc" ? 1 : -1;
+    } else {
+      sort[dbSortBy] = sortOrder === "asc" ? 1 : -1;
+    }
 
     const skip = (parseInt(page as string) - 1) * parseInt(limit as string);
 
@@ -157,16 +170,34 @@ export const updateDeliveryBoy = asyncHandler(
     // Don't allow password update through this endpoint
     delete updateData.password;
 
+    if (updateData.available) {
+      updateData.isOnline = updateData.available === "Available";
+      delete updateData.available;
+    }
+
+    const deliveryBoyBefore = await Delivery.findById(id);
+    if (!deliveryBoyBefore) {
+      return res.status(404).json({
+        success: false,
+        message: "Delivery boy not found",
+      });
+    }
+
+    const wasActive = deliveryBoyBefore.status === "Active";
+
     const deliveryBoy = await Delivery.findByIdAndUpdate(id, updateData, {
       new: true,
       runValidators: true,
     }).select("-password");
 
-    if (!deliveryBoy) {
-      return res.status(404).json({
-        success: false,
-        message: "Delivery boy not found",
-      });
+    if (deliveryBoy && !wasActive && updateData.status === "Active") {
+      await sendNotification(
+        "Delivery",
+        id,
+        "Account Approved",
+        "Your delivery boy profile has been approved by the admin. You can now start taking deliveries!",
+        { type: "Success", priority: "High" }
+      );
     }
 
     return res.status(200).json({
@@ -237,17 +268,30 @@ export const updateDeliveryStatus = asyncHandler(
       });
     }
 
+    const deliveryBoyBefore = await Delivery.findById(id);
+    if (!deliveryBoyBefore) {
+      return res.status(404).json({
+        success: false,
+        message: "Delivery boy not found",
+      });
+    }
+
+    const wasActive = deliveryBoyBefore.status === "Active";
+
     const deliveryBoy = await Delivery.findByIdAndUpdate(
       id,
       { status },
       { new: true, runValidators: true }
     ).select("-password");
 
-    if (!deliveryBoy) {
-      return res.status(404).json({
-        success: false,
-        message: "Delivery boy not found",
-      });
+    if (deliveryBoy && !wasActive && status === "Active") {
+      await sendNotification(
+        "Delivery",
+        id,
+        "Account Approved",
+        "Your delivery boy profile has been approved by the admin. You can now start taking deliveries!",
+        { type: "Success", priority: "High" }
+      );
     }
 
     return res.status(200).json({
@@ -275,7 +319,7 @@ export const updateDeliveryBoyAvailability = asyncHandler(
 
     const deliveryBoy = await Delivery.findByIdAndUpdate(
       id,
-      { available },
+      { isOnline: available === "Available" },
       { new: true, runValidators: true }
     ).select("-password");
 

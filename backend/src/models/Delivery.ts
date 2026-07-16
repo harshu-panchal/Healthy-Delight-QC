@@ -31,6 +31,7 @@ export interface IDelivery extends Document {
   commissionRate?: number; // Individual commission rate (overrides global setting)
   status: 'Active' | 'Inactive';
   isOnline: boolean; // Availability status
+  available?: 'Available' | 'Not Available';
   location?: {
     type: "Point";
     coordinates: [number, number]; // [longitude, latitude]
@@ -228,8 +229,15 @@ const DeliverySchema = new Schema<IDelivery>(
   },
   {
     timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
   }
 );
+
+// Virtual for availability status mapping to isOnline boolean
+DeliverySchema.virtual('available').get(function(this: IDelivery) {
+  return this.isOnline ? 'Available' : 'Not Available';
+});
 
 // Hash password before saving
 DeliverySchema.pre('save', async function (next) {

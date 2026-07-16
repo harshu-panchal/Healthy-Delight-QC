@@ -1,9 +1,44 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { getNotifications } from '../../../services/api/delivery/deliveryService';
+
 
 export default function DeliveryBottomNav() {
   const location = useLocation();
   const [isInputFocused, setIsInputFocused] = useState(false);
+  const [hasUnread, setHasUnread] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+
+    const checkUnreadNotifications = async () => {
+      try {
+        const data = await getNotifications();
+        if (active && Array.isArray(data)) {
+          const unread = data.some((n: any) => !n.isRead);
+          setHasUnread(unread);
+        }
+      } catch (error) {
+        console.error('Failed to check unread notifications:', error);
+      }
+    };
+
+    checkUnreadNotifications();
+
+    const handleUpdate = () => {
+      checkUnreadNotifications();
+    };
+
+    window.addEventListener('delivery-notifications-updated', handleUpdate);
+    const interval = setInterval(checkUnreadNotifications, 15000);
+
+    return () => {
+      active = false;
+      window.removeEventListener('delivery-notifications-updated', handleUpdate);
+      clearInterval(interval);
+    };
+  }, [location.pathname]);
+
 
   useEffect(() => {
     const handleFocusIn = (e: FocusEvent) => {
@@ -75,24 +110,32 @@ export default function DeliveryBottomNav() {
       path: '/delivery/notifications',
       label: 'Notification',
       icon: (
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path
-            d="M18 8A6 6 0 0 0 6 8C6 11.3137 4 14 4 14H20C20 14 18 11.3137 18 8Z"
-            stroke={isActive('/delivery/notifications') ? '#0a193b' : '#9ca3af'}
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            fill="none"
-          />
-          <path
-            d="M13.73 21C13.5542 21.3031 13.3019 21.5547 12.9982 21.7295C12.6946 21.9044 12.3504 21.9965 12 21.9965C11.6496 21.9965 11.3054 21.9044 11.0018 21.7295C10.6982 21.5547 10.4458 21.3031 10.27 21"
-            stroke={isActive('/delivery/notifications') ? '#0a193b' : '#9ca3af'}
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            fill="none"
-          />
-        </svg>
+        <div className="relative">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path
+              d="M18 8A6 6 0 0 0 6 8C6 11.3137 4 14 4 14H20C20 14 18 11.3137 18 8Z"
+              stroke={isActive('/delivery/notifications') ? '#0a193b' : '#9ca3af'}
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              fill="none"
+            />
+            <path
+              d="M13.73 21C13.5542 21.3031 13.3019 21.5547 12.9982 21.7295C12.6946 21.9044 12.3504 21.9965 12 21.9965C11.6496 21.9965 11.3054 21.9044 11.0018 21.7295C10.6982 21.5547 10.4458 21.3031 10.27 21"
+              stroke={isActive('/delivery/notifications') ? '#0a193b' : '#9ca3af'}
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              fill="none"
+            />
+          </svg>
+          {hasUnread && (
+            <span className="absolute top-0 right-0.5 flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+            </span>
+          )}
+        </div>
       ),
     },
     {

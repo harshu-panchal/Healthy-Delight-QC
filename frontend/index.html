@@ -2,7 +2,49 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/png" href="/assets/logo.png" />
+    <link rel="icon" type="image/png" href="/assets/logo.png" id="favicon" />
+    <script>
+      (function() {
+        const favicon = document.getElementById('favicon');
+        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+        
+        function updateFavicon() {
+          const isDark = mediaQuery.matches;
+          if (!isDark) {
+            favicon.href = '/assets/logo.png';
+            return;
+          }
+          
+          const img = new Image();
+          img.crossOrigin = 'anonymous';
+          img.src = '/assets/logo.png';
+          img.onload = function() {
+            try {
+              const canvas = document.createElement('canvas');
+              canvas.width = img.width || 32;
+              canvas.height = img.height || 32;
+              const ctx = canvas.getContext('2d');
+              
+              ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+              ctx.globalCompositeOperation = 'source-in';
+              ctx.fillStyle = '#ffffff';
+              ctx.fillRect(0, 0, canvas.width, canvas.height);
+              
+              favicon.href = canvas.toDataURL('image/png');
+            } catch (e) {
+              console.error('Failed to generate white favicon:', e);
+              favicon.href = '/assets/logo.png';
+            }
+          };
+          img.onerror = function() {
+            favicon.href = '/assets/logo.png';
+          };
+        }
+        
+        updateFavicon();
+        mediaQuery.addEventListener('change', updateFavicon);
+      })();
+    </script>
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />

@@ -300,12 +300,12 @@ function AppContent() {
     setupForegroundNotificationHandler();
   }, []);
 
-  // Register customer token after auth so admin customer notifications can be pushed.
+  // Register FCM token after auth so role-specific notifications can be pushed.
   // Pass userType to use a role-specific cache key (fcm_token_Customer, fcm_token_Delivery, etc.)
-  // This prevents token collisions when Delivery and Customer share the same browser/device.
+  // This prevents token collisions when different roles share the same browser/device.
   useEffect(() => {
-    if (!isAuthenticated || user?.userType !== "Customer") return;
-    registerFCMToken(false, "Customer");
+    if (!isAuthenticated || !user?.userType) return;
+    registerFCMToken(false, user.userType);
   }, [isAuthenticated, user?.userType]);
 
   return (

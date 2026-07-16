@@ -216,6 +216,18 @@ export const initializeSocket = (httpServer: HttpServer) => {
             });
         });
 
+        // Admin joins admin notification room (for real-time alerts like COD deposits)
+        socket.on('join-admin-room', () => {
+            socket.join('admin-room');
+            console.log(`🛡️ Admin joined admin-room`);
+            socket.emit('joined-admin-room', {
+                success: true,
+                message: 'Successfully joined admin notifications room',
+            });
+        });
+
+
+
         // Handle order acceptance
         socket.on('accept-order', async (data: { orderId: string; deliveryBoyId: string }) => {
             try {

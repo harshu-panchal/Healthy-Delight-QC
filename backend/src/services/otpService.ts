@@ -234,10 +234,7 @@ function isDeveloperBypass(otp: string): boolean {
   );
 }
 
-/**
- * Send OTP via the configured provider
- */
-async function sendOtpToUser(mobile: string, otp: string): Promise<void> {
+export async function sendOtpToUser(mobile: string, otp: string): Promise<void> {
   const provider = process.env.OTP_PROVIDER || 'SMS_INDIA_HUB';
 
   try {

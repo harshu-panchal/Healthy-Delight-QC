@@ -15,6 +15,7 @@ import { calculateDistance } from "../../../utils/locationHelper";
 import { notifySellersOfOrderUpdate } from "../../../services/sellerNotificationService";
 import { getOrderItemCommissionRate } from "../../../services/commissionService";
 import { generateDeliveryOtp } from "../../../services/deliveryOtpService";
+import { sendOtpToUser } from "../../../services/otpService";
 import { Server as SocketIOServer } from "socket.io";
 
 // Helper to get all fully active category IDs (self active + all ancestors active)
@@ -660,6 +661,21 @@ export const createOrder = async (req: Request, res: Response) => {
             } else {
                 await walletTransaction.save();
             }
+
+            // Update Platform Wallet tracking for the wallet portion used
+            try {
+                const PlatformWalletModel = (await import("../../../models/PlatformWallet")).default;
+                const platformWallet = await PlatformWalletModel.getWallet();
+                platformWallet.totalPlatformEarning = Number((platformWallet.totalPlatformEarning + walletUsed).toFixed(2));
+                platformWallet.currentPlatformBalance = Number((platformWallet.currentPlatformBalance + walletUsed).toFixed(2));
+                if (session) {
+                    await platformWallet.save({ session });
+                } else {
+                    await platformWallet.save();
+                }
+            } catch (pwError) {
+                console.error("Error updating platform wallet for wallet payment in createOrder:", pwError);
+            }
         }
 
         // Compute remaining amount
@@ -727,6 +743,18 @@ export const createOrder = async (req: Request, res: Response) => {
                 await Coupon.findByIdAndUpdate(couponEntity._id, { $inc: { usageCount: 1 } });
             }
         }
+
+        // If order is fully covered by wallet, process commissions immediately
+        if (remainingTotal === 0 || newOrder.paymentMethod === 'Wallet') {
+            try {
+                const { createPendingCommissions } = await import("../../../services/commissionService");
+                await createPendingCommissions(newOrder._id.toString());
+                console.log(`[Wallet Payment] Automatically created pending/paid commissions for order #${newOrder.orderNumber || newOrder._id}`);
+            } catch (commError) {
+                console.error("Failed to create commissions for wallet-paid order:", commError);
+            }
+        }
+
 
 
         // Emit notification to all available delivery boys/sellers if the order is active immediately (e.g. COD)
@@ -954,14 +982,29 @@ export const refreshDeliveryOtp = async (req: Request, res: Response) => {
             return res.status(400).json({ success: false, message: "Order is already delivered" });
         }
 
-        // Get customer's permanent delivery OTP
+        // Generate a new 4-digit OTP
+        const newOtp = Math.floor(1000 + Math.random() * 9000).toString();
+
+        // Update customer's permanent delivery OTP
         const customer = await Customer.findById(userId);
-        let deliveryOtp = customer?.deliveryOtp;
-        if (customer && !deliveryOtp) {
-            deliveryOtp = Math.floor(1000 + Math.random() * 9000).toString();
-            customer.deliveryOtp = deliveryOtp;
+        if (customer) {
+            customer.deliveryOtp = newOtp;
             await customer.save();
+
+            // Send real SMS OTP to customer's mobile
+            if (customer.phone) {
+                try {
+                    await sendOtpToUser(customer.phone, newOtp);
+                } catch (smsError) {
+                    console.error("Failed to send OTP SMS to customer:", smsError);
+                }
+            }
         }
+
+        // Update order's delivery OTP and expiry (10 minutes)
+        order.deliveryOtp = newOtp;
+        order.deliveryOtpExpiresAt = new Date(Date.now() + 10 * 60 * 1000);
+        await order.save();
 
         // Generate and send new OTP (keeps backward compatibility)
         const result = await generateDeliveryOtp(id);
@@ -971,12 +1014,16 @@ export const refreshDeliveryOtp = async (req: Request, res: Response) => {
         if (io) {
             io.to(`order-${id}`).emit('delivery-otp-refreshed', {
                 orderId: id,
-                deliveryOtp: deliveryOtp,
+                deliveryOtp: newOtp,
                 expiresAt: order.deliveryOtpExpiresAt
             });
         }
 
-        return res.status(200).json(result);
+        return res.status(200).json({
+            success: true,
+            message: "New delivery OTP generated and sent.",
+            deliveryOtp: newOtp
+        });
     } catch (error: any) {
         console.error('Error refreshing delivery OTP:', error);
         return res.status(500).json({
@@ -1139,11 +1186,29 @@ export const cancelOrder = async (req: Request, res: Response) => {
             }
         }
 
+        // Restore coupon usage count
+        if (order.couponCode) {
+            const couponUpdateOpts = session ? { session } : {};
+            await Coupon.findOneAndUpdate(
+                { code: order.couponCode, usageCount: { $gt: 0 } },
+                { $inc: { usageCount: -1 } },
+                couponUpdateOpts
+            );
+        }
+
         if (session) {
             await order.save({ session });
             await session.commitTransaction();
         } else {
             await order.save();
+        }
+
+        // Reverse commissions if they were already paid out (prepaid/wallet orders)
+        try {
+            const { reverseCommissions } = await import("../../../services/commissionService");
+            await reverseCommissions(order._id.toString());
+        } catch (revError) {
+            console.error("Failed to reverse commissions during customer order cancellation:", revError);
         }
 
         // Notify

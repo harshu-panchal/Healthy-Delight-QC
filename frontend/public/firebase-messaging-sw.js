@@ -34,6 +34,7 @@ if (messaging) {
         const notificationOptions = {
             body: payload.notification?.body || '',
             icon: '/favicon.ico',
+            sound: '/assets/sound/delivery-alert.mp3',
             data: payload.data
         };
 

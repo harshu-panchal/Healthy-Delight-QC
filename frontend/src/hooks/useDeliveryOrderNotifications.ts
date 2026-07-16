@@ -182,6 +182,17 @@ export const useDeliveryOrderNotifications = () => {
         return socket;
     }, [isAuthenticated, user?.id, user?.userType]);
 
+    // Request notification permission when delivery user is online
+    useEffect(() => {
+        if (isAuthenticated && user?.userType === 'Delivery' && 'Notification' in window) {
+            if (Notification.permission === 'default') {
+                Notification.requestPermission().then(permission => {
+                    console.log('📢 Web Notification permission requested:', permission);
+                });
+            }
+        }
+    }, [isAuthenticated, user]);
+
     // Listener Registration Effect
     useEffect(() => {
         const socket = connectSocket();
@@ -190,6 +201,34 @@ export const useDeliveryOrderNotifications = () => {
         const onNewOrder = (orderData: OrderNotificationData & { type?: string }) => {
             console.log('📦 New order notification received:', orderData);
             const notificationWithMeta = { ...orderData, type: orderData.type || 'BROADCAST' };
+
+            // Trigger HTML5 Notification
+            if ('Notification' in window && Notification.permission === 'granted') {
+                const orderNum = orderData.orderNumber ? `#${orderData.orderNumber}` : '';
+                const title = "New Delivery Order! 🛵";
+                const options = {
+                    body: `Order ${orderNum} for ₹${orderData.total} is available nearby. Tap to view and accept!`,
+                    icon: '/favicon.ico',
+                    badge: '/favicon.ico',
+                    tag: orderData.orderId,
+                    requireInteraction: true
+                };
+
+                try {
+                    const notification = new Notification(title, options);
+                    notification.onclick = () => {
+                        window.focus();
+                        notification.close();
+                    };
+                } catch (err) {
+                    console.warn('Failed to show notification via constructor, trying service worker:', err);
+                    if ('serviceWorker' in navigator) {
+                        navigator.serviceWorker.ready.then(registration => {
+                            registration.showNotification(title, options);
+                        });
+                    }
+                }
+            }
 
             setStateSafe(prev => {
                 if (prev.currentNotification) {

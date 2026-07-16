@@ -335,15 +335,33 @@ export const updateOrderStatus = asyncHandler(
       });
     }
 
-    // Trigger delivery notification if seller accepts the order (only for instant orders)
-    if (status === 'Accepted' && previousStatus !== 'Accepted' && order.orderType !== 'Scheduled') {
-      try {
-        const io: SocketIOServer = (req.app.get("io") as SocketIOServer);
-        if (io) {
+    // Trigger socket notifications for order update
+    try {
+      const io: SocketIOServer = (req.app.get("io") as SocketIOServer);
+      if (io) {
+        // Broadcast status change to order room so customer tracking is updated in real-time
+        io.to(`order-${id}`).emit("delivery-status-update", {
+          status,
+          message: `Order status updated to ${status}`
+        });
+
+        if (status === "Cancelled") {
+          io.to(`order-${id}`).emit("order-cancelled", {
+            orderId: id,
+            status: "Cancelled",
+            message: "Order has been cancelled by seller"
+          });
+        } else if (status === "Rejected") {
+          io.to(`order-${id}`).emit("order-rejected", {
+            orderId: id,
+            status: "Rejected",
+            message: "Order has been rejected by seller"
+          });
+        }
+
+        // Trigger delivery notification if seller accepts the order (only for instant orders)
+        if (status === 'Accepted' && previousStatus !== 'Accepted' && order.orderType !== 'Scheduled') {
           // Need to fetch full order with details for the notification service
-          // Using lean() to get a plain JS object which is what the service expects mostly,
-          // but checking the service implementation, it uses .items mainly for seller location.
-          // We should ensure the passed order object has populated items with sellers.
           const fullOrder = await Order.findById(order._id)
             .populate({
               path: 'items',
@@ -356,10 +374,9 @@ export const updateOrderStatus = asyncHandler(
             console.log(`Delivery notification triggered for Accepted order ${order.orderNumber}`);
           }
         }
-      } catch (notifyError) {
-        console.error('Error notifying delivery boys on seller acceptance:', notifyError);
-        // Don't fail the request, just log
       }
+    } catch (notifyError) {
+      console.error('Error handling socket notifications on status update:', notifyError);
     }
 
     return res.status(200).json({

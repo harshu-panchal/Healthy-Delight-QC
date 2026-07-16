@@ -175,7 +175,8 @@ export default function DeliveryOrderDetail() {
         const fetchSellerLocations = async () => {
             if (!id || !order) return;
             // Only fetch if order has delivery boy assigned and status is before "Picked up"
-            if (order.status && order.status !== 'Picked up' && order.status !== 'Delivered') {
+            const isPrePickup = order.status && !['Picked up', 'Picked Up', 'On the way', 'In Transit', 'Out for Delivery', 'Out For Delivery', 'Delivered', 'Cancelled', 'Returned', 'Rejected'].includes(order.status);
+            if (isPrePickup) {
                 try {
                     const locations = await getSellerLocationsForOrder(id);
                     setSellerLocations(locations || []);
@@ -503,7 +504,7 @@ export default function DeliveryOrderDetail() {
     useEffect(() => {
         if (!id || !order) return;
 
-        const shouldTrack = order.status && order.status !== 'Delivered' && order.status !== 'Cancelled' && order.status !== 'Returned';
+        const shouldTrack = order.status && !['Delivered', 'Cancelled', 'Returned', 'Rejected', 'Failed'].includes(order.status);
         const socket = socketRef.current;
 
         if (shouldTrack && socketConnected && socket) {
@@ -596,14 +597,24 @@ export default function DeliveryOrderDetail() {
             currentStatus === 'Scheduled' || 
             currentStatus === 'Rider Assigned' || 
             currentStatus === 'Received' || 
-            currentStatus === 'Accepted'
+            currentStatus === 'Accepted' ||
+            currentStatus === 'Processed' ||
+            currentStatus === 'Confirmed'
         ) {
             index = 0;
         } 
-        else if (currentStatus === 'Ready for pickup') index = 1;
-        else if (currentStatus === 'Picked up' || currentStatus === 'Picked Up') index = 2;
-        else if (currentStatus === 'Out for Delivery') index = 3;
-        else if (currentStatus === 'Delivered') index = 4;
+        else if (currentStatus === 'Ready for pickup' || currentStatus === 'Ready for Pickup' || currentStatus === 'Shipped') {
+            index = 1;
+        }
+        else if (currentStatus === 'Picked up' || currentStatus === 'Picked Up' || currentStatus === 'On the way' || currentStatus === 'In Transit') {
+            index = 2;
+        }
+        else if (currentStatus === 'Out for Delivery' || currentStatus === 'Out For Delivery') {
+            index = 3;
+        }
+        else if (currentStatus === 'Delivered') {
+            index = 4;
+        }
 
         return { flow, index };
     };
@@ -614,14 +625,8 @@ export default function DeliveryOrderDetail() {
         if (!id) return;
         try {
             setLoading(true); // Or use a separate loading state for the action
-            const updatedOrder = await updateOrderStatus(id, newStatus);
-            // Verify the update was successful and update local state
-            if (updatedOrder && updatedOrder.data) {
-                setOrder(updatedOrder.data);
-            } else {
-                // Fallback - re-fetch everything
-                await fetchOrder();
-            }
+            await updateOrderStatus(id, newStatus);
+            await fetchOrder(); // Refresh with formatted and populated order details
         } catch (err: any) {
             showAlert(err.message || "Failed to update status", 'error');
             setLoading(false);
@@ -636,9 +641,9 @@ export default function DeliveryOrderDetail() {
     };
 
     const nextStatus = getNextStatus();
-    const isMapVisible = order.status === 'Out for Delivery' || order.status === 'Picked up' || (sellerLocations.length > 0 && order.status !== 'Delivered');
-    const showSellerLocations = sellerLocations.length > 0 && order.status !== 'Picked up' && order.status !== 'Out for Delivery' && order.status !== 'Delivered';
-    const showCustomerLocation = order.status === 'Picked up' || order.status === 'Out for Delivery';
+    const isMapVisible = currentStatusIndex === 2 || currentStatusIndex === 3 || (sellerLocations.length > 0 && currentStatusIndex < 4);
+    const showSellerLocations = sellerLocations.length > 0 && currentStatusIndex < 2;
+    const showCustomerLocation = currentStatusIndex === 2 || currentStatusIndex === 3;
 
     // Check if we have valid customer coordinates
     const customerLat = order.deliveryAddress?.latitude || order.address?.latitude;
@@ -659,12 +664,14 @@ export default function DeliveryOrderDetail() {
                 <span className="ml-2 font-semibold text-lg text-neutral-800">Order Details</span>
 
                 <div className="ml-auto">
-                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${order.status === 'Delivered' ? 'bg-green-100 text-green-700' :
-                        (order.status === 'Picked up' || order.status === 'Picked Up') ? 'bg-indigo-100 text-indigo-700' :
-                            order.status === 'Ready for pickup' ? 'bg-yellow-100 text-yellow-700' :
-                                order.status === 'Scheduled' ? 'bg-blue-100 text-blue-700' :
-                                    order.status === 'Rider Assigned' ? 'bg-teal-100 text-teal-700' :
-                                        'bg-orange-100 text-orange-700'
+                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                        currentStatusIndex === 4 ? 'bg-green-100 text-green-700' :
+                        currentStatusIndex === 3 ? 'bg-blue-100 text-blue-700' :
+                        currentStatusIndex === 2 ? 'bg-indigo-100 text-indigo-700' :
+                        currentStatusIndex === 1 ? 'bg-yellow-100 text-yellow-700' :
+                        order.status === 'Scheduled' ? 'bg-blue-100 text-blue-700' :
+                        order.status === 'Rider Assigned' ? 'bg-teal-100 text-teal-700' :
+                        'bg-orange-100 text-orange-700'
                         }`}>
                         {order.status}
                     </span>
@@ -706,7 +713,7 @@ export default function DeliveryOrderDetail() {
             {isMapVisible && (
                 <GoogleMapsTracking
                     sellerLocations={
-                        (order.status === 'Out for Delivery' || order.status === 'Picked up')
+                        showCustomerLocation
                             ? []  // Hide seller markers when delivering to customer
                             : sellerLocations.map(s => ({
                                 lat: s.latitude,
@@ -721,12 +728,12 @@ export default function DeliveryOrderDetail() {
                     deliveryLocation={deliveryBoyLocation || undefined}
                     isTracking={!!deliveryBoyLocation}
                     showRoute={!!deliveryBoyLocation && (
-                        ((order.status === 'Picked up' || order.status === 'Out for Delivery') && hasValidCustomerLocation) ||
-                        (sellerLocations.length > 0 && order.status !== 'Delivered' && order.status !== 'Picked up' && order.status !== 'Out for Delivery')
+                        (showCustomerLocation && hasValidCustomerLocation) ||
+                        (sellerLocations.length > 0 && currentStatusIndex < 2)
                     )}
                     routeOrigin={deliveryBoyLocation || undefined}
                     routeDestination={
-                        order.status === 'Picked up' || order.status === 'Out for Delivery'
+                        showCustomerLocation
                             ? (hasValidCustomerLocation ? {
                                 lat: customerLat!,
                                 lng: customerLng!
@@ -736,14 +743,14 @@ export default function DeliveryOrderDetail() {
                                 : undefined
                     }
                     routeWaypoints={
-                        order.status === 'Picked up' || order.status === 'Out for Delivery'
+                        showCustomerLocation
                             ? []
                             : sellerLocations.length > 1
                                 ? sellerLocations.slice(0, -1).map(s => ({ lat: s.latitude, lng: s.longitude }))
                                 : []
                     }
                     destinationName={
-                        order.status === 'Picked up' || order.status === 'Out for Delivery'
+                        showCustomerLocation
                             ? order.address?.split(',')[0]
                             : sellerLocations.length > 0
                                 ? sellerLocations[0].storeName
@@ -1095,7 +1102,7 @@ export default function DeliveryOrderDetail() {
             </div>
 
             {/* Customer Delivery OTP Section - Shown only when order is Out for Delivery */}
-            {order.status === 'Out for Delivery' && order.deliveryBoyStatus !== 'Pending' && (
+            {currentStatusIndex === 3 && order.deliveryBoyStatus !== 'Pending' && (
                 <div className="fixed bottom-24 left-6 right-6 z-30">
                     <div className="bg-white rounded-2xl p-4 shadow-2xl border border-neutral-200">
                         <p className="text-sm font-semibold text-neutral-900 mb-3">Customer Delivery OTP</p>
@@ -1257,7 +1264,7 @@ export default function DeliveryOrderDetail() {
             {/* Floating Glassmorphic Action Button Dock - Order Taken button or status update */}
             {/* Hide this button when order is "Out for Delivery" because OTP section is shown instead */}
             {/* Also hide when assignment is pending */}
-            {nextStatus && nextStatus !== 'Ready for pickup' && order.status !== 'Picked up' && order.status !== 'Out for Delivery' && !showOtpInput && order.deliveryBoyStatus !== 'Pending' && (
+            {nextStatus && nextStatus !== 'Ready for pickup' && currentStatusIndex < 3 && !showOtpInput && order.deliveryBoyStatus !== 'Pending' && (
                 <div className="fixed bottom-24 left-6 right-6 z-30">
                     <button
                         onClick={() => handleStatusChange(nextStatus)}

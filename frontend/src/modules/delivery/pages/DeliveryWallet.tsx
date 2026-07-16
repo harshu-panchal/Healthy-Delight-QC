@@ -9,6 +9,8 @@ import {
     getDeliveryWithdrawals,
     createAdminPayoutOrder,
     verifyAdminPayout,
+    createCODDepositOrder,
+    verifyCODDeposit,
 } from "../../../services/api/deliveryWalletService";
 import { useAuth } from "../../../context/AuthContext";
 
@@ -62,6 +64,8 @@ export default function DeliveryWallet() {
         "Bank Transfer",
     );
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [showCODDepositModal, setShowCODDepositModal] = useState(false);
+    const [codDepositAmount, setCodDepositAmount] = useState("");
 
     useEffect(() => {
         fetchWalletData();
@@ -214,6 +218,97 @@ export default function DeliveryWallet() {
         }
     };
 
+    const handleCODDeposit = async () => {
+        try {
+            const amount = parseFloat(codDepositAmount);
+            if (isNaN(amount) || amount <= 0) {
+                showToast("Please enter a valid amount", "error");
+                return;
+            }
+            if (amount > cashCollected) {
+                showToast(`Amount exceeds your COD balance (₹${cashCollected})`, "error");
+                return;
+            }
+
+            setIsSubmitting(true);
+
+            // Load Razorpay
+            const loadRazorpay = () =>
+                new Promise((resolve) => {
+                    const script = document.createElement("script");
+                    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+                    script.onload = () => resolve(true);
+                    script.onerror = () => resolve(false);
+                    document.body.appendChild(script);
+                });
+
+            const scriptLoaded = await loadRazorpay();
+            if (!scriptLoaded) {
+                showToast("Failed to load Razorpay SDK", "error");
+                setIsSubmitting(false);
+                return;
+            }
+
+            // Create Razorpay order
+            const orderRes = await createCODDepositOrder(amount);
+            if (!orderRes.success) {
+                showToast(orderRes.message || "Failed to create deposit order", "error");
+                setIsSubmitting(false);
+                return;
+            }
+
+            const { razorpayOrderId, razorpayKey } = orderRes.data;
+
+            const options = {
+                key: razorpayKey,
+                amount: amount * 100,
+                currency: "INR",
+                name: "Healthy Delight — COD Deposit",
+                description: "Depositing COD cash collected to admin",
+                order_id: razorpayOrderId,
+                prefill: {
+                    name: user?.name || "Delivery Boy",
+                    email: user?.email || "",
+                    contact: user?.phone || "",
+                },
+                theme: { color: "#2563eb" },
+                handler: async function (response: any) {
+                    try {
+                        const verifyRes = await verifyCODDeposit({
+                            razorpayOrderId: response.razorpay_order_id,
+                            razorpayPaymentId: response.razorpay_payment_id,
+                            razorpaySignature: response.razorpay_signature,
+                            amount,
+                        });
+                        if (verifyRes.success) {
+                            showToast("COD cash deposited to admin successfully! 💰", "success");
+                            setShowCODDepositModal(false);
+                            setCodDepositAmount("");
+                            fetchWalletData();
+                        } else {
+                            showToast(verifyRes.message || "Verification failed", "error");
+                        }
+                    } catch (err: any) {
+                        showToast(err.response?.data?.message || "Verification failed", "error");
+                    } finally {
+                        setIsSubmitting(false);
+                    }
+                },
+                modal: {
+                    ondismiss: function () {
+                        setIsSubmitting(false);
+                    },
+                },
+            };
+
+            const rzp = new (window as any).Razorpay(options);
+            rzp.open();
+        } catch (error: any) {
+            showToast(error.response?.data?.message || "Failed to initiate deposit", "error");
+            setIsSubmitting(false);
+        }
+    };
+
     const handleWithdrawRequest = async () => {
         try {
             const amount = parseFloat(withdrawAmount);
@@ -357,6 +452,17 @@ export default function DeliveryWallet() {
                         <p className="text-xs font-bold text-neutral-500 uppercase tracking-tight">Total COD Collected</p>
                         <h3 className="text-xl font-black text-neutral-900 mt-1">₹{cashCollected.toLocaleString('en-IN')}</h3>
                     </div>
+                    {cashCollected > 0 && (
+                        <button
+                            onClick={() => setShowCODDepositModal(true)}
+                            className="mt-3 w-full bg-blue-600 text-white text-xs font-bold py-2 px-3 rounded-xl hover:bg-blue-700 active:scale-95 transition-all flex items-center justify-center gap-1.5">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <line x1="12" y1="5" x2="12" y2="19" />
+                                <polyline points="19 12 12 19 5 12" />
+                            </svg>
+                            Deposit Online
+                        </button>
+                    )}
                 </motion.div>
 
                 <motion.div
@@ -686,6 +792,73 @@ export default function DeliveryWallet() {
                                         <span>Processing...</span>
                                     </div>
                                 ) : "Pay Now"}
+                            </button>
+                        </div>
+                    </motion.div>
+                </div>
+            )}
+
+            {/* COD Deposit Modal */}
+            {showCODDepositModal && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl">
+                        <div className="flex justify-between items-center mb-6">
+                            <h2 className="text-2xl font-black text-neutral-900">Deposit COD Cash</h2>
+                            <button onClick={() => { setShowCODDepositModal(false); setCodDepositAmount(""); }} className="text-neutral-400 hover:text-neutral-900">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <path d="M18 6L6 18M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+
+                        <div className="bg-blue-50 rounded-2xl p-4 mb-6 border border-blue-100">
+                            <p className="text-sm text-blue-800 font-medium leading-relaxed">
+                                Pay your collected COD cash online to admin via Razorpay (UPI / Card / Net Banking).
+                            </p>
+                        </div>
+
+                        <div className="mb-6">
+                            <label className="block text-sm font-bold text-neutral-700 mb-2">
+                                Amount to Deposit
+                            </label>
+                            <div className="relative">
+                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400 font-bold">₹</span>
+                                <input
+                                    type="number"
+                                    value={codDepositAmount}
+                                    onChange={(e) => setCodDepositAmount(e.target.value)}
+                                    className="w-full bg-neutral-50 border-2 border-neutral-100 rounded-2xl pl-10 pr-4 py-4 font-bold text-xl focus:border-blue-500 focus:bg-white transition-all outline-none"
+                                    placeholder="0.00"
+                                    min="1"
+                                    max={cashCollected}
+                                    step="0.01"
+                                />
+                            </div>
+                            <p className="text-xs text-neutral-500 mt-2 font-medium">
+                                COD Balance: <span className="font-bold text-blue-600">₹{cashCollected.toLocaleString('en-IN')}</span>
+                            </p>
+                        </div>
+
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => { setShowCODDepositModal(false); setCodDepositAmount(""); }}
+                                className="flex-1 py-4 rounded-2xl font-bold text-neutral-700 bg-neutral-100 hover:bg-neutral-200 transition-all"
+                                disabled={isSubmitting}>
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleCODDeposit}
+                                className="flex-1 bg-blue-600 text-white rounded-2xl py-4 font-bold hover:bg-blue-700 transition-all shadow-xl active:scale-95 disabled:opacity-50 disabled:active:scale-100"
+                                disabled={isSubmitting || !codDepositAmount || parseFloat(codDepositAmount) <= 0}>
+                                {isSubmitting ? (
+                                    <div className="flex items-center justify-center gap-2">
+                                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                        <span>Processing...</span>
+                                    </div>
+                                ) : "Pay Online →"}
                             </button>
                         </div>
                     </motion.div>

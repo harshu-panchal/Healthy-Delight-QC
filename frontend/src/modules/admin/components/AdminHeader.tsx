@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../../context/AuthContext";
 import kosilLogo from "@assets/logo.png";
 import { getNotifications, markMultipleAsRead } from "../../../services/api/admin/adminNotificationService";
+import { getDeliveryBoys } from "../../../services/api/admin/adminDeliveryService";
 
 interface AdminHeaderProps {
   onMenuClick: () => void;
@@ -23,6 +24,7 @@ export default function AdminHeader({
   const notificationsRef = useRef<HTMLDivElement>(null);
   const [unreadCount, setUnreadCount] = useState(0);
   const [notifications, setNotifications] = useState<any[]>([]);
+  const [pendingApprovalsCount, setPendingApprovalsCount] = useState(0);
 
   // Menu items for search
   const menuItems = [
@@ -80,10 +82,26 @@ export default function AdminHeader({
     }
   };
 
+  const fetchPendingApprovals = async () => {
+    try {
+      if (!isAuthenticated) return;
+      const response = await getDeliveryBoys({ status: "Inactive", limit: 1 });
+      if (response.success && response.pagination) {
+        setPendingApprovalsCount(response.pagination.total);
+      }
+    } catch (error) {
+      console.error("Error fetching pending delivery boys count in header:", error);
+    }
+  };
+
   useEffect(() => {
     if (!isAuthenticated) return;
     fetchNotifications();
-    const interval = setInterval(fetchNotifications, 30000);
+    fetchPendingApprovals();
+    const interval = setInterval(() => {
+      fetchNotifications();
+      fetchPendingApprovals();
+    }, 30000);
     return () => clearInterval(interval);
   }, [isAuthenticated]);
 
@@ -122,7 +140,7 @@ export default function AdminHeader({
           {/* Hamburger Menu Button */}
           <button
             onClick={onMenuClick}
-            className="p-2 text-neutral-600 hover:text-neutral-900 transition-colors flex-shrink-0 lg:hidden"
+            className="p-2 text-neutral-600 hover:text-neutral-900 transition-colors flex-shrink-0 lg:hidden relative"
             aria-label="Toggle menu">
             {isSidebarOpen ? (
               <svg
@@ -154,6 +172,9 @@ export default function AdminHeader({
                   strokeLinejoin="round"
                 />
               </svg>
+            )}
+            {!isSidebarOpen && pendingApprovalsCount > 0 && (
+              <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white animate-pulse"></span>
             )}
           </button>
           {/* Healthy Delight Logo */}

@@ -6,6 +6,7 @@ import OrderItem from "../../../models/OrderItem";
 import DeliveryAssignment from "../../../models/DeliveryAssignment";
 import { notifyRiderOfScheduledAssignment } from "../../../services/orderNotificationService";
 import { sendPushNotification } from "../../../services/firebaseAdmin";
+import { sendNotification } from "../../../services/notificationService";
 
 /**
  * Get available delivery boys for sellers
@@ -125,6 +126,29 @@ export const assignDeliveryBoy = asyncHandler(
       },
       { upsert: true, new: true }
     );
+
+    // Send database notification to the delivery boy
+    try {
+      const isScheduled = order.orderType === "Scheduled";
+      const title = isScheduled ? "New Scheduled Order Assigned 🗓️" : "New Order Assigned 🛵";
+      const message = isScheduled 
+        ? `You have been assigned a scheduled delivery job for order #${order.orderNumber}.`
+        : `You have been assigned to deliver order #${order.orderNumber}.`;
+        
+      await sendNotification(
+        "Delivery",
+        deliveryBoyId,
+        title,
+        message,
+        {
+          type: "Order",
+          link: `/delivery/dashboard?orderId=${order._id.toString()}`,
+          priority: "High",
+        }
+      );
+    } catch (notificationError) {
+      console.error("Failed to send assignment notification to delivery boy:", notificationError);
+    }
 
     const io = (req.app as any).get("io");
     if (isScheduled) {

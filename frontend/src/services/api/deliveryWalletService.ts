@@ -101,3 +101,35 @@ export const verifyAdminPayout = async (data: {
         throw error;
     }
 };
+
+/**
+ * Create COD deposit order via Razorpay — delivery boy deposits cashCollected to admin
+ */
+export const createCODDepositOrder = async (amount: number) => {
+    try {
+        const response = await api.post('/delivery/wallet/cod-deposit/create', { amount });
+        return response.data;
+    } catch (error: any) {
+        console.error('Error creating COD deposit order:', error);
+        throw error;
+    }
+};
+
+/**
+ * Verify COD deposit payment (Razorpay signature)
+ */
+export const verifyCODDeposit = async (data: {
+    razorpayOrderId: string;
+    razorpayPaymentId: string;
+    razorpaySignature: string;
+    amount: number;
+}) => {
+    try {
+        const response = await api.post('/delivery/wallet/cod-deposit/verify', data);
+        return response.data;
+    } catch (error: any) {
+        console.error('Error verifying COD deposit:', error);
+        throw error;
+    }
+};
+

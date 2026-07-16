@@ -294,6 +294,20 @@ export default function HomeHero({
     recognition.start();
   };
 
+  const updateHeaderHeight = () => {
+    if (heroRef.current) {
+      const height = heroRef.current.offsetHeight;
+      document.documentElement.style.setProperty('--current-header-height', `${height}px`);
+    }
+  };
+
+  // Update header height custom property on changes
+  useEffect(() => {
+    updateHeaderHeight();
+    const timer = setTimeout(updateHeaderHeight, 100);
+    return () => clearTimeout(timer);
+  }, [activeTab, tabs, scrollProgress, showSuggestions]);
+
   // Handle scroll to detect when "LOWEST PRICES EVER" section is out of view
   useEffect(() => {
     const handleScroll = () => {
@@ -333,17 +347,20 @@ export default function HomeHero({
       setScrollProgress(progress);
       setIsSticky(sticky);
       setHasScrolled(scrollY > 2);
+      updateHeaderHeight();
     };
 
     // Capture scroll from nested containers too (main app scroll root can change on navigation/HMR).
     document.addEventListener("scroll", handleScroll, { passive: true, capture: true });
     window.addEventListener("scroll", handleScroll, { passive: true });
+    window.addEventListener("resize", updateHeaderHeight);
     const pollId = window.setInterval(handleScroll, 120);
     handleScroll(); // Check initial state
 
     return () => {
       document.removeEventListener("scroll", handleScroll, true);
       window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", updateHeaderHeight);
       window.clearInterval(pollId);
     };
   }, []);

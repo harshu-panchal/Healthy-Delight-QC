@@ -20,7 +20,7 @@ export default function AdminManageDeliveryBoy() {
     const [rowsPerPage, setRowsPerPage] = useState(10);
     const [currentPage, setCurrentPage] = useState(1);
     const [sortColumn, setSortColumn] = useState<string | null>(null);
-    const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+    const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
     const [totalPages, setTotalPages] = useState(1);
     const [totalDeliveryBoys, setTotalDeliveryBoys] = useState(0);
     const [successMessage, setSuccessMessage] = useState('');
@@ -559,12 +559,17 @@ export default function AdminManageDeliveryBoy() {
                                                 </span>
                                             </td>
                                             <td className="p-4 align-middle">
-                                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${deliveryBoy.available === 'Available'
-                                                    ? 'bg-cream text-neutral-800'
-                                                    : 'bg-red-100 text-red-800'
-                                                    }`}>
-                                                    {deliveryBoy.available}
-                                                </span>
+                                                <button
+                                                    onClick={() => handleAvailabilityChange(deliveryBoy._id, deliveryBoy.available === 'Available' ? 'Not Available' : 'Available')}
+                                                    disabled={processing === deliveryBoy._id}
+                                                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer ${deliveryBoy.available === 'Available'
+                                                        ? 'bg-cream text-neutral-800 border border-primary/20 hover:bg-neutral-100'
+                                                        : 'bg-red-100 text-red-800 border border-red-200 hover:bg-red-200'
+                                                        }`}
+                                                    title={`Click to change availability to ${deliveryBoy.available === 'Available' ? 'Not Available' : 'Available'}`}
+                                                >
+                                                    {deliveryBoy.available || 'Not Available'}
+                                                </button>
                                             </td>
                                             <td className="p-4 align-middle">
                                                 <div className="flex items-center gap-2">

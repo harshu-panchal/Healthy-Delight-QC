@@ -80,7 +80,7 @@ export default function OrderNotificationCard({
     // Initialize audio with better error handling
     useEffect(() => {
         isStoppedRef.current = false;
-        const audio = new Audio(deliveryAlertMp3);
+        const audio = new Audio('/assets/sound/delivery-alert.mp3');
         audio.loop = true;
         audio.volume = 0.8;
 

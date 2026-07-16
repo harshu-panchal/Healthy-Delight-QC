@@ -35,7 +35,7 @@ const cashCollectionSchema = new Schema<ICashCollection>(
         collectedBy: {
             type: Schema.Types.ObjectId,
             ref: "Admin",
-            required: [true, "Collected by admin is required"],
+            required: false,
         },
         collectedAt: {
             type: Date,

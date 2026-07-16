@@ -187,6 +187,55 @@ export default function DeliveryDashboard() {
       <DeliveryHeader />
 
       <div className="px-4 py-4 space-y-4">
+        {/* Notification Permission Banner */}
+        {('Notification' in window) && Notification.permission === 'denied' && (
+          <div className="bg-red-50 border border-red-200 rounded-2xl p-4 flex items-start gap-3 shadow-sm animate-fade-in">
+            <div className="p-2 bg-red-100 text-red-700 rounded-xl">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                <line x1="1" y1="1" x2="23" y2="23" />
+              </svg>
+            </div>
+            <div>
+              <h4 className="text-sm font-bold text-red-900">Notification Alerts Blocked</h4>
+              <p className="text-xs text-red-700 mt-0.5 leading-relaxed font-semibold">
+                You have blocked notifications. Please allow notifications in your browser site settings to receive order rings outside the app.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Notification Permission Prompt */}
+        {('Notification' in window) && Notification.permission === 'default' && (
+          <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 flex items-start justify-between gap-3 shadow-sm animate-fade-in">
+            <div className="flex items-start gap-3">
+              <div className="p-2 bg-blue-100 text-blue-700 rounded-xl">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                  <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                </svg>
+              </div>
+              <div>
+                <h4 className="text-sm font-bold text-blue-900">Enable Notification Sound</h4>
+                <p className="text-xs text-blue-700 mt-0.5 leading-relaxed font-semibold">
+                  Enable browser notifications to receive delivery alert ringtones when outside the app.
+                </p>
+                <button
+                  onClick={() => {
+                    Notification.requestPermission().then(() => {
+                      window.location.reload();
+                    });
+                  }}
+                  className="mt-2 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold text-xs rounded-lg transition-all"
+                >
+                  Enable Notifications
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Application Status Banner */}
         {riderStatus === 'Inactive' && (
           <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-start gap-3 shadow-sm">

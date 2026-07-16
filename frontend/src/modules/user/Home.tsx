@@ -541,7 +541,7 @@ export default function Home() {
         {activeTab !== "all" && (
           <div className="flex bg-transparent min-h-[70vh] relative pt-16 md:pt-6">
             {/* Unified Floating Navigation Rail - Descriptive Color Icons - Hidden on Desktop as requested */}
-            <div className="flex md:hidden flex-col items-center gap-5 md:gap-6 sticky top-[calc(var(--header-height)+16px)] h-fit w-[64px] md:w-[82px] ml-2 md:ml-4 mr-3 md:mr-8 py-4 px-1.5 bg-white/70 backdrop-blur-md rounded-[20px] shadow-[0_8px_32px_rgba(0,0,0,0.06)] border border-white/30 z-40 transition-all duration-300">
+            <div className="flex md:hidden flex-col items-center gap-5 md:gap-6 sticky top-[calc(var(--current-header-height,var(--header-height))+16px)] h-fit w-[64px] md:w-[82px] ml-2 md:ml-4 mr-3 md:mr-8 py-4 px-1.5 bg-white/70 backdrop-blur-md rounded-[20px] shadow-[0_8px_32px_rgba(0,0,0,0.06)] border border-white/30 z-40 transition-all duration-300">
               {/* 'All' Option */}
               <button
                 type="button"
