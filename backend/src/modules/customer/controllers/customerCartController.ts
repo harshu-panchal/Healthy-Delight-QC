@@ -35,6 +35,23 @@ async function getFullyActiveCategoryIds(): Promise<Set<string>> {
 
 // Helper to calculate item price matching frontend logic
 const calculateItemPrice = (product: any, variationSelector: any, quantity: number = 1, customerType?: string) => {
+    if (customerType === 'wholesaler' && product.wholesale?.enabled) {
+        let price = product.wholesale.pricePerUnit || 0;
+        if (product.wholesale.pricingTiers && product.wholesale.pricingTiers.length > 0) {
+            const sortedTiers = [...product.wholesale.pricingTiers].sort((a, b) => a.minimumQuantity - b.minimumQuantity);
+            let applicableTier = null;
+            for (const tier of sortedTiers) {
+                if (quantity >= tier.minimumQuantity) {
+                    applicableTier = tier;
+                }
+            }
+            if (applicableTier) {
+                price = applicableTier.price;
+            }
+        }
+        return price;
+    }
+
     let variation = null;
     let variationId = variationSelector;
 
@@ -72,7 +89,7 @@ const calculateItemPrice = (product: any, variationSelector: any, quantity: numb
 const calculateCartTotal = async (cartId: any, nearbySellerIds: mongoose.Types.ObjectId[] = [], customerType?: string) => {
     const items = await CartItem.find({ cart: cartId }).populate({
         path: 'product',
-        select: 'price discPrice variations seller status publish productName category subcategory'
+        select: 'price discPrice variations seller status publish productName category subcategory wholesale'
     });
 
     const fullyActiveIds = await getFullyActiveCategoryIds();
@@ -339,17 +356,29 @@ export const addToCart = async (req: Request, res: Response) => {
         let minWholesaleQty = 1;
         let selectedVar = null;
 
-        if (variation && product.variations?.length) {
-            selectedVar = product.variations.find((v: any) =>
-                (v._id && v._id.toString() === variation.toString()) ||
-                (v.id && v.id === variation.toString())
-            );
-        } else if (product.variations?.length) {
-            selectedVar = product.variations[0];
-        }
+        if (customerType === 'wholesaler' && product.wholesale?.enabled) {
+            minWholesaleQty = product.wholesale.minimumOrderQuantity || 1;
+            const availableStock = product.wholesale.stock || 0;
+            const targetQty = (cartItem ? cartItem.quantity : 0) + quantity;
+            if (!product.wholesale.allowBackOrder && targetQty > availableStock) {
+                return res.status(400).json({
+                    success: false,
+                    message: `Oops! Only ${availableStock} units of this product are available in stock.`
+                });
+            }
+        } else {
+            if (variation && product.variations?.length) {
+                selectedVar = product.variations.find((v: any) =>
+                    (v._id && v._id.toString() === variation.toString()) ||
+                    (v.id && v.id === variation.toString())
+                );
+            } else if (product.variations?.length) {
+                selectedVar = product.variations[0];
+            }
 
-        if (customerType === 'wholesaler' && selectedVar) {
-            minWholesaleQty = selectedVar.minWholesaleQty || 1;
+            if (customerType === 'wholesaler' && selectedVar) {
+                minWholesaleQty = selectedVar.minWholesaleQty || 1;
+            }
         }
 
         if (cartItem) {
@@ -379,7 +408,7 @@ export const addToCart = async (req: Request, res: Response) => {
             path: 'items',
             populate: {
                 path: 'product',
-                select: 'productName price mainImage stock pack mrp category subcategory seller status publish discPrice variations tax',
+                select: 'productName price mainImage stock pack mrp category subcategory seller status publish discPrice variations tax wholesale',
                 populate: {
                     path: 'tax',
                     select: 'name percentage'
@@ -477,24 +506,42 @@ export const updateCartItem = async (req: Request, res: Response) => {
 
         let minWholesaleQty = 1;
         let selectedVar = null;
-        if (cartItem.variation && product.variations?.length) {
-            selectedVar = product.variations.find((v: any) =>
-                (v._id && v._id.toString() === cartItem.variation.toString()) ||
-                (v.id && v.id === cartItem.variation.toString())
-            );
-        } else if (product.variations?.length) {
-            selectedVar = product.variations[0];
-        }
 
-        if (customerType === 'wholesaler' && selectedVar) {
-            minWholesaleQty = selectedVar.minWholesaleQty || 1;
-        }
+        if (customerType === 'wholesaler' && product.wholesale?.enabled) {
+            minWholesaleQty = product.wholesale.minimumOrderQuantity || 1;
+            if (quantity < minWholesaleQty) {
+                return res.status(400).json({
+                    success: false,
+                    message: `Minimum wholesale order quantity is ${minWholesaleQty}. To order less, please sign up as a retailer.`
+                });
+            }
+            const availableStock = product.wholesale.stock || 0;
+            if (!product.wholesale.allowBackOrder && quantity > availableStock) {
+                return res.status(400).json({
+                    success: false,
+                    message: `Oops! Only ${availableStock} units of this product are available in stock.`
+                });
+            }
+        } else {
+            if (cartItem.variation && product.variations?.length) {
+                selectedVar = product.variations.find((v: any) =>
+                    (v._id && v._id.toString() === cartItem.variation.toString()) ||
+                    (v.id && v.id === cartItem.variation.toString())
+                );
+            } else if (product.variations?.length) {
+                selectedVar = product.variations[0];
+            }
 
-        if (customerType === 'wholesaler' && quantity < minWholesaleQty) {
-            return res.status(400).json({
-                success: false,
-                message: `Minimum wholesale order quantity for this variation is ${minWholesaleQty}. To order less, please sign up as a retailer.`
-            });
+            if (customerType === 'wholesaler' && selectedVar) {
+                minWholesaleQty = selectedVar.minWholesaleQty || 1;
+            }
+
+            if (customerType === 'wholesaler' && quantity < minWholesaleQty) {
+                return res.status(400).json({
+                    success: false,
+                    message: `Minimum wholesale order quantity for this variation is ${minWholesaleQty}. To order less, please sign up as a retailer.`
+                });
+            }
         }
 
         cartItem.quantity = quantity;
@@ -507,7 +554,7 @@ export const updateCartItem = async (req: Request, res: Response) => {
             path: 'items',
             populate: {
                 path: 'product',
-                select: 'productName price mainImage stock pack mrp category subcategory seller status publish discPrice variations'
+                select: 'productName price mainImage stock pack mrp category subcategory seller status publish discPrice variations wholesale'
             }
         });
 

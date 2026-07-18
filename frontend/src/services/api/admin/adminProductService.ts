@@ -150,6 +150,15 @@ export interface Product {
   commission?: number;
   createdAt?: string;
   updatedAt?: string;
+  wholesale?: {
+    enabled: boolean;
+    minimumOrderQuantity: number;
+    pricePerUnit: number;
+    stock: number;
+    allowBackOrder: boolean;
+    status: "Active" | "Inactive";
+    pricingTiers: Array<{ minimumQuantity: number; price: number }>;
+  };
 }
 
 export interface CreateProductData {

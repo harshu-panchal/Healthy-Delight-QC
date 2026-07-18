@@ -308,6 +308,52 @@ export default function SellerDashboard() {
         <DashboardCard icon={cancelledOrdersIcon} title="Cancelled Orders" value={stats.cancelledOrders} accentColor="#ef4444" onClick={() => navigate('/seller/orders?status=Cancelled')} />
       </div>
 
+      {/* Wholesale B2B Summary Row */}
+      <div className="bg-white rounded-lg shadow-sm border border-neutral-200 overflow-hidden">
+        <div className="bg-[#0a193b]/5 px-4 sm:px-6 py-3 flex justify-between items-center border-b border-neutral-200">
+          <h2 className="text-base sm:text-lg font-bold text-[#0a193b]">Wholesale B2B Performance</h2>
+          <span className="text-xs font-semibold bg-[#0a193b]/10 text-[#0a193b] px-2 py-0.5 rounded-full">B2B Portal</span>
+        </div>
+        <div className="p-4 sm:p-6 grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="bg-neutral-50 p-4 rounded-xl border border-neutral-100 flex flex-col justify-center">
+            <span className="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-1">Wholesale Orders</span>
+            <span className="text-xl sm:text-2xl font-extrabold text-neutral-900">{(stats as any).wholesaleOrders || 0}</span>
+          </div>
+          <div className="bg-neutral-50 p-4 rounded-xl border border-neutral-100 flex flex-col justify-center">
+            <span className="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-1">Wholesale Revenue</span>
+            <span className="text-xl sm:text-2xl font-extrabold text-emerald-600">₹{((stats as any).wholesaleRevenue || 0).toFixed(2)}</span>
+          </div>
+          <div className="bg-neutral-50 p-4 rounded-xl border border-neutral-100 flex flex-col justify-center">
+            <span className="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-1">Low Stock B2B Products</span>
+            <span className={`text-xl sm:text-2xl font-extrabold ${((stats as any).lowWholesaleStock || 0) > 0 ? 'text-amber-600' : 'text-neutral-900'}`}>
+              {(stats as any).lowWholesaleStock || 0}
+            </span>
+          </div>
+          <div className="bg-neutral-50 p-4 rounded-xl border border-neutral-100 flex flex-col justify-center">
+            <span className="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-1">Wholesale Stock</span>
+            <span className="text-xl sm:text-2xl font-extrabold text-neutral-900">{(stats as any).wholesaleStock || 0} units</span>
+          </div>
+        </div>
+
+        {/* Best Selling B2B Products List */}
+        {(stats as any).bestSellingWholesale && (stats as any).bestSellingWholesale.length > 0 && (
+          <div className="px-4 sm:px-6 pb-6 pt-2 border-t border-neutral-100">
+            <h3 className="text-xs font-bold text-neutral-500 uppercase tracking-wider mb-3">Top Bulk Selling Products</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+              {(stats as any).bestSellingWholesale.map((prod: any, idx: number) => (
+                <div key={idx} className="bg-neutral-50 p-3 rounded-lg border border-neutral-200 flex items-center justify-between">
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-xs font-bold text-neutral-900 line-clamp-1">{prod.name}</span>
+                    <span className="text-[10px] font-semibold text-neutral-400">{prod.quantity} units sold</span>
+                  </div>
+                  <span className="text-xs font-black text-[#0a193b]">₹{(prod.revenue || 0).toFixed(2)}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         <OrderChart title={`Order - ${new Date().toLocaleString('default', { month: 'short' })} ${new Date().getFullYear()}`} data={stats.dailyOrderData} maxValue={Math.max(...stats.dailyOrderData.map(d => d.value), 5)} height={300} />

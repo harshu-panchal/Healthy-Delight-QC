@@ -93,6 +93,20 @@ export interface IProduct extends Document {
   isShopByStoreOnly?: boolean;
   shopId?: mongoose.Types.ObjectId;
 
+  // Wholesale settings
+  wholesale?: {
+    enabled: boolean;
+    minimumOrderQuantity: number;
+    pricePerUnit: number;
+    stock: number;
+    allowBackOrder: boolean;
+    status: "Active" | "Inactive";
+    pricingTiers?: Array<{
+      minimumQuantity: number;
+      price: number;
+    }>;
+  };
+
   createdAt: Date;
   updatedAt: Date;
 }
@@ -344,6 +358,22 @@ const ProductSchema = new Schema<IProduct>(
     shopId: {
       type: Schema.Types.ObjectId,
       ref: "Shop",
+    },
+
+    // Wholesale settings
+    wholesale: {
+      enabled: { type: Boolean, default: false },
+      minimumOrderQuantity: { type: Number, default: 1 },
+      pricePerUnit: { type: Number, default: 0 },
+      stock: { type: Number, default: 0 },
+      allowBackOrder: { type: Boolean, default: false },
+      status: { type: String, enum: ["Active", "Inactive"], default: "Active" },
+      pricingTiers: [
+        {
+          minimumQuantity: { type: Number, required: true },
+          price: { type: Number, required: true },
+        }
+      ],
     },
   },
   {

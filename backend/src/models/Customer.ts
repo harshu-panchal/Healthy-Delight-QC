@@ -22,6 +22,7 @@ export interface ICustomer extends Document {
   state?: string;
   pincode?: string;
   locationUpdatedAt?: Date;
+  gstin?: string; // Optional GSTIN for GST-compliant invoices
   createdAt: Date;
   updatedAt: Date;
   notificationPreferences?: {
@@ -146,6 +147,19 @@ const CustomerSchema = new Schema<ICustomer>(
     },
     locationUpdatedAt: {
       type: Date,
+    },
+    gstin: {
+      type: String,
+      trim: true,
+      uppercase: true,
+      validate: {
+        validator: function (v: string) {
+          // Allow empty/null (GSTIN removal) or validate official format
+          if (!v) return true;
+          return /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/.test(v);
+        },
+        message: 'Invalid GSTIN format. Must be a 15-character alphanumeric string (e.g., 27AAAAA0000A1Z5)',
+      },
     },
     notificationPreferences: {
       email: { type: Boolean, default: true },

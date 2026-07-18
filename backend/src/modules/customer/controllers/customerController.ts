@@ -56,6 +56,7 @@ export const getProfile = asyncHandler(async (req: Request, res: Response) => {
       pincode: customer.pincode,
       locationUpdatedAt: customer.locationUpdatedAt,
       profileImage: (customer as any).profileImage,
+      gstin: customer.gstin,
     },
   });
 });
@@ -66,7 +67,7 @@ export const getProfile = asyncHandler(async (req: Request, res: Response) => {
 export const updateProfile = asyncHandler(
   async (req: Request, res: Response) => {
     const userId = req.user?.userId;
-    const { name, email, dateOfBirth, profileImage, notificationPreferences, accountPrivacy } = req.body;
+    const { name, email, dateOfBirth, profileImage, notificationPreferences, accountPrivacy, gstin } = req.body;
 
 
     if (!userId || (req as any).user?.userType !== "Customer") {
@@ -113,6 +114,24 @@ export const updateProfile = asyncHandler(
     if (notificationPreferences) customer.notificationPreferences = { ...customer.notificationPreferences, ...notificationPreferences };
     if (accountPrivacy) customer.accountPrivacy = { ...customer.accountPrivacy, ...accountPrivacy };
 
+    // GSTIN update: empty string removes it, valid string saves it
+    if (gstin !== undefined) {
+      if (gstin === '' || gstin === null) {
+        // Remove GSTIN
+        customer.gstin = undefined;
+      } else {
+        const gstinRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
+        const normalizedGstin = gstin.toString().trim().toUpperCase();
+        if (!gstinRegex.test(normalizedGstin)) {
+          return res.status(400).json({
+            success: false,
+            message: 'Invalid GSTIN format. Must be a valid 15-character GSTIN (e.g., 27AAAAA0000A1Z5)',
+          });
+        }
+        customer.gstin = normalizedGstin;
+      }
+    }
+
 
     await customer.save();
 
@@ -142,8 +161,8 @@ export const updateProfile = asyncHandler(
         notificationPreferences: customer.notificationPreferences,
         accountPrivacy: customer.accountPrivacy,
         donationStats: customer.donationStats,
+        gstin: customer.gstin,
       },
-
     });
   }
 );

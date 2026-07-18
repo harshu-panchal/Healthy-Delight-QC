@@ -574,6 +574,11 @@ export default function SellerProductList() {
                   </div>
                 </th>
                 <th className="p-4 border border-neutral-200">
+                  <div className="flex items-center justify-between">
+                    Wholesale B2B
+                  </div>
+                </th>
+                <th className="p-4 border border-neutral-200">
                   <div className="flex items-center justify-center">Action</div>
                 </th>
               </tr>
@@ -693,6 +698,35 @@ export default function SellerProductList() {
                       )}
                     </td>
                     <td className="p-4 align-middle border border-neutral-200">
+                      {isFirstVariation && product && product.wholesale?.enabled ? (
+                        <div className="flex flex-col gap-1 text-xs">
+                          <span className="inline-flex items-center w-fit px-1.5 py-0.5 rounded-full font-bold bg-emerald-100 text-emerald-800 uppercase">
+                            Enabled ({product.wholesale.status || 'Active'})
+                          </span>
+                          <span className="font-semibold text-neutral-800">
+                            Price: ₹{(product.wholesale.pricePerUnit || 0).toFixed(2)}
+                          </span>
+                          <span className="text-neutral-500">
+                            MOQ: {product.wholesale.minimumOrderQuantity || 1} units
+                          </span>
+                          <span className={`font-medium ${product.wholesale.stock === 0 ? 'text-red-600' : 'text-emerald-700'}`}>
+                            Stock: {product.wholesale.stock || 0}
+                          </span>
+                          {product.wholesale.pricingTiers && product.wholesale.pricingTiers.length > 0 && (
+                            <span className="inline-flex items-center w-fit px-1 bg-amber-50 text-amber-700 border border-amber-200 rounded font-semibold">
+                              Slabs: {product.wholesale.pricingTiers.length}
+                            </span>
+                          )}
+                        </div>
+                      ) : isFirstVariation ? (
+                        <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-semibold bg-neutral-100 text-neutral-400 uppercase">
+                          Disabled
+                        </span>
+                      ) : (
+                        <span className="text-neutral-400 text-xs">-</span>
+                      )}
+                    </td>
+                    <td className="p-4 align-middle border border-neutral-200">
                       <div className="flex items-center justify-center gap-2">
                         <button
                           onClick={() => handleEdit(variation.productId)}
@@ -738,7 +772,7 @@ export default function SellerProductList() {
               {displayedVariations.length === 0 && (
                 <tr>
                   <td
-                    colSpan={12}
+                    colSpan={13}
                     className="p-8 text-center text-neutral-400 border border-neutral-200">
                     No products found.
                   </td>

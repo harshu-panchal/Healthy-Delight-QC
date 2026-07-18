@@ -52,7 +52,7 @@ export const createOrder = async (req: Request, res: Response) => {
             session = null;
         }
 
-        const { items, address, paymentMethod, fees, timeSlot, orderType, scheduledDate, scheduledTimeSlot, tipAmount, gstin, useWallet, couponCode } = req.body;
+        const { items, address, paymentMethod, fees, timeSlot, orderType, scheduledDate, scheduledTimeSlot, tipAmount, useWallet, couponCode } = req.body;
         const userId = req.user!.userId;
 
         // Log incoming request for debugging
@@ -236,7 +236,7 @@ export const createOrder = async (req: Request, res: Response) => {
             paymentMethod: paymentMethod || 'Online',
             paymentStatus: 'Pending',
             status: (paymentMethod === 'Online') ? 'Pending' : (isScheduled ? 'Scheduled' : 'Received'),
-            orderType: orderType || 'Instant',
+            orderType: (customer.customerType === 'wholesaler') ? 'Wholesale' : (orderType || 'Instant'),
             scheduledDate: isScheduled ? new Date(scheduledDate) : undefined,
             scheduledTimeSlot: isScheduled ? scheduledTimeSlot : undefined,
             timeSlot: isScheduled 
@@ -256,7 +256,7 @@ export const createOrder = async (req: Request, res: Response) => {
             discount: 0,
             tipAmount: Number(tipAmount) || 0,
             total: 0,
-            gstin: gstin || undefined,
+            gstin: customer.gstin || undefined, // Copied from customer profile — never from req.body
             items: []
         });
 
@@ -290,150 +290,229 @@ export const createOrder = async (req: Request, res: Response) => {
 
             // Atomically check stock and decrement to prevent race conditions
             let product;
-            // The frontend sends variation info as 'variant' or 'variation'
-            // In the product model, it's stored in 'variations' array
-            let variationValue = item.variant || item.variation;
-            if (variationValue === "Variation" || variationValue === "Standard" || variationValue === "Default") {
-                variationValue = undefined;
-            }
+            let pricingType: 'retail' | 'wholesale' = 'retail';
+            let appliedMinWholesaleQty: number | undefined = undefined;
+            let wholesalePrice: number | undefined = undefined;
+            let retailPrice: number | undefined = undefined;
+            let itemPrice = 0;
 
-            if (variationValue) {
-                // Try to decrement stock for the specific variation first
-                // We check variations._id, variations.value, variations.title, or variations.pack
+            const isWholesaleB2B = customer.customerType === 'wholesaler' && dbProduct.wholesale?.enabled;
+
+            if (isWholesaleB2B) {
+                // Wholesale MOQ validation
+                const minOrderQty = dbProduct.wholesale?.minimumOrderQuantity || 1;
+                if (qty < minOrderQty) {
+                    throw new Error(`Minimum order quantity for ${dbProduct.productName} is ${minOrderQty}`);
+                }
+
+                // Wholesale stock check and decrement
+                const checkStock = !dbProduct.wholesale?.allowBackOrder;
                 product = session
                     ? await Product.findOneAndUpdate(
                         {
                             _id: item.product.id,
-                            $or: [
-                                { "variations._id": mongoose.isValidObjectId(variationValue) ? variationValue : new mongoose.Types.ObjectId() },
-                                { "variations.value": variationValue },
-                                { "variations.title": variationValue },
-                                { "variations.pack": variationValue }
-                            ],
-                            "variations.stock": { $gte: qty }
+                            "wholesale.enabled": true,
+                            ...(checkStock ? { "wholesale.stock": { $gte: qty } } : {})
                         },
-                        { $inc: { "variations.$.stock": -qty, stock: -qty } },
+                        { $inc: { "wholesale.stock": -qty } },
                         { session, new: true }
                     )
                     : await Product.findOneAndUpdate(
                         {
                             _id: item.product.id,
-                            $or: [
-                                { "variations._id": mongoose.isValidObjectId(variationValue) ? variationValue : new mongoose.Types.ObjectId() },
-                                { "variations.value": variationValue },
-                                { "variations.title": variationValue },
-                                { "variations.pack": variationValue }
-                            ],
-                            "variations.stock": { $gte: qty }
+                            "wholesale.enabled": true,
+                            ...(checkStock ? { "wholesale.stock": { $gte: qty } } : {})
                         },
-                        { $inc: { "variations.$.stock": -qty, stock: -qty } },
+                        { $inc: { "wholesale.stock": -qty } },
                         { new: true }
                     );
-            }
 
-            if (!product) {
-                // If we are here, either variationValue wasn't provided, or it didn't match any variation with enough stock.
-                // We'll try to find the product first to see if it has variations.
-                const checkProduct = await Product.findById(item.product.id);
+                if (!product) {
+                    throw new Error(`Insufficient wholesale stock or product not found: ${dbProduct.productName}`);
+                }
 
-                if (checkProduct && checkProduct.variations && checkProduct.variations.length > 0) {
-                    // If a variation was provided, it means that specific variation is out of stock.
-                    // We only throw if it matches an actual variation in the product variations catalog (not a generic placeholder).
-                    const hasMatchingVariation = checkProduct.variations.some((v: any) =>
+                pricingType = 'wholesale';
+                appliedMinWholesaleQty = minOrderQty;
+                wholesalePrice = dbProduct.wholesale?.pricePerUnit || 0;
+                
+                // Determine retail price for savings display
+                let selectedVariation;
+                let variationValue = item.variant || item.variation;
+                if (variationValue === "Variation" || variationValue === "Standard" || variationValue === "Default") {
+                    variationValue = undefined;
+                }
+                if (variationValue && product.variations) {
+                    selectedVariation = product.variations.find((v: any) =>
                         (v._id && v._id.toString() === variationValue) ||
                         v.value === variationValue ||
                         v.title === variationValue ||
                         v.pack === variationValue
                     );
-                    if (variationValue && hasMatchingVariation) {
-                        throw new Error(`Insufficient stock for variation: ${variationValue}`);
-                    }
+                }
+                if (!selectedVariation && product.variations && product.variations.length > 0) {
+                    selectedVariation = product.variations[0];
+                }
 
-                    // No variation was provided, but the product has them.
-                    // To maintain data consistency, we'll try to decrement from the first variation.
-                    product = session
-                        ? await Product.findOneAndUpdate(
-                            {
-                                _id: item.product.id,
-                                "variations.0.stock": { $gte: qty }
-                            },
-                            { $inc: { "variations.0.stock": -qty, stock: -qty } },
-                            { session, new: true }
-                        )
-                        : await Product.findOneAndUpdate(
-                            {
-                                _id: item.product.id,
-                                "variations.0.stock": { $gte: qty }
-                            },
-                            { $inc: { "variations.0.stock": -qty, stock: -qty } },
-                            { new: true }
-                        );
+                if (selectedVariation) {
+                    retailPrice = (selectedVariation.discPrice && selectedVariation.discPrice > 0)
+                        ? selectedVariation.discPrice
+                        : (selectedVariation.price || 0);
                 } else {
-                    // No variations, just decrement top-level stock
+                    retailPrice = (product.discPrice && product.discPrice > 0)
+                        ? product.discPrice
+                        : (product.price || 0);
+                }
+
+                // Dynamic pricing tier check
+                itemPrice = wholesalePrice;
+                if (dbProduct.wholesale?.pricingTiers && dbProduct.wholesale.pricingTiers.length > 0) {
+                    const sortedTiers = [...dbProduct.wholesale.pricingTiers].sort((a, b) => a.minimumQuantity - b.minimumQuantity);
+                    let applicableTier = null;
+                    for (const tier of sortedTiers) {
+                        if (qty >= tier.minimumQuantity) {
+                            applicableTier = tier;
+                        }
+                    }
+                    if (applicableTier) {
+                        itemPrice = applicableTier.price;
+                    }
+                }
+            } else {
+                // Regular retail B2C flow
+                // The frontend sends variation info as 'variant' or 'variation'
+                // In the product model, it's stored in 'variations' array
+                let variationValue = item.variant || item.variation;
+                if (variationValue === "Variation" || variationValue === "Standard" || variationValue === "Default") {
+                    variationValue = undefined;
+                }
+
+                if (variationValue) {
+                    // Try to decrement stock for the specific variation first
+                    // We check variations._id, variations.value, variations.title, or variations.pack
                     product = session
                         ? await Product.findOneAndUpdate(
-                            { _id: item.product.id, stock: { $gte: qty } },
-                            { $inc: { stock: -qty } },
+                            {
+                                _id: item.product.id,
+                                $or: [
+                                    { "variations._id": mongoose.isValidObjectId(variationValue) ? variationValue : new mongoose.Types.ObjectId() },
+                                    { "variations.value": variationValue },
+                                    { "variations.title": variationValue },
+                                    { "variations.pack": variationValue }
+                                ],
+                                "variations.stock": { $gte: qty }
+                            },
+                            { $inc: { "variations.$.stock": -qty, stock: -qty } },
                             { session, new: true }
                         )
                         : await Product.findOneAndUpdate(
-                            { _id: item.product.id, stock: { $gte: qty } },
-                            { $inc: { stock: -qty } },
+                            {
+                                _id: item.product.id,
+                                $or: [
+                                    { "variations._id": mongoose.isValidObjectId(variationValue) ? variationValue : new mongoose.Types.ObjectId() },
+                                    { "variations.value": variationValue },
+                                    { "variations.title": variationValue },
+                                    { "variations.pack": variationValue }
+                                ],
+                                "variations.stock": { $gte: qty }
+                            },
+                            { $inc: { "variations.$.stock": -qty, stock: -qty } },
                             { new: true }
                         );
                 }
-            }
 
-            if (!product) {
-                throw new Error(`Insufficient stock or product not found: ${item.product.name || 'ID: ' + item.product.id}${variationValue ? ' (' + variationValue + ')' : ''}`);
-            }
+                if (!product) {
+                    // If we are here, either variationValue wasn't provided, or it didn't match any variation with enough stock.
+                    // We'll try to find the product first to see if it has variations.
+                    const checkProduct = await Product.findById(item.product.id);
 
-            // Track seller IDs to validate location
-            if (product.seller) {
-                sellerIds.add(product.seller.toString());
-            }
+                    if (checkProduct && checkProduct.variations && checkProduct.variations.length > 0) {
+                        // If a variation was provided, it means that specific variation is out of stock.
+                        // We only throw if it matches an actual variation in the product variations catalog (not a generic placeholder).
+                        const hasMatchingVariation = checkProduct.variations.some((v: any) =>
+                            (v._id && v._id.toString() === variationValue) ||
+                            v.value === variationValue ||
+                            v.title === variationValue ||
+                            v.pack === variationValue
+                        );
+                        if (variationValue && hasMatchingVariation) {
+                            throw new Error(`Insufficient stock for variation: ${variationValue}`);
+                        }
 
-            // Determine the price based on variation and discounts
-            let selectedVariation;
-            if (variationValue && product.variations) {
-                selectedVariation = product.variations.find((v: any) =>
-                    (v._id && v._id.toString() === variationValue) ||
-                    v.value === variationValue ||
-                    v.title === variationValue ||
-                    v.pack === variationValue
-                );
-            }
-            if (!selectedVariation && product.variations && product.variations.length > 0) {
-                // Fallback to first if no variation spec or not found (consistent with stock fallback)
-                selectedVariation = product.variations[0];
-            }
+                        // No variation was provided, but the product has them.
+                        // To maintain data consistency, we'll try to decrement from the first variation.
+                        product = session
+                            ? await Product.findOneAndUpdate(
+                                {
+                                    _id: item.product.id,
+                                    "variations.0.stock": { $gte: qty }
+                                },
+                                { $inc: { "variations.0.stock": -qty, stock: -qty } },
+                                { session, new: true }
+                            )
+                            : await Product.findOneAndUpdate(
+                                {
+                                    _id: item.product.id,
+                                    "variations.0.stock": { $gte: qty }
+                                },
+                                { $inc: { "variations.0.stock": -qty, stock: -qty } },
+                                { new: true }
+                            );
+                    } else {
+                        // No variations, just decrement top-level stock
+                        product = session
+                            ? await Product.findOneAndUpdate(
+                                { _id: item.product.id, stock: { $gte: qty } },
+                                { $inc: { stock: -qty } },
+                                { session, new: true }
+                            )
+                            : await Product.findOneAndUpdate(
+                                { _id: item.product.id, stock: { $gte: qty } },
+                                { $inc: { stock: -qty } },
+                                { new: true }
+                            );
+                    }
+                }
 
-            let pricingType: 'retail' | 'wholesale' = 'retail';
-            let appliedMinWholesaleQty: number | undefined = undefined;
-            let wholesalePrice: number | undefined = undefined;
-            let retailPrice: number | undefined = undefined;
+                if (!product) {
+                    throw new Error(`Insufficient stock or product not found: ${item.product.name || 'ID: ' + item.product.id}${variationValue ? ' (' + variationValue + ')' : ''}`);
+                }
 
-            if (selectedVariation) {
-                const isEligible = isWholesaleEligible({
-                    customerType: customer.customerType,
-                    quantity: qty,
-                    variation: selectedVariation
-                });
-                pricingType = isEligible ? 'wholesale' : 'retail';
-                appliedMinWholesaleQty = selectedVariation.minWholesaleQty || 1;
-                wholesalePrice = selectedVariation.wholesalePrice;
-                retailPrice = (selectedVariation.discPrice && selectedVariation.discPrice > 0)
-                    ? selectedVariation.discPrice
-                    : (selectedVariation.price || 0);
-            } else {
-                retailPrice = (product.discPrice && product.discPrice > 0)
-                    ? product.discPrice
-                    : (product.price || 0);
+                // Determine the price based on variation and discounts
+                let selectedVariation;
+                if (variationValue && product.variations) {
+                    selectedVariation = product.variations.find((v: any) =>
+                        (v._id && v._id.toString() === variationValue) ||
+                        v.value === variationValue ||
+                        v.title === variationValue ||
+                        v.pack === variationValue
+                    );
+                }
+                if (!selectedVariation && product.variations && product.variations.length > 0) {
+                    selectedVariation = product.variations[0];
+                }
+
+                if (selectedVariation) {
+                    const isEligible = isWholesaleEligible({
+                        customerType: customer.customerType,
+                        quantity: qty,
+                        variation: selectedVariation
+                    });
+                    pricingType = isEligible ? 'wholesale' : 'retail';
+                    appliedMinWholesaleQty = selectedVariation.minWholesaleQty || 1;
+                    wholesalePrice = selectedVariation.wholesalePrice;
+                    retailPrice = (selectedVariation.discPrice && selectedVariation.discPrice > 0)
+                        ? selectedVariation.discPrice
+                        : (selectedVariation.price || 0);
+                } else {
+                    retailPrice = (product.discPrice && product.discPrice > 0)
+                        ? product.discPrice
+                        : (product.price || 0);
+                }
+
+                itemPrice = selectedVariation
+                    ? getVariationPrice(selectedVariation, qty, customer.customerType)
+                    : (product.discPrice && product.discPrice > 0 ? product.discPrice : (product.price || 0));
             }
-
-            const itemPrice = selectedVariation
-                ? getVariationPrice(selectedVariation, qty, customer.customerType)
-                : (product.discPrice && product.discPrice > 0 ? product.discPrice : (product.price || 0));
 
             const itemTotal = itemPrice * qty;
             calculatedSubtotal += itemTotal;

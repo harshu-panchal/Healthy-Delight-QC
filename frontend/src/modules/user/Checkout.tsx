@@ -125,6 +125,10 @@ export default function Checkout() {
     const product = item.product;
     if (!product) return 0;
     
+    if (user?.customerType === 'wholesaler' && product.wholesale?.enabled) {
+      return product.wholesale.stock || 0;
+    }
+
     if (product.variations && product.variations.length > 0) {
       const variantId = (product as any).variantId || (product as any).selectedVariant?._id || item.variant;
       const variantTitle = (product as any).variantTitle || product.pack;
@@ -140,6 +144,15 @@ export default function Checkout() {
   };
 
   const hasOutOfStockItems = cart.items.some(item => {
+    const product = item.product;
+    if (!product) return true;
+
+    if (user?.customerType === 'wholesaler' && product.wholesale?.enabled) {
+      if (product.wholesale.allowBackOrder) return false;
+      const stock = product.wholesale.stock || 0;
+      return item.quantity > stock;
+    }
+
     const stock = getCartItemStock(item);
     return stock <= 0 || item.quantity > stock;
   });
@@ -175,9 +188,6 @@ export default function Checkout() {
   const [validatedDiscount, setValidatedDiscount] = useState<number>(0);
   const [couponCodeInput, setCouponCodeInput] = useState<string>("");
   const [similarProducts, setSimilarProducts] = useState<any[]>([]);
-  const [showGstinSheet, setShowGstinSheet] = useState(false);
-  const [gstin, setGstin] = useState<string>("");
-  const [gstinError, setGstinError] = useState<string | null>(null);
   const [isMovingLastToWishlist, setIsMovingLastToWishlist] = useState(false);
 
   const [showScheduledConflictModal, setShowScheduledConflictModal] = useState(false);
@@ -232,11 +242,7 @@ export default function Checkout() {
     fetchWishlist();
   }, [userLocation?.latitude, userLocation?.longitude]);
 
-  useEffect(() => {
-    if (!showGstinSheet) {
-      setGstinError(null);
-    }
-  }, [showGstinSheet]);
+
   const [showCancellationPolicy, setShowCancellationPolicy] = useState(false);
   const [giftPackaging, setGiftPackaging] = useState<boolean>(false);
   const [showRazorpayCheckout, setShowRazorpayCheckout] = useState(false);
@@ -350,7 +356,7 @@ export default function Checkout() {
   } | null>(null);
   const [isUpdatingLocation, setIsUpdatingLocation] = useState(false);
   const [isMapSelected, setIsMapSelected] = useState(false);
-  const isAnySheetOpen = showCouponSheet || showGstinSheet || showCancellationPolicy || showProfileModal || showMapPicker;
+  const isAnySheetOpen = showCouponSheet || showCancellationPolicy || showProfileModal || showMapPicker;
 
   // Check if user has placeholder data (needs profile completion)
   const isPlaceholderUser =
@@ -899,12 +905,11 @@ export default function Checkout() {
       status: isOrderScheduled ? "Scheduled" : "Placed",
       createdAt: new Date().toISOString(),
       tipAmount: finalTipAmount,
-      gstin: gstin || undefined,
       couponCode: selectedCoupon?.code || undefined,
       giftPackaging: giftPackaging,
       forcePlaceNewScheduled: forcePlaceNew,
+      orderType: (user?.customerType === 'wholesaler') ? 'Wholesale' : (isOrderScheduled ? "Scheduled" : "Instant"),
       ...(isOrderScheduled ? {
-        orderType: "Scheduled",
         scheduledDate: scheduledDateStr || new Date().toISOString(),
         scheduledTimeSlot: scheduledTimeSlot || (isEveningOrder ? "Evening" : "Morning"),
       } : {})
@@ -2031,23 +2036,6 @@ export default function Checkout() {
           <p className="text-[10px] font-medium text-neutral-500 uppercase tracking-widest mt-0.5">Customize your delivery</p>
         </div>
 
-        {/* GSTIN Entry */}
-        <button
-          onClick={() => setShowGstinSheet(true)}
-          className="w-full flex items-center justify-between bg-neutral-50/50 hover:bg-neutral-50 p-4 rounded-2xl border border-neutral-100 transition-all group">
-          <div className="flex items-center gap-4">
-            <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <span className="text-sm font-bold">%</span>
-            </div>
-            <div className="text-left">
-              <p className="text-xs font-bold text-neutral-900">Add GSTIN</p>
-              <p className="text-[10px] text-neutral-500 font-medium">
-                {gstin ? `GSTIN: ${gstin}` : "Claim GST input credit on your order"}
-              </p>
-            </div>
-          </div>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-neutral-300 group-hover:text-neutral-900 transition-colors"><path d="M9 18l6-6-6-6" /></svg>
-        </button>
 
         {/* Improved Tip UI */}
         <div className="space-y-3">
@@ -2352,88 +2340,6 @@ export default function Checkout() {
 
 
 
-      {/* GSTIN Sheet Modal */}
-      <Sheet open={showGstinSheet} onOpenChange={setShowGstinSheet}>
-        <SheetContent side="bottom" className="max-h-[50vh]">
-          <SheetHeader className="text-left">
-            <div className="flex items-center justify-between mb-2">
-              <SheetTitle className="text-base font-bold text-neutral-900">
-                Add GSTIN
-              </SheetTitle>
-              <SheetClose onClick={() => setShowGstinSheet(false)}>
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg">
-                  <path
-                    d="M18 6L6 18M6 6l12 12"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </SheetClose>
-            </div>
-          </SheetHeader>
-
-          <div className="px-4 pb-4 mt-4">
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-neutral-900 mb-2">
-                GSTIN Number
-              </label>
-              <input
-                type="text"
-                value={gstin}
-                onChange={(e) => {
-                  const value = e.target.value
-                    .toUpperCase()
-                    .replace(/[^A-Z0-9]/g, "");
-                  if (value.length <= 15) {
-                    setGstin(value);
-                    setGstinError(null);
-                  }
-                }}
-                placeholder="Enter 15-character GSTIN"
-                className="w-full px-4 py-3 bg-white border-2 border-neutral-300 rounded-lg text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-[#0a193b]/20 focus:border-[#0a193b]"
-                maxLength={15}
-              />
-              <p className="text-xs text-neutral-500 mt-1">
-                Format: 15 characters (e.g., 27AAAAA0000A1Z5)
-              </p>
-              {gstinError && (
-                <p className="text-xs font-semibold text-red-500 mt-1.5 animate-fadeIn">
-                  {gstinError}
-                </p>
-              )}
-            </div>
-            <button
-              onClick={() => {
-                const gstinRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
-                if (gstinRegex.test(gstin.toUpperCase())) {
-                  setShowGstinSheet(false);
-                } else {
-                  setGstinError("Invalid GSTIN format. Please enter a valid 15-character GSTIN (e.g., 27AAAAA0000A1Z5)");
-                }
-              }}
-              className="w-full bg-[#0a193b] text-white py-3 px-4 font-bold text-sm uppercase tracking-wide hover:bg-[#0a193b]/90 transition-colors rounded-lg">
-              Save GSTIN
-            </button>
-            {gstin && (
-              <button
-                onClick={() => {
-                  setGstin("");
-                  setShowGstinSheet(false);
-                }}
-                className="w-full mt-2 bg-neutral-100 text-neutral-700 py-2 px-4 font-medium text-sm hover:bg-neutral-200 transition-colors rounded-lg">
-                Remove GSTIN
-              </button>
-            )}
-          </div>
-        </SheetContent>
-      </Sheet>
 
       {/* Cancellation Policy Sheet Modal */}
       <Sheet

@@ -21,6 +21,9 @@ export default function Account() {
   const [error, setError] = useState("");
   const [showGstModal, setShowGstModal] = useState(false);
   const [gstNumber, setGstNumber] = useState("");
+  const [gstinError, setGstinError] = useState("");
+  const [gstinSaving, setGstinSaving] = useState(false);
+  const [gstinSuccess, setGstinSuccess] = useState("");
   const [isHeaderSolid, setIsHeaderSolid] = useState(false);
 
   // Edit Profile States
@@ -96,6 +99,15 @@ export default function Account() {
       setLoading(false);
     }
   }, [user, navigate, authLogout]);
+
+  // Keep local gstNumber input in sync with loaded profile
+  useEffect(() => {
+    if (profile?.gstin) {
+      setGstNumber(profile.gstin);
+    } else {
+      setGstNumber("");
+    }
+  }, [profile?.gstin]);
 
   const formatDate = (dateString?: string) => {
     if (!dateString) return "Not set";
@@ -287,9 +299,60 @@ export default function Account() {
     }
   };
 
-  const handleGstSubmit = (e: React.FormEvent) => {
+  const handleGstSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setShowGstModal(false);
+    setGstinError("");
+    setGstinSuccess("");
+
+    const normalizedGstin = gstNumber.trim().toUpperCase();
+    const gstinRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
+    if (!gstinRegex.test(normalizedGstin)) {
+      setGstinError("Invalid GSTIN format. Please enter a valid 15-character GSTIN (e.g., 27AAAAA0000A1Z5)");
+      return;
+    }
+
+    setGstinSaving(true);
+    try {
+      const response = await updateProfile({ gstin: normalizedGstin });
+      if (response.success) {
+        setProfile(response.data);
+        setGstinSuccess("GSTIN saved successfully!");
+        setTimeout(() => {
+          setGstinSuccess("");
+          setShowGstModal(false);
+        }, 1200);
+      } else {
+        setGstinError("Failed to save GSTIN. Please try again.");
+      }
+    } catch (err: any) {
+      setGstinError(err.response?.data?.message || "Failed to save GSTIN.");
+    } finally {
+      setGstinSaving(false);
+    }
+  };
+
+  const handleGstinRemove = async () => {
+    setGstinError("");
+    setGstinSuccess("");
+    setGstinSaving(true);
+    try {
+      const response = await updateProfile({ gstin: "" });
+      if (response.success) {
+        setProfile(response.data);
+        setGstNumber("");
+        setGstinSuccess("GSTIN removed.");
+        setTimeout(() => {
+          setGstinSuccess("");
+          setShowGstModal(false);
+        }, 900);
+      } else {
+        setGstinError("Failed to remove GSTIN.");
+      }
+    } catch (err: any) {
+      setGstinError(err.response?.data?.message || "Failed to remove GSTIN.");
+    } finally {
+      setGstinSaving(false);
+    }
   };
 
   // Show login/signup prompt for unregistered users
@@ -624,6 +687,36 @@ export default function Account() {
               </svg>
             </button>
             <button
+              onClick={() => {
+                setGstinError("");
+                setGstinSuccess("");
+                setShowGstModal(true);
+              }}
+              className="w-full flex items-center justify-between px-5 py-4 hover:bg-neutral-50 transition-colors border-b border-neutral-50"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="5" y="3" width="14" height="18" rx="2" />
+                    <line x1="9" y1="8" x2="15" y2="8" />
+                    <line x1="9" y1="12" x2="15" y2="12" />
+                    <line x1="9" y1="16" x2="12" y2="16" />
+                  </svg>
+                </div>
+                <div className="text-left">
+                  <span className="text-[14px] font-bold text-[#0a193b] block">Business &amp; GST Details</span>
+                  {profile?.gstin ? (
+                    <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">{profile.gstin}</span>
+                  ) : (
+                    <span className="text-[10px] text-neutral-400 font-medium">Not added — Save once for all invoices</span>
+                  )}
+                </div>
+              </div>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="text-neutral-300">
+                <path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+            <button
               onClick={() => navigate("/wishlist")}
               className="w-full flex items-center justify-between px-5 py-4 hover:bg-neutral-50 transition-colors border-b border-neutral-50"
             >
@@ -651,7 +744,7 @@ export default function Account() {
                     <line x1="12" y1="17" x2="12.01" y2="17" />
                   </svg>
                 </div>
-                <span className="text-[14px] font-bold text-[#0a193b]">Help & Support</span>
+                <span className="text-[14px] font-bold text-[#0a193b]">Help &amp; Support</span>
               </div>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="text-neutral-300">
                 <path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -767,47 +860,86 @@ export default function Account() {
         <>
           <div
             className="fixed inset-0 z-[60] bg-[#0a193b]/40 backdrop-blur-sm animate-in fade-in duration-300"
-            onClick={() => setShowGstModal(false)}
+            onClick={() => { if (!gstinSaving) setShowGstModal(false); }}
           />
           <div className="fixed inset-x-0 bottom-0 z-[70] animate-in slide-in-from-bottom duration-500 ease-out">
             <div className="bg-white rounded-t-[32px] shadow-2xl max-w-lg mx-auto p-6 pt-10 relative">
               <button
                 onClick={() => setShowGstModal(false)}
-                className="absolute -top-12 right-4 w-10 h-10 rounded-full bg-neutral-900 flex items-center justify-center text-white">
+                disabled={gstinSaving}
+                className="absolute -top-12 right-4 w-10 h-10 rounded-full bg-neutral-900 flex items-center justify-center text-white disabled:opacity-50">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
                   <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </button>
               <div className="text-center">
-                <div className="mx-auto mb-6 w-20 h-20 rounded-2xl bg-[#0a193b]/5 border border-[#0a193b]/10 flex items-center justify-center">
-                  <svg viewBox="0 0 24 24" className="w-10 h-10 text-[#0a193b]" fill="none" stroke="currentColor" strokeWidth="1.5">
-                    <rect x="5" y="3" width="14" height="18" rx="2" ry="2" />
-                    <line x1="9" y1="7" x2="15" y2="7" />
-                    <line x1="9" y1="11" x2="15" y2="11" />
-                    <line x1="9" y1="15" x2="13" y2="15" />
+                <div className="mx-auto mb-4 w-16 h-16 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center">
+                  <svg viewBox="0 0 24 24" className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" strokeWidth="1.5">
+                    <rect x="5" y="3" width="14" height="18" rx="2" />
+                    <line x1="9" y1="8" x2="15" y2="8" />
+                    <line x1="9" y1="12" x2="15" y2="12" />
+                    <line x1="9" y1="16" x2="12" y2="16" />
                   </svg>
                 </div>
-                <h3 className="text-xl font-black text-[#0a193b] mb-2 tracking-tight">
-                  Add GST Details
+                <h3 className="text-xl font-black text-[#0a193b] mb-1 tracking-tight">
+                  {profile?.gstin ? 'Update GSTIN' : 'Add GSTIN'}
                 </h3>
-                <p className="text-[13px] text-neutral-500 font-medium mb-8 px-4 leading-relaxed">
-                  Identify your business to receive GST-compliant invoices on your organic purchases.
+                <p className="text-[12px] text-neutral-500 font-medium mb-6 px-4 leading-relaxed">
+                  Saved once — automatically added to all your invoices.
                 </p>
-                <form onSubmit={handleGstSubmit} className="space-y-4">
-                  <input
-                    type="text"
-                    value={gstNumber}
-                    onChange={(e) => setGstNumber(e.target.value)}
-                    placeholder="Enter GST Number"
-                    className="w-full rounded-2xl border border-neutral-100 bg-neutral-50 px-5 py-4 text-[15px] font-bold text-[#0a193b] placeholder-neutral-400 focus:outline-none focus:ring-4 focus:ring-[#0a193b]/5 focus:bg-white transition-all"
-                  />
+
+                {gstinSuccess && (
+                  <div className="mb-4 px-4 py-3 bg-green-50 border border-green-200 rounded-2xl text-sm font-bold text-green-700 text-center">
+                    ✓ {gstinSuccess}
+                  </div>
+                )}
+                {gstinError && (
+                  <div className="mb-4 px-4 py-3 bg-red-50 border border-red-200 rounded-2xl text-sm font-semibold text-red-600 text-center">
+                    {gstinError}
+                  </div>
+                )}
+
+                <form onSubmit={handleGstSubmit} className="space-y-4 text-left">
+                  <div>
+                    <label className="block text-[10px] font-black text-[#0a193b] uppercase tracking-widest mb-1.5 ml-2">
+                      GSTIN Number
+                    </label>
+                    <input
+                      id="gstin-input"
+                      type="text"
+                      value={gstNumber}
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+                        if (val.length <= 15) {
+                          setGstNumber(val);
+                          setGstinError('');
+                        }
+                      }}
+                      placeholder="e.g. 27AAAAA0000A1Z5"
+                      maxLength={15}
+                      className="w-full rounded-2xl border border-neutral-200 bg-neutral-50 px-5 py-4 text-[15px] font-bold text-[#0a193b] placeholder-neutral-400 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-400 focus:bg-white transition-all uppercase tracking-widest"
+                    />
+                    <p className="text-[10px] text-neutral-400 font-medium mt-1.5 ml-2">
+                      15-character alphanumeric · Format: 27AAAAA0000A1Z5
+                    </p>
+                  </div>
                   <button
                     type="submit"
-                    disabled={!gstNumber.trim()}
+                    disabled={gstinSaving || !gstNumber.trim()}
                     className="w-full rounded-2xl bg-[#0a193b] text-white font-black py-4 hover:bg-[#07122b] disabled:opacity-50 transition-all shadow-xl shadow-[#0a193b]/10 uppercase tracking-widest text-sm active:scale-[0.98]"
                   >
-                    Authenticate GST
+                    {gstinSaving ? 'Saving...' : (profile?.gstin ? 'Update GSTIN' : 'Save GSTIN')}
                   </button>
+                  {profile?.gstin && (
+                    <button
+                      type="button"
+                      onClick={handleGstinRemove}
+                      disabled={gstinSaving}
+                      className="w-full rounded-2xl bg-red-50 text-red-600 border border-red-100 font-bold py-3 hover:bg-red-100 disabled:opacity-50 transition-all text-sm active:scale-[0.98]"
+                    >
+                      {gstinSaving ? 'Removing...' : 'Remove GSTIN'}
+                    </button>
+                  )}
                 </form>
               </div>
             </div>

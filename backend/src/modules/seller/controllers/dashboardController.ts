@@ -148,6 +148,74 @@ export const getDashboardStats = asyncHandler(
             return { date: day.toString(), value: dayStat ? dayStat.count : 0 };
         });
 
+        // 6. Wholesale B2B Metrics
+        const wholesaleStats = await OrderItem.aggregate([
+            { $match: { seller: sellerId } },
+            {
+                $lookup: {
+                    from: "orders",
+                    localField: "order",
+                    foreignField: "_id",
+                    as: "orderInfo"
+                }
+            },
+            { $unwind: "$orderInfo" },
+            { $match: { "orderInfo.orderType": "Wholesale" } },
+            {
+                $group: {
+                    _id: null,
+                    totalRevenue: { $sum: "$total" },
+                    orderCount: { $addToSet: "$order" }
+                }
+            }
+        ]);
+        const wholesaleRevenue = wholesaleStats[0]?.totalRevenue || 0;
+        const wholesaleOrders = wholesaleStats[0]?.orderCount?.length || 0;
+
+        let wholesaleStock = 0;
+        let lowWholesaleStock = 0;
+        
+        products.forEach(product => {
+            if (product.wholesale?.enabled) {
+                const stockVal = product.wholesale.stock || 0;
+                wholesaleStock += stockVal;
+                if (stockVal <= 10) {
+                    lowWholesaleStock++;
+                }
+            }
+        });
+
+        const bestSellingWholesale = await OrderItem.aggregate([
+            { $match: { seller: sellerId } },
+            {
+                $lookup: {
+                    from: "orders",
+                    localField: "order",
+                    foreignField: "_id",
+                    as: "orderInfo"
+                }
+            },
+            { $unwind: "$orderInfo" },
+            { $match: { "orderInfo.orderType": "Wholesale", "orderInfo.status": { $ne: "Cancelled" } } },
+            {
+                $group: {
+                    _id: "$productName",
+                    quantity: { $sum: "$quantity" },
+                    revenue: { $sum: "$total" }
+                }
+            },
+            { $sort: { quantity: -1 } },
+            { $limit: 5 },
+            {
+                $project: {
+                    name: "$_id",
+                    quantity: 1,
+                    revenue: 1,
+                    _id: 0
+                }
+            }
+        ]);
+
         return res.status(200).json({
             success: true,
             message: "Dashboard stats fetched successfully",
@@ -164,7 +232,12 @@ export const getDashboardStats = asyncHandler(
                     soldOutProducts,
                     lowStockProducts,
                     yearlyOrderData,
-                    dailyOrderData
+                    dailyOrderData,
+                    wholesaleOrders,
+                    wholesaleRevenue,
+                    wholesaleStock,
+                    lowWholesaleStock,
+                    bestSellingWholesale
                 },
                 newOrders: formattedNewOrders
             }

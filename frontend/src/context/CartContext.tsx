@@ -240,8 +240,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
       selectedVariation.wholesalePrice > 0;
 
     const isWholesaleItem = isWholesaler && hasWholesalePrice;
+    const isWholesaleProduct = isWholesaler && product.wholesale?.enabled;
 
-    if (isWholesaleItem && selectedVariation) {
+    if (isWholesaleProduct) {
+      minQty = product.wholesale?.minimumOrderQuantity || 1;
+    } else if (isWholesaleItem && selectedVariation) {
       minQty = selectedVariation.minWholesaleQty || 1;
     }
 
@@ -262,10 +265,17 @@ export function CartProvider({ children }: { children: ReactNode }) {
     });
 
     const currentQty = existingItemForStock ? existingItemForStock.quantity : 0;
-    const targetQty = currentQty + (isWholesaleItem ? minQty : 1);
-    const availableStock = selectedVariation ? (selectedVariation.stock ?? 0) : (product.stock ?? 0);
+    const targetQty = currentQty > 0 ? (currentQty + 1) : minQty;
+    
+    let availableStock = selectedVariation ? (selectedVariation.stock ?? 0) : (product.stock ?? 0);
+    let allowBackOrder = false;
 
-    if (targetQty > availableStock) {
+    if (isWholesaleProduct) {
+      availableStock = product.wholesale?.stock || 0;
+      allowBackOrder = product.wholesale?.allowBackOrder || false;
+    }
+
+    if (!allowBackOrder && targetQty > availableStock) {
       const variationName = selectedVariation ? (selectedVariation.value || selectedVariation.title || (selectedVariation as any).pack || (selectedVariation as any).name) : '';
       const variationSuffix = variationName ? ` (${variationName})` : '';
       const friendlyName = product.productName || product.name || 'Product';
@@ -333,18 +343,18 @@ export function CartProvider({ children }: { children: ReactNode }) {
             const isMatch = itemVariantId === variantId ||
               itemVariantTitle === variantTitle ||
               (itemVariantId && itemVariantId === variantTitle);
-            return isMatch ? { ...item, quantity: isWholesaleItem ? Math.max(item.quantity + 1, minQty) : item.quantity + 1 } : item;
+            return isMatch ? { ...item, quantity: (isWholesaleItem || isWholesaleProduct) ? Math.max(item.quantity + 1, minQty) : item.quantity + 1 } : item;
           }
 
           // If no variant info, and this is the item we found above, update its quantity
-          return item === existingItem ? { ...item, quantity: isWholesaleItem ? Math.max(item.quantity + 1, minQty) : item.quantity + 1 } : item;
+          return item === existingItem ? { ...item, quantity: (isWholesaleItem || isWholesaleProduct) ? Math.max(item.quantity + 1, minQty) : item.quantity + 1 } : item;
         });
       }
       
-      if (isWholesaleItem) {
-        showToast(`Wholesale pricing requires a minimum of ${minQty} units. Added ${minQty} units to your cart.`, 'info');
+      if (isWholesaleItem || isWholesaleProduct) {
+        showToast(`Wholesale ordering requires a minimum of ${minQty} units. Added ${minQty} units to your cart.`, 'info');
       }
-      return [...validItems, { product: normalizedProduct, quantity: isWholesaleItem ? minQty : 1 }];
+      return [...validItems, { product: normalizedProduct, quantity: (isWholesaleItem || isWholesaleProduct) ? minQty : 1 }];
     });
 
     // Only sync to API if user is authenticated
@@ -476,6 +486,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     let minQty = 1;
     const productObj = itemToUpdate?.product;
     let isWholesaleItem = false;
+    const isWholesaleProduct = isWholesaler && productObj?.wholesale?.enabled;
     
     let selectedVar = null;
     if (productObj?.variations?.length) {
@@ -494,10 +505,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
       if (selectedVar && isWholesaler) {
         const hasWholesalePrice = typeof selectedVar.wholesalePrice === 'number' && selectedVar.wholesalePrice > 0;
         isWholesaleItem = hasWholesalePrice;
-        if (isWholesaleItem) {
+        if (isWholesaleItem && !isWholesaleProduct) {
           minQty = selectedVar.minWholesaleQty || 1;
         }
       }
+    }
+
+    if (isWholesaleProduct) {
+      minQty = productObj?.wholesale?.minimumOrderQuantity || 1;
     }
 
     if (quantity <= 0) {
@@ -505,15 +520,22 @@ export function CartProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    if (isWholesaleItem && quantity < minQty) {
+    if ((isWholesaleItem || isWholesaleProduct) && quantity < minQty) {
       showToast(`Removed from cart. Minimum wholesale order quantity is ${minQty}. To order less, please sign up as retailer.`, 'error');
       removeFromCart(productId, variantId, variantTitle);
       return;
     }
 
     // Check stock before updating quantity
-    const availableStock = selectedVar ? (selectedVar.stock ?? 0) : (productObj?.stock ?? 0);
-    if (quantity > availableStock) {
+    let availableStock = selectedVar ? (selectedVar.stock ?? 0) : (productObj?.stock ?? 0);
+    let allowBackOrder = false;
+
+    if (isWholesaleProduct) {
+      availableStock = productObj?.wholesale?.stock || 0;
+      allowBackOrder = productObj?.wholesale?.allowBackOrder || false;
+    }
+
+    if (!allowBackOrder && quantity > availableStock) {
       const variationName = selectedVar ? (selectedVar.value || selectedVar.title || (selectedVar as any).pack || (selectedVar as any).name) : '';
       const variationSuffix = variationName ? ` (${variationName})` : '';
       const friendlyName = productObj?.productName || productObj?.name || 'Product';

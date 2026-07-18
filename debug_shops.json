@@ -201,7 +201,7 @@
     "viewCustomerDetails": false,
     "commission": 0,
     "status": "Approved",
-    "balance": 50.4,
+    "balance": 75.6,
     "categories": [],
     "isShopOpen": true,
     "fcmTokens": [],
@@ -209,7 +209,7 @@
       "dpy-RBcsPSUC-brikDUDdg:APA91bGsCDkk4-z5w3KnGqMUuy7RiaK4fPGg-7v0vj8K3fuLSj0bN_YO89OdzeVaTTH9eHnIvcnVJH7ckisoEcle5nzW2GTV2Zujj4tIA9OHBLucekzkWNI"
     ],
     "createdAt": "2026-07-03T11:28:04.565Z",
-    "updatedAt": "2026-07-16T07:29:16.658Z",
+    "updatedAt": "2026-07-16T10:08:26.562Z",
     "__v": 1,
     "accountName": "Amit",
     "accountNumber": "4583973555000",

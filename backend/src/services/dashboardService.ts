@@ -20,6 +20,9 @@ export interface DashboardStats {
   totalRevenue: number;
   avgCompletedOrderValue: number;
   maxCompletedOrderValue: number;
+  wholesaleOrders?: number;
+  wholesaleRevenue?: number;
+  lowWholesaleStockProducts?: number;
 }
 
 export interface SalesData {
@@ -53,6 +56,9 @@ export const getDashboardStats = async (): Promise<DashboardStats> => {
       lowStockProducts,
       revenueData,
       completedOrderStats,
+      wholesaleOrders,
+      wholesaleRevenueData,
+      lowWholesaleStockProducts,
     ] = await Promise.all([
       Customer.countDocuments({ status: "Active" }).catch(() => 0),
       Category.countDocuments().catch(() => 0),
@@ -83,11 +89,18 @@ export const getDashboardStats = async (): Promise<DashboardStats> => {
           },
         },
       ]).catch(() => []),
+      Order.countDocuments({ orderType: "Wholesale" }).catch(() => 0),
+      Order.aggregate([
+        { $match: { orderType: "Wholesale", status: "Delivered", paymentStatus: "Paid" } },
+        { $group: { _id: null, total: { $sum: { $ifNull: ["$total", 0] } } } },
+      ]).catch(() => []),
+      Product.countDocuments({ "wholesale.enabled": true, "wholesale.stock": { $lte: 10 }, status: "Active" }).catch(() => 0),
     ]);
 
     const totalRevenue = revenueData[0]?.total || 0;
     const avgCompletedOrderValue = completedOrderStats[0]?.avg || 0;
     const maxCompletedOrderValue = completedOrderStats[0]?.max || 0;
+    const wholesaleRevenue = wholesaleRevenueData[0]?.total || 0;
 
     return {
       totalUser: totalUser || 0,
@@ -103,6 +116,9 @@ export const getDashboardStats = async (): Promise<DashboardStats> => {
       totalRevenue: totalRevenue || 0,
       avgCompletedOrderValue: Math.round((avgCompletedOrderValue || 0) * 100) / 100,
       maxCompletedOrderValue: Math.round((maxCompletedOrderValue || 0) * 100) / 100,
+      wholesaleOrders: wholesaleOrders || 0,
+      wholesaleRevenue: wholesaleRevenue || 0,
+      lowWholesaleStockProducts: lowWholesaleStockProducts || 0,
     };
   } catch (error) {
     console.error("Error fetching dashboard stats:", error);
@@ -121,6 +137,9 @@ export const getDashboardStats = async (): Promise<DashboardStats> => {
       totalRevenue: 0,
       avgCompletedOrderValue: 0,
       maxCompletedOrderValue: 0,
+      wholesaleOrders: 0,
+      wholesaleRevenue: 0,
+      lowWholesaleStockProducts: 0,
     };
   }
 };

@@ -158,11 +158,15 @@ export default function ProductDetail() {
   const inCartQty = cartItem?.quantity || 0;
 
   const isWholesaler = user?.customerType === 'wholesaler';
-  const hasWholesale = selectedVariant && typeof selectedVariant.wholesalePrice === 'number' && selectedVariant.wholesalePrice > 0;
+  const hasWholesale = (selectedVariant && typeof selectedVariant.wholesalePrice === 'number' && selectedVariant.wholesalePrice > 0) || (product?.wholesale?.enabled);
 
   let defaultQty = inCartQty;
   if (defaultQty <= 0) {
-    defaultQty = (isWholesaler && hasWholesale) ? (selectedVariant?.minWholesaleQty || 1) : 1;
+    if (isWholesaler && product?.wholesale?.enabled) {
+      defaultQty = product.wholesale.minimumOrderQuantity || 1;
+    } else {
+      defaultQty = (isWholesaler && hasWholesale) ? (selectedVariant?.minWholesaleQty || 1) : 1;
+    }
   }
 
   const {
@@ -173,12 +177,16 @@ export default function ProductDetail() {
   } = calculateProductPrice(product, selectedVariantIndex, user?.customerType, defaultQty);
 
   const variantStock =
-    selectedVariant?.stock !== undefined
-      ? selectedVariant.stock
-      : product?.stock || 0;
+    (isWholesaler && product?.wholesale?.enabled)
+      ? (product.wholesale.stock || 0)
+      : (selectedVariant?.stock !== undefined
+        ? selectedVariant.stock
+        : product?.stock || 0);
+
   const isVariantAvailable =
-    selectedVariant?.status !== "Sold out" &&
-    (variantStock > 0 || variantStock === 0); // 0 means unlimited
+    (isWholesaler && product?.wholesale?.enabled)
+      ? (product.wholesale.allowBackOrder || (product.wholesale.stock || 0) > 0)
+      : (selectedVariant?.status !== "Sold out" && (variantStock > 0 || variantStock === 0)); // 0 means unlimited
 
   // Get all images for gallery
   const allImages =
@@ -277,7 +285,6 @@ export default function ProductDetail() {
 
   const handleAddToCart = () => {
     if (!isAvailableAtLocation) {
-      // Show alert if trying to add item outside delivery area
       alert("This product is not available for delivery at your location.");
       return;
     }
@@ -285,6 +292,16 @@ export default function ProductDetail() {
       alert("This variant is currently out of stock.");
       return;
     }
+
+    const minQty = (isWholesaler && product?.wholesale?.enabled) ? (product.wholesale?.minimumOrderQuantity || 1) : 1;
+    const availableStock = (isWholesaler && product?.wholesale?.enabled) ? (product.wholesale?.stock || 0) : variantStock;
+    const allowBackOrder = (isWholesaler && product?.wholesale?.enabled) ? product.wholesale?.allowBackOrder : false;
+
+    if (!allowBackOrder && minQty > availableStock) {
+      alert("This product is currently out of stock for wholesale orders.");
+      return;
+    }
+
     // Create product with selected variant info
     const productWithVariant = {
       ...product,
@@ -294,6 +311,7 @@ export default function ProductDetail() {
       selectedVariant: selectedVariant,
       variantId: selectedVariant?._id,
       variantTitle: variantTitle,
+      quantity: minQty, // Provide default quantity as MOQ
     };
     addToCart(productWithVariant, addButtonRef.current);
   };
@@ -535,6 +553,55 @@ export default function ProductDetail() {
             </div>
           )}
 
+          {/* Wholesale Volume-based pricing tiers section */}
+          {isWholesaler && product?.wholesale?.enabled && product.wholesale.pricingTiers && product.wholesale.pricingTiers.length > 0 && (
+            <div className="space-y-3 pt-4 border-t border-neutral-100 animate-in fade-in duration-300">
+              <h3 className="text-xs font-bold text-[#0a193b] uppercase tracking-widest">Wholesale Volume Pricing</h3>
+              <div className="border border-neutral-200 rounded-2xl overflow-hidden bg-neutral-50/50">
+                <table className="w-full text-left text-xs text-neutral-600">
+                  <thead className="bg-[#0a193b]/5 text-[#0a193b] font-bold text-[10px] uppercase tracking-wider">
+                    <tr>
+                      <th className="px-4 py-3">Order Quantity</th>
+                      <th className="px-4 py-3">Unit Price (₹)</th>
+                      <th className="px-4 py-3">Discount</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-neutral-200">
+                    <tr className="hover:bg-white transition-colors">
+                      <td className="px-4 py-3 font-semibold text-neutral-800">
+                        {product.wholesale.minimumOrderQuantity || 1}+ units (Base MOQ)
+                      </td>
+                      <td className="px-4 py-3 font-bold text-neutral-900">
+                        ₹{(product.wholesale.pricePerUnit || 0).toFixed(2)}
+                      </td>
+                      <td className="px-4 py-3 text-neutral-400 font-medium">-</td>
+                    </tr>
+                    {product.wholesale.pricingTiers.map((tier: any, idx: number) => {
+                      const tierPrice = tier.price || 0;
+                      const basePrice = product.wholesale.pricePerUnit || 1;
+                      const pct = Math.round(((basePrice - tierPrice) / basePrice) * 100);
+                      return (
+                        <tr key={idx} className="hover:bg-white transition-colors">
+                          <td className="px-4 py-3 font-semibold text-neutral-800">
+                            {tier.minimumQuantity}+ units
+                          </td>
+                          <td className="px-4 py-3 font-bold text-emerald-600">
+                            ₹{tierPrice.toFixed(2)}
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
+                              Save {pct}%
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
           {/* Product Specifications Section */}
           <div className="space-y-4 pt-4 border-t border-neutral-100">
             <h3 className="text-xs font-bold text-[#0a193b] uppercase tracking-widest">Specifications</h3>
@@ -723,7 +790,14 @@ export default function ProductDetail() {
                 exit={{ opacity: 0, y: -10 }}
                 className="flex items-center justify-between bg-[#0a193b] rounded-2xl p-1.5 shadow-[0_8px_25px_rgba(10,25,59,0.25)]">
                 <button
-                  onClick={() => updateQuantity(product.id || product._id, inCartQty - 1, selectedVariant?._id, variantTitle)}
+                  onClick={() => {
+                    const minQty = (isWholesaler && product?.wholesale?.enabled) ? (product.wholesale.minimumOrderQuantity || 1) : 1;
+                    if (inCartQty <= minQty) {
+                      updateQuantity(product.id || product._id, 0, selectedVariant?._id, variantTitle);
+                    } else {
+                      updateQuantity(product.id || product._id, inCartQty - 1, selectedVariant?._id, variantTitle);
+                    }
+                  }}
                   className="w-12 h-12 rounded-xl bg-white/10 text-white flex items-center justify-center transition-colors hover:bg-white/20">
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12" /></svg>
                 </button>
@@ -732,7 +806,15 @@ export default function ProductDetail() {
                   <span className="text-lg font-black text-white">{inCartQty}</span>
                 </div>
                 <button
-                  onClick={() => updateQuantity(product.id || product._id, inCartQty + 1, selectedVariant?._id, variantTitle)}
+                  onClick={() => {
+                    const availableStock = (isWholesaler && product?.wholesale?.enabled) ? (product.wholesale.stock || 0) : variantStock;
+                    const allowBackOrder = (isWholesaler && product?.wholesale?.enabled) ? product.wholesale.allowBackOrder : false;
+                    if (!allowBackOrder && inCartQty + 1 > availableStock) {
+                      alert(`Oops! Only ${availableStock} units of this product are available in stock.`);
+                      return;
+                    }
+                    updateQuantity(product.id || product._id, inCartQty + 1, selectedVariant?._id, variantTitle);
+                  }}
                   className="w-12 h-12 rounded-xl bg-white/10 text-white flex items-center justify-center transition-colors hover:bg-white/20">
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
                 </button>

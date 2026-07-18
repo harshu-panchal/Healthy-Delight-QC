@@ -93,6 +93,19 @@ export default function SellerAddProduct({ isAdmin = false }: SellerAddProductPr
   const [variationError, setVariationError] = useState<string>("");
   const [editingVariationIndex, setEditingVariationIndex] = useState<number | null>(null);
 
+  // Wholesale settings states
+  const [wholesaleEnabled, setWholesaleEnabled] = useState(false);
+  const [wholesaleMOQ, setWholesaleMOQ] = useState<string>("1");
+  const [wholesalePrice, setWholesalePrice] = useState<string>("");
+  const [wholesaleStock, setWholesaleStock] = useState<string>("0");
+  const [wholesaleAllowBackOrder, setWholesaleAllowBackOrder] = useState(false);
+  const [wholesaleStatus, setWholesaleStatus] = useState<"Active" | "Inactive">("Active");
+  const [wholesaleTiers, setWholesaleTiers] = useState<Array<{ minimumQuantity: string; price: string }>>([]);
+  const [tierForm, setTierForm] = useState({
+    minimumQuantity: "",
+    price: "",
+  });
+
   const [categories, setCategories] = useState<Category[]>([]);
   const [subcategories, setSubcategories] = useState<SubCategory[]>([]);
   const [subSubCategories, setSubSubCategories] = useState<SubSubCategory[]>(
@@ -213,6 +226,20 @@ export default function SellerAddProduct({ isAdmin = false }: SellerAddProductPr
                 (product as any).shopId?._id || (product as any).shopId || "",
             });
             setVariations(product.variations);
+            if (product.wholesale) {
+              setWholesaleEnabled(product.wholesale.enabled || false);
+              setWholesaleMOQ(product.wholesale.minimumOrderQuantity?.toString() || "1");
+              setWholesalePrice(product.wholesale.pricePerUnit?.toString() || "");
+              setWholesaleStock(product.wholesale.stock?.toString() || "0");
+              setWholesaleAllowBackOrder(product.wholesale.allowBackOrder || false);
+              setWholesaleStatus(product.wholesale.status || "Active");
+              setWholesaleTiers(
+                (product.wholesale.pricingTiers || []).map((t: any) => ({
+                  minimumQuantity: t.minimumQuantity?.toString() || "",
+                  price: t.price?.toString() || "",
+                }))
+              );
+            }
             if (product.mainImageUrl || product.mainImage) {
               setMainImagePreview(
                 product.mainImageUrl || product.mainImage || ""
@@ -579,6 +606,43 @@ export default function SellerAddProduct({ isAdmin = false }: SellerAddProductPr
         return;
       }
 
+      // Validate wholesale parameters if enabled
+      if (wholesaleEnabled) {
+        const basePrice = parseFloat(wholesalePrice);
+        const baseMOQ = parseInt(wholesaleMOQ);
+        if (isNaN(basePrice) || basePrice <= 0) {
+          setUploadError("Wholesale price per unit must be greater than 0");
+          setUploading(false);
+          return;
+        }
+        if (isNaN(baseMOQ) || baseMOQ < 1) {
+          setUploadError("Wholesale Minimum Order Quantity (MOQ) must be at least 1");
+          setUploading(false);
+          return;
+        }
+        
+        // Validate pricing tiers slabs
+        let lastQty = baseMOQ;
+        let lastPrice = basePrice;
+        for (let i = 0; i < wholesaleTiers.length; i++) {
+          const tier = wholesaleTiers[i];
+          const tQty = parseInt(tier.minimumQuantity);
+          const tPrice = parseFloat(tier.price);
+          if (isNaN(tQty) || tQty <= lastQty) {
+            setUploadError(`Pricing tier ${i + 1} minimum quantity must be greater than ${lastQty}`);
+            setUploading(false);
+            return;
+          }
+          if (isNaN(tPrice) || tPrice >= lastPrice) {
+            setUploadError(`Pricing tier ${i + 1} unit price must be less than ₹${lastPrice}`);
+            setUploading(false);
+            return;
+          }
+          lastQty = tQty;
+          lastPrice = tPrice;
+        }
+      }
+
       // Prepare product data for API
 
       const productData = {
@@ -614,6 +678,18 @@ export default function SellerAddProduct({ isAdmin = false }: SellerAddProductPr
           formData.isShopByStoreOnly === "Yes" && formData.shopId
             ? formData.shopId
             : undefined,
+        wholesale: {
+          enabled: wholesaleEnabled,
+          minimumOrderQuantity: parseInt(wholesaleMOQ) || 1,
+          pricePerUnit: parseFloat(wholesalePrice) || 0,
+          stock: parseInt(wholesaleStock) || 0,
+          allowBackOrder: wholesaleAllowBackOrder,
+          status: wholesaleStatus,
+          pricingTiers: wholesaleTiers.map(t => ({
+            minimumQuantity: parseInt(t.minimumQuantity),
+            price: parseFloat(t.price),
+          })),
+        },
       };
 
       // Create or Update product via API
@@ -1428,6 +1504,237 @@ export default function SellerAddProduct({ isAdmin = false }: SellerAddProductPr
                   </div>
                 )}
               </div>
+            </div>
+          </div>
+
+          {/* Wholesale B2B Settings Section */}
+          <div className="bg-white rounded-lg shadow-sm border border-neutral-200 overflow-hidden">
+            <div className="bg-neutral-50 border-b border-neutral-200 px-4 sm:px-6 py-3 flex justify-between items-center">
+              <h2 className="text-lg font-semibold text-neutral-800">Wholesale B2B Settings</h2>
+              <div className="flex items-center gap-3">
+                <span className={`text-xs font-bold px-2 py-1 rounded-full uppercase ${wholesaleEnabled ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-neutral-100 text-neutral-500'}`}>
+                  {wholesaleEnabled ? 'Enabled' : 'Disabled'}
+                </span>
+              </div>
+            </div>
+            
+            <div className="p-4 sm:p-6 space-y-6">
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-2">
+                  Enable B2B Wholesale for this product?
+                </label>
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setWholesaleEnabled(!wholesaleEnabled)}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
+                      wholesaleEnabled ? 'bg-primary' : 'bg-neutral-200'
+                    }`}
+                  >
+                    <span
+                      className={`${
+                        wholesaleEnabled ? 'translate-x-6' : 'translate-x-1'
+                      } inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 ease-in-out`}
+                    />
+                  </button>
+                  <span className="text-xs font-semibold text-neutral-500">
+                    Sellers can define separate stock and slab-based pricing tiers for wholesale buyers.
+                  </span>
+                </div>
+              </div>
+
+              {wholesaleEnabled && (
+                <div className="space-y-6 border-t border-neutral-100 pt-4 animate-in fade-in duration-300">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-neutral-700 mb-2">
+                        Minimum Wholesale Quantity (MOQ) <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="number"
+                        min="1"
+                        value={wholesaleMOQ}
+                        onChange={(e) => setWholesaleMOQ(e.target.value)}
+                        placeholder="e.g. 10"
+                        required={wholesaleEnabled}
+                        className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-neutral-700 mb-2">
+                        Wholesale Price per Unit (₹) <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={wholesalePrice}
+                        onChange={(e) => setWholesalePrice(e.target.value)}
+                        placeholder="e.g. 95"
+                        required={wholesaleEnabled}
+                        className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary animate-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-neutral-700 mb-2">
+                        Wholesale Available Stock <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        value={wholesaleStock}
+                        onChange={(e) => setWholesaleStock(e.target.value)}
+                        placeholder="e.g. 100"
+                        required={wholesaleEnabled}
+                        className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-neutral-700 mb-2">
+                        Allow B2B Backorders?
+                      </label>
+                      <select
+                        value={wholesaleAllowBackOrder ? "Yes" : "No"}
+                        onChange={(e) => setWholesaleAllowBackOrder(e.target.value === "Yes")}
+                        className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-white"
+                      >
+                        <option value="No">No (Strict stock limits)</option>
+                        <option value="Yes">Yes (Allow orders when stock is 0)</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-neutral-700 mb-2">
+                        Wholesale B2B Listing Status
+                      </label>
+                      <select
+                        value={wholesaleStatus}
+                        onChange={(e) => setWholesaleStatus(e.target.value as "Active" | "Inactive")}
+                        className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-white"
+                      >
+                        <option value="Active">Active (Visible to Wholesalers)</option>
+                        <option value="Inactive">Inactive (Hidden from Wholesalers)</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Volume-Based Pricing Tiers (Slabs) */}
+                  <div className="border-t border-neutral-100 pt-4 space-y-4">
+                    <div>
+                      <h3 className="text-sm font-bold text-neutral-800">Configure Volume Pricing Slabs (Optional)</h3>
+                      <p className="text-xs text-neutral-500">Provide discounts for bulk buyer tiers (e.g. order 20+ units for a lower price).</p>
+                    </div>
+
+                    <div className="flex flex-col md:flex-row gap-3 items-end bg-neutral-50 p-4 rounded-xl border border-neutral-200">
+                      <div className="flex-1 w-full">
+                        <label className="block text-xs font-semibold text-neutral-600 mb-1">
+                          Minimum Quantity (e.g. 20)
+                        </label>
+                        <input
+                          type="number"
+                          min={parseInt(wholesaleMOQ) + 1}
+                          value={tierForm.minimumQuantity}
+                          onChange={(e) => setTierForm({ ...tierForm, minimumQuantity: e.target.value })}
+                          placeholder="e.g. 20"
+                          className="w-full px-3 py-1.5 border border-neutral-300 rounded-lg text-sm bg-white"
+                        />
+                      </div>
+                      <div className="flex-1 w-full">
+                        <label className="block text-xs font-semibold text-neutral-600 mb-1">
+                          Discounted Unit Price (₹)
+                        </label>
+                        <input
+                          type="number"
+                          min="0.01"
+                          step="0.01"
+                          value={tierForm.price}
+                          onChange={(e) => setTierForm({ ...tierForm, price: e.target.value })}
+                          placeholder="e.g. 90"
+                          className="w-full px-3 py-1.5 border border-neutral-300 rounded-lg text-sm bg-white"
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const qty = parseInt(tierForm.minimumQuantity);
+                          const prc = parseFloat(tierForm.price);
+                          const baseMOQ = parseInt(wholesaleMOQ);
+                          const basePrc = parseFloat(wholesalePrice);
+
+                          if (isNaN(qty) || qty <= baseMOQ) {
+                            alert(`Tier quantity must be greater than Minimum Wholesale MOQ (${baseMOQ})`);
+                            return;
+                          }
+                          if (isNaN(prc) || prc >= basePrc) {
+                            alert(`Tier price must be less than Base Wholesale Price (₹${basePrc})`);
+                            return;
+                          }
+                          if (wholesaleTiers.some(t => parseInt(t.minimumQuantity) === qty)) {
+                            alert("A pricing slab with this quantity already exists!");
+                            return;
+                          }
+
+                          // Sort slabs by quantity
+                          const updated = [...wholesaleTiers, { minimumQuantity: qty.toString(), price: prc.toString() }]
+                            .sort((a, b) => parseInt(a.minimumQuantity) - parseInt(b.minimumQuantity));
+
+                          // Validate sequential price drop
+                          let prevPrice = basePrc;
+                          for (const t of updated) {
+                            const curPrice = parseFloat(t.price);
+                            if (curPrice >= prevPrice) {
+                              alert(`Invalid tiers! Higher quantity tiers must have lower prices. (₹${curPrice} is not lower than ₹${prevPrice})`);
+                              return;
+                            }
+                            prevPrice = curPrice;
+                          }
+
+                          setWholesaleTiers(updated);
+                          setTierForm({ minimumQuantity: "", price: "" });
+                        }}
+                        className="bg-primary text-white hover:bg-neutral-900 px-5 py-2 rounded-lg text-sm font-semibold transition-all shadow-sm flex-shrink-0"
+                      >
+                        Add Slab
+                      </button>
+                    </div>
+
+                    {wholesaleTiers.length > 0 && (
+                      <div className="border border-neutral-200 rounded-lg overflow-hidden">
+                        <table className="w-full text-left text-sm text-neutral-600">
+                          <thead className="bg-neutral-50 border-b border-neutral-200 text-xs font-semibold text-neutral-700 uppercase">
+                            <tr>
+                              <th className="px-4 py-2">Min. Quantity Required</th>
+                              <th className="px-4 py-2">Discounted Unit Price</th>
+                              <th className="px-4 py-2 text-right">Action</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-neutral-200">
+                            {wholesaleTiers.map((tier, idx) => (
+                              <tr key={idx} className="hover:bg-neutral-50">
+                                <td className="px-4 py-2 font-medium text-neutral-900">{tier.minimumQuantity}+ units</td>
+                                <td className="px-4 py-2">₹{parseFloat(tier.price).toFixed(2)}</td>
+                                <td className="px-4 py-2 text-right">
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setWholesaleTiers(prev => prev.filter((_, i) => i !== idx));
+                                    }}
+                                    className="text-red-600 hover:text-red-800 text-xs font-semibold"
+                                  >
+                                    Remove
+                                  </button>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 

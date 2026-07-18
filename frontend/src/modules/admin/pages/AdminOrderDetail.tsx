@@ -239,6 +239,16 @@ export default function AdminOrderDetail() {
                 <span className="text-neutral-600">Phone:</span>
                 <span className="ml-2 font-medium">{order.customerPhone}</span>
               </div>
+              {(order as any).gstin && (
+                <div className="pt-2 border-t border-neutral-100 mt-2">
+                  <span className="text-neutral-600 text-xs font-medium uppercase tracking-wide">GSTIN (Tax Credit):</span>
+                  <div className="mt-1">
+                    <span className="inline-block px-2.5 py-1 rounded-md bg-blue-50 text-blue-700 font-mono text-xs font-semibold tracking-wider border border-blue-100">
+                      {(order as any).gstin}
+                    </span>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 

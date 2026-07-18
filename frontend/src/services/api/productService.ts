@@ -68,6 +68,15 @@ export interface Product {
   // Shop by Store fields
   isShopByStoreOnly?: boolean;
   shopId?: string | any;
+  wholesale?: {
+    enabled: boolean;
+    minimumOrderQuantity: number;
+    pricePerUnit: number;
+    stock: number;
+    allowBackOrder: boolean;
+    status: "Active" | "Inactive";
+    pricingTiers: Array<{ minimumQuantity: number; price: number }>;
+  };
 }
 
 export interface CreateProductData {

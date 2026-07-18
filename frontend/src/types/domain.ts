@@ -53,5 +53,14 @@ export interface Product {
     name: string;
     percentage: number;
   };
+  wholesale?: {
+    enabled: boolean;
+    minimumOrderQuantity: number;
+    pricePerUnit: number;
+    stock: number;
+    allowBackOrder: boolean;
+    status: "Active" | "Inactive";
+    pricingTiers: Array<{ minimumQuantity: number; price: number }>;
+  };
 }
 

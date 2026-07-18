@@ -4,6 +4,8 @@ import Category from "../../../models/Category";
 import SubCategory from "../../../models/SubCategory";
 import mongoose from "mongoose";
 import { findSellersWithinRange } from "../../../utils/locationHelper";
+import { verifyToken } from "../../../services/jwtService";
+import Customer from "../../../models/Customer";
 
 // Helper to get all fully active category IDs (self active + all ancestors active)
 async function getFullyActiveCategoryIds(): Promise<Set<string>> {
@@ -43,6 +45,24 @@ export const getProducts = async (req: Request, res: Response) => {
       longitude, // User location longitude
     } = req.query;
 
+    // Determine customer type (wholesaler vs retailer)
+    let customerType = 'retailer';
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.split(' ')[1];
+      try {
+        const decoded = verifyToken(token);
+        if (decoded && decoded.userId) {
+          const customerObj = await Customer.findById(decoded.userId).select('customerType');
+          if (customerObj) {
+            customerType = customerObj.customerType || 'retailer';
+          }
+        }
+      } catch (err) {
+        // Ignore token errors
+      }
+    }
+
     const query: any = {
       status: "Active",
       publish: true,
@@ -52,6 +72,10 @@ export const getProducts = async (req: Request, res: Response) => {
         { isShopByStoreOnly: { $exists: false } },
       ],
     };
+
+    if (customerType === 'wholesaler') {
+      query["wholesale.enabled"] = true;
+    }
 
     // Location-based filtering: Only show products from sellers within user's range
     const userLat = latitude ? parseFloat(latitude as string) : null;
@@ -269,6 +293,24 @@ export const getProductById = async (req: Request, res: Response) => {
     const { id } = req.params;
     const { latitude, longitude } = req.query; // User location
 
+    // Determine customer type (wholesaler vs retailer)
+    let customerType = 'retailer';
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.split(' ')[1];
+      try {
+        const decoded = verifyToken(token);
+        if (decoded && decoded.userId) {
+          const customerObj = await Customer.findById(decoded.userId).select('customerType');
+          if (customerObj) {
+            customerType = customerObj.customerType || 'retailer';
+          }
+        }
+      } catch (err) {
+        // Ignore token errors
+      }
+    }
+
     let product = null;
 
     if (mongoose.Types.ObjectId.isValid(id)) {
@@ -349,6 +391,9 @@ export const getProductById = async (req: Request, res: Response) => {
         product = null;
       }
       if (product && prodSubId && !fullyActiveIds.has(prodSubId)) {
+        product = null;
+      }
+      if (product && customerType === 'wholesaler' && !product.wholesale?.enabled) {
         product = null;
       }
     }

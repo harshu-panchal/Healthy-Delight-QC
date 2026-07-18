@@ -13,6 +13,7 @@ export interface CustomerProfile {
   totalOrders: number;
   totalSpent: number;
   profileImage?: string;
+  gstin?: string; // Saved GSTIN for GST-compliant invoices
 }
 
 export interface GetProfileResponse {
@@ -26,6 +27,7 @@ export interface UpdateProfileData {
   email?: string;
   dateOfBirth?: string;
   profileImage?: string;
+  gstin?: string; // Pass empty string '' to remove GSTIN, valid string to set it
 }
 
 export interface UpdateProfileResponse {

@@ -125,7 +125,7 @@ export interface IOrder extends Document {
   invoiceNumber?: string;
   gstin?: string;
   timeSlot?: string;
-  orderType?: "Instant" | "Scheduled";
+  orderType?: "Instant" | "Scheduled" | "Wholesale";
   scheduledDate?: Date;
   scheduledTimeSlot?: "Morning" | "Evening";
 
@@ -464,7 +464,7 @@ const OrderSchema = new Schema<IOrder>(
     },
     orderType: {
       type: String,
-      enum: ["Instant", "Scheduled"],
+      enum: ["Instant", "Scheduled", "Wholesale"],
       default: "Instant",
     },
     scheduledDate: {
