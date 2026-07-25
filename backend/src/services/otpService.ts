@@ -74,6 +74,14 @@ function normalizeMobileNumber(mobile: string): string {
  */
 function buildOtpMessage(otp: string): string {
   const appName = process.env.APP_NAME || 'Healthy Delight';
+  const template = process.env.SMS_OTP_MESSAGE_TEMPLATE;
+
+  if (template) {
+    return template
+      .replace(/{app}/g, appName)
+      .replace(/{otp}/g, otp);
+  }
+
   return `Welcome to the ${appName} powered by SMSINDIAHUB. Your OTP for registration is ${otp}`;
 }
 
@@ -138,6 +146,9 @@ async function sendSmsViaApi(mobile: string, message: string): Promise<void> {
     },
     timeout: API_TIMEOUT,
   });
+
+  console.log('=== SMS INDIA HUB SENT PARAMS ===', { ...params, APIKey: 'HIDDEN' });
+  console.log('=== SMS INDIA HUB RAW API RESPONSE ===', response.data);
 
   handleSmsResponse(response.data);
 }
@@ -244,12 +255,14 @@ export async function sendOtpToUser(mobile: string, otp: string): Promise<void> 
         throw new Error('2Factor API key is missing. Please check environment variables.');
       }
 
-      // Normalize mobile to 10 digits or format with 91 country code
+      // Normalize mobile to exact 10 digits for 2Factor API
       const cleanMobile = mobile.replace(/\D/g, '');
-      const targetMobile = cleanMobile.length === 10 ? '91' + cleanMobile : cleanMobile;
+      const targetMobile = cleanMobile.length > 10 ? cleanMobile.slice(-10) : cleanMobile;
 
-      const templateName = process.env.TWOFACTOR_SMS_TEMPLATE || 'OTP_TEMPLATE';
-      const url = `https://2factor.in/API/V1/${apiKey.trim()}/SMS/${targetMobile}/${otp.trim()}/${templateName.trim()}`;
+      const templateName = process.env.TWOFACTOR_SMS_TEMPLATE?.trim();
+      const url = templateName
+        ? `https://2factor.in/API/V1/${apiKey.trim()}/SMS/${targetMobile}/${otp.trim()}/${templateName}`
+        : `https://2factor.in/API/V1/${apiKey.trim()}/SMS/${targetMobile}/${otp.trim()}`;
 
       const response = await axios.get(url, { timeout: API_TIMEOUT });
       if (response.data && response.data.Status !== 'Success') {
@@ -262,7 +275,7 @@ export async function sendOtpToUser(mobile: string, otp: string): Promise<void> 
       }
 
       const cleanMobile = mobile.replace(/\D/g, '');
-      const targetMobile = cleanMobile.length === 10 ? '91' + cleanMobile : cleanMobile;
+      const targetMobile = cleanMobile.length > 10 ? cleanMobile.slice(-10) : cleanMobile;
 
       const url = `https://2factor.in/API/V1/${apiKey.trim()}/VOICE/${targetMobile}/${otp.trim()}`;
 
