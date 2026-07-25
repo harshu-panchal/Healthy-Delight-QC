@@ -295,6 +295,8 @@ export const createOrder = async (req: Request, res: Response) => {
             let wholesalePrice: number | undefined = undefined;
             let retailPrice: number | undefined = undefined;
             let itemPrice = 0;
+            let selectedVariation: any = undefined;
+            let variationValue: string | undefined = undefined;
 
             const isWholesaleB2B = customer.customerType === 'wholesaler' && dbProduct.wholesale?.enabled;
 
@@ -336,8 +338,8 @@ export const createOrder = async (req: Request, res: Response) => {
                 wholesalePrice = dbProduct.wholesale?.pricePerUnit || 0;
                 
                 // Determine retail price for savings display
-                let selectedVariation;
-                let variationValue = item.variant || item.variation;
+                selectedVariation = undefined;
+                variationValue = item.variant || item.variation;
                 if (variationValue === "Variation" || variationValue === "Standard" || variationValue === "Default") {
                     variationValue = undefined;
                 }
@@ -381,7 +383,7 @@ export const createOrder = async (req: Request, res: Response) => {
                 // Regular retail B2C flow
                 // The frontend sends variation info as 'variant' or 'variation'
                 // In the product model, it's stored in 'variations' array
-                let variationValue = item.variant || item.variation;
+                variationValue = item.variant || item.variation;
                 if (variationValue === "Variation" || variationValue === "Standard" || variationValue === "Default") {
                     variationValue = undefined;
                 }
@@ -478,7 +480,7 @@ export const createOrder = async (req: Request, res: Response) => {
                 }
 
                 // Determine the price based on variation and discounts
-                let selectedVariation;
+                selectedVariation = undefined;
                 if (variationValue && product.variations) {
                     selectedVariation = product.variations.find((v: any) =>
                         (v._id && v._id.toString() === variationValue) ||
