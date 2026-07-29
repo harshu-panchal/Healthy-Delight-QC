@@ -138,6 +138,9 @@ const SellerDashboard = lazy(
   () => import("./modules/seller/pages/SellerDashboard"),
 );
 const SellerOrders = lazy(() => import("./modules/seller/pages/SellerOrders"));
+const SellerSubscriptionDeliveries = lazy(
+  () => import("./modules/seller/pages/SellerSubscriptionDeliveries"),
+);
 const SellerOrderDetail = lazy(
   () => import("./modules/seller/pages/SellerOrderDetail"),
 );
@@ -199,6 +202,12 @@ const AdminManageShifts = lazy(
 );
 const AdminNotification = lazy(
   () => import("./modules/admin/pages/AdminNotification"),
+);
+const AdminSubscriptionPlans = lazy(
+  () => import("./modules/admin/pages/AdminSubscriptionPlans"),
+);
+const AdminSubscriptions = lazy(
+  () => import("./modules/admin/pages/AdminSubscriptions"),
 );
 const AdminSellerLocation = lazy(
   () => import("./modules/admin/pages/AdminSellerLocation"),
@@ -533,6 +542,10 @@ function AppContent() {
                                         element={<SellerOrders />}
                                       />
                                       <Route
+                                        path="subscription-deliveries"
+                                        element={<SellerSubscriptionDeliveries />}
+                                      />
+                                      <Route
                                         path="orders/:id"
                                         element={<SellerOrderDetail />}
                                       />
@@ -672,6 +685,14 @@ function AppContent() {
                                       <Route
                                         path="withdrawals"
                                         element={<AdminWithdrawals />}
+                                      />
+                                      <Route
+                                        path="subscription-plans"
+                                        element={<AdminSubscriptionPlans />}
+                                      />
+                                      <Route
+                                        path="subscriptions"
+                                        element={<AdminSubscriptions />}
                                       />
                                       <Route
                                         path="notification"
@@ -871,10 +892,10 @@ function AppContent() {
                                       path="/categories"
                                       element={<Categories />}
                                     />
-                                    {/* <Route
-                                    path="/subscription"
-                                    element={<Subscription />}
-                                  /> */}
+                                    <Route
+                                      path="/subscription"
+                                      element={<Subscription />}
+                                    />
                                     <Route
                                       path="/category/:id"
                                       element={<Category />}

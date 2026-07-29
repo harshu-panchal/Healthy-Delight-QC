@@ -158,7 +158,12 @@ export const getNotifications = asyncHandler(
 
     const query: any = {};
 
-    if (recipientType) query.recipientType = recipientType;
+    const targetType = recipientType ? (recipientType as string) : "Admin";
+    if (targetType === "Admin") {
+      query.recipientType = { $in: ["Admin", "All"] };
+    } else {
+      query.recipientType = targetType;
+    }
     if (recipientId) query.recipientId = recipientId;
     if (isRead !== undefined) query.isRead = isRead === "true";
     if (type) query.type = type;

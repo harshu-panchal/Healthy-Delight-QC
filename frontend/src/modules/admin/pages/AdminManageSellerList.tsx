@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getAllSellers, updateSellerStatus, deleteSeller, Seller as SellerType, updateSeller } from '../../../services/api/sellerService';
+import { updateSellerSubscriptionCommission } from '../../../services/api/admin/adminSubscriptionService';
 import SellerServiceMap from '../components/SellerServiceMap';
 
 interface Seller {
@@ -14,6 +15,7 @@ interface Seller {
     logo?: string;
     balance: number;
     commission: number;
+    subscriptionCommissionRate?: number;
     categories: string[];
     status: 'Approved' | 'Pending' | 'Rejected';
     needApproval: boolean;
@@ -42,7 +44,7 @@ interface Seller {
 }
 
 // Helper function to convert backend seller to frontend format
-const mapSellerToFrontend = (seller: SellerType): Seller => {
+const mapSellerToFrontend = (seller: SellerType & { subscriptionCommissionRate?: number }): Seller => {
     return {
         _id: seller._id,
         id: parseInt(seller._id.slice(-6), 16) || 0, // Generate a numeric ID from MongoDB _id
@@ -55,6 +57,7 @@ const mapSellerToFrontend = (seller: SellerType): Seller => {
         logo: seller.logo || '/api/placeholder/40/40',
         balance: seller.balance || 0,
         commission: seller.commission || 0,
+        subscriptionCommissionRate: seller.subscriptionCommissionRate || 0,
         categories: seller.categories || [],
         status: seller.status,
         needApproval: seller.status === 'Pending',
@@ -323,7 +326,17 @@ export default function AdminManageSellerList() {
 
             const response = await updateSeller(editingSeller._id, updatePayload);
             if (response.success) {
-                const updatedSellerFrontend = mapSellerToFrontend(response.data);
+                if (editForm.subscriptionCommissionRate !== undefined) {
+                    try {
+                        await updateSellerSubscriptionCommission(editingSeller._id, Number(editForm.subscriptionCommissionRate) || 0);
+                    } catch (commErr) {
+                        console.error('Error updating seller subscription commission:', commErr);
+                    }
+                }
+                const updatedSellerFrontend = mapSellerToFrontend({
+                    ...response.data,
+                    subscriptionCommissionRate: editForm.subscriptionCommissionRate !== undefined ? Number(editForm.subscriptionCommissionRate) : response.data.subscriptionCommissionRate
+                });
                 setSellers(sellers.map(s => s._id === editingSeller._id ? updatedSellerFrontend : s));
                 setSuccessMessage('Seller details updated successfully');
                 setIsEditModalOpen(false);
@@ -971,6 +984,18 @@ export default function AdminManageSellerList() {
                                                 value={editForm.commission !== undefined ? (editForm.commission === 0 ? 10 : editForm.commission) : 10}
                                                 onChange={(e) => setEditForm({ ...editForm, commission: parseFloat(e.target.value) || 0 })}
                                                 className="w-full px-3 py-2 border-2 border-primary rounded text-sm focus:ring-1 focus:ring-primary focus:border-primary focus:outline-none font-bold text-primary"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="text-xs font-semibold text-neutral-500 block mb-1">Subscription Commission Rate (%)</label>
+                                            <input
+                                                type="number"
+                                                step="0.01"
+                                                min="0"
+                                                max="100"
+                                                value={editForm.subscriptionCommissionRate !== undefined ? editForm.subscriptionCommissionRate : 0}
+                                                onChange={(e) => setEditForm({ ...editForm, subscriptionCommissionRate: parseFloat(e.target.value) || 0 })}
+                                                className="w-full px-3 py-2 border-2 border-emerald-600 rounded text-sm focus:ring-1 focus:ring-emerald-600 focus:border-emerald-600 focus:outline-none font-bold text-emerald-700"
                                             />
                                         </div>
                                     </div>

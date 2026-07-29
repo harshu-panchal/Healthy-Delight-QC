@@ -32,14 +32,19 @@
     "balance": 7599.3,
     "categories": [],
     "isShopOpen": true,
-    "fcmTokens": [],
+    "fcmTokens": [
+      "dpy-RBcsPSUC-brikDUDdg:APA91bHA4iqrUE2fdeansG7jtpSoh_ETrOpIc_nOp9_5k8SKLd-3XC36v-NMqir_iRTPLV8VpXwNJxwG2zP0-w7DeAoLTiOtNcb_wBox6JVzmDd1ZJG5pOg"
+    ],
     "fcmTokenMobile": [],
     "createdAt": "2026-03-12T08:24:49.922Z",
-    "updatedAt": "2026-07-13T12:49:34.975Z",
-    "__v": 0,
+    "updatedAt": "2026-07-29T11:54:31.363Z",
+    "__v": 1,
     "accountName": "Test",
     "accountNumber": "123456789025",
-    "bankName": "Test"
+    "bankName": "Test",
+    "branch": "",
+    "serviceableArea": "",
+    "subscriptionCommissionRate": 10
   },
   {
     "_id": "6a1986b368122c914f89e37b",
@@ -206,19 +211,22 @@
     "isShopOpen": true,
     "fcmTokens": [
       "dpy-RBcsPSUC-brikDUDdg:APA91bGsCDkk4-z5w3KnGqMUuy7RiaK4fPGg-7v0vj8K3fuLSj0bN_YO89OdzeVaTTH9eHnIvcnVJH7ckisoEcle5nzW2GTV2Zujj4tIA9OHBLucekzkWNI",
-      "dpy-RBcsPSUC-brikDUDdg:APA91bGsCDkk4-z5w3KnGqMUuy7RiaK4fPGg-7v0vj8K3fuLSj0bN_YO89OdzeVaTTH9eHnIvcnVJH7ckisoEcle5nzW2GTV2Zujj4tIA9OHBLucekzkWNI"
+      "dpy-RBcsPSUC-brikDUDdg:APA91bGsCDkk4-z5w3KnGqMUuy7RiaK4fPGg-7v0vj8K3fuLSj0bN_YO89OdzeVaTTH9eHnIvcnVJH7ckisoEcle5nzW2GTV2Zujj4tIA9OHBLucekzkWNI",
+      "dpy-RBcsPSUC-brikDUDdg:APA91bFQ0njZi9YbfkKQCQnNSo8ojOjDe-tO490JmzpSzZuxv07RgywDoTDix3IS8XEYK_b5tPHBx_8_BdH2wFvMVOTE9JK8ARUNgVz8G4ymjB2vbJs3LO0",
+      "dpy-RBcsPSUC-brikDUDdg:APA91bHA4iqrUE2fdeansG7jtpSoh_ETrOpIc_nOp9_5k8SKLd-3XC36v-NMqir_iRTPLV8VpXwNJxwG2zP0-w7DeAoLTiOtNcb_wBox6JVzmDd1ZJG5pOg"
     ],
     "fcmTokenMobile": [
       "dpy-RBcsPSUC-brikDUDdg:APA91bGsCDkk4-z5w3KnGqMUuy7RiaK4fPGg-7v0vj8K3fuLSj0bN_YO89OdzeVaTTH9eHnIvcnVJH7ckisoEcle5nzW2GTV2Zujj4tIA9OHBLucekzkWNI"
     ],
     "createdAt": "2026-07-03T11:28:04.565Z",
-    "updatedAt": "2026-07-17T06:27:03.227Z",
-    "__v": 3,
+    "updatedAt": "2026-07-29T11:52:24.323Z",
+    "__v": 5,
     "accountName": "Amit",
     "accountNumber": "4583973555000",
     "bankName": "BOI",
     "branch": "DHAR NAKA",
-    "serviceableArea": ""
+    "serviceableArea": "",
+    "subscriptionCommissionRate": 0
   },
   {
     "_id": "6a48aed6efab5af74093d48c",

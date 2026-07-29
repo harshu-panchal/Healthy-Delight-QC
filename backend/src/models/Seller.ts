@@ -61,6 +61,7 @@ export interface ISeller extends Document {
   viewCustomerDetails: boolean;
   commission: number;
   commissionRate?: number; // Alias or specific rate
+  subscriptionCommissionRate?: number; // Commission rate for milk subscriptions
 
   // Status
   status: 'Approved' | 'Pending' | 'Rejected';
@@ -295,6 +296,12 @@ const SellerSchema = new Schema<ISeller>(
       required: [true, 'Commission is required'],
       default: 0,
       min: [0, 'Commission cannot be negative'],
+    },
+    subscriptionCommissionRate: {
+      type: Number,
+      default: 0,
+      min: [0, 'Subscription commission rate cannot be negative'],
+      max: [100, 'Subscription commission rate cannot exceed 100%'],
     },
 
     // Status

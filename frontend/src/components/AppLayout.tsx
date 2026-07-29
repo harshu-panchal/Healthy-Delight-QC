@@ -455,8 +455,9 @@ export default function AppLayout({ children }: AppLayoutProps) {
                 <span className="font-bold text-[16px]">Categories</span>
               </Link>
 
-              {/* <Link
+              <Link
                 to="/subscription"
+                onClick={closeSidebar}
                 className={`flex items-center gap-3 px-4 py-4 rounded-xl transition-all duration-200 group ${isActive('/subscription') ? 'bg-[#0a193b] text-white shadow-lg shadow-primary-500/20' : 'text-neutral-500 hover:bg-neutral-50'}`}
               >
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={isActive('/subscription') ? 'text-white' : 'text-neutral-400 group-hover:text-primary-500'}>
@@ -464,7 +465,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
                   <path d="M12 2v2M7 10h10M12 4v4" />
                 </svg>
                 <span className="font-bold text-[16px]">Subscription</span>
-              </Link> */}
+              </Link>
             </div>
 
             {/* Footer of Sidebar */}
@@ -866,13 +867,13 @@ export default function AppLayout({ children }: AppLayoutProps) {
                 </div>
                 <span className="text-[11px] font-black tracking-tight">Home</span>
               </Link>
-              <Link to="/order-again" className={`flex flex-col items-center justify-center gap-1 rounded-xl py-1.5 ${isActive('/order-again') ? 'text-[#0a193b]' : 'text-[#64748b]'}`}>
-                <div className={`rounded-[10px] p-1.5 ${isActive('/order-again') ? 'bg-[rgba(10,25,59,0.08)]' : ''}`}>
+              <Link to="/subscription" className={`flex flex-col items-center justify-center gap-1 rounded-xl py-1.5 ${isActive('/subscription') ? 'text-[#0a193b]' : 'text-[#64748b]'}`}>
+                <div className={`rounded-[10px] p-1.5 ${isActive('/subscription') ? 'bg-[rgba(10,25,59,0.08)]' : ''}`}>
                   <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M6 8h12l-1 11H7L6 8Z" /><path d="M9 8V6a3 3 0 0 1 6 0v2" />
+                    <path d="M8 2h8l1 5H7l1-5Z" /><rect x="7" y="7" width="10" height="13" rx="2" /><line x1="12" y1="11" x2="12" y2="16" /><line x1="9.5" y1="13.5" x2="14.5" y2="13.5" />
                   </svg>
                 </div>
-                <span className="text-[11px] font-black tracking-tight">Order Again</span>
+                <span className="text-[11px] font-black tracking-tight">Subscription</span>
               </Link>
               <Link to="/categories" className={`flex flex-col items-center justify-center gap-1 rounded-xl py-1.5 ${(isActive('/categories') || location.pathname.startsWith('/category/')) ? 'text-[#0a193b]' : 'text-[#64748b]'}`}>
                 <div className={`rounded-[10px] p-1.5 ${(isActive('/categories') || location.pathname.startsWith('/category/')) ? 'bg-[rgba(10,25,59,0.08)]' : ''}`}>

@@ -45,7 +45,7 @@ export default function AdminHeader({
   const fetchNotifications = async () => {
     try {
       if (!isAuthenticated) return;
-      const response = await getNotifications({ limit: 10 });
+      const response = await getNotifications({ limit: 10, recipientType: 'Admin' });
       if (response.success && response.data) {
         setNotifications(response.data);
         const unread = response.data.filter((n: any) => !n.isRead).length;
@@ -63,7 +63,7 @@ export default function AdminHeader({
     if (!showNotificationsDropdown) {
       try {
         if (!isAuthenticated) return;
-        const response = await getNotifications({ limit: 10 });
+        const response = await getNotifications({ limit: 10, recipientType: 'Admin' });
         if (response.success && response.data) {
           setNotifications(response.data);
           const unread = response.data.filter((n: any) => !n.isRead);

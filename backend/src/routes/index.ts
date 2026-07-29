@@ -35,6 +35,7 @@ import customerTrackingRoutes from "../modules/customer/routes/trackingRoutes";
 import deliveryTrackingRoutes from "../modules/delivery/routes/trackingRoutes";
 import customerBannerRoutes from "./customerBannerRoutes";
 import paymentRoutes from "./paymentRoutes";
+import subscriptionRoutes from "./subscriptionRoutes";
 import {
   createOrder,
   getMyOrders,
@@ -191,7 +192,7 @@ router.use("/seller/wallet", sellerWalletRoutes);
 // Tax routes (protected, seller/admin)
 router.use("/seller/taxes", taxRoutes);
 
-// Add more routes here
-// router.use('/users', userRoutes);
+// Subscription routes (Public, Customer, Seller, Admin)
+router.use("/", subscriptionRoutes);
 
 export default router;

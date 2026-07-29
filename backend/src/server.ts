@@ -18,6 +18,7 @@ import { seedDefaultShifts } from "./utils/seedDefaultShifts";
 import { initializeSocket } from "./socket/socketService";
 import mongoose from "mongoose";
 import { startScheduledOrderPromotionJob } from "./jobs/scheduledOrderPromotion";
+import { startSubscriptionExpiryNotifierJob } from "./jobs/subscriptionExpiryNotifier";
 
 const app: Application = express();
 const httpServer = createServer(app);
@@ -101,6 +102,9 @@ app.set("io", io);
 
 // Start scheduled order promotion job
 startScheduledOrderPromotionJob(io);
+
+// Start subscription expiry notifier job (daily at 8:00 AM)
+startSubscriptionExpiryNotifierJob();
 
 // Routes
 app.get("/", (_req: Request, res: Response) => {

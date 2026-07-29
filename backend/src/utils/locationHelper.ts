@@ -92,3 +92,63 @@ export async function findSellersWithinRange(
     return [];
   }
 }
+
+/**
+ * Find the single nearest serviceable seller for a given location, falling back to any approved seller.
+ * @param userLat User's latitude
+ * @param userLng User's longitude
+ * @returns Seller ObjectId or null
+ */
+export async function findNearestServiceableSeller(
+  userLat?: number | null,
+  userLng?: number | null
+): Promise<mongoose.Types.ObjectId | null> {
+  try {
+    const sellers = await Seller.find({
+      status: "Approved",
+    }).select("_id location serviceRadiusKm latitude longitude");
+
+    if (!sellers || sellers.length === 0) {
+      return null;
+    }
+
+    let nearestSellerId: mongoose.Types.ObjectId | null = null;
+    let minDistance = Infinity;
+
+    if (userLat !== undefined && userLat !== null && userLng !== undefined && userLng !== null && !isNaN(userLat) && !isNaN(userLng)) {
+      for (const seller of sellers) {
+        let sellerLat: number | null = null;
+        let sellerLng: number | null = null;
+
+        if (seller.location && seller.location.coordinates && seller.location.coordinates.length === 2) {
+          sellerLng = seller.location.coordinates[0];
+          sellerLat = seller.location.coordinates[1];
+        } else if (seller.latitude && seller.longitude) {
+          sellerLat = parseFloat(seller.latitude);
+          sellerLng = parseFloat(seller.longitude);
+        }
+
+        if (sellerLat !== null && sellerLng !== null && !isNaN(sellerLat) && !isNaN(sellerLng)) {
+          const distance = calculateDistance(userLat, userLng, sellerLat, sellerLng);
+          const serviceRadius = seller.serviceRadiusKm || 10;
+
+          if (distance <= serviceRadius && distance < minDistance) {
+            minDistance = distance;
+            nearestSellerId = seller._id as mongoose.Types.ObjectId;
+          }
+        }
+      }
+    }
+
+    // Fallback: If no seller is within distance or location not provided, pick the first approved seller
+    if (!nearestSellerId) {
+      nearestSellerId = sellers[0]._id as mongoose.Types.ObjectId;
+    }
+
+    return nearestSellerId;
+  } catch (error) {
+    console.error("Error finding nearest serviceable seller:", error);
+    return null;
+  }
+}
+
