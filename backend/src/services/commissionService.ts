@@ -702,16 +702,17 @@ export const reverseCommissions = async (orderId: string) => {
 
                 // Debit from wallet
                 const userId =
-                    commission.type === "SELLER"
+                    commission.type === "SELLER" || commission.type === "SUBSCRIPTION_SELLER"
                         ? commission.seller
                         : commission.deliveryBoy;
-                const userType = commission.type;
+                const walletUserType: "SELLER" | "DELIVERY_BOY" =
+                    commission.type === "DELIVERY_BOY" ? "DELIVERY_BOY" : "SELLER";
 
                 if (userId) {
                     const { debitWallet } = await import("./walletManagementService");
                     await debitWallet(
                         userId.toString(),
-                        userType,
+                        walletUserType,
                         commission.commissionAmount,
                         `Commission reversal for cancelled order`,
                         orderId,
