@@ -432,7 +432,7 @@ export const batchAssignDeliveryBoy = asyncHandler(
     );
 
     // Batch upsert DeliveryAssignment
-    const bulkOps = validOrderIds.map((orderId) => ({
+    const bulkOps: any[] = validOrderIds.map((orderId) => ({
       updateOne: {
         filter: { order: orderId },
         update: {
@@ -448,7 +448,7 @@ export const batchAssignDeliveryBoy = asyncHandler(
       },
     }));
 
-    await DeliveryAssignment.bulkWrite(bulkOps);
+    await (DeliveryAssignment as any).bulkWrite(bulkOps);
 
     // Send single consolidated notification to delivery boy
     try {
