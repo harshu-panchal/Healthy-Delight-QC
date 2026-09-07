@@ -151,7 +151,7 @@ const Footer: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-white/50 text-[10px] font-black uppercase tracking-wider mb-0.5">Call Hotline</p>
-                  <p className="text-white text-[14px] font-bold">+91 9740234199</p>
+                  <p className="text-white text-[14px] font-bold">+91 7338517079</p>
                 </div>
               </div>
 
