@@ -59,9 +59,14 @@ export const createRazorpayOrder = async (
         };
     } catch (error: any) {
         console.error('Error creating Razorpay order:', error);
+        const errorMessage =
+            error.error?.description ||
+            error.description ||
+            error.message ||
+            'Failed to create Razorpay order';
         return {
             success: false,
-            message: error.message || 'Failed to create Razorpay order',
+            message: errorMessage,
         };
     }
 };
@@ -247,9 +252,14 @@ export const processRefund = async (
         };
     } catch (error: any) {
         console.error('Error processing refund:', error);
+        const errorMessage =
+            error.error?.description ||
+            error.description ||
+            error.message ||
+            'Failed to process refund';
         return {
             success: false,
-            message: error.message || 'Failed to process refund',
+            message: errorMessage,
         };
     }
 };
