@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { getDeliveryBoys, type DeliveryBoy } from '../../../services/api/admin/adminDeliveryService';
-import { assignDeliveryBoy } from '../../../services/api/admin/adminOrderService';
+import { assignDeliveryBoy, batchAssignDeliveryBoy } from '../../../services/api/admin/adminOrderService';
 
 interface AssignDeliveryBoyModalProps {
     isOpen: boolean;
     onClose: () => void;
-    orderId: string;
-    orderNumber: string;
+    orderId?: string;
+    orderNumber?: string;
+    orders?: { id: string; orderNumber: string; sellers?: string[] }[];
     currentDeliveryBoy?: { name: string; _id: string } | string;
     onAssignSuccess: () => void;
 }
@@ -16,6 +17,7 @@ export default function AssignDeliveryBoyModal({
     onClose,
     orderId,
     orderNumber,
+    orders,
     currentDeliveryBoy,
     onAssignSuccess,
 }: AssignDeliveryBoyModalProps) {
@@ -25,7 +27,24 @@ export default function AssignDeliveryBoyModal({
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    // Get current delivery boy ID
+    const isBulk = Boolean(orders && orders.length > 1);
+    const effectiveOrders = orders && orders.length > 0
+        ? orders
+        : orderId && orderNumber
+            ? [{ id: orderId, orderNumber }]
+            : [];
+
+    // Check for multiple distinct seller pickup locations across selected orders
+    const allSellers = Array.from(
+        new Set(
+            (orders || [])
+                .flatMap((o) => o.sellers || [])
+                .filter(Boolean)
+        )
+    );
+    const hasMultiplePickupLocations = isBulk && allSellers.length > 1;
+
+    // Get current delivery boy ID (for single mode pre-selection)
     const currentDeliveryBoyId = typeof currentDeliveryBoy === 'object' && currentDeliveryBoy?._id
         ? currentDeliveryBoy._id
         : typeof currentDeliveryBoy === 'string'
@@ -35,12 +54,14 @@ export default function AssignDeliveryBoyModal({
     useEffect(() => {
         if (isOpen) {
             fetchDeliveryBoys();
-            // Pre-select current delivery boy if exists
-            if (currentDeliveryBoyId) {
+            // Pre-select current delivery boy if exists and in single mode
+            if (!isBulk && currentDeliveryBoyId) {
                 setSelectedDeliveryBoyId(currentDeliveryBoyId);
+            } else if (isBulk) {
+                setSelectedDeliveryBoyId('');
             }
         }
-    }, [isOpen, currentDeliveryBoyId]);
+    }, [isOpen, currentDeliveryBoyId, isBulk]);
 
     const fetchDeliveryBoys = async () => {
         try {
@@ -70,9 +91,23 @@ export default function AssignDeliveryBoyModal({
         try {
             setSubmitting(true);
             setError(null);
-            const response = await assignDeliveryBoy(orderId, {
-                deliveryBoyId: selectedDeliveryBoyId,
-            });
+
+            let response: any;
+            if (isBulk) {
+                response = await batchAssignDeliveryBoy({
+                    orderIds: effectiveOrders.map((o) => o.id),
+                    deliveryBoyId: selectedDeliveryBoyId,
+                });
+            } else {
+                const targetId = orderId || effectiveOrders[0]?.id;
+                if (!targetId) {
+                    setError('No order selected');
+                    return;
+                }
+                response = await assignDeliveryBoy(targetId, {
+                    deliveryBoyId: selectedDeliveryBoyId,
+                });
+            }
 
             if (response.success) {
                 onAssignSuccess();
@@ -101,11 +136,11 @@ export default function AssignDeliveryBoyModal({
             ></div>
 
             {/* Modal */}
-            <div className="relative bg-white rounded-lg shadow-xl max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="relative bg-white rounded-lg shadow-xl max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto z-10">
                 {/* Header */}
                 <div className="flex items-center justify-between px-6 py-4 border-b border-neutral-200">
                     <h2 className="text-lg font-semibold text-neutral-900">
-                        Assign Delivery Boy
+                        {isBulk ? `Bulk Assign (${effectiveOrders.length} Orders)` : 'Assign Delivery Boy'}
                     </h2>
                     <button
                         onClick={onClose}
@@ -133,10 +168,50 @@ export default function AssignDeliveryBoyModal({
                 {/* Body */}
                 <div className="px-6 py-4">
                     {/* Order Info */}
-                    <div className="mb-4 p-3 bg-neutral-50 rounded-lg">
-                        <p className="text-sm text-neutral-600">Order Number</p>
-                        <p className="text-base font-semibold text-neutral-900">{orderNumber}</p>
-                    </div>
+                    {isBulk ? (
+                        <div className="mb-4 p-3 bg-neutral-50 rounded-lg border border-neutral-200">
+                            <div className="flex items-center justify-between mb-2">
+                                <span className="text-xs font-semibold text-neutral-700 uppercase tracking-wide">
+                                    Selected Orders ({effectiveOrders.length})
+                                </span>
+                                <span className="text-xs text-primary font-medium">
+                                    Assigning all to 1 rider
+                                </span>
+                            </div>
+                            <div className="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto pr-1">
+                                {effectiveOrders.map((o) => (
+                                    <span
+                                        key={o.id}
+                                        className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-white border border-neutral-300 text-neutral-800 shadow-sm"
+                                    >
+                                        #{o.orderNumber}
+                                    </span>
+                                ))}
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="mb-4 p-3 bg-neutral-50 rounded-lg">
+                            <p className="text-sm text-neutral-600">Order Number</p>
+                            <p className="text-base font-semibold text-neutral-900">
+                                {orderNumber || effectiveOrders[0]?.orderNumber || '-'}
+                            </p>
+                        </div>
+                    )}
+
+                    {/* Multiple Pickup Locations Warning */}
+                    {hasMultiplePickupLocations && (
+                        <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg flex items-start gap-2.5">
+                            <span className="text-amber-600 text-base leading-none">⚠️</span>
+                            <div>
+                                <p className="text-xs font-semibold text-amber-900">
+                                    Multiple Pickup Locations
+                                </p>
+                                <p className="text-xs text-amber-700 mt-0.5">
+                                    Note: These orders belong to different pickup locations ({allSellers.join(", ")}). The delivery person will need to collect items from multiple sellers.
+                                </p>
+                            </div>
+                        </div>
+                    )}
 
                     {/* Error Message */}
                     {error && (
@@ -170,8 +245,7 @@ export default function AssignDeliveryBoyModal({
                                 <option value="">-- Select Delivery Boy --</option>
                                 {deliveryBoys.map((deliveryBoy) => (
                                     <option key={deliveryBoy._id} value={deliveryBoy._id}>
-                                        {deliveryBoy.name} - {deliveryBoy.mobile}
-                                        {deliveryBoy.available === 'Available' ? ' (Available)' : ' (Not Available)'}
+                                        {deliveryBoy.name} - {deliveryBoy.mobile} ({deliveryBoy.available === 'Available' ? 'Online' : 'Offline'}) — ({deliveryBoy.activeOrdersCount ?? 0} active order{(deliveryBoy.activeOrdersCount ?? 0) === 1 ? '' : 's'})
                                     </option>
                                 ))}
                             </select>
@@ -189,6 +263,12 @@ export default function AssignDeliveryBoyModal({
                                         <p className="text-sm font-medium text-neutral-900">{selected.name}</p>
                                         <p className="text-xs text-neutral-700">Mobile: {selected.mobile}</p>
                                         <p className="text-xs text-neutral-700">City: {selected.city}</p>
+                                        <p className="text-xs text-neutral-700">
+                                            <span className="font-medium text-neutral-900">Active Deliveries:</span>{' '}
+                                            <span className={`font-semibold ${(selected.activeOrdersCount || 0) > 3 ? 'text-amber-700' : 'text-emerald-700'}`}>
+                                                {selected.activeOrdersCount || 0} active order{(selected.activeOrdersCount || 0) === 1 ? '' : 's'}
+                                            </span>
+                                        </p>
                                         <p className="text-xs">
                                             <span
                                                 className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${selected.available === 'Available'
@@ -223,7 +303,9 @@ export default function AssignDeliveryBoyModal({
                                 : 'bg-neutral-900 hover:bg-neutral-800'
                             }`}
                     >
-                        {submitting ? 'Assigning...' : 'Assign Delivery Boy'}
+                        {submitting
+                            ? (isBulk ? `Assigning ${effectiveOrders.length} Orders...` : 'Assigning...')
+                            : (isBulk ? `Assign ${effectiveOrders.length} Orders` : 'Assign Delivery Boy')}
                     </button>
                 </div>
             </div>

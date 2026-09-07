@@ -35,6 +35,7 @@ export interface DeliveryBoy {
   };
   vehicleType?: string;
   vehicleNumber?: string;
+  activeOrdersCount?: number;
   createdAt?: string;
   updatedAt?: string;
 }

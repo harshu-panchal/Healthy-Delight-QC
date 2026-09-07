@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { asyncHandler } from "../../../utils/asyncHandler";
 import Delivery from "../../../models/Delivery";
+import Order from "../../../models/Order";
 import DeliveryAssignment from "../../../models/DeliveryAssignment";
 import CashCollection from "../../../models/CashCollection";
 import { sendNotification } from "../../../services/notificationService";
@@ -121,10 +122,38 @@ export const getAllDeliveryBoys = asyncHandler(
       Delivery.countDocuments(query),
     ]);
 
+    // Calculate active order counts for each delivery boy
+    const deliveryBoyIds = deliveryBoys.map((d) => d._id);
+    const activeOrderCounts = await Order.aggregate([
+      {
+        $match: {
+          deliveryBoy: { $in: deliveryBoyIds },
+          status: {
+            $nin: ["Delivered", "Cancelled", "Returned", "Rejected"],
+          },
+        },
+      },
+      {
+        $group: {
+          _id: "$deliveryBoy",
+          count: { $sum: 1 },
+        },
+      },
+    ]);
+
+    const countMap = new Map(
+      activeOrderCounts.map((item) => [item._id.toString(), item.count])
+    );
+
+    const deliveryBoysWithCounts = deliveryBoys.map((boy) => ({
+      ...boy.toObject(),
+      activeOrdersCount: countMap.get(boy._id.toString()) || 0,
+    }));
+
     return res.status(200).json({
       success: true,
       message: "Delivery boys fetched successfully",
-      data: deliveryBoys,
+      data: deliveryBoysWithCounts,
       pagination: {
         page: parseInt(page as string),
         limit: parseInt(limit as string),

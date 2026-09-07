@@ -57,6 +57,10 @@ export default function AdminPendingOrders() {
   const [totalCount, setTotalCount] = useState(0);
   const [assignModalOpen, setAssignModalOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [selectedOrderIds, setSelectedOrderIds] = useState<string[]>([]);
+  const [bulkAssignOrders, setBulkAssignOrders] = useState<
+    { id: string; orderNumber: string; sellers?: string[] }[]
+  >([]);
 
   // Fetch sellers on component mount
   useEffect(() => {
@@ -260,6 +264,60 @@ export default function AdminPendingOrders() {
   const startIndex = (currentPage - 1) * limitVal;
   const endIndex = startIndex + limitVal;
   const paginatedOrders = filteredAndSortedOrders;
+
+  const isAllCurrentPageSelected =
+    paginatedOrders.length > 0 &&
+    paginatedOrders.every((o) => selectedOrderIds.includes(o._id));
+
+  const isSomeCurrentPageSelected =
+    paginatedOrders.some((o) => selectedOrderIds.includes(o._id)) &&
+    !isAllCurrentPageSelected;
+
+  const handleSelectAllCurrentPage = () => {
+    if (isAllCurrentPageSelected) {
+      const pageIds = new Set(paginatedOrders.map((o) => o._id));
+      setSelectedOrderIds((prev) => prev.filter((id) => !pageIds.has(id)));
+    } else {
+      const pageIds = paginatedOrders.map((o) => o._id);
+      setSelectedOrderIds((prev) => Array.from(new Set([...prev, ...pageIds])));
+    }
+  };
+
+  const handleToggleSelectOrder = (id: string) => {
+    setSelectedOrderIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  };
+
+  const handleOpenBulkAssign = () => {
+    const selected = orders
+      .filter((o) => selectedOrderIds.includes(o._id))
+      .map((o) => {
+        const sellers = Array.from(
+          new Set(
+            (o.items || [])
+              .map((it: any) => {
+                if (typeof it === "object" && it !== null) {
+                  if (typeof it.seller === "object" && it.seller !== null) {
+                    return it.seller.storeName || it.seller.sellerName;
+                  }
+                  if (typeof it.seller === "string") return it.seller;
+                }
+                return null;
+              })
+              .filter(Boolean) as string[]
+          )
+        );
+        return {
+          id: o._id,
+          orderNumber: o.orderNumber,
+          sellers,
+        };
+      });
+    setBulkAssignOrders(selected);
+    setSelectedOrder(null);
+    setAssignModalOpen(true);
+  };
 
   const handlePreviousPage = () => {
     setCurrentPage((prev) => Math.max(1, prev - 1));
@@ -491,11 +549,52 @@ export default function AdminPendingOrders() {
             </div>
           </div>
 
+          {/* Bulk Selection Action Bar */}
+          {selectedOrderIds.length > 0 && (
+            <div className="mb-4 px-4 py-3 bg-[#0a193b] text-white rounded-xl shadow-md flex flex-wrap items-center justify-between gap-3 border border-white/10 transition-all">
+              <div className="flex items-center gap-3">
+                <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-primary text-white text-xs font-bold shadow-sm">
+                  {selectedOrderIds.length}
+                </span>
+                <span className="text-sm font-semibold">
+                  {selectedOrderIds.length} order{selectedOrderIds.length > 1 ? "s" : ""} selected
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleOpenBulkAssign}
+                  className="px-4 py-2 bg-primary hover:bg-primary-dark text-white rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all shadow-sm active:scale-95">
+                  <span>🛵</span>
+                  <span>Assign to Delivery Boy</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedOrderIds([])}
+                  className="px-3 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg text-xs font-medium transition-all">
+                  Clear Selection
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Table Section */}
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-neutral-200">
               <thead className="bg-neutral-50">
                 <tr>
+                  <th className="px-3 py-3 text-center w-10">
+                    <input
+                      type="checkbox"
+                      checked={isAllCurrentPageSelected}
+                      ref={(el) => {
+                        if (el) el.indeterminate = isSomeCurrentPageSelected;
+                      }}
+                      onChange={handleSelectAllCurrentPage}
+                      className="w-4 h-4 rounded border-neutral-300 text-primary focus:ring-primary cursor-pointer accent-[#0a193b]"
+                      title="Select all on this page"
+                    />
+                  </th>
                   <th
                     onClick={() => handleSort("orderId")}
                     className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider cursor-pointer hover:bg-neutral-100">
@@ -737,7 +836,7 @@ export default function AdminPendingOrders() {
                 {loading ? (
                   <tr>
                     <td
-                      colSpan={8}
+                      colSpan={9}
                       className="px-4 sm:px-6 py-8 text-center text-sm text-neutral-500">
                       Loading orders...
                     </td>
@@ -745,7 +844,7 @@ export default function AdminPendingOrders() {
                 ) : error ? (
                   <tr>
                     <td
-                      colSpan={8}
+                      colSpan={9}
                       className="px-4 sm:px-6 py-8 text-center text-sm text-red-600">
                       {error}
                     </td>
@@ -753,14 +852,26 @@ export default function AdminPendingOrders() {
                 ) : paginatedOrders.length === 0 ? (
                   <tr>
                     <td
-                      colSpan={8}
+                      colSpan={9}
                       className="px-4 sm:px-6 py-8 text-center text-sm text-neutral-500">
                       No data available in table
                     </td>
                   </tr>
                 ) : (
                   paginatedOrders.map((order) => (
-                    <tr key={order._id} className="hover:bg-neutral-50">
+                    <tr
+                      key={order._id}
+                      className={`hover:bg-neutral-50 transition-colors ${
+                        selectedOrderIds.includes(order._id) ? "bg-primary/5" : ""
+                      }`}>
+                      <td className="px-3 py-3 text-center">
+                        <input
+                          type="checkbox"
+                          checked={selectedOrderIds.includes(order._id)}
+                          onChange={() => handleToggleSelectOrder(order._id)}
+                          className="w-4 h-4 rounded border-neutral-300 text-primary focus:ring-primary cursor-pointer accent-[#0a193b]"
+                        />
+                      </td>
                       <td className="px-4 sm:px-6 py-3 text-sm text-neutral-900" title={order.orderNumber}>
                         {formatOrderFriendly(order.orderNumber, order._id)}
                       </td>
@@ -802,6 +913,7 @@ export default function AdminPendingOrders() {
                           <button
                             onClick={() => {
                               setSelectedOrder(order);
+                              setBulkAssignOrders([]);
                               setAssignModalOpen(true);
                             }}
                             className={`px-3 py-1.5 text-xs font-semibold rounded shadow-sm transition-all active:scale-95 ${
@@ -884,34 +996,43 @@ export default function AdminPendingOrders() {
       </div>
 
       {/* Assign Delivery Boy Modal */}
-      {assignModalOpen && selectedOrder && (
+      {assignModalOpen && (selectedOrder || bulkAssignOrders.length > 0) && (
         <AssignDeliveryBoyModal
           isOpen={assignModalOpen}
           onClose={() => {
             setAssignModalOpen(false);
             setSelectedOrder(null);
+            setBulkAssignOrders([]);
           }}
-          orderId={selectedOrder._id}
-          orderNumber={selectedOrder.orderNumber}
+          orderId={selectedOrder?._id}
+          orderNumber={selectedOrder?.orderNumber}
+          orders={bulkAssignOrders.length > 0 ? bulkAssignOrders : undefined}
           currentDeliveryBoy={
-            typeof selectedOrder.deliveryBoy === "string"
+            selectedOrder && typeof selectedOrder.deliveryBoy === "string"
               ? selectedOrder.deliveryBoy
-              : selectedOrder.deliveryBoy &&
+              : selectedOrder?.deliveryBoy &&
                 typeof selectedOrder.deliveryBoy === "object"
               ? (selectedOrder.deliveryBoy as any)._id || undefined
               : undefined
           }
           onAssignSuccess={async () => {
+            setSelectedOrderIds([]);
+            setBulkAssignOrders([]);
             // Refresh orders after successful assignment
             try {
               const params: any = {
                 page: currentPage,
-                limit: parseInt(entriesPerPage),
+                limit: entriesPerPage === "All" ? "All" : parseInt(entriesPerPage),
               };
               if (searchQuery) params.search = searchQuery;
+              if (startDate) params.dateFrom = startDate;
+              if (endDate) params.dateTo = endDate;
+              if (seller) params.seller = seller;
+
               const response = await getOrdersByStatus("Pending", params);
               if (response.success) {
                 setOrders(response.data);
+                setTotalCount(response.pagination?.total || response.data?.length || 0);
               }
             } catch (err) {
               console.error("Error refreshing orders:", err);

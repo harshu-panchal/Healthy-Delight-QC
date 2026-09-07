@@ -99,6 +99,11 @@ export interface AssignDeliveryBoyData {
   deliveryBoyId: string;
 }
 
+export interface BatchAssignDeliveryBoyData {
+  orderIds: string[];
+  deliveryBoyId: string;
+}
+
 export interface ReturnRequest {
   _id: string;
   order: string | Order;
@@ -187,6 +192,19 @@ export const assignDeliveryBoy = async (
 ): Promise<ApiResponse<Order>> => {
   const response = await api.patch<ApiResponse<Order>>(
     `/admin/orders/${id}/assign-delivery`,
+    data
+  );
+  return response.data;
+};
+
+/**
+ * Batch assign delivery boy to multiple orders
+ */
+export const batchAssignDeliveryBoy = async (
+  data: BatchAssignDeliveryBoyData
+): Promise<ApiResponse<{ assignedCount: number }>> => {
+  const response = await api.patch<ApiResponse<{ assignedCount: number }>>(
+    `/admin/orders/batch-assign-delivery`,
     data
   );
   return response.data;

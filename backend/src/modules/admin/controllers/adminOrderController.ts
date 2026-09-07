@@ -61,7 +61,10 @@ export const getAllOrders = asyncHandler(
       Order.find(query)
         .populate("customer", "name email phone")
         .populate("deliveryBoy", "name mobile")
-        .populate("items")
+        .populate({
+          path: "items",
+          populate: { path: "seller", select: "storeName sellerName city" },
+        })
         .sort({ orderDate: -1 })
         .skip(skip)
         .limit(parsedLimit),
@@ -367,6 +370,135 @@ export const assignDeliveryBoy = asyncHandler(
 );
 
 /**
+ * Batch assign delivery boy to multiple orders
+ */
+export const batchAssignDeliveryBoy = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { orderIds, deliveryBoyId } = req.body;
+
+    if (!Array.isArray(orderIds) || orderIds.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "At least one order ID is required",
+      });
+    }
+
+    if (!deliveryBoyId) {
+      return res.status(400).json({
+        success: false,
+        message: "Delivery boy ID is required",
+      });
+    }
+
+    // Verify delivery boy exists and is active
+    const deliveryBoy = await Delivery.findById(deliveryBoyId);
+    if (!deliveryBoy) {
+      return res.status(404).json({
+        success: false,
+        message: "Delivery boy not found",
+      });
+    }
+
+    if (deliveryBoy.status !== "Active") {
+      return res.status(400).json({
+        success: false,
+        message: "Delivery boy is not active",
+      });
+    }
+
+    // Find matching orders
+    const orders = await Order.find({ _id: { $in: orderIds } });
+    if (orders.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "None of the specified orders were found",
+      });
+    }
+
+    const validOrderIds = orders.map((o) => o._id);
+    const assignedAt = new Date();
+    const assignedBy = req.user?.userId;
+
+    // Batch update orders
+    await Order.updateMany(
+      { _id: { $in: validOrderIds } },
+      {
+        $set: {
+          deliveryBoy: deliveryBoyId,
+          deliveryBoyStatus: "Assigned",
+          assignedAt,
+        },
+      }
+    );
+
+    // Batch upsert DeliveryAssignment
+    const bulkOps = validOrderIds.map((orderId) => ({
+      updateOne: {
+        filter: { order: orderId },
+        update: {
+          $set: {
+            order: orderId,
+            deliveryBoy: deliveryBoyId,
+            assignedAt,
+            assignedBy,
+            status: "Assigned",
+          },
+        },
+        upsert: true,
+      },
+    }));
+
+    await DeliveryAssignment.bulkWrite(bulkOps);
+
+    // Send single consolidated notification to delivery boy
+    try {
+      const count = validOrderIds.length;
+      const previewNumbers = orders
+        .slice(0, 3)
+        .map((o) => `#${o.orderNumber}`)
+        .join(", ");
+      const moreText = count > 3 ? ` +${count - 3} more` : "";
+
+      await sendNotification(
+        "Delivery",
+        deliveryBoyId,
+        "New Orders Assigned 🛵",
+        `You have been assigned ${count} order${count > 1 ? "s" : ""} (${previewNumbers}${moreText}) for delivery.`,
+        {
+          type: "Order",
+          link: `/delivery/dashboard`,
+          priority: "High",
+        }
+      );
+    } catch (notificationError) {
+      console.error("Failed to send batch assignment notification to delivery boy:", notificationError);
+    }
+
+    // Socket notification
+    const io = (req.app as any).get("io");
+    if (io) {
+      io.to(`delivery-${deliveryBoyId}`).emit("orders-batch-assigned", {
+        orderIds: validOrderIds,
+        count: validOrderIds.length,
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: `Successfully assigned ${validOrderIds.length} order(s) to ${deliveryBoy.name}`,
+      data: {
+        assignedCount: validOrderIds.length,
+        deliveryBoy: {
+          _id: deliveryBoy._id,
+          name: deliveryBoy.name,
+          mobile: deliveryBoy.mobile,
+        },
+      },
+    });
+  }
+);
+
+/**
  * Get orders by status
  */
 export const getOrdersByStatus = asyncHandler(
@@ -430,7 +562,10 @@ export const getOrdersByStatus = asyncHandler(
       Order.find(query)
         .populate("customer", "name email phone")
         .populate("deliveryBoy", "name mobile")
-        .populate("items")
+        .populate({
+          path: "items",
+          populate: { path: "seller", select: "storeName sellerName city" },
+        })
         .sort({ orderDate: -1 })
         .skip(skip)
         .limit(parsedLimit),
