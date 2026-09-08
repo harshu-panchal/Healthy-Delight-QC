@@ -170,6 +170,45 @@ export default function BannerFormModal({
 
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
           <div className="space-y-4">
+            {/* Festival Banner Sample Helper Card */}
+            <div className="p-4 bg-gradient-to-r from-amber-500/10 via-amber-400/15 to-amber-500/10 border border-amber-300/80 rounded-2xl">
+              <div className="flex items-center justify-between gap-2 mb-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">🪔</span>
+                  <span className="text-xs font-black uppercase tracking-wider text-amber-900">
+                    Festival Banner Sample Preset
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFormData({
+                      title: "🪔 Festive Delights: Pure Desi Ghee & Fresh Milk Celebration",
+                      image: "/assets/sample-festival-banner.jpg",
+                      link: "/subscription",
+                      order: 1,
+                      isActive: true,
+                    });
+                    setImagePreview("/assets/sample-festival-banner.jpg");
+                  }}
+                  className="px-3 py-1 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-bold shadow-sm transition-all active:scale-95 cursor-pointer"
+                >
+                  Load Festival Sample
+                </button>
+              </div>
+              <p className="text-[11px] text-amber-800/90 leading-relaxed">
+                Click <strong>"Load Festival Sample"</strong> to auto-populate a festive celebration dairy banner.
+              </p>
+              <div className="mt-2.5 pt-2 border-t border-amber-200/60 text-[10px] text-amber-900 space-y-0.5">
+                <p>
+                  📏 <strong>Recommended Dimensions:</strong> <strong>3:1</strong> for Desktop (1800×600 px) &bull; <strong>16:9</strong> for Mobile (1280×720 px).
+                </p>
+                <p>
+                  🎯 <strong>Safe Zone:</strong> Keep festive motifs, brass ghee vessels, and text within central 70% safe area.
+                </p>
+              </div>
+            </div>
+
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1">
                 Banner Title *

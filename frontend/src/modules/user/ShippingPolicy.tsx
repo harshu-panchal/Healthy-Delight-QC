@@ -88,7 +88,7 @@ export default function ShippingPolicy() {
             </p>
             <ul className="list-disc pl-5 text-neutral-600 text-sm space-y-2">
               <li>
-                <strong>Instant Delivery:</strong> Orders are processed and dispatched immediately with a target window of <strong>17 minutes</strong> to selected zones.
+                <strong>Instant Delivery:</strong> Orders are processed and dispatched immediately with delivery in mins to selected zones.
               </li>
               <li>
                 <strong>Scheduled Delivery:</strong> Morning or Evening doorstep slots, ideal for recurring subscription essentials.

@@ -2383,7 +2383,7 @@ export default function Checkout() {
                   Order Cancellation
                 </h3>
                 <p className="text-sm text-neutral-600 leading-relaxed font-medium">
-                  Once confirmed, instant order cancellations may not be possible as the preparation starts immediately to ensure 17-minute delivery.
+                  Once confirmed, instant order cancellations may not be possible as the preparation starts immediately to ensure delivery in mins.
                 </p>
                 <p className="text-sm text-neutral-600 leading-relaxed font-medium">
                   For scheduled orders, cancellations are permitted up to <strong>1 hour before your scheduled delivery time</strong>.

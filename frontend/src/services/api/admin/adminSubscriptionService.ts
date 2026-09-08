@@ -7,7 +7,17 @@ export interface SubscriptionPlan {
   price: number;
   freeDays: number;
   bottlesPerDay: number;
+  packageType?: string;
   unit: string;
+  productCategory?: 'Cow Milk' | 'Buffalo Milk' | 'Curd' | 'Ghee' | 'All' | string;
+  deliveryFrequency?: 'daily' | 'alternate' | 'weekly' | 'monthly' | string;
+  productId?: string | {
+    _id: string;
+    productName: string;
+    mainImage?: string;
+    price?: number;
+    discPrice?: number;
+  };
   description?: string;
   isActive: boolean;
   createdAt: string;
@@ -20,7 +30,11 @@ export interface SubscriptionPlanFormData {
   price: number;
   freeDays: number;
   bottlesPerDay: number;
+  packageType?: string;
   unit: string;
+  productCategory?: 'Cow Milk' | 'Buffalo Milk' | 'Curd' | 'Ghee' | 'All' | string;
+  deliveryFrequency?: 'daily' | 'alternate' | 'weekly' | 'monthly' | string;
+  productId?: string;
   description?: string;
   isActive: boolean;
 }
@@ -39,7 +53,10 @@ export interface UserSubscription {
     durationInDays: number;
     price: number;
     bottlesPerDay?: number;
+    packageType?: string;
     unit?: string;
+    productCategory?: string;
+    deliveryFrequency?: string;
   };
   seller: {
     _id: string;
@@ -49,6 +66,7 @@ export interface UserSubscription {
   };
   deliverySlot: 'morning' | 'evening';
   bottlesPerDay: number;
+  packageType?: string;
   unit: string;
   startDate: string;
   endDate: string;

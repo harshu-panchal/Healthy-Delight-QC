@@ -59,11 +59,14 @@ export const createRazorpayOrder = async (
         };
     } catch (error: any) {
         console.error('Error creating Razorpay order:', error);
-        const errorMessage =
+        let errorMessage =
             error.error?.description ||
             error.description ||
             error.message ||
             'Failed to create Razorpay order';
+        if (errorMessage === 'Authentication failed') {
+            errorMessage = 'Razorpay Gateway Authentication Failed: Your RAZORPAY_KEY_ID or RAZORPAY_KEY_SECRET in backend/.env is invalid or expired. Please provide valid Razorpay Test or Live keys.';
+        }
         return {
             success: false,
             message: errorMessage,

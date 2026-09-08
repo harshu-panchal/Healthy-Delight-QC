@@ -268,7 +268,10 @@ export default function AdminSubscriptions() {
                       </span>
                     </td>
                     <td className="py-4 px-4 font-medium text-neutral-700">
-                      {sub.bottlesPerDay} {sub.unit || 'Litre'}
+                      <span>{sub.bottlesPerDay} {sub.packageType || 'Item'}{sub.bottlesPerDay > 1 ? (sub.packageType?.endsWith('s') ? '' : 's') : ''}</span>
+                      {sub.unit && sub.unit.toLowerCase() !== (sub.packageType || '').toLowerCase() && (
+                        <span className="block text-xs text-neutral-400">({sub.unit})</span>
+                      )}
                     </td>
                     <td className="py-4 px-4 text-xs text-neutral-600 space-y-0.5">
                       <div><span className="text-neutral-400">Start:</span> {new Date(sub.startDate).toLocaleDateString()}</div>

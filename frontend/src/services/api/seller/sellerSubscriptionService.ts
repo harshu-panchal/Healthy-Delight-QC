@@ -16,11 +16,13 @@ export interface SellerSubscriptionDelivery {
     _id: string;
     name: string;
     bottlesPerDay: number;
+    packageType?: string;
     unit: string;
     durationInDays: number;
   };
   deliverySlot: 'morning' | 'evening';
   bottlesPerDay: number;
+  packageType?: string;
   unit: string;
   startDate: string;
   endDate: string;

@@ -81,7 +81,7 @@ export default function AdminBanners() {
 
   return (
     <div className="p-6 max-w-[1600px] mx-auto">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Home Banners</h1>
           <p className="text-gray-500 mt-1">Manage promotional banners for the homepage carousel</p>
@@ -95,6 +95,52 @@ export default function AdminBanners() {
           </svg>
           Add New Banner
         </button>
+      </div>
+
+      {/* Festival Banner Guide & Sample Showcase */}
+      <div className="mb-8 p-6 bg-gradient-to-r from-amber-50 via-amber-100/40 to-amber-50 border border-amber-200/80 rounded-2xl shadow-sm">
+        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 rounded-xl bg-amber-500 text-white flex items-center justify-center text-2xl shadow-md shrink-0">
+              🪔
+            </div>
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <h2 className="text-base sm:text-lg font-black text-amber-950">
+                  Festival Banner Guidelines & Sample
+                </h2>
+                <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-200 text-amber-900">
+                  Design Guide
+                </span>
+              </div>
+              <p className="text-xs text-amber-800/90 mt-1 max-w-2xl leading-relaxed">
+                Festive campaigns drive up to 3× higher milk, ghee, and curd subscriptions. Ensure your banners follow our standard responsive aspect ratios:
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4 mt-3 text-xs text-amber-900 font-medium">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-amber-600"></span>
+                  <span><strong>Desktop Carousel:</strong> 3:1 ratio (1800 × 600 px)</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-amber-600"></span>
+                  <span><strong>Mobile Carousel:</strong> 16:9 ratio (1280 × 720 px)</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 w-full lg:w-auto shrink-0">
+            <button
+              onClick={handleCreate}
+              className="w-full lg:w-auto px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded-xl shadow-md transition-all active:scale-95 flex items-center justify-center gap-2"
+            >
+              <span>Create Festive Banner</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <path d="M5 12h14M12 5l7 7-7 7" />
+              </svg>
+            </button>
+          </div>
+        </div>
       </div>
 
       {loading ? (
