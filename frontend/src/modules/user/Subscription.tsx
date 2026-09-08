@@ -15,12 +15,34 @@ import {
   SubscriptionPlan,
   UserSubscription,
 } from "../../services/api/customerSubscriptionService";
+import { getCategories, Category as UICategory } from "../../services/api/customerProductService";
 
 declare global {
   interface Window {
     Razorpay: any;
   }
 }
+
+const DEFAULT_CATEGORY_ICONS: Record<string, string> = {
+  all: '🌟',
+  'cow milk': '🥛',
+  'buffalo milk': '🐃',
+  curd: '🥣',
+  ghee: '🧈',
+  paneer: '🧀',
+  butter: '🧈',
+  buttermilk: '🥛',
+  cream: '🥣',
+  organic: '🌿',
+};
+
+const getCategoryIcon = (cat: string) => {
+  const lower = (cat || '').toLowerCase().trim();
+  for (const [key, icon] of Object.entries(DEFAULT_CATEGORY_ICONS)) {
+    if (lower.includes(key)) return icon;
+  }
+  return '🥛';
+};
 
 export default function Subscription() {
   const userLocation = useLocation();
@@ -29,14 +51,17 @@ export default function Subscription() {
 
   // State
   const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
+  const [dbCategories, setDbCategories] = useState<UICategory[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [selectedPlanId, setSelectedPlanId] = useState<string>("");
-  const [selectedSlot, setSelectedSlot] = useState<'morning' | 'evening'>('morning');
+  const [selectedSlot, setSelectedSlot] = useState<'morning' | 'evening' | 'instant'>('morning');
   const [activeSubscription, setActiveSubscription] = useState<UserSubscription | null>(null);
 
   const [loading, setLoading] = useState<boolean>(true);
   const [purchasing, setPurchasing] = useState<boolean>(false);
   const [isHeaderSolid, setIsHeaderSolid] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [isListening, setIsListening] = useState<boolean>(false);
 
   // Scroll Listener for Dynamic Header
   useEffect(() => {
@@ -56,16 +81,27 @@ export default function Subscription() {
       ? `${userLocation.location.city}, ${userLocation.location.state}`
       : userLocation?.location?.city || "");
 
-  // Load public plans and my active subscription
+  // Load public plans, categories, and my active subscription
   const fetchData = async () => {
     try {
       setLoading(true);
 
-      // Fetch plans
-      const fetchedPlans = await getPublicSubscriptionPlans();
-      setPlans(fetchedPlans || []);
-      if (fetchedPlans && fetchedPlans.length > 0) {
-        setSelectedPlanId(fetchedPlans[0]._id);
+      // Fetch plans and categories in parallel
+      const [fetchedPlans, catRes] = await Promise.allSettled([
+        getPublicSubscriptionPlans(),
+        getCategories(),
+      ]);
+
+      if (fetchedPlans.status === 'fulfilled') {
+        const plansData = fetchedPlans.value || [];
+        setPlans(plansData);
+        if (plansData.length > 0) {
+          setSelectedPlanId(plansData[0]._id);
+        }
+      }
+
+      if (catRes.status === 'fulfilled' && catRes.value?.data) {
+        setDbCategories(catRes.value.data);
       }
 
       // Fetch active subscription if user is logged in
@@ -95,6 +131,35 @@ export default function Subscription() {
     setTimeout(() => setToastMessage(null), 4000);
   };
 
+  const handleVoiceSearch = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    // @ts-expect-error Window interface lacks speech recognition
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      showToast('error', "Your browser does not support voice search.");
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'en-US';
+    recognition.interimResults = false;
+
+    recognition.onstart = () => setIsListening(true);
+    recognition.onend = () => setIsListening(false);
+    recognition.onerror = () => {
+      console.error("Speech recognition error");
+      setIsListening(false);
+    };
+
+    recognition.onresult = (event: { results: Array<Array<{ transcript: string }>> }) => {
+      const speechResult = event.results[0][0].transcript;
+      navigate(`/search?q=${encodeURIComponent(speechResult.trim())}`);
+    };
+
+    recognition.start();
+  };
+
   const selectedPlan = plans.find((p) => p._id === selectedPlanId) || plans[0];
 
   // Helper to load Razorpay SDK dynamically
@@ -113,6 +178,21 @@ export default function Subscription() {
 
   // Handle Subscription Purchase & Payment
   const handlePurchase = async () => {
+    // Instant Delivery: Route directly to single-purchase product or catalog
+    if (selectedSlot === 'instant') {
+      const prodId =
+        selectedPlan?.productId && typeof selectedPlan.productId === 'object'
+          ? (selectedPlan.productId as any)._id
+          : selectedPlan?.productId;
+
+      if (prodId) {
+        navigate(`/product/${prodId}`);
+      } else {
+        navigate('/search?q=milk');
+      }
+      return;
+    }
+
     if (!isAuthenticated) {
       showToast('error', 'Please log in to purchase a milk subscription.');
       setTimeout(() => navigate('/login'), 1500);
@@ -124,7 +204,7 @@ export default function Subscription() {
       return;
     }
 
-    if (!selectedSlot) {
+    if (!selectedSlot || !['morning', 'evening'].includes(selectedSlot)) {
       showToast('error', 'Please select a delivery slot (Morning or Evening).');
       return;
     }
@@ -248,6 +328,69 @@ export default function Subscription() {
     return styles[idx % styles.length];
   };
 
+  const handleCategorySelect = (categoryId: string) => {
+    setSelectedCategory(categoryId);
+    const subset = plans.filter((p) => {
+      if (categoryId === 'All') return true;
+      const cat = p.productCategory || 'Cow Milk';
+      return cat.toLowerCase() === categoryId.toLowerCase();
+    });
+    if (subset.length > 0 && !subset.some(p => p._id === selectedPlanId)) {
+      setSelectedPlanId(subset[0]._id);
+    }
+  };
+
+  const filteredPlans = plans.filter((p) => {
+    if (selectedCategory === 'All') return true;
+    const cat = p.productCategory || 'Cow Milk';
+    return cat.toLowerCase() === selectedCategory.toLowerCase();
+  });
+
+  const getCategoryVisual = (catId: string, sizeClass = 'w-5 h-5') => {
+    const found = dbCategories.find(
+      (c) => c.name.toLowerCase() === (catId || '').toLowerCase()
+    );
+    if (found?.image) {
+      return (
+        <img
+          src={found.image}
+          alt={catId}
+          className={`${sizeClass} rounded-full object-cover border border-slate-200 shrink-0`}
+        />
+      );
+    }
+    return null;
+  };
+
+  const getCategoryTabVisual = (catId: string, sizeClass = 'w-5 h-5') => {
+    const found = dbCategories.find(
+      (c) => c.name.toLowerCase() === (catId || '').toLowerCase()
+    );
+    if (found?.image) {
+      return (
+        <img
+          src={found.image}
+          alt={catId}
+          className={`${sizeClass} rounded-full object-cover border border-slate-200 shrink-0`}
+        />
+      );
+    }
+    return <span className="shrink-0 leading-none">{catId === 'All' ? '🌟' : getCategoryIcon(catId)}</span>;
+  };
+
+  // Dynamically compute category tabs from plans
+  const baseCategories = ['All', 'Cow Milk', 'Buffalo Milk', 'Curd', 'Ghee'];
+  const planCategories = Array.from(new Set(plans.map((p) => p.productCategory || 'Cow Milk')));
+  const combinedCategoryIds = Array.from(new Set([...baseCategories, ...planCategories]));
+
+  const categoryTabs = combinedCategoryIds
+    .filter((catId) => catId === 'All' || plans.some((p) => (p.productCategory || 'Cow Milk').toLowerCase() === catId.toLowerCase()))
+    .map((catId) => ({
+      id: catId,
+      label: catId === 'All' ? 'All Plans' : catId === 'Curd' ? 'Fresh Curd' : catId === 'Ghee' ? 'Desi Ghee' : catId,
+      visual: getCategoryTabVisual(catId, 'w-5 h-5'),
+    }));
+
   return (
     <div className="min-h-screen bg-transparent relative flex flex-col pt-[160px] md:pt-[2px]">
       {/* Premium Background Layer */}
@@ -336,10 +479,37 @@ export default function Subscription() {
             </svg>
             <input
               type="text"
-              placeholder="Search for plans and benefits..."
+              placeholder={isListening ? "Listening... Speak now" : "Search for plans and benefits..."}
               className="flex-1 bg-transparent border-none outline-none text-[15px] font-semibold text-neutral-800 placeholder-slate-400"
               autoComplete="off"
             />
+            <button
+              type="button"
+              onClick={handleVoiceSearch}
+              className={`p-2 -mr-1 rounded-full transition-all flex items-center justify-center shrink-0 ${
+                isListening
+                  ? "bg-red-500 text-white animate-pulse ring-4 ring-red-200 shadow-md"
+                  : "text-[#0a193b]/60 hover:text-[#0a193b] hover:bg-neutral-100"
+              }`}
+              aria-label="Voice search"
+              title={isListening ? "Listening..." : "Search by voice"}
+            >
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z" />
+                <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                <line x1="12" y1="19" x2="12" y2="22" />
+                <line x1="8" y1="22" x2="16" y2="22" />
+              </svg>
+            </button>
           </form>
         </div>
       </header>
@@ -408,9 +578,41 @@ export default function Subscription() {
                   <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                   Active Subscription
                 </span>
-                <h3 className="text-2xl md:text-3xl font-black text-[#0a193b] mt-2">
-                  {activeSubscription.plan?.name || "Milk Subscription Plan"}
-                </h3>
+                <div className="flex items-center gap-2 flex-wrap mt-2">
+                  <h3 className="text-2xl md:text-3xl font-black text-[#0a193b]">
+                    {activeSubscription.plan?.name || "Subscription Plan"}
+                  </h3>
+                  <span className="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300">
+                    {getCategoryVisual(activeSubscription.productCategory || 'Cow Milk', 'w-4 h-4')}
+                    <span>
+                      {activeSubscription.productCategory === 'Buffalo Milk' ? '🐃 Buffalo Milk' :
+                       activeSubscription.productCategory === 'Curd' ? '🥣 Fresh Curd' :
+                       activeSubscription.productCategory === 'Ghee' ? '🧈 Desi Ghee' :
+                       activeSubscription.productCategory === 'Cow Milk' ? '🥛 Cow Milk' :
+                       `${getCategoryIcon(activeSubscription.productCategory || '')} ${activeSubscription.productCategory || 'Milk'}`}
+                    </span>
+                  </span>
+                </div>
+                {/* Linked Product for active subscription if available */}
+                {(() => {
+                  const linkedProd: any =
+                    (activeSubscription.productId && typeof activeSubscription.productId === 'object'
+                      ? activeSubscription.productId
+                      : activeSubscription.plan?.productId && typeof activeSubscription.plan.productId === 'object'
+                      ? activeSubscription.plan.productId
+                      : null);
+                  if (!linkedProd) return null;
+                  return (
+                    <div className="flex items-center gap-2 mt-2 p-1.5 bg-slate-50 rounded-xl border border-slate-200/70 w-fit">
+                      {linkedProd.mainImage && (
+                        <img src={linkedProd.mainImage} alt="" className="w-6 h-6 rounded-lg object-cover" />
+                      )}
+                      <span className="text-xs font-bold text-slate-700">
+                        🔗 {linkedProd.productName}
+                      </span>
+                    </div>
+                  );
+                })()}
               </div>
               <div className="text-right">
                 <span className="text-2xl md:text-3xl font-black text-[#0a193b]">₹{activeSubscription.price}</span>
@@ -423,7 +625,11 @@ export default function Subscription() {
               <div className="bg-[#f8f6f2] p-4 rounded-2xl border border-slate-200/60">
                 <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1">Daily Quota</span>
                 <p className="text-lg font-black text-[#0a193b]">
-                  {activeSubscription.bottlesPerDay} {activeSubscription.unit || 'Litre'} / day
+                  {activeSubscription.bottlesPerDay} {activeSubscription.packageType || 'Item'}{activeSubscription.bottlesPerDay > 1 ? (activeSubscription.packageType?.endsWith('s') ? '' : 's') : ''}
+                  {activeSubscription.unit && activeSubscription.unit.toLowerCase() !== (activeSubscription.packageType || '').toLowerCase() && (
+                    <span className="text-sm font-normal text-slate-500 ml-1">({activeSubscription.unit})</span>
+                  )}{' '}
+                  / day
                 </p>
               </div>
 
@@ -527,153 +733,351 @@ export default function Subscription() {
         ) : (
           /* ==================== PLAN SELECTION & PURCHASE FLOW ==================== */
           <>
-            {/* Pricing Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8 mb-12">
-              {plans.map((p, idx) => {
-                const isSelected = p._id === selectedPlanId;
+            {/* Multi-Product Category Selector */}
+            <div className="max-w-4xl mx-auto mb-8">
+              <div className="text-center mb-5">
+                <span className="text-[11px] font-black uppercase tracking-widest text-emerald-800 bg-emerald-100/90 px-3.5 py-1 rounded-full border border-emerald-200">
+                  Select Product to Subscribe
+                </span>
+                <h3 className="text-2xl sm:text-3xl font-black text-[#0a193b] mt-2 tracking-tight">
+                  Choose Your Subscription by Product
+                </h3>
+                <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
+                  Enjoy daily doorstep delivery of Pure Cow Milk, Rich Buffalo Milk, Fresh Curd, or Desi Ghee.
+                </p>
+              </div>
 
-                return (
-                  <motion.button
-                    key={p._id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.1 * idx }}
-                    whileTap={{ scale: 0.98 }}
-                    type="button"
-                    onClick={() => setSelectedPlanId(p._id)}
-                    className={`flex flex-col text-left p-6 md:p-8 rounded-[24px] transition-all duration-300 relative border-2 ${
-                      isSelected
-                        ? "bg-white border-[#0a193b] shadow-[0_20px_48px_rgba(10,25,59,0.12)] scale-[1.03] z-10"
-                        : "bg-white/60 border-transparent hover:bg-white hover:border-[#0a193b]/20 shadow-sm"
-                    }`}
-                  >
-                    {/* Visual Accent for Selected Plan */}
-                    {isSelected && (
-                      <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#0a193b] text-white text-[10px] font-black uppercase tracking-[0.2em] px-4 py-1.5 rounded-full shadow-lg">
-                        Selected
-                      </div>
-                    )}
+              {/* Category Filter Pills */}
+              <div className="flex items-center justify-center gap-2 flex-wrap p-2 bg-white rounded-2xl shadow-sm border border-slate-200/80">
+                {categoryTabs.map((tab) => {
+                  const isActive = selectedCategory === tab.id;
+                  const count = tab.id === 'All'
+                    ? plans.length
+                    : plans.filter(p => (p.productCategory || 'Cow Milk').toLowerCase() === tab.id.toLowerCase()).length;
 
-                    <div className="flex flex-col h-full">
-                      <div className="flex items-center justify-between gap-2 mb-6">
-                        <span className={`text-[11px] font-black uppercase tracking-widest px-3 py-1 rounded-full border ${getBadgeStyle(idx)}`}>
-                          {p.durationInDays} DAYS PLAN
-                        </span>
-                        {isSelected && (
-                          <div className="w-6 h-6 bg-[#0a193b] rounded-full flex items-center justify-center text-white shadow-md">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
-                              <path d="M20 6L9 17l-5-5" />
-                            </svg>
-                          </div>
-                        )}
-                      </div>
+                  return (
+                    <button
+                      key={tab.id}
+                      type="button"
+                      onClick={() => handleCategorySelect(tab.id)}
+                      className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm transition-all duration-200 cursor-pointer ${
+                        isActive
+                          ? 'bg-[#0a193b] text-white shadow-md scale-[1.02]'
+                          : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80'
+                      }`}
+                    >
+                      <span className="flex items-center justify-center">{tab.visual}</span>
+                      <span>{tab.label}</span>
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-black ${
+                        isActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'
+                      }`}>
+                        {count}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
 
-                      <div className="mb-6">
-                        <h3 className="text-[18px] font-bold text-slate-800 uppercase tracking-tight mb-2">{p.name}</h3>
-                        <div className="flex items-baseline gap-1">
-                          <span className="text-4xl font-black text-[#0a193b]">₹{p.price}</span>
-                          <span className="text-sm font-bold text-slate-400 capitalize">/ {p.durationInDays} days</span>
-                        </div>
-                      </div>
+            {/* Empty State if category has no plans */}
+            {filteredPlans.length === 0 ? (
+              <div className="text-center py-16 px-6 bg-white rounded-3xl border border-slate-200/80 shadow-sm max-w-lg mx-auto mb-12">
+                <div className="text-5xl mb-3">🥛</div>
+                <h4 className="text-lg font-black text-[#0a193b]">No {selectedCategory} plans available right now</h4>
+                <p className="text-xs text-slate-500 font-medium mt-1 mb-6 leading-relaxed">
+                  We are currently crafting fresh subscription options for this category. In the meantime, discover our other pure dairy subscription plans.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => handleCategorySelect('All')}
+                  className="px-5 py-2.5 bg-[#0a193b] text-white text-xs font-bold rounded-xl shadow-md hover:bg-[#122b5e] transition-colors"
+                >
+                  View All Available Plans
+                </button>
+              </div>
+            ) : (
+              /* Pricing Grid */
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8 mb-12">
+                {filteredPlans.map((p, idx) => {
+                  const isSelected = p._id === selectedPlanId;
 
-                      {/* Free Days Prominent Highlight */}
-                      {p.freeDays > 0 && (
-                        <div className="mb-6 p-3 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center gap-2">
-                          <div className="w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs font-black">
-                            +
-                          </div>
-                          <div>
-                            <span className="text-xs font-black text-emerald-800 uppercase block leading-none">
-                              {p.freeDays} Days Free Milk
-                            </span>
-                            <span className="text-[11px] font-semibold text-emerald-600">Included in this plan</span>
-                          </div>
+                  // Dynamic packaging and unit calculation - zero hardcoding by category!
+                  const rawPkg = (p.packageType || '').trim();
+                  const rawUnit = (p.unit || '').trim();
+                  const pkgType = rawPkg || (rawUnit && !['litre', 'l', 'ml', 'kg', 'g', 'gram'].includes(rawUnit.toLowerCase()) ? rawUnit : 'Bottle');
+                  const pkgPlural = pkgType.endsWith('s')
+                    ? pkgType
+                    : (pkgType.endsWith('x') || pkgType.endsWith('ch') || pkgType.endsWith('sh'))
+                    ? `${pkgType}es`
+                    : `${pkgType}s`;
+                  const displayPkg = p.bottlesPerDay > 1 ? pkgPlural : pkgType;
+
+                  let sizeText = '';
+                  if (rawUnit && rawUnit.toLowerCase() !== pkgType.toLowerCase()) {
+                    const cleanUnit = rawUnit.replace(/\s*each\s*$/i, '').trim();
+                    if (cleanUnit) {
+                      sizeText = `(${cleanUnit} each)`;
+                    }
+                  }
+
+                  const categoryLabel = p.productCategory ? p.productCategory.toLowerCase() : 'item';
+
+                  return (
+                    <motion.button
+                      key={p._id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.1 * idx }}
+                      whileTap={{ scale: 0.98 }}
+                      type="button"
+                      onClick={() => setSelectedPlanId(p._id)}
+                      className={`flex flex-col text-left p-6 md:p-8 rounded-[24px] transition-all duration-300 relative border-2 ${
+                        isSelected
+                          ? "bg-white border-[#0a193b] shadow-[0_20px_48px_rgba(10,25,59,0.12)] scale-[1.03] z-10"
+                          : "bg-white/60 border-transparent hover:bg-white hover:border-[#0a193b]/20 shadow-sm"
+                      }`}
+                    >
+                      {/* Visual Accent for Selected Plan */}
+                      {isSelected && (
+                        <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#0a193b] text-white text-[10px] font-black uppercase tracking-[0.2em] px-4 py-1.5 rounded-full shadow-lg">
+                          Selected
                         </div>
                       )}
 
-                      <div className="flex-1 space-y-4 mb-4 text-sm font-semibold text-slate-600">
-                        <div className="flex gap-3 items-start">
-                          <div className="w-5 h-5 rounded-full bg-emerald-500/10 flex items-center justify-center shrink-0 mt-0.5">
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
-                              <path d="M20 6L9 17l-5-5" />
-                            </svg>
-                          </div>
-                          <span>
-                            <strong>{p.bottlesPerDay} {p.bottlesPerDay > 1 ? 'Bottles' : 'Bottle'}</strong> ({p.unit || 'Litre'} each) — fresh milk daily quota
+                      <div className="flex flex-col h-full">
+                        <div className="flex items-center justify-between gap-2 mb-4">
+                          <span className={`text-[11px] font-black uppercase tracking-widest px-3 py-1 rounded-full border ${getBadgeStyle(idx)}`}>
+                            {p.durationInDays} DAYS PLAN
                           </span>
+                          {isSelected && (
+                            <div className="w-6 h-6 bg-[#0a193b] rounded-full flex items-center justify-center text-white shadow-md">
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M20 6L9 17l-5-5" />
+                              </svg>
+                            </div>
+                          )}
                         </div>
 
-                        <div className="flex gap-3 items-start">
-                          <div className="w-5 h-5 rounded-full bg-emerald-500/10 flex items-center justify-center shrink-0 mt-0.5">
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
-                              <path d="M20 6L9 17l-5-5" />
-                            </svg>
+                        {/* Product Category & Cadence Tag */}
+                        <div className="flex items-center gap-1.5 flex-wrap mb-3">
+                          <span className="inline-flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+                            {getCategoryVisual(p.productCategory || 'Cow Milk', 'w-4 h-4')}
+                            <span>
+                              {p.productCategory === 'Buffalo Milk' ? '🐃 Buffalo Milk' :
+                               p.productCategory === 'Curd' ? '🥣 Fresh Curd' :
+                               p.productCategory === 'Ghee' ? '🧈 Desi Ghee' :
+                               p.productCategory === 'All' ? '🌟 Dairy' :
+                               p.productCategory === 'Cow Milk' ? '🥛 Cow Milk' :
+                               `${getCategoryIcon(p.productCategory || '')} ${p.productCategory || 'Milk'}`}
+                            </span>
+                          </span>
+                          {p.deliveryFrequency && p.deliveryFrequency !== 'daily' && (
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 capitalize">
+                              {p.deliveryFrequency}
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Linked Product for Plan if present, or dynamic Category image */}
+                        {p.productId && typeof p.productId === 'object' && p.productId.productName ? (
+                          <div className="flex items-center gap-2.5 p-2 bg-slate-50 rounded-xl border border-slate-200/60 mb-3">
+                            {p.productId.mainImage && (
+                              <img
+                                src={p.productId.mainImage}
+                                alt={p.productId.productName}
+                                className="w-9 h-9 rounded-lg object-cover shadow-xs border border-white shrink-0"
+                              />
+                            )}
+                            <div className="min-w-0 flex-1">
+                              <span className="text-[9px] font-black uppercase tracking-wider text-emerald-700 block">
+                                Linked Product
+                              </span>
+                              <span className="text-xs font-bold text-slate-800 truncate block">
+                                {p.productId.productName}
+                              </span>
+                            </div>
                           </div>
-                          <span>Free daily doorstep delivery</span>
+                        ) : (() => {
+                          const catObj = dbCategories.find(c => c.name.toLowerCase() === (p.productCategory || 'Cow Milk').toLowerCase());
+                          if (catObj?.image) {
+                            return (
+                              <div className="flex items-center gap-2.5 p-2 bg-slate-50 rounded-xl border border-slate-200/60 mb-3">
+                                <img
+                                  src={catObj.image}
+                                  alt={catObj.name}
+                                  className="w-9 h-9 rounded-lg object-cover shadow-xs border border-white shrink-0"
+                                />
+                                <div className="min-w-0 flex-1">
+                                  <span className="text-[9px] font-black uppercase tracking-wider text-slate-500 block">
+                                    Category
+                                  </span>
+                                  <span className="text-xs font-bold text-slate-800 truncate block">
+                                    {catObj.name}
+                                  </span>
+                                </div>
+                              </div>
+                            );
+                          }
+                          return null;
+                        })()}
+
+                        <div className="mb-6">
+                          <h3 className="text-[18px] font-bold text-slate-800 uppercase tracking-tight mb-2">{p.name}</h3>
+                          <div className="flex items-baseline gap-1">
+                            <span className="text-4xl font-black text-[#0a193b]">₹{p.price}</span>
+                            <span className="text-sm font-bold text-slate-400 capitalize">/ {p.durationInDays} days</span>
+                          </div>
                         </div>
 
-                        {p.description && (
+                        {/* Free Days Prominent Highlight */}
+                        {p.freeDays > 0 && (
+                          <div className="mb-6 p-3 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center gap-2">
+                            <div className="w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs font-black">
+                              +
+                            </div>
+                            <div>
+                              <span className="text-xs font-black text-emerald-800 uppercase block leading-none">
+                                {p.freeDays} Days Free Included
+                              </span>
+                              <span className="text-[11px] font-semibold text-emerald-600">Included in this plan</span>
+                            </div>
+                          </div>
+                        )}
+
+                        <div className="flex-1 space-y-4 mb-4 text-sm font-semibold text-slate-600">
                           <div className="flex gap-3 items-start">
                             <div className="w-5 h-5 rounded-full bg-emerald-500/10 flex items-center justify-center shrink-0 mt-0.5">
                               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
                                 <path d="M20 6L9 17l-5-5" />
                               </svg>
                             </div>
-                            <span>{p.description}</span>
+                            <span>
+                              <strong>{p.bottlesPerDay} {displayPkg}</strong> {sizeText && <span>{sizeText} </span>}— fresh {categoryLabel} daily quota
+                            </span>
                           </div>
-                        )}
-                      </div>
-                    </div>
-                  </motion.button>
-                );
-              })}
-            </div>
 
-            {/* Delivery Slot Selection Area */}
-            <div className="max-w-2xl mx-auto bg-white p-6 md:p-8 rounded-3xl border border-slate-200/80 shadow-sm mb-12">
+                          <div className="flex gap-3 items-start">
+                            <div className="w-5 h-5 rounded-full bg-emerald-500/10 flex items-center justify-center shrink-0 mt-0.5">
+                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M20 6L9 17l-5-5" />
+                              </svg>
+                            </div>
+                            <span>Free daily doorstep delivery</span>
+                          </div>
+
+                          {p.description && (
+                            <div className="flex gap-3 items-start">
+                              <div className="w-5 h-5 rounded-full bg-emerald-500/10 flex items-center justify-center shrink-0 mt-0.5">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
+                                  <path d="M20 6L9 17l-5-5" />
+                                </svg>
+                              </div>
+                              <span>{p.description}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </motion.button>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Delivery Option Selection Area */}
+            <div className="max-w-4xl mx-auto bg-white p-6 md:p-8 rounded-3xl border border-slate-200/80 shadow-sm mb-12">
               <h3 className="text-lg font-extrabold text-[#0a193b] mb-1 flex items-center gap-2">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                  <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
+                  <circle cx="12" cy="10" r="10" /><polyline points="12 6 12 12 16 14" />
                 </svg>
-                Select Preferred Delivery Slot
+                Choose Delivery Option
               </h3>
               <p className="text-xs font-semibold text-slate-500 mb-5">
-                Choose when you want your fresh milk delivered to your doorstep every day.
+                Select a recurring daily schedule or get fresh milk delivered to your doorstep right now in minutes.
               </p>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {/* 1. Daily Morning Slot */}
                 <button
                   type="button"
                   onClick={() => setSelectedSlot('morning')}
                   className={`p-4 rounded-2xl border-2 text-left flex items-start gap-3 transition-all ${
                     selectedSlot === 'morning'
-                      ? 'border-[#0a193b] bg-amber-50/50 shadow-md'
+                      ? 'border-[#0a193b] bg-amber-50/50 shadow-md ring-2 ring-[#0a193b]/10'
                       : 'border-slate-200 bg-white hover:border-slate-300'
                   }`}
                 >
                   <div className="text-2xl">🌅</div>
                   <div>
-                    <span className="font-bold text-sm text-[#0a193b] block">Morning Slot</span>
-                    <span className="text-xs font-semibold text-slate-500">6:00 AM - 9:00 AM</span>
+                    <span className="font-bold text-sm text-[#0a193b] block">Daily Morning Slot</span>
+                    <span className="text-xs font-semibold text-slate-500 block">6:00 AM - 9:00 AM</span>
+                    <span className="text-[10px] text-amber-800 font-bold mt-1 inline-block bg-amber-100/70 px-2 py-0.5 rounded-full border border-amber-200">
+                      Recurring Subscription
+                    </span>
                   </div>
                 </button>
 
+                {/* 2. Daily Evening Slot */}
                 <button
                   type="button"
                   onClick={() => setSelectedSlot('evening')}
                   className={`p-4 rounded-2xl border-2 text-left flex items-start gap-3 transition-all ${
                     selectedSlot === 'evening'
-                      ? 'border-[#0a193b] bg-indigo-50/50 shadow-md'
+                      ? 'border-[#0a193b] bg-indigo-50/50 shadow-md ring-2 ring-[#0a193b]/10'
                       : 'border-slate-200 bg-white hover:border-slate-300'
                   }`}
                 >
                   <div className="text-2xl">🌙</div>
                   <div>
-                    <span className="font-bold text-sm text-[#0a193b] block">Evening Slot</span>
-                    <span className="text-xs font-semibold text-slate-500">6:00 PM - 9:00 PM</span>
+                    <span className="font-bold text-sm text-[#0a193b] block">Daily Evening Slot</span>
+                    <span className="text-xs font-semibold text-slate-500 block">6:00 PM - 9:00 PM</span>
+                    <span className="text-[10px] text-indigo-800 font-bold mt-1 inline-block bg-indigo-100/70 px-2 py-0.5 rounded-full border border-indigo-200">
+                      Recurring Subscription
+                    </span>
+                  </div>
+                </button>
+
+                {/* 3. Instant Delivery ("Fresh milk in mins") */}
+                <button
+                  type="button"
+                  onClick={() => setSelectedSlot('instant')}
+                  className={`p-4 rounded-2xl border-2 text-left flex items-start gap-3 transition-all relative overflow-hidden ${
+                    selectedSlot === 'instant'
+                      ? 'border-amber-500 bg-gradient-to-br from-amber-50/90 to-orange-50/90 shadow-md ring-2 ring-amber-400/30'
+                      : 'border-slate-200 bg-white hover:border-slate-300'
+                  }`}
+                >
+                  <div className="text-2xl">⚡</div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="font-bold text-sm text-[#0a193b] block">Instant Delivery</span>
+                    </div>
+                    <span className="text-xs font-bold text-amber-700 block">Fresh milk in mins</span>
+                    <span className="text-[10px] text-amber-900 font-bold mt-1 inline-block bg-amber-200/60 px-2 py-0.5 rounded-full border border-amber-300">
+                      ⚡ 1-time drop right now
+                    </span>
                   </div>
                 </button>
               </div>
+
+              {/* Instant Delivery Notice Banner */}
+              {selectedSlot === 'instant' && (
+                <div className="mt-4 p-4 rounded-2xl bg-amber-500/10 border border-amber-300 text-amber-950 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">⚡</span>
+                    <div>
+                      <span className="font-black text-sm block text-[#0a193b]">
+                        Need milk right now? Fresh milk in mins
+                      </span>
+                      <span className="text-xs text-slate-600 font-medium">
+                        Skip recurring plans and get farm-fresh milk delivered to your doorstep right away in minutes.
+                      </span>
+                    </div>
+                  </div>
+                  <span className="text-[11px] font-bold text-amber-800 bg-amber-100 px-3 py-1 rounded-full border border-amber-300 shrink-0">
+                    Instant One-Time Order
+                  </span>
+                </div>
+              )}
             </div>
 
             {/* Global CTA Section */}
@@ -684,21 +1088,31 @@ export default function Subscription() {
                 whileTap={{ scale: 0.98 }}
                 onClick={handlePurchase}
                 disabled={purchasing || !selectedPlan || !selectedSlot}
-                className="w-full max-w-md h-16 bg-[#0a193b] hover:bg-[#122b5e] disabled:opacity-50 disabled:cursor-not-allowed rounded-full text-white font-bold flex items-center justify-between px-8 shadow-[0_20px_60px_rgba(10,25,59,0.3)] transition-all"
+                className={`w-full max-w-md h-16 disabled:opacity-50 disabled:cursor-not-allowed rounded-full text-white font-bold flex items-center justify-between px-8 transition-all ${
+                  selectedSlot === 'instant'
+                    ? 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 shadow-[0_20px_60px_rgba(245,158,11,0.35)]'
+                    : 'bg-[#0a193b] hover:bg-[#122b5e] shadow-[0_20px_60px_rgba(10,25,59,0.3)]'
+                }`}
               >
-                <div className="flex flex-col items-start leading-none gap-1.5">
-                  <span className="text-[10px] uppercase font-black tracking-widest text-[#c5a059]">
-                    {purchasing ? 'Processing...' : 'Continue with'}
+                <div className="flex flex-col items-start leading-none gap-1.5 min-w-0">
+                  <span className={`text-[10px] uppercase font-black tracking-widest ${selectedSlot === 'instant' ? 'text-amber-100' : 'text-[#c5a059]'}`}>
+                    {purchasing ? 'Processing...' : selectedSlot === 'instant' ? 'Order Instantly' : 'Continue with'}
                   </span>
-                  <span className="text-[16px] md:text-[17px] font-bold">
-                    {selectedPlan?.name || 'Selected Plan'}
+                  <span className="text-[16px] md:text-[17px] font-bold truncate max-w-[220px]">
+                    {selectedSlot === 'instant'
+                      ? 'Fresh milk in mins'
+                      : (selectedPlan?.name || 'Selected Plan')}
                   </span>
                 </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-xl font-black">₹{selectedPlan?.price || 0}</span>
-                  <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center">
+                <div className="flex items-center gap-3 shrink-0">
+                  {selectedSlot !== 'instant' && (
+                    <span className="text-xl font-black">₹{selectedPlan?.price || 0}</span>
+                  )}
+                  <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
                     {purchasing ? (
                       <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                    ) : selectedSlot === 'instant' ? (
+                      <span className="text-lg">⚡</span>
                     ) : (
                       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M5 12h14M12 5l7 7-7 7" />
@@ -712,7 +1126,9 @@ export default function Subscription() {
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" />
                 </svg>
-                Secure 256-bit encrypted Razorpay payment gateway
+                {selectedSlot === 'instant'
+                  ? 'Fast doorstep delivery dispatched immediately in minutes'
+                  : 'Secure 256-bit encrypted Razorpay payment gateway'}
               </p>
             </div>
           </>

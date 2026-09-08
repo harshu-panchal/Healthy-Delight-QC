@@ -6,7 +6,11 @@ export interface IUserSubscription extends Document {
   seller: mongoose.Types.ObjectId;
   deliverySlot: 'morning' | 'evening';
   bottlesPerDay: number;
+  packageType?: string;
   unit: string;
+  productCategory?: string;
+  deliveryFrequency?: string;
+  productId?: mongoose.Types.ObjectId;
   startDate: Date;
   endDate: Date;
   freeDaysTotal: number;
@@ -57,10 +61,30 @@ const UserSubscriptionSchema = new Schema<IUserSubscription>(
       required: [true, 'Bottles per day is required'],
       min: [1, 'Bottles per day must be at least 1'],
     },
+    packageType: {
+      type: String,
+      default: 'Bottle',
+      trim: true,
+    },
     unit: {
       type: String,
       default: 'Litre',
       trim: true,
+    },
+    productCategory: {
+      type: String,
+      default: 'Cow Milk',
+      trim: true,
+    },
+    deliveryFrequency: {
+      type: String,
+      default: 'daily',
+      trim: true,
+    },
+    productId: {
+      type: Schema.Types.ObjectId,
+      ref: 'Product',
+      required: false,
     },
     startDate: {
       type: Date,

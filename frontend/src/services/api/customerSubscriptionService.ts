@@ -7,7 +7,17 @@ export interface SubscriptionPlan {
   price: number;
   freeDays: number;
   bottlesPerDay: number;
+  packageType?: string;
   unit: string;
+  productCategory?: 'Cow Milk' | 'Buffalo Milk' | 'Curd' | 'Ghee' | 'All' | string;
+  deliveryFrequency?: 'daily' | 'alternate' | 'weekly' | 'monthly' | string;
+  productId?: string | {
+    _id: string;
+    productName: string;
+    mainImage?: string;
+    price?: number;
+    discPrice?: number;
+  };
   description?: string;
   isActive: boolean;
   createdAt: string;
@@ -30,7 +40,11 @@ export interface UserSubscription {
   };
   deliverySlot: 'morning' | 'evening';
   bottlesPerDay: number;
+  packageType?: string;
   unit: string;
+  productCategory?: string;
+  deliveryFrequency?: string;
+  productId?: string;
   startDate: string;
   endDate: string;
   freeDaysTotal: number;
@@ -73,8 +87,10 @@ export interface VerifyPaymentPayload {
 }
 
 // 1. Get active plans (Public)
-export const getPublicSubscriptionPlans = async (): Promise<SubscriptionPlan[]> => {
-  const response = await api.get("/subscriptions/plans");
+export const getPublicSubscriptionPlans = async (category?: string): Promise<SubscriptionPlan[]> => {
+  const response = await api.get("/subscriptions/plans", {
+    params: category && category !== 'all' ? { category } : undefined,
+  });
   return response.data.data;
 };
 

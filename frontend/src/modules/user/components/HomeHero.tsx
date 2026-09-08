@@ -515,7 +515,7 @@ export default function HomeHero({
                 <svg width="8" height="8" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
                 </svg>
-                <span>10-12 min</span>
+                <span>Fresh milk in mins</span>
               </div>
             </div>
           ) : (
@@ -600,10 +600,37 @@ export default function HomeHero({
                 setShowSuggestions(true);
               }}
               onFocus={() => setShowSuggestions(true)}
-              placeholder={`Search for "${searchSuggestions[currentSearchIndex]}"`}
+              placeholder={isListening ? "Listening... Speak now" : `Search for "${searchSuggestions[currentSearchIndex]}"`}
               className="flex-1 bg-transparent border-none outline-none text-[16px] font-semibold text-neutral-high placeholder-slate-400"
               autoComplete="off"
             />
+            <button
+              type="button"
+              onClick={handleVoiceSearch}
+              className={`p-2 -mr-1 rounded-full transition-all flex items-center justify-center shrink-0 ${
+                isListening
+                  ? "bg-red-500 text-white animate-pulse ring-4 ring-red-200 shadow-md"
+                  : "text-[#0a193b]/60 hover:text-[#0a193b] hover:bg-neutral-100"
+              }`}
+              aria-label="Voice search"
+              title={isListening ? "Listening..." : "Search by voice"}
+            >
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z" />
+                <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                <line x1="12" y1="19" x2="12" y2="22" />
+                <line x1="8" y1="22" x2="16" y2="22" />
+              </svg>
+            </button>
           </form>
 
           {/* Mobile Suggestions Dropdown */}

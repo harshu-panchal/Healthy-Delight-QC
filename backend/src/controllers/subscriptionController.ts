@@ -17,7 +17,24 @@ import { sendPushNotification } from '../services/firebaseAdmin';
  */
 export const getActiveSubscriptionPlans = async (req: Request, res: Response): Promise<void> => {
   try {
-    const plans = await SubscriptionPlan.find({ isActive: true }).sort({ durationInDays: 1 });
+    const { category } = req.query;
+    const filter: any = { isActive: true };
+
+    if (category && typeof category === 'string' && category.toLowerCase() !== 'all') {
+      if (category.toLowerCase() === 'cow milk') {
+        filter.$or = [
+          { productCategory: new RegExp(`^${category}$`, 'i') },
+          { productCategory: { $exists: false } },
+          { productCategory: null },
+        ];
+      } else {
+        filter.productCategory = new RegExp(`^${category}$`, 'i');
+      }
+    }
+
+    const plans = await SubscriptionPlan.find(filter)
+      .populate('productId', 'productName mainImage price discPrice')
+      .sort({ durationInDays: 1 });
     res.json({
       success: true,
       data: plans,
@@ -183,7 +200,11 @@ export const verifySubscriptionPayment = async (req: Request, res: Response): Pr
       seller: seller._id,
       deliverySlot: deliverySlot.toLowerCase(),
       bottlesPerDay: plan.bottlesPerDay,
+      packageType: plan.packageType || 'Bottle',
       unit: plan.unit || 'Litre',
+      productCategory: plan.productCategory || 'Cow Milk',
+      deliveryFrequency: plan.deliveryFrequency || 'daily',
+      productId: plan.productId,
       startDate,
       endDate,
       freeDaysTotal: plan.freeDays || 0,
@@ -330,7 +351,11 @@ export const getMySubscription = async (req: Request, res: Response): Promise<vo
       customer: customerId,
       status: 'active',
     })
-      .populate('plan')
+      .populate({
+        path: 'plan',
+        populate: { path: 'productId', select: 'productName mainImage price discPrice' },
+      })
+      .populate('productId', 'productName mainImage price discPrice')
       .populate('seller', 'storeName phone address logo latitude longitude sellerName');
 
     res.json({
@@ -355,7 +380,7 @@ export const getSellerSubscriptions = async (req: Request, res: Response): Promi
     const sellerId = req.user?.userId;
     const subscriptions = await UserSubscription.find({ seller: sellerId })
       .populate('customer', 'name phone address city pincode deliveryOtp')
-      .populate('plan', 'name bottlesPerDay unit durationInDays')
+      .populate('plan', 'name bottlesPerDay packageType unit durationInDays productCategory deliveryFrequency')
       .sort({ createdAt: -1 });
 
     res.json({
@@ -377,7 +402,9 @@ export const getSellerSubscriptions = async (req: Request, res: Response): Promi
  */
 export const getAllSubscriptionPlansAdmin = async (req: Request, res: Response): Promise<void> => {
   try {
-    const plans = await SubscriptionPlan.find({}).sort({ createdAt: -1 });
+    const plans = await SubscriptionPlan.find({})
+      .populate('productId', 'productName mainImage price discPrice')
+      .sort({ createdAt: -1 });
     res.json({
       success: true,
       data: plans,
@@ -397,7 +424,21 @@ export const getAllSubscriptionPlansAdmin = async (req: Request, res: Response):
  */
 export const createSubscriptionPlan = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { name, code, durationInDays, price, freeDays, bottlesPerDay, unit, description, isActive } = req.body;
+    const {
+      name,
+      code,
+      durationInDays,
+      price,
+      freeDays,
+      bottlesPerDay,
+      packageType,
+      unit,
+      productCategory,
+      deliveryFrequency,
+      productId,
+      description,
+      isActive,
+    } = req.body;
 
     const plan = await SubscriptionPlan.create({
       name,
@@ -406,15 +447,24 @@ export const createSubscriptionPlan = async (req: Request, res: Response): Promi
       price,
       freeDays: freeDays || 0,
       bottlesPerDay,
+      packageType: packageType || 'Bottle',
       unit: unit || 'Litre',
+      productCategory: productCategory || 'Cow Milk',
+      deliveryFrequency: deliveryFrequency || 'daily',
+      productId: (productId && productId !== '' && productId !== 'none') ? productId : undefined,
       description,
       isActive: isActive !== undefined ? isActive : true,
     });
 
+    const populatedPlan = await SubscriptionPlan.findById(plan._id).populate(
+      'productId',
+      'productName mainImage price discPrice'
+    );
+
     res.status(201).json({
       success: true,
       message: 'Subscription plan created successfully',
-      data: plan,
+      data: populatedPlan || plan,
     });
   } catch (error: any) {
     console.error('Error creating subscription plan:', error);
@@ -430,10 +480,19 @@ export const createSubscriptionPlan = async (req: Request, res: Response): Promi
  */
 export const updateSubscriptionPlan = async (req: Request, res: Response): Promise<void> => {
   try {
-    const plan = await SubscriptionPlan.findByIdAndUpdate(req.params.id, req.body, {
+    const updateData = { ...req.body };
+    if (
+      updateData.productId === '' ||
+      updateData.productId === 'none' ||
+      updateData.productId === null
+    ) {
+      updateData.productId = null;
+    }
+
+    const plan = await SubscriptionPlan.findByIdAndUpdate(req.params.id, updateData, {
       new: true,
       runValidators: true,
-    });
+    }).populate('productId', 'productName mainImage price discPrice');
 
     if (!plan) {
       res.status(404).json({ success: false, message: 'Subscription plan not found' });
@@ -499,7 +558,7 @@ export const getAllSubscriptionsAdmin = async (req: Request, res: Response): Pro
     const subscriptions = await UserSubscription.find(filterQuery)
       .populate('customer', 'name phone email')
       .populate('seller', 'storeName sellerName mobile')
-      .populate('plan', 'name durationInDays price')
+      .populate('plan', 'name durationInDays price bottlesPerDay unit productCategory deliveryFrequency')
       .sort({ createdAt: -1 });
 
     res.json({
@@ -910,7 +969,7 @@ export const getSellerSubscriptionDeliveriesByDate = async (req: Request, res: R
     // Fetch all active/paused subscriptions assigned to this seller
     const subscriptions = await UserSubscription.find({ seller: sellerId })
       .populate('customer', 'name phone email address city pincode deliveryOtp')
-      .populate('plan', 'name bottlesPerDay unit durationInDays')
+      .populate('plan', 'name bottlesPerDay packageType unit durationInDays')
       .sort({ createdAt: -1 });
 
     // Fetch all delivery records for this seller on the target date

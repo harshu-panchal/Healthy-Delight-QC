@@ -7,7 +7,11 @@ export interface ISubscriptionPlan extends Document {
   price: number;
   freeDays: number;
   bottlesPerDay: number;
+  packageType?: string;
   unit: string;
+  productCategory?: string;
+  deliveryFrequency?: 'daily' | 'alternate' | 'weekly' | 'monthly' | string;
+  productId?: mongoose.Types.ObjectId;
   description?: string;
   isActive: boolean;
   createdAt: Date;
@@ -46,10 +50,31 @@ const SubscriptionPlanSchema = new Schema<ISubscriptionPlan>(
       required: [true, 'Bottles per day quantity is required'],
       min: [1, 'Bottles per day must be at least 1'],
     },
+    packageType: {
+      type: String,
+      default: 'Bottle',
+      trim: true,
+    },
     unit: {
       type: String,
       default: 'Litre',
       trim: true,
+    },
+    productCategory: {
+      type: String,
+      default: 'Cow Milk',
+      trim: true,
+    },
+    deliveryFrequency: {
+      type: String,
+      enum: ['daily', 'alternate', 'weekly', 'monthly'],
+      default: 'daily',
+      trim: true,
+    },
+    productId: {
+      type: Schema.Types.ObjectId,
+      ref: 'Product',
+      required: false,
     },
     description: {
       type: String,
@@ -68,7 +93,7 @@ const SubscriptionPlanSchema = new Schema<ISubscriptionPlan>(
 const SubscriptionPlan = mongoose.model<ISubscriptionPlan>('SubscriptionPlan', SubscriptionPlanSchema);
 
 // Safely drop legacy code_1 index from MongoDB if present
-SubscriptionPlan.collection.dropIndex('code_1').catch(() => {
+(SubscriptionPlan.collection as any).dropIndex('code_1').catch(() => {
   // Index doesn't exist or already dropped
 });
 

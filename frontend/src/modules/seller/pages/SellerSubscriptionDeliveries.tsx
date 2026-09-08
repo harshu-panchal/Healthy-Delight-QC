@@ -174,7 +174,7 @@ export default function SellerSubscriptionDeliveries() {
                 <td className="py-4 px-4 font-medium text-neutral-700">
                   <span className="font-bold text-[#0a193b] block">{item.plan?.name || 'Milk Subscription'}</span>
                   <span className="inline-block px-2 py-0.5 mt-1 bg-emerald-50 text-emerald-800 text-xs font-bold rounded border border-emerald-200">
-                    {item.bottlesPerDay} {item.unit || 'Litre'} / day
+                    {item.bottlesPerDay} {item.packageType || item.plan?.packageType || 'Item'}{item.bottlesPerDay > 1 ? 's' : ''} ({item.unit || 'Litre'}) / day
                   </span>
                 </td>
                 <td className="py-4 px-4">

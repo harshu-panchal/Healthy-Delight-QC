@@ -543,6 +543,32 @@ export default function ProductDetail() {
             </div>
           </div>
 
+          {/* Daily Subscription Callout for Dairy Products */}
+          {(product.name?.toLowerCase().includes('milk') || product.name?.toLowerCase().includes('curd') || product.name?.toLowerCase().includes('ghee')) && (
+            <div className="p-4 rounded-2xl bg-gradient-to-r from-amber-500/15 via-amber-500/10 to-transparent border border-amber-500/30 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-700 flex items-center justify-center text-xl shrink-0">
+                  🥛
+                </div>
+                <div className="min-w-0">
+                  <h4 className="text-xs font-black text-[#0a193b] uppercase tracking-wider">
+                    Daily Subscription Available
+                  </h4>
+                  <p className="text-[11px] font-semibold text-slate-600 truncate">
+                    Morning (6-9 AM) & Evening (6-9 PM) doorstep slots
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => navigate('/subscription')}
+                className="px-3.5 py-2 rounded-xl bg-[#0a193b] text-white text-[11px] font-bold tracking-wider uppercase hover:bg-[#0a193b]/90 transition-all shrink-0 shadow-sm"
+              >
+                View Plans
+              </button>
+            </div>
+          )}
+
           {/* Product Description */}
           {(product.description || product.smallDescription) && (
             <div className="space-y-3 pt-4 border-t border-neutral-100">
@@ -780,7 +806,9 @@ export default function ProductDetail() {
                   ? "Unavailable in your area"
                   : (!isVariantAvailable && variantStock !== 0)
                     ? "Out of Stock"
-                    : "Add to Cart"}
+                    : (product.name?.toLowerCase().includes('milk') || product.name?.toLowerCase().includes('curd') || product.name?.toLowerCase().includes('ghee'))
+                      ? "Add to Cart • Fresh milk in mins"
+                      : "Add to Cart • Delivery in mins"}
               </motion.button>
             ) : (
               <motion.div
