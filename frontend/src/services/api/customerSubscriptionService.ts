@@ -137,3 +137,12 @@ export const cancelSubscriptionApi = async (): Promise<UserSubscription> => {
   const response = await api.patch("/subscriptions/cancel");
   return response.data.data;
 };
+
+// 8. Change active subscription delivery slot (Auth Required)
+export const changeSubscriptionSlotApi = async (
+  deliverySlot: 'morning' | 'evening'
+): Promise<UserSubscription> => {
+  const response = await api.patch("/subscriptions/change-slot", { deliverySlot });
+  return response.data.data;
+};
+

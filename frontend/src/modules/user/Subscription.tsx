@@ -12,6 +12,7 @@ import {
   pauseSubscriptionApi,
   resumeSubscriptionApi,
   cancelSubscriptionApi,
+  changeSubscriptionSlotApi,
   SubscriptionPlan,
   UserSubscription,
 } from "../../services/api/customerSubscriptionService";
@@ -62,6 +63,9 @@ export default function Subscription() {
   const [isHeaderSolid, setIsHeaderSolid] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [isListening, setIsListening] = useState<boolean>(false);
+  const [isChangingSlot, setIsChangingSlot] = useState<boolean>(false);
+  const [newSlotSelection, setNewSlotSelection] = useState<'morning' | 'evening'>('morning');
+  const [updatingSlot, setUpdatingSlot] = useState<boolean>(false);
 
   // Scroll Listener for Dynamic Header
   useEffect(() => {
@@ -315,6 +319,53 @@ export default function Subscription() {
       showToast('error', err.response?.data?.message || 'Failed to cancel subscription.');
     } finally {
       setPurchasing(false);
+    }
+  };
+
+  const handleOpenSlotModal = () => {
+    if (activeSubscription) {
+      setNewSlotSelection(activeSubscription.deliverySlot || 'morning');
+      setIsChangingSlot(true);
+    }
+  };
+
+  const handleConfirmSlotChange = async () => {
+    if (!activeSubscription) return;
+    if (newSlotSelection === activeSubscription.deliverySlot) {
+      setIsChangingSlot(false);
+      return;
+    }
+
+    try {
+      setUpdatingSlot(true);
+      const updated = await changeSubscriptionSlotApi(newSlotSelection);
+      setActiveSubscription(updated);
+      setIsChangingSlot(false);
+      showToast(
+        'success',
+        `Delivery slot changed to ${newSlotSelection === 'morning' ? 'Morning (6:00 AM - 9:00 AM)' : 'Evening (6:00 PM - 9:00 PM)'}! Takes effect from your next delivery.`
+      );
+    } catch (err: any) {
+      showToast('error', err.response?.data?.message || 'Failed to update delivery slot.');
+    } finally {
+      setUpdatingSlot(false);
+    }
+  };
+
+  const handleOrderInstantExtra = () => {
+    if (!activeSubscription) return;
+    const prodId =
+      activeSubscription.productId && typeof activeSubscription.productId === 'object'
+        ? (activeSubscription.productId as any)._id
+        : activeSubscription.productId ||
+          (activeSubscription.plan?.productId && typeof activeSubscription.plan.productId === 'object'
+            ? (activeSubscription.plan.productId as any)._id
+            : activeSubscription.plan?.productId);
+
+    if (prodId) {
+      navigate(`/product/${prodId}`);
+    } else {
+      navigate('/search?q=milk');
     }
   };
 
@@ -633,14 +684,33 @@ export default function Subscription() {
                 </p>
               </div>
 
-              <div className="bg-[#f8f6f2] p-4 rounded-2xl border border-slate-200/60">
-                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1">Delivery Slot</span>
-                <p className="text-lg font-black text-[#0a193b] capitalize flex items-center gap-2">
-                  {activeSubscription.deliverySlot === 'morning' ? '🌅 Morning' : '🌙 Evening'}
-                </p>
-                <p className="text-xs text-slate-500 font-semibold mt-0.5">
-                  {activeSubscription.deliverySlot === 'morning' ? '6:00 AM - 9:00 AM' : '6:00 PM - 9:00 PM'}
-                </p>
+              <div className="bg-[#f8f6f2] p-4 rounded-2xl border border-slate-200/60 flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between gap-2 mb-1">
+                    <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Delivery Slot</span>
+                    {activeSubscription.status === 'active' && (
+                      <button
+                        type="button"
+                        onClick={handleOpenSlotModal}
+                        className="text-[11px] font-bold text-primary-700 hover:text-primary-900 bg-white hover:bg-slate-100 px-2 py-0.5 rounded-lg border border-slate-200 shadow-xs transition-colors flex items-center gap-1"
+                        title="Change delivery slot for upcoming drops"
+                      >
+                        <span>🔄</span> Change
+                      </button>
+                    )}
+                  </div>
+                  <p className="text-lg font-black text-[#0a193b] capitalize flex items-center gap-2">
+                    {activeSubscription.deliverySlot === 'morning' ? '🌅 Morning' : '🌙 Evening'}
+                  </p>
+                  <p className="text-xs text-slate-500 font-semibold mt-0.5">
+                    {activeSubscription.deliverySlot === 'morning' ? '6:00 AM - 9:00 AM' : '6:00 PM - 9:00 PM'}
+                  </p>
+                </div>
+                <div className="mt-2 pt-2 border-t border-slate-200/60">
+                  <span className="text-[10px] font-semibold text-slate-500 block">
+                    Daily scheduled drop
+                  </span>
+                </div>
               </div>
 
               <div className="bg-[#f8f6f2] p-4 rounded-2xl border border-slate-200/60">
@@ -649,6 +719,38 @@ export default function Subscription() {
                   {activeSubscription.freeDaysUsed || 0} / {activeSubscription.freeDaysTotal || 0} Used
                 </p>
               </div>
+            </div>
+
+            {/* Quick Action: Instant Extra Milk Delivery */}
+            <div className="bg-gradient-to-r from-amber-50 via-orange-50/60 to-amber-50 border-2 border-amber-300/80 rounded-2xl p-5 mb-8 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-start sm:items-center gap-3.5">
+                <div className="w-12 h-12 rounded-2xl bg-amber-500/15 border border-amber-300 flex items-center justify-center text-2xl shrink-0 shadow-xs">
+                  ⚡
+                </div>
+                <div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h4 className="font-extrabold text-[#0a193b] text-base">
+                      Need Extra Milk Today?
+                    </h4>
+                    <span className="text-[10px] font-black uppercase tracking-wider bg-amber-200 text-amber-900 px-2.5 py-0.5 rounded-full border border-amber-300 shadow-xs">
+                      Fresh milk in mins
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-600 font-medium mt-1 leading-relaxed">
+                    Ran out of milk before your scheduled slot? Order extra bottles right now for fast doorstep delivery in minutes.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={handleOrderInstantExtra}
+                className="shrink-0 px-5 py-3 rounded-xl bg-[#0a193b] hover:bg-[#122b5e] text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md transition-all active:scale-95 group"
+              >
+                <span>⚡ Order Extra Milk Now</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="transition-transform group-hover:translate-x-0.5">
+                  <path d="M5 12h14M12 5l7 7-7 7" />
+                </svg>
+              </button>
             </div>
 
             {/* Delivery Timeline & Seller Info */}
@@ -729,6 +831,118 @@ export default function Subscription() {
                 View Account
               </button>
             </div>
+
+            {/* Slot Change Modal */}
+            <AnimatePresence>
+              {isChangingSlot && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                    className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl border border-slate-200 relative z-10"
+                  >
+                    <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-4">
+                      <div>
+                        <h3 className="text-lg font-black text-[#0a193b]">Change Delivery Slot</h3>
+                        <p className="text-xs text-slate-500 font-semibold mt-0.5">
+                          Select your preferred delivery shift
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setIsChangingSlot(false)}
+                        className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 transition-colors"
+                      >
+                        ✕
+                      </button>
+                    </div>
+
+                    <div className="space-y-3 mb-5">
+                      {/* Morning Slot option */}
+                      <button
+                        type="button"
+                        onClick={() => setNewSlotSelection('morning')}
+                        className={`w-full p-4 rounded-2xl border-2 text-left flex items-start gap-3 transition-all ${
+                          newSlotSelection === 'morning'
+                            ? 'border-[#0a193b] bg-amber-50/50 shadow-md ring-2 ring-[#0a193b]/10'
+                            : 'border-slate-200 bg-white hover:border-slate-300'
+                        }`}
+                      >
+                        <div className="text-2xl">🌅</div>
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between">
+                            <span className="font-bold text-sm text-[#0a193b]">Morning Slot</span>
+                            {activeSubscription.deliverySlot === 'morning' && (
+                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300">
+                                Current
+                              </span>
+                            )}
+                          </div>
+                          <span className="text-xs font-semibold text-slate-500 block">6:00 AM - 9:00 AM</span>
+                        </div>
+                      </button>
+
+                      {/* Evening Slot option */}
+                      <button
+                        type="button"
+                        onClick={() => setNewSlotSelection('evening')}
+                        className={`w-full p-4 rounded-2xl border-2 text-left flex items-start gap-3 transition-all ${
+                          newSlotSelection === 'evening'
+                            ? 'border-[#0a193b] bg-indigo-50/50 shadow-md ring-2 ring-[#0a193b]/10'
+                            : 'border-slate-200 bg-white hover:border-slate-300'
+                        }`}
+                      >
+                        <div className="text-2xl">🌙</div>
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between">
+                            <span className="font-bold text-sm text-[#0a193b]">Evening Slot</span>
+                            {activeSubscription.deliverySlot === 'evening' && (
+                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-900 border border-indigo-300">
+                                Current
+                              </span>
+                            )}
+                          </div>
+                          <span className="text-xs font-semibold text-slate-500 block">6:00 PM - 9:00 PM</span>
+                        </div>
+                      </button>
+                    </div>
+
+                    <div className="p-3 bg-amber-50/80 border border-amber-200 rounded-xl mb-5 flex items-start gap-2.5">
+                      <span className="text-base leading-none">ℹ️</span>
+                      <p className="text-xs text-amber-900 font-medium leading-relaxed">
+                        Slot change takes effect starting from your next scheduled delivery.
+                      </p>
+                    </div>
+
+                    <div className="flex gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setIsChangingSlot(false)}
+                        className="flex-1 py-3 px-4 rounded-xl border border-slate-200 hover:bg-slate-50 font-bold text-xs text-slate-700 transition-colors"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleConfirmSlotChange}
+                        disabled={updatingSlot || newSlotSelection === activeSubscription.deliverySlot}
+                        className="flex-1 py-3 px-4 rounded-xl bg-[#0a193b] hover:bg-[#122b5e] text-white font-bold text-xs shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                      >
+                        {updatingSlot ? (
+                          <>
+                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                            <span>Updating...</span>
+                          </>
+                        ) : (
+                          <span>Confirm Slot Change</span>
+                        )}
+                      </button>
+                    </div>
+                  </motion.div>
+                </div>
+              )}
+            </AnimatePresence>
           </motion.div>
         ) : (
           /* ==================== PLAN SELECTION & PURCHASE FLOW ==================== */

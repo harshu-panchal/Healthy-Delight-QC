@@ -8,6 +8,7 @@ import {
   pauseSubscription,
   resumeSubscription,
   cancelSubscription,
+  changeSubscriptionSlot,
   getSellerSubscriptions,
   markSubscriptionDelivery,
   getSellerSubscriptionDeliveriesByDate,
@@ -72,6 +73,14 @@ router.patch(
   authenticate,
   requireUserType('Customer'),
   cancelSubscription
+);
+
+// PATCH /api/subscriptions/change-slot (Customer Auth)
+router.patch(
+  '/subscriptions/change-slot',
+  authenticate,
+  requireUserType('Customer'),
+  changeSubscriptionSlot
 );
 
 // ==================== SELLER ROUTES ====================

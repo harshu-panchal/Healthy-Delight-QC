@@ -859,6 +859,118 @@ export const cancelSubscription = async (req: Request, res: Response): Promise<v
 };
 
 /**
+ * Customer: Change delivery slot for active subscription (PATCH /api/subscriptions/change-slot)
+ */
+export const changeSubscriptionSlot = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const customerId = req.user?.userId;
+    const { deliverySlot } = req.body;
+
+    if (!deliverySlot || !['morning', 'evening'].includes(deliverySlot.toLowerCase())) {
+      res.status(400).json({
+        success: false,
+        message: "deliverySlot is required and must be either 'morning' or 'evening'",
+      });
+      return;
+    }
+
+    const targetSlot = deliverySlot.toLowerCase() as 'morning' | 'evening';
+
+    const subscription = await UserSubscription.findOne({
+      customer: customerId,
+      status: 'active',
+    });
+
+    if (!subscription) {
+      res.status(404).json({
+        success: false,
+        message: 'No active subscription found to update delivery slot',
+      });
+      return;
+    }
+
+    if (subscription.deliverySlot === targetSlot) {
+      res.json({
+        success: true,
+        message: `Your subscription is already set to ${targetSlot === 'morning' ? 'Morning (6:00 AM - 9:00 AM)' : 'Evening (6:00 PM - 9:00 PM)'}`,
+        data: subscription,
+      });
+      return;
+    }
+
+    const previousSlot = subscription.deliverySlot;
+    subscription.deliverySlot = targetSlot;
+    await subscription.save();
+
+    // Populate plan & seller for rich client response
+    await subscription.populate([
+      {
+        path: 'plan',
+        populate: { path: 'productId', select: 'productName mainImage price discPrice' },
+      },
+      { path: 'productId', select: 'productName mainImage price discPrice' },
+      { path: 'seller', select: 'storeName phone address logo latitude longitude sellerName' },
+    ]);
+
+    const slotLabel = targetSlot === 'morning' ? 'Morning (6:00 AM - 9:00 AM)' : 'Evening (6:00 PM - 9:00 PM)';
+
+    // Trigger in-app notifications
+    try {
+      const customer = await Customer.findById(customerId).select('name phone');
+      const customerName = customer?.name || 'Customer';
+
+      await sendNotification(
+        'Customer',
+        customerId!.toString(),
+        'Delivery Slot Updated',
+        `Your subscription delivery slot was changed from ${previousSlot} to ${slotLabel}. This will take effect from your next delivery.`,
+        { type: 'Success' }
+      );
+
+      if (subscription.seller) {
+        const sellerIdStr = (subscription.seller as any)._id
+          ? (subscription.seller as any)._id.toString()
+          : subscription.seller.toString();
+
+        await sendNotification(
+          'Seller',
+          sellerIdStr,
+          'Subscription Slot Changed',
+          `${customerName} changed their milk delivery slot to ${slotLabel}.`,
+          { type: 'Info' }
+        );
+
+        // Real-time socket event for seller dashboard
+        const io = req.app.get('io');
+        if (io) {
+          io.to(`seller-${sellerIdStr}`).emit('seller-notification', {
+            type: 'SUBSCRIPTION_SLOT_CHANGED',
+            subscriptionId: subscription._id.toString(),
+            deliverySlot: targetSlot,
+            customerName,
+            message: `${customerName} changed delivery slot to ${slotLabel}`,
+          });
+        }
+      }
+    } catch (notifErr) {
+      console.error('Error sending slot change notifications:', notifErr);
+    }
+
+    res.json({
+      success: true,
+      message: `Delivery slot successfully updated to ${slotLabel}`,
+      data: subscription,
+    });
+  } catch (error: any) {
+    console.error('Error updating subscription delivery slot:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to update delivery slot',
+    });
+  }
+};
+
+/**
  * Seller: Mark daily bottle delivery status (POST /api/v1/seller/subscription-deliveries/mark)
  */
 export const markSubscriptionDelivery = async (req: Request, res: Response): Promise<void> => {
