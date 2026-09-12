@@ -246,8 +246,9 @@ export default function Checkout() {
   const [showCancellationPolicy, setShowCancellationPolicy] = useState(false);
   const [giftPackaging, setGiftPackaging] = useState<boolean>(false);
   const [showRazorpayCheckout, setShowRazorpayCheckout] = useState(false);
-  const [pendingOrderId, setPendingOrderId] = useState<string | null>(null);
-  const [paymentMethod, setPaymentMethod] = useState<"COD" | "Online">("Online");
+  /* ONLINE PAYMENT (TEMPORARILY COMMENTED OUT - COD ONLY) */
+  // const [paymentMethod, setPaymentMethod] = useState<"COD" | "Online">("Online");
+  const [paymentMethod, setPaymentMethod] = useState<"COD" | "Online">("COD");
   const [timeSlot, setTimeSlot] = useState<string>("");
   const [useWallet, setUseWallet] = useState<boolean>(false);
   const [walletAmount, setWalletAmount] = useState<number>(0);
@@ -922,16 +923,19 @@ export default function Checkout() {
         // Clear schedule keys from sessionStorage on order success
         sessionStorage.removeItem("scheduledDeliveryDate");
         sessionStorage.removeItem("scheduledTimeSlot");
-
+        /* ONLINE PAYMENT (TEMPORARILY COMMENTED OUT - COD ONLY)
         if (effectivePaymentMethod === "Online") {
           localStorage.setItem("pendingOrderId", placedId);
           setPendingOrderId(placedId);
           setShowRazorpayCheckout(true);
         } else {
+        */
           setPlacedOrderId(placedId);
           clearCart();
           setShowOrderSuccess(true);
+        /*
         }
+        */
       }
     } catch (error: any) {
       console.error("Order placement failed", error);
@@ -2503,7 +2507,7 @@ export default function Checkout() {
         <div className="px-4 py-3 border-b border-neutral-200 bg-neutral-50/50">
           <h3 className="text-sm font-bold text-neutral-900 mb-2">Payment Method</h3>
           <div className="space-y-2">
-            {/* Online Payment Option */}
+            {/* ONLINE PAYMENT (TEMPORARILY COMMENTED OUT - COD ONLY)
             <div
               onClick={() => setPaymentMethod("Online")}
               className={`flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all ${paymentMethod === "Online"
@@ -2529,6 +2533,7 @@ export default function Checkout() {
                 </div>
               )}
             </div>
+            */}
 
             {/* COD Option */}
             <div
@@ -2767,7 +2772,7 @@ export default function Checkout() {
         </div>
       </div>
 
-      {/* Razorpay Checkout Modal */}
+      {/* ONLINE PAYMENT (TEMPORARILY COMMENTED OUT - COD ONLY)
       {
         showRazorpayCheckout && pendingOrderId && user && (
           <RazorpayCheckout
@@ -2808,6 +2813,7 @@ export default function Checkout() {
           />
         )
       }
+      */}
         </div>
       )}
       {/* Animation Styles */}
