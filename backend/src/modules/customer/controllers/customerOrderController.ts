@@ -233,12 +233,9 @@ export const createOrder = async (req: Request, res: Response) => {
                 latitude: deliveryLat,
                 longitude: deliveryLng,
             },
-            /* ONLINE PAYMENT (TEMPORARILY COMMENTED OUT - COD ONLY) */
-            // paymentMethod: paymentMethod || 'Online',
-            // status: (paymentMethod === 'Online') ? 'Pending' : (isScheduled ? 'Scheduled' : 'Received'),
-            paymentMethod: paymentMethod || 'COD',
+            paymentMethod: paymentMethod || 'Online',
             paymentStatus: 'Pending',
-            status: isScheduled ? 'Scheduled' : 'Received',
+            status: (paymentMethod === 'Online') ? 'Pending' : (isScheduled ? 'Scheduled' : 'Received'),
             orderType: (customer.customerType === 'wholesaler') ? 'Wholesale' : (orderType || 'Instant'),
             scheduledDate: isScheduled ? new Date(scheduledDate) : undefined,
             scheduledTimeSlot: isScheduled ? scheduledTimeSlot : undefined,
@@ -790,7 +787,7 @@ export const createOrder = async (req: Request, res: Response) => {
             // Immediate active state instead of pending payment!
             newOrder.status = isScheduled ? 'Scheduled' : 'Received';
         } else {
-            /* ONLINE PAYMENT (TEMPORARILY COMMENTED OUT - COD ONLY)
+            // Mixed payment or standard payment
             const method = paymentMethod || 'Online';
             newOrder.paymentMethod = method;
             newOrder.paymentStatus = 'Pending';
@@ -807,14 +804,6 @@ export const createOrder = async (req: Request, res: Response) => {
                 newOrder.refundableAmount = walletUsed; // Only wallet amount is refundable; COD hasn't been collected yet!
                 newOrder.status = isScheduled ? 'Scheduled' : 'Received';
             }
-            */
-            const method = 'COD';
-            newOrder.paymentMethod = method;
-            newOrder.paymentStatus = 'Pending';
-            newOrder.onlineAmountPaid = 0;
-            newOrder.codAmount = remainingTotal;
-            newOrder.refundableAmount = walletUsed;
-            newOrder.status = isScheduled ? 'Scheduled' : 'Received';
         }
 
         if (session) {

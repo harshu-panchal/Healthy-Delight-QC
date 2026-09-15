@@ -113,9 +113,7 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
           latitude: order.address.latitude ?? 0,
           longitude: order.address.longitude ?? 0,
         },
-        /* ONLINE PAYMENT (TEMPORARILY COMMENTED OUT - COD ONLY) */
-        // paymentMethod: order.paymentMethod || "Online",
-        paymentMethod: order.paymentMethod || "COD",
+        paymentMethod: order.paymentMethod || "Online",
         items: order.items.map((item) => ({
           product: {
             id: item.product.id || (item.product as { _id?: string })._id || '',
