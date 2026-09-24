@@ -58,12 +58,18 @@ function generateOTP(length: number = 4): string {
 function normalizeMobileNumber(mobile: string): string {
   let cleanMobile = mobile.replace(/^\+/, '').replace(/\D/g, '');
 
-  if (!cleanMobile.startsWith('91')) {
+  // If 11 digits starting with 0 (e.g. 09111966731), remove the leading 0
+  if (cleanMobile.length === 11 && cleanMobile.startsWith('0')) {
+    cleanMobile = cleanMobile.substring(1);
+  }
+
+  // If 10 digits (e.g. 9111966731 or 9876543210), prepend country code '91' -> 919111966731
+  if (cleanMobile.length === 10) {
     cleanMobile = '91' + cleanMobile;
   }
 
   if (cleanMobile.length < 12 || cleanMobile.length > 13) {
-    throw new Error(`Invalid mobile number: ${cleanMobile}. Must be 12-13 digits with country code.`);
+    throw new Error(`Invalid mobile number: ${cleanMobile}. Must be a valid 10-digit mobile number.`);
   }
 
   return cleanMobile;
