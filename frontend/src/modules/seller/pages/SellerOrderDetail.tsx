@@ -722,7 +722,7 @@ export default function SellerOrderDetail() {
                             >
                               <div className="flex flex-col min-w-0">
                                 <span className="truncate font-medium">{boy.name}</span>
-                                {boy.phone && <span className="text-[11px] text-neutral-400">{boy.phone}</span>}
+                                {boy.mobile && <span className="text-[11px] text-neutral-400">{boy.mobile}</span>}
                               </div>
                               <div className="flex items-center gap-1.5 flex-shrink-0">
                                 <span
