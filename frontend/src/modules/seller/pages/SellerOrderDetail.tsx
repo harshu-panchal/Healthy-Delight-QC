@@ -601,13 +601,13 @@ export default function SellerOrderDetail() {
         }
       `}</style>
       {/* Order Action Section */}
-      <div id="print-hide-action-section" className="bg-white mb-6 rounded-lg shadow-sm border border-neutral-200 overflow-hidden">
-        <div className="bg-neutral-50 border-b border-neutral-200 px-4 sm:px-6 py-3">
+      <div id="print-hide-action-section" className="bg-white mb-6 rounded-lg shadow-sm border border-neutral-200 relative z-20 overflow-visible">
+        <div className="bg-neutral-50 border-b border-neutral-200 px-4 sm:px-6 py-3 rounded-t-lg">
           <h2 className="text-base sm:text-lg font-semibold text-neutral-800">
             Order Action Section
           </h2>
         </div>
-        <div className="bg-neutral-50 px-4 sm:px-6 py-4">
+        <div className="bg-neutral-50 px-4 sm:px-6 py-4 rounded-b-lg">
           <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
             <div className="flex-1 w-full sm:w-auto">
               {orderStatus === "Received" || orderStatus === "Scheduled" ? (
@@ -644,7 +644,7 @@ export default function SellerOrderDetail() {
 
             {/* Rider Assignment Section */}
             {(orderStatus === "Accepted" || orderStatus === "Processed" || orderStatus === "Scheduled" || orderStatus === "Rider Assigned") && !orderDetail.deliveryBoyName && (
-              <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto items-stretch sm:items-center bg-white p-3 rounded-lg border-2 border-primary/20 shadow-sm animate-in slide-in-from-top-2 duration-300">
+              <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto items-stretch sm:items-center bg-white p-3 rounded-lg border-2 border-primary/20 shadow-sm animate-in slide-in-from-top-2 duration-300 relative">
                 <div className="flex items-center gap-2">
                   <div className="bg-primary/10 p-2 rounded-lg text-primary">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -655,14 +655,14 @@ export default function SellerOrderDetail() {
                   </div>
                   <span className="text-sm font-bold text-neutral-800 whitespace-nowrap">Assign Rider:</span>
                 </div>
-                <div ref={riderDropdownRef} className="relative w-full sm:w-auto sm:flex-1 sm:min-w-[220px]">
+                <div ref={riderDropdownRef} className="relative w-full sm:w-auto sm:flex-1 sm:min-w-[240px]">
                   {/* Dropdown trigger button */}
                   <button
                     type="button"
                     onClick={() => setIsRiderDropdownOpen(!isRiderDropdownOpen)}
-                    className="w-full flex items-center justify-between gap-2 px-3 py-2 border border-neutral-300 rounded-lg text-sm bg-white text-left focus:outline-none focus:ring-2 focus:ring-primary hover:border-neutral-400 transition-all cursor-pointer font-semibold text-neutral-800 shadow-sm"
+                    className="w-full flex items-center justify-between gap-2 px-3.5 py-2 border border-neutral-300 rounded-lg text-sm bg-white text-left focus:outline-none focus:ring-2 focus:ring-primary hover:border-neutral-400 transition-all cursor-pointer font-semibold text-neutral-800 shadow-sm"
                   >
-                    <span>
+                    <span className="truncate">
                       {selectedRiderId 
                         ? (deliveryBoys.find(boy => boy._id === selectedRiderId)?.name || "Select Delivery Rider") 
                         : "Select Delivery Rider"}
@@ -676,7 +676,7 @@ export default function SellerOrderDetail() {
                       strokeWidth="2.5"
                       strokeLinecap="round"
                       strokeLinejoin="round"
-                      className={`text-neutral-500 transition-transform duration-200 ${isRiderDropdownOpen ? 'rotate-180' : ''}`}
+                      className={`text-neutral-500 transition-transform duration-200 flex-shrink-0 ${isRiderDropdownOpen ? 'rotate-180' : ''}`}
                     >
                       <polyline points="6 9 12 15 18 9" />
                     </svg>
@@ -684,7 +684,7 @@ export default function SellerOrderDetail() {
 
                   {/* Dropdown list popover */}
                   {isRiderDropdownOpen && (
-                    <div className="absolute z-50 left-0 right-0 mt-1.5 bg-white border border-neutral-200 rounded-xl shadow-xl max-h-60 overflow-y-auto py-1 animate-in fade-in slide-in-from-top-1 duration-150">
+                    <div className="absolute z-50 left-0 right-0 sm:min-w-[260px] mt-1.5 bg-white border border-neutral-200 rounded-xl shadow-2xl max-h-64 overflow-y-auto py-1 divide-y divide-neutral-100 animate-in fade-in slide-in-from-top-1 duration-150">
                       <div
                         onClick={() => {
                           setSelectedRiderId("");
@@ -694,35 +694,56 @@ export default function SellerOrderDetail() {
                           !selectedRiderId ? 'text-primary font-bold bg-primary/5' : 'text-neutral-500'
                         }`}
                       >
-                        Select Delivery Rider
+                        <span>Select Delivery Rider</span>
+                        {!selectedRiderId && (
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="text-primary">
+                            <polyline points="20 6 9 17 4 12" />
+                          </svg>
+                        )}
                       </div>
-                      {deliveryBoys.map((boy) => {
-                        const isSelected = boy._id === selectedRiderId;
-                        const isAvailable = boy.available === 'Available';
-                        return (
-                          <div
-                            key={boy._id}
-                            onClick={() => {
-                              setSelectedRiderId(boy._id);
-                              setIsRiderDropdownOpen(false);
-                            }}
-                            className={`px-3.5 py-2.5 text-sm cursor-pointer hover:bg-neutral-50 transition-colors flex items-center justify-between gap-3 ${
-                              isSelected ? 'bg-primary/5 text-primary font-bold' : 'text-neutral-800'
-                            }`}
-                          >
-                            <span className="truncate">{boy.name}</span>
-                            <span
-                              className={`flex-shrink-0 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider border ${
-                                isAvailable
-                                  ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
-                                  : 'bg-amber-50 text-amber-700 border-amber-100'
+                      {deliveryBoys.length === 0 ? (
+                        <div className="px-3.5 py-4 text-xs text-neutral-400 text-center italic">
+                          No delivery riders available
+                        </div>
+                      ) : (
+                        deliveryBoys.map((boy) => {
+                          const isSelected = boy._id === selectedRiderId;
+                          const isAvailable = boy.available === 'Available';
+                          return (
+                            <div
+                              key={boy._id}
+                              onClick={() => {
+                                setSelectedRiderId(boy._id);
+                                setIsRiderDropdownOpen(false);
+                              }}
+                              className={`px-3.5 py-2.5 text-sm cursor-pointer hover:bg-neutral-50 transition-colors flex items-center justify-between gap-3 ${
+                                isSelected ? 'bg-primary/5 text-primary font-bold' : 'text-neutral-800'
                               }`}
                             >
-                              {boy.available === 'Available' ? 'Available' : 'Busy'}
-                            </span>
-                          </div>
-                        );
-                      })}
+                              <div className="flex flex-col min-w-0">
+                                <span className="truncate font-medium">{boy.name}</span>
+                                {boy.phone && <span className="text-[11px] text-neutral-400">{boy.phone}</span>}
+                              </div>
+                              <div className="flex items-center gap-1.5 flex-shrink-0">
+                                <span
+                                  className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider border ${
+                                    isAvailable
+                                      ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                      : 'bg-amber-50 text-amber-700 border-amber-200'
+                                  }`}
+                                >
+                                  {boy.available === 'Available' ? 'Available' : 'Busy'}
+                                </span>
+                                {isSelected && (
+                                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="text-primary">
+                                    <polyline points="20 6 9 17 4 12" />
+                                  </svg>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })
+                      )}
                     </div>
                   )}
                 </div>
