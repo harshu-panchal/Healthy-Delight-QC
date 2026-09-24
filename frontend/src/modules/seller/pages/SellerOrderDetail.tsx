@@ -601,13 +601,13 @@ export default function SellerOrderDetail() {
         }
       `}</style>
       {/* Order Action Section */}
-      <div id="print-hide-action-section" className="bg-white mb-6 rounded-lg shadow-sm border border-neutral-200 relative z-20 overflow-visible">
+      <div id="print-hide-action-section" className="bg-white mb-6 rounded-lg shadow-sm border border-neutral-200 relative z-30 overflow-visible">
         <div className="bg-neutral-50 border-b border-neutral-200 px-4 sm:px-6 py-3 rounded-t-lg">
           <h2 className="text-base sm:text-lg font-semibold text-neutral-800">
             Order Action Section
           </h2>
         </div>
-        <div className="bg-neutral-50 px-4 sm:px-6 py-4 rounded-b-lg">
+        <div className="bg-neutral-50 px-4 sm:px-6 py-4 rounded-b-lg overflow-visible">
           <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
             <div className="flex-1 w-full sm:w-auto">
               {orderStatus === "Received" || orderStatus === "Scheduled" ? (
@@ -644,7 +644,7 @@ export default function SellerOrderDetail() {
 
             {/* Rider Assignment Section */}
             {(orderStatus === "Accepted" || orderStatus === "Processed" || orderStatus === "Scheduled" || orderStatus === "Rider Assigned") && !orderDetail.deliveryBoyName && (
-              <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto items-stretch sm:items-center bg-white p-3 rounded-lg border-2 border-primary/20 shadow-sm animate-in slide-in-from-top-2 duration-300 relative">
+              <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto items-stretch sm:items-center bg-white p-3 rounded-lg border-2 border-primary/20 shadow-sm relative z-40 overflow-visible">
                 <div className="flex items-center gap-2">
                   <div className="bg-primary/10 p-2 rounded-lg text-primary">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -684,7 +684,7 @@ export default function SellerOrderDetail() {
 
                   {/* Dropdown list popover */}
                   {isRiderDropdownOpen && (
-                    <div className="absolute z-50 left-0 right-0 sm:min-w-[260px] mt-1.5 bg-white border border-neutral-200 rounded-xl shadow-2xl max-h-64 overflow-y-auto py-1 divide-y divide-neutral-100 animate-in fade-in slide-in-from-top-1 duration-150">
+                    <div className="absolute z-[999] top-full left-0 right-0 sm:min-w-[260px] mt-1.5 bg-white border border-neutral-200 rounded-xl shadow-2xl max-h-64 overflow-y-auto py-1 divide-y divide-neutral-100">
                       <div
                         onClick={() => {
                           setSelectedRiderId("");
@@ -833,7 +833,7 @@ export default function SellerOrderDetail() {
       </div>
 
       {/* View Order Details Section */}
-      <div id="printable-invoice" className="bg-white rounded-lg shadow-sm border border-neutral-200 overflow-hidden">
+      <div id="printable-invoice" className="bg-white rounded-lg shadow-sm border border-neutral-200 overflow-hidden relative z-0">
         <div id="printable-invoice-header" className="bg-neutral-50 border-b border-neutral-200 px-4 sm:px-6 py-3">
           <h2 className="text-base sm:text-lg font-semibold text-neutral-800">
             View Order Details
