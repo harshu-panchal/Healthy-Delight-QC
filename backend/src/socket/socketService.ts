@@ -54,6 +54,8 @@ export const initializeSocket = (httpServer: HttpServer) => {
 
                     // Default production origins if FRONTEND_URL not set
                     const defaultOrigins = [
+                        "https://healthydelightdairys.com",
+                        "https://www.healthydelightdairys.com",
                         "https://www.kosil.com",
                         "https://kosil.com",
                         "https://kosil-frontend.onrender.com",

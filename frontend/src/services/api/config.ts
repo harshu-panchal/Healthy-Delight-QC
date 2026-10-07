@@ -20,17 +20,41 @@ const getUserStorageKey = (role: UserRole) =>
   `userData_${role.toLowerCase()}`;
 
 // Base API URL - adjust based on your backend URL
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api/v1";
+const getApiBaseUrl = (): string => {
+  const envUrl =
+    import.meta.env.VITE_API_BASE_URL ||
+    import.meta.env.VITE_API_URL ||
+    "http://localhost:5000/api/v1";
+
+  // If in browser and current origin has www. but configured URL is non-www (or vice versa),
+  // align them to the current window origin.
+  // This avoids cross-origin requests completely and prevents CORS preflight issues!
+  if (typeof window !== "undefined" && window.location?.origin) {
+    try {
+      const parsedUrl = new URL(envUrl);
+      const currentHost = window.location.hostname;
+      if (
+        (currentHost.includes("healthydelightdairys.com") &&
+          parsedUrl.hostname.includes("healthydelightdairys.com")) ||
+        (currentHost.includes("kosil.com") &&
+          parsedUrl.hostname.includes("kosil.com"))
+      ) {
+        return `${window.location.origin}${parsedUrl.pathname}`;
+      }
+    } catch {
+      // Fallback to configured envUrl
+    }
+  }
+
+  return envUrl;
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 // Socket.io base URL - extract from API_BASE_URL by removing /api/v1
 // Socket connections need the base server URL without the API path
 export const getSocketBaseURL = (): string => {
-  // Use VITE_API_URL or VITE_API_BASE_URL
-  const apiBaseUrl =
-    import.meta.env.VITE_API_URL ||
-    import.meta.env.VITE_API_BASE_URL ||
-    "http://localhost:5000/api/v1";
+  const apiBaseUrl = API_BASE_URL;
 
   // Remove /api/v1 or /api and any trailing slash from the end
   const socketUrl = apiBaseUrl.replace(/\/api\/v\d+\/?$|\/api\/?$|\/$/, "");

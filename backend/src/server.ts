@@ -24,12 +24,20 @@ const app: Application = express();
 const httpServer = createServer(app);
 
 // Simple CORS configuration - Standard and reliable
-const allowedOrigins = [
+const defaultOrigins = [
+  "https://healthydelightdairys.com",
+  "https://www.healthydelightdairys.com",
+  "http://healthydelightdairys.com",
+  "http://www.healthydelightdairys.com",
   "https://www.kosil.com",
   "https://kosil.com",
   "https://kosil-frontend.onrender.com",
   "https://kosil.biz",
   "https://kosil.biz/",
+];
+
+const allowedOrigins = [
+  ...defaultOrigins,
   // Add more origins from environment variable if needed
   ...(process.env.FRONTEND_URL
     ? process.env.FRONTEND_URL.split(",").map((url) => url.trim())
@@ -59,15 +67,31 @@ const corsOptions = {
     // Normalize origin (remove trailing slash)
     const normalizedOrigin = origin.replace(/\/$/, "");
 
-    // Check if origin is in allowed list (exact match or normalized)
+    // Allow all healthydelightdairys.com variants (including www and any subdomain)
+    if (/^https?:\/\/([a-z0-9-]+\.)?healthydelightdairys\.com$/i.test(normalizedOrigin)) {
+      return callback(null, true);
+    }
+
+    // Check if origin is in allowed list (exact match, normalized, or www variant)
     const isAllowed = allowedOrigins.some((allowed) => {
       const normalizedAllowed = allowed.replace(/\/$/, "");
-      return (
+      if (
         origin === allowed ||
         normalizedOrigin === normalizedAllowed ||
         origin === normalizedAllowed ||
         normalizedOrigin === allowed
-      );
+      ) {
+        return true;
+      }
+      // Auto-match www and non-www
+      if (normalizedAllowed.includes("://www.")) {
+        const nonWww = normalizedAllowed.replace("://www.", "://");
+        if (normalizedOrigin === nonWww) return true;
+      } else {
+        const withWww = normalizedAllowed.replace("://", "://www.");
+        if (normalizedOrigin === withWww) return true;
+      }
+      return false;
     });
 
     if (isAllowed) {

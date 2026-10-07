@@ -29,8 +29,10 @@ export const isOriginAllowed = (origin: string | undefined): boolean => {
       .map((url) => url.trim().replace(/\/$/, '')) // Remove trailing slashes
       .filter((url) => url.length > 0);
 
-    // Default production origins (explicitly include www.kosil.com)
+    // Default production origins
     const defaultOrigins = [
+      'https://healthydelightdairys.com',
+      'https://www.healthydelightdairys.com',
       'https://www.kosil.com',
       'https://kosil.com',
       'https://kosil-frontend.onrender.com',
