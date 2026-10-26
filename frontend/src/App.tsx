@@ -1,3 +1,4 @@
+import ServerClosed from "./pages/ServerClosed";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Suspense, lazy, startTransition, useEffect } from "react";
 import { CartProvider } from "./context/CartContext";
@@ -992,7 +993,14 @@ function AppContent() {
   );
 }
 
+// Global Server Maintenance / Closed toggle: Set to true to show Server Closed everywhere
+export const IS_SERVER_CLOSED = true;
+
 function App() {
+  if (IS_SERVER_CLOSED) {
+    return <ServerClosed />;
+  }
+
   return (
     <AuthProvider>
       <AppContent />
